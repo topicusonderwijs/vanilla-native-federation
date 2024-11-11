@@ -161,7 +161,8 @@ import { initFederationWithDiscovery } from 'vanilla-native-federation';
 You can use a simple ESBuild config to build your loader into a reusable script: 
 
 **File structure:**
-your-project/
+```
+/
 ├── src/
 │   ├── index.html
 │   └── loader.js
@@ -173,6 +174,7 @@ your-project/
 ├── build.js
 ├── package.json
 └── node_modules/
+```
 
 **build.js**
 ```
