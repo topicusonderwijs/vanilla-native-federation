@@ -1,0 +1,25 @@
+{
+  "version": "0.1.2",
+  "name": "vanilla-native-federation",
+  "author": "aukevanoost",
+  "keywords": ["native-federation"],
+  "scripts": {
+    "build": "node build.js",
+    "lint": "eslint . -c eslint.config.js"  
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.8",
+    "@typescript-eslint/eslint-plugin": "^8.13.0",
+    "@typescript-eslint/parser": "^8.13.0",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.3",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "json5": "^2.2.3",
+    "serve": "^14.2.4",
+    "typescript": "^5.4.4"
+  },
+  "sideEffects": false
+}
