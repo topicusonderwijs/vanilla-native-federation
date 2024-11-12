@@ -1,16 +1,16 @@
-import { toCache } from "../cache/cache.handler"
-import { federationInitializerFactory, type TFederationInitializer } from "../init-federation"
 import type { DiscoveryCache, RemoteModuleConfigs } from "./discovery.contract"
-import { DEFAULT_CACHE } from "../cache"
-import type { TVerifyRemoteHandler } from "./verify-remote.handler"
-import type { NativeFederationCache } from "../cache/cache.contract"
-import { globalCacheEntry } from "../cache/global-cache"
-import type { ImportMap } from "../import-map/import-map.contract"
-import type { TLoadRemoteModule } from "../load-remote-module"
 import type { TDiscoveryHandler } from "./discovery.handler"
-import { NativeFederationError } from "../native-federation-error"
-import { discoveryResolver } from "../resolver"
-import { toLatestVersions } from "../utils/version"
+import type { TRemoteModuleHandler } from "./remote-module.handler"
+import { resolver } from "./resolver"
+import { DEFAULT_CACHE } from "../../lib/cache"
+import type { NativeFederationCache } from "../../lib/cache/cache.contract"
+import { toCache } from "../../lib/cache/cache.handler"
+import { globalCacheEntry } from "../../lib/cache/global-cache"
+import type { ImportMap } from "../../lib/import-map/import-map.contract"
+import { federationInitializerFactory, type TFederationInitializer } from "../../lib/init-federation"
+import type { TLoadRemoteModule } from "../../lib/load-remote-module"
+import { NativeFederationError } from "../../lib/native-federation-error"
+import { toLatestVersions } from "../../lib/utils/version"
 
 type TInitFederationWithDiscovery = (
     discoveryManifestUrl: string,
@@ -29,7 +29,7 @@ type DiscoveryFederationInitializerFactory = {
 const initFederationWithDiscoveryFactory = (
     federationInitializer: TFederationInitializer,
     discoveryHandler: TDiscoveryHandler,
-    verifyRemoteHandler: TVerifyRemoteHandler
+    remoteModuleHandler: TRemoteModuleHandler
 ): DiscoveryFederationInitializerFactory => {
 
     const getEntryPointUrls = (remotes: RemoteModuleConfigs, preloadRemotes?: string[]): Record<string, string> => {    
@@ -45,9 +45,9 @@ const initFederationWithDiscoveryFactory = (
             }, {})
     }
 
-    const verifyAndLoadModule = (load: TLoadRemoteModule, discovery: RemoteModuleConfigs) => {
+    const verifyAndLoadModule = (load: TLoadRemoteModule, remoteConfigs: RemoteModuleConfigs) => {
         return (remote: string, version?: string): Promise<any> => {
-            const remoteModule = verifyRemoteHandler.verifyModule(discovery, remote, version);
+            const remoteModule = remoteModuleHandler.getIfInitialized(remoteConfigs, remote, version);
             return load(remoteModule); 
         }
     }
@@ -61,16 +61,16 @@ const initFederationWithDiscoveryFactory = (
         if(remoteVersions !== "fetch" && Object.keys(remoteVersions).length < 1 && !!initSpecificRemotes) {
             remoteVersions = toLatestVersions(initSpecificRemotes);
         }
-
         return discoveryHandler
             .fetchRemoteConfigs(discoveryManifestUrl, remoteVersions)
-            .then(remotes => {
-                const entryPoints = getEntryPointUrls(remotes, initSpecificRemotes);
+            .then(remoteConfigs => {
+                const entryPoints = getEntryPointUrls(remoteConfigs, initSpecificRemotes);
+                
                 return federationInitializer.init(entryPoints)
                     .then(({load, importMap}) => ({
-                        load: verifyAndLoadModule(load, remotes), 
+                        load: verifyAndLoadModule(load, remoteConfigs), 
                         importMap,
-                        discovery: remotes
+                        discovery: remoteConfigs
                     }))
             })
     }
@@ -87,18 +87,17 @@ const initFederationWithDiscovery = (
         cache?: NativeFederationCache & DiscoveryCache
     }
 ) => {    
-    if (!o.cache) o.cache = {...DEFAULT_CACHE, ...toCache({discovery: {}}, globalCacheEntry)}
     const {
         remoteInfoHandler, 
         importMapHandler, 
         discoveryHandler,
-        verifyRemoteHandler
-    } = discoveryResolver(o.cache);
+        remoteModuleHandler
+    } = resolver(o.cache ?? {...DEFAULT_CACHE, ...toCache({discovery: {}}, globalCacheEntry)});
 
     return initFederationWithDiscoveryFactory(
         federationInitializerFactory(remoteInfoHandler, importMapHandler), 
         discoveryHandler, 
-        verifyRemoteHandler
+        remoteModuleHandler
     ).init(discoveryManifestUrl, o.remoteVersions ?? {}, o.initSpecificRemotes);
 }
 

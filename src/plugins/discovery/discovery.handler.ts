@@ -1,8 +1,8 @@
 import type { AvailableRemoteModules, DiscoveryProps, MfeDiscoveryManifest, RemoteModuleConfigs } from "./discovery.contract";
-import type { CacheOf } from "../cache/cache.contract";
-import type { TCacheHandler } from "../cache/cache.handler";
-import { NativeFederationError } from "../native-federation-error";
-import { getLatestVersion, toLatestVersions } from "../utils/version";
+import type { CacheOf } from "../../lib/cache/cache.contract";
+import type { TCacheHandler } from "../../lib/cache/cache.handler";
+import { NativeFederationError } from "../../lib/native-federation-error";
+import { getLatestVersion, toLatestVersions } from "../../lib/utils/version";
 
 type TDiscoveryHandler = {
     fetchRemoteConfigs: (discoveryManifestUrl: string, specificVersions: Record<string,string|"latest">|"fetch") => Promise<RemoteModuleConfigs>
@@ -12,7 +12,6 @@ const discoveryHandlerFactory = (
     cacheHandler: TCacheHandler<CacheOf<DiscoveryProps>>
 ): TDiscoveryHandler => {
 
-
     const getCachedRemoteVersions = (requested: Record<string,string|"latest">|"fetch"): RemoteModuleConfigs|false => {
         if (!cacheHandler.entry("discovery").exists()) return false;
         if (requested === "fetch") return false;
@@ -21,7 +20,7 @@ const discoveryHandlerFactory = (
 
         const cachedRemoteConfigs: RemoteModuleConfigs = {};
 
-        if(Object.keys(requested).length < 0) requested = toLatestVersions(Object.keys(cache));
+        if(Object.keys(requested).length < 1) requested = toLatestVersions(Object.keys(cache));
         for (const [remote, reqVersion] of Object.entries(requested)) {
 
             if(!cache[remote] || Object.keys(cache[remote]).length === 0) return false;
@@ -38,7 +37,9 @@ const discoveryHandlerFactory = (
     }
 
     const mapToRequestedVersion = (requested: Record<string,string|"latest">|"fetch") => (fetchedRemotes: AvailableRemoteModules): RemoteModuleConfigs => {
-        if (requested === "fetch") requested = toLatestVersions(Object.keys(requested));
+        if(requested === "fetch" || Object.keys(requested).length < 1) {
+            requested = toLatestVersions(Object.keys(fetchedRemotes));
+        }
 
         return Object.entries(requested).reduce((acc,[remote, version]) => {
             if(!fetchedRemotes[remote] || fetchedRemotes[remote].length < 1) 
@@ -74,7 +75,7 @@ const discoveryHandlerFactory = (
             if (cachedVersions) {
                 return Promise.resolve(cachedVersions);
             }
-
+            
             return fetch(discoveryManifestUrl)
                 .then(r => r.json() as unknown as MfeDiscoveryManifest)
                 .then(manifest => manifest.microFrontends)

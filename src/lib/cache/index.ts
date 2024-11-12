@@ -1,11 +1,4 @@
-import type { NativeFederationCache } from './cache.contract';
-import { toCache } from './cache.handler';
-import { globalCacheEntry } from './global-cache';
+export {DEFAULT_CACHE} from './default-cache';
 
-const DEFAULT_CACHE: NativeFederationCache = toCache({
-    externals: {},
-    remoteNamesToRemote: {},
-    baseUrlToRemoteNames: {}
-}, globalCacheEntry);
-
-export {DEFAULT_CACHE};
+export { TCacheEntry, CacheOf, NAMESPACE } from './cache.contract';
+export { TCacheHandler, toCache } from './cache.handler';

@@ -1,0 +1,1 @@
+export { initFederationWithDiscovery } from './init-federation-with-discovery';

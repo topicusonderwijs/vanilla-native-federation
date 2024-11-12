@@ -1,4 +1,5 @@
-import { type CacheEntryCreator, NAMESPACE,  type TCacheEntry } from "./cache.contract";
+import { toCache } from "../../lib/cache/cache.handler";
+import { type CacheEntryCreator, type CacheOf, NAMESPACE, type NativeFederationProps, type TCacheEntry } from "./../../lib/cache/cache.contract";
 
 const sessionStorageCacheEntry: CacheEntryCreator = <T>(key: string, _fallback: T) => {
     const entry = {
@@ -21,4 +22,8 @@ const sessionStorageCacheEntry: CacheEntryCreator = <T>(key: string, _fallback: 
     return entry;
 }
 
-export {sessionStorageCacheEntry};
+const createSessionStorageCache = <TCache extends NativeFederationProps>(cache: TCache): CacheOf<TCache> => {
+    return toCache(cache, sessionStorageCacheEntry)
+}
+
+export {createSessionStorageCache, sessionStorageCacheEntry};

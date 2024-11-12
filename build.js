@@ -6,8 +6,8 @@ const { execSync } = require('child_process');
 const commonConfig = {
   platform: 'browser',
   format: 'esm',
-  mainFields: ['es2022', 'es2020', 'browser', 'module', 'main'],
-  conditions: ['es2022', 'es2020', 'module'],
+  mainFields: ['browser', 'module', 'main'],
+  conditions: ['import', 'browser', 'module'],
   resolveExtensions: ['.ts', '.js'],
   tsconfig: 'tsconfig.json',
   minify: false,
@@ -15,26 +15,53 @@ const commonConfig = {
   metafile: true,
 };
 
-const builds = {
-  esm2022: {
-    ...commonConfig,
-    entryPoints: ['src/**/*.ts'],
-    outdir: 'dist/esm2022',
-    bundle: false,
-    outExtension: { '.js': '.mjs' },
-    sourcemap: false,
-  },
-  fesm2022: {
-    ...commonConfig,
-    entryPoints: ['src/index.ts'],
-    outfile: 'dist/fesm2022/vanilla-native-federation.mjs',
-    bundle: true,
-    sourcemap: true,
-  },
-};
+async function getPlugins() {
+  const pluginsDir = path.join('src', 'plugins');
+  const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
+  return entries
+    .filter(entry => entry.isDirectory())
+    .map(dir => dir.name);
+}
 
-const packageUpdates = {
-  exports: {
+async function generateBuilds() {
+  const plugins = await getPlugins();
+  
+  const builds = {
+    esm2022: {
+      ...commonConfig,
+      entryPoints: ['src/**/*.ts'],
+      outdir: 'dist/esm2022',
+      bundle: false,
+      outExtension: { '.js': '.mjs' },
+      sourcemap: false,
+    },
+    fesm2022: {
+      ...commonConfig,
+      entryPoints: ['src/index.ts'],
+      outfile: 'dist/fesm2022/vanilla-native-federation.mjs',
+      bundle: true,
+      sourcemap: true,
+    },
+  };
+
+  // Add builds for each plugin
+  for (const plugin of plugins) {
+    builds[`fesm2022_${plugin}`] = {
+      ...commonConfig,
+      entryPoints: [`src/plugins/${plugin}/index.ts`],
+      outfile: `dist/fesm2022/vanilla-native-federation-${plugin}.mjs`,
+      bundle: true,
+      sourcemap: true,
+    };
+  }
+
+  return builds;
+}
+
+async function generatePackageExports() {
+  const plugins = await getPlugins();
+  
+  const exports = {
     "./package.json": { default: "./package.json" },
     ".": {
       types: "./index.d.ts",
@@ -42,11 +69,25 @@ const packageUpdates = {
       esm: "./esm2022/vanilla-native-federation.mjs",
       default: "./fesm2022/vanilla-native-federation.mjs",
     },
-  },
-  module: './fesm2022/vanilla-native-federation.mjs',
-  typings: 'index.d.ts',
-  type: 'module',
-};
+  };
+
+  // Add exports for each plugin
+  for (const plugin of plugins) {
+    exports[`./plugins/${plugin}`] = {
+      types: `./plugins/${plugin}/index.d.ts`,
+      esm2022: `./esm2022/vanilla-native-federation-${plugin}.mjs`,
+      esm: `./esm2022/vanilla-native-federation-${plugin}.mjs`,
+      default: `./fesm2022/vanilla-native-federation-${plugin}.mjs`,
+    };
+  }
+
+  return {
+    exports,
+    module: './fesm2022/vanilla-native-federation.mjs',
+    typings: 'index.d.ts',
+    type: 'module',
+  };
+}
 
 async function generateTypes() {
   console.log('📝 Generating declaration files...');
@@ -60,6 +101,8 @@ async function generateTypes() {
 
 async function updatePackageJson() {
   const pkg = JSON.parse(await fs.readFile('package.json', 'utf8'));
+  const packageUpdates = await generatePackageExports();
+  
   const updatedPkg = {
     ...pkg,
     ...packageUpdates,
@@ -99,10 +142,13 @@ async function build() {
     await setupDist();
     await generateTypes();
     
-    await Promise.all([
-      esbuild.build(builds.esm2022).then(() => console.log('✓ ESM2022 built')),
-      esbuild.build(builds.fesm2022).then(() => console.log('✓ FESM2022 built')),
-    ]);
+    const builds = await generateBuilds();
+    
+    await Promise.all(
+      Object.entries(builds).map(([name, config]) =>
+        esbuild.build(config).then(() => console.log(`✓ ${name} built`))
+      )
+    );
     
     await Promise.all([
       updatePackageJson(),

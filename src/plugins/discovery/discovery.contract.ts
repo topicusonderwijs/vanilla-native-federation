@@ -1,4 +1,4 @@
-import type { CacheOf } from "../cache/cache.contract";
+import type { CacheOf } from "../../lib/cache/cache.contract";
 
 type RemoteModuleMeta = {
     url: string;

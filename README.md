@@ -16,14 +16,15 @@ import { initFederation } from 'vanilla-native-federation';
 
 (() => {
     const manifest = {
-        "mfe": "http://localhost:3000/remoteEntry.json"
+      "mfe1": "http://localhost:3001/remoteEntry.json",
+      "mfe2": "http://localhost:3002/remoteEntry.json",
     }
     initFederation(manifest)
-        .then(({load, importMap}) => Promise.all([
-            load('mfe1', './Component'),
-            load('mfe2', './Component'),
-        ]))
-        .catch(console.error);
+      .then(({load, importMap}) => Promise.all([
+        load('mfe1', './Component'),
+        load('mfe2', './Component'),
+      ]))
+      .catch(console.error);
 })();
 ```
 
@@ -34,37 +35,38 @@ import { initFederation } from 'vanilla-native-federation';
 import { initFederation } from 'vanilla-native-federation';
 
 (() => {
-    const manifest = {
-        "mfe": "http://localhost:3000/remoteEntry.json"
-    }
-    initFederation(manifest)
-        .then(({load, importMap}) => {
-            console.log("importMap: ", importMap);
-            window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
-        })
+  const manifest = {
+    "mfe1": "http://localhost:3001/remoteEntry.json"
+  }
+  initFederation(manifest)
+    .then(({load, importMap}) => {
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
 })();
 ```
 
 **your-shell.html**
 ```
-    <body>
-        <!-- webcomponent exposed by mfe1 remote -->
-        <app-mfe-one></app-mfe-one>
+  <body>
+    <!-- webcomponent exposed by mfe1 remote -->
+    <app-mfe-one></app-mfe-one>
 
-        <script type="esms-options">{ "shimMode": true }</script>
-        <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+    <script type="esms-options">{ "shimMode": true }</script>
+    <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
 
-        <script type="module-shim" src="loader.js"></script>
+    <script type="module-shim" src="loader.js"></script>
 
-        <script>
-            window.addEventListener('mfe-loader-available', (e) => {
-                Promise.all([
-                    e.detail.load('mfe1', './Component'),
-                    e.detail.load('mfe2', './Component'),
-                ]).catch(console.error);
-            }, {once: true});
-        </script>  
-    </body>
+    <script>
+      window.addEventListener('mfe-loader-available', (e) => {
+        Promise.all([
+          e.detail.load('mfe1', './Component'), 
+          // e.detail.load({ remoteName: 'mfe1', exposedModule: './Component' }),
+          // e.detail.load({ remoteEntry: 'http://localhost:3002/remoteEntry.json', exposedModule: './Component' }),
+        ]).catch(console.error);
+      }, {once: true});
+    </script>  
+  </body>
 ```
 
 ### Usage with discovery:
@@ -73,16 +75,16 @@ This library also contains the implementation for [micro frontend discovery](htt
 
 **loader.ts**
 ```
-import { initFederationWithDiscovery } from 'vanilla-native-federation';
+import { initFederationWithDiscovery } from 'vanilla-native-federation/plugins/discovery';
 
 (() => {
-    const myDiscoveryUrl = "http://localhost:3000";
-    initFederationWithDiscovery(myDiscoveryUrl)
-        .then(({load, discovery, importMap}) => {
-            console.log("discovery: ", discovery);
-            console.log("importMap: ", importMap);
-            window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
-        })
+  const myDiscoveryUrl = "http://localhost:3000";
+  initFederationWithDiscovery(myDiscoveryUrl)
+    .then(({load, discovery, importMap}) => {
+      console.log("discovery: ", discovery);
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
 })();
 ```
 
@@ -105,7 +107,7 @@ import { initFederationWithDiscovery } from 'vanilla-native-federation';
         "extras": {
           "nativefederation": {
             "remoteEntry": "http://localhost:3001/remoteEntry.json",
-            "key": "./Component",
+            "exposedModule": "./Component",
           }
         }
       }
@@ -124,7 +126,7 @@ import { initFederationWithDiscovery } from 'vanilla-native-federation';
         "extras": {
           "nativefederation": {
             "remoteEntry": "http://localhost:3002/remoteEntry.json",
-            "key": "./Component",
+            "exposedModule": "./Component",
           }
         }
       }
@@ -135,25 +137,50 @@ import { initFederationWithDiscovery } from 'vanilla-native-federation';
 
 **your-shell.html**
 ```
-    <body>
-        <!-- webcomponent exposed by mfe1 remote -->
-        <app-mfe-one></app-mfe-one>
-        <app-mfe-two></app-mfe-two>
+  <body>
+    <!-- webcomponent exposed by mfe1 remote -->
+    <app-mfe-one></app-mfe-one>
+    <app-mfe-two></app-mfe-two>
 
-        <script type="esms-options">{ "shimMode": true }</script>
-        <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+    <script type="esms-options">{ "shimMode": true }</script>
+    <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
 
-        <script type="module-shim" src="loader.js"></script>
+    <script type="module-shim" src="loader.js"></script>
 
-        <script>
-            window.addEventListener('mfe-loader-available', (e) => {
-                Promise.all([
-                    e.detail.load('mfe1', './Component'),
-                    e.detail.load('mfe2', './Component'),
-                ]).catch(console.error);
-            }, {once: true});
-        </script>  
-    </body>
+    <script>
+      window.addEventListener('mfe-loader-available', (e) => {
+        Promise.all([
+          e.detail.load('mfe1'), // optionally with a version: e.detail.load('mfe1', '1.2.0')
+          e.detail.load('mfe2'),
+        ]).catch(console.error);
+      }, {once: true});
+    </script>  
+  </body>
+```
+
+### Using custom storage: 
+
+By default, native federation will use the window object as storage for all metadata, you can change this using a custom provided storage: 
+
+**loader.ts**
+```
+import { initFederation } from 'vanilla-native-federation';
+import { createSessionStorageCache } from 'vanilla-native-federation/plugins/storage';
+
+(() => {
+  const customCache = createSessionStorageCache({
+    externals: {},
+    remoteNamesToRemote: {},
+    baseUrlToRemoteNames: {}
+  })
+  const myDiscoveryUrl = "http://localhost:3000";
+  initFederationWithDiscovery(myDiscoveryUrl, {cache: customCache})
+    .then(({load, discovery, importMap}) => {
+      console.log("discovery: ", discovery);
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
+})();
 ```
 
 ## Building your loader.js
