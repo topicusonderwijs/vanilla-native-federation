@@ -4,6 +4,16 @@ Check the full description of native-federation on [@softarc/native-federation](
 
 This library is under [MIT License](./LICENSE.md) and is inspired on [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime).
 
+## More information: 
+
+If you want to know more about Native federation, check out these sources: 
+
+- [Talk by Manfred Steyer](https://www.youtube.com/watch?v=cofoI5_S3lE)
+- [The official native federation package](https://www.npmjs.com/package/@angular-architects/native-federation)
+- [Angular-architects blogpost](https://www.angulararchitects.io/blog/announcing-native-federation-1-0/)
+- [Some examples](https://github.com/manfredsteyer/native-federation-core-example)
+
+
 ## Usage:
 
 Below you can find some examples of how to use the native-federation loader:

@@ -9,17 +9,8 @@ Thanks for being interested in contributing! Here's how to help:
 3. Build the library: `npm run build`
 4. Create a branch: `git checkout -b my-feature`
 5. Make your changes
-6. Run tests: `npm test`
+6. Lint your code: `npm run lint`
 7. Push your branch and open a PR
-
-## Development
-
-```bash
-npm install        # Install dependencies
-npm run build     # Build the project
-npm test          # Run tests
-npm run lint      # Check code style
-```
 
 ## Pull Request Guidelines
 
