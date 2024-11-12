@@ -2,6 +2,7 @@ import { toCache } from "../cache/cache.handler"
 import { federationInitializerFactory, type TFederationInitializer } from "../init-federation"
 import type { DiscoveryCache, RemoteModuleConfigs } from "./discovery.contract"
 import { DEFAULT_CACHE } from "../cache"
+import type { TVerifyRemoteHandler } from "./verify-remote.handler"
 import type { NativeFederationCache } from "../cache/cache.contract"
 import { globalCacheEntry } from "../cache/global-cache"
 import type { ImportMap } from "../import-map/import-map.contract"
@@ -11,12 +12,15 @@ import { NativeFederationError } from "../native-federation-error"
 import { discoveryResolver } from "../resolver"
 import { toLatestVersions } from "../utils/version"
 
-
 type TInitFederationWithDiscovery = (
     discoveryManifestUrl: string,
     remoteVersions: Record<string,string|"latest">|"fetch",
     initSpecificRemotes?: string[],
-) => Promise<{load: TLoadRemoteModule, discovery: RemoteModuleConfigs, importMap: ImportMap}>
+) => Promise<{
+    load: (remote: string, version?: string) => Promise<any>, 
+    discovery: RemoteModuleConfigs, 
+    importMap: ImportMap
+}>
 
 type DiscoveryFederationInitializerFactory = {
     init: TInitFederationWithDiscovery
@@ -25,8 +29,8 @@ type DiscoveryFederationInitializerFactory = {
 const initFederationWithDiscoveryFactory = (
     federationInitializer: TFederationInitializer,
     discoveryHandler: TDiscoveryHandler,
+    verifyRemoteHandler: TVerifyRemoteHandler
 ): DiscoveryFederationInitializerFactory => {
-
 
     const getEntryPointUrls = (remotes: RemoteModuleConfigs, preloadRemotes?: string[]): Record<string, string> => {    
         if(!preloadRemotes) preloadRemotes = Object.keys(remotes);
@@ -41,6 +45,13 @@ const initFederationWithDiscoveryFactory = (
             }, {})
     }
 
+    const verifyAndLoadModule = (load: TLoadRemoteModule, discovery: RemoteModuleConfigs) => {
+        return (remote: string, version?: string): Promise<any> => {
+            const remoteModule = verifyRemoteHandler.verifyModule(discovery, remote, version);
+            return load(remoteModule); 
+        }
+    }
+
     const init = (
         discoveryManifestUrl: string,
         remoteVersions: Record<string,string|"latest">|"fetch",
@@ -52,12 +63,13 @@ const initFederationWithDiscoveryFactory = (
         }
 
         return discoveryHandler
-            .fetchModuleConfigs(discoveryManifestUrl, remoteVersions)
+            .fetchRemoteConfigs(discoveryManifestUrl, remoteVersions)
             .then(remotes => {
                 const entryPoints = getEntryPointUrls(remotes, initSpecificRemotes);
                 return federationInitializer.init(entryPoints)
-                    .then(federationProps => ({
-                        ...federationProps, 
+                    .then(({load, importMap}) => ({
+                        load: verifyAndLoadModule(load, remotes), 
+                        importMap,
                         discovery: remotes
                     }))
             })
@@ -74,17 +86,20 @@ const initFederationWithDiscovery = (
         remoteVersions?: Record<string,string|"latest">|"fetch",
         cache?: NativeFederationCache & DiscoveryCache
     }
-): Promise<{load: TLoadRemoteModule, discovery: RemoteModuleConfigs, importMap: ImportMap}> => {    
+) => {    
     if (!o.cache) o.cache = {...DEFAULT_CACHE, ...toCache({discovery: {}}, globalCacheEntry)}
     const {
         remoteInfoHandler, 
         importMapHandler, 
-        discoveryHandler
+        discoveryHandler,
+        verifyRemoteHandler
     } = discoveryResolver(o.cache);
 
-    const nfInitializer = federationInitializerFactory(remoteInfoHandler, importMapHandler);
-    return initFederationWithDiscoveryFactory(nfInitializer, discoveryHandler)
-        .init(discoveryManifestUrl, o.remoteVersions ?? {}, o.initSpecificRemotes);
+    return initFederationWithDiscoveryFactory(
+        federationInitializerFactory(remoteInfoHandler, importMapHandler), 
+        discoveryHandler, 
+        verifyRemoteHandler
+    ).init(discoveryManifestUrl, o.remoteVersions ?? {}, o.initSpecificRemotes);
 }
 
 export { initFederationWithDiscovery};

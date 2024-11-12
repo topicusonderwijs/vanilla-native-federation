@@ -7,7 +7,7 @@ type RemoteModuleMeta = {
     extras: Record<string, any> & {
         nativefederation: {
             remoteEntry: string,
-            key: string
+            exposedModule: string
         }
     }
 }

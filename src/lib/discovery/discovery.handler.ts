@@ -2,10 +2,10 @@ import type { AvailableRemoteModules, DiscoveryProps, MfeDiscoveryManifest, Remo
 import type { CacheOf } from "../cache/cache.contract";
 import type { TCacheHandler } from "../cache/cache.handler";
 import { NativeFederationError } from "../native-federation-error";
-import { compareVersions, toLatestVersions } from "../utils/version";
+import { getLatestVersion, toLatestVersions } from "../utils/version";
 
 type TDiscoveryHandler = {
-    fetchModuleConfigs: (discoveryManifestUrl: string, specificVersions: Record<string,string|"latest">|"fetch") => Promise<RemoteModuleConfigs>
+    fetchRemoteConfigs: (discoveryManifestUrl: string, specificVersions: Record<string,string|"latest">|"fetch") => Promise<RemoteModuleConfigs>
 }
 
 const discoveryHandlerFactory = (
@@ -27,7 +27,7 @@ const discoveryHandlerFactory = (
             if(!cache[remote] || Object.keys(cache[remote]).length === 0) return false;
 
             const version = (reqVersion === "latest")
-                ? Object.keys(cache[remote]).sort(compareVersions)[0]!
+                ? getLatestVersion(Object.keys(cache[remote]))!
                 : reqVersion;
 
             if(!cache[remote][version]) return false;
@@ -68,7 +68,7 @@ const discoveryHandlerFactory = (
     }
 
 
-    const fetchModuleConfigs = (discoveryManifestUrl: string, requested: Record<string,string|"latest">|"fetch")
+    const fetchRemoteConfigs = (discoveryManifestUrl: string, requested: Record<string,string|"latest">|"fetch")
         : Promise<RemoteModuleConfigs> => {
             const cachedVersions = getCachedRemoteVersions(requested);
             if (cachedVersions) {
@@ -81,7 +81,7 @@ const discoveryHandlerFactory = (
                 .then(mapToRequestedVersion(requested))
                 .then(updateCachedRemoteConfigs);
         }
-    return {fetchModuleConfigs};
+    return {fetchRemoteConfigs};
 }
 
 export {discoveryHandlerFactory, TDiscoveryHandler}

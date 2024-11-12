@@ -19,4 +19,8 @@ const toLatestVersions = (remotes: string[]): Record<string, "latest"> => {
     return remotes.reduce((a,b) => ({...a, [b]: "latest"}), {});
 }
 
-export {compareVersions, toLatestVersions};
+const getLatestVersion = (versions: string[]): string|undefined => {
+    return versions.sort(compareVersions)[0];
+}
+
+export {compareVersions, toLatestVersions, getLatestVersion};

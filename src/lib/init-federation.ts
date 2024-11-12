@@ -10,7 +10,10 @@ import * as _dom from './utils/dom';
 
 type TInitFederation = (
     remotesOrManifestUrl: string | Record<string, string>
-) => Promise<{load: TLoadRemoteModule, importMap: ImportMap}>
+) => Promise<{
+    load: TLoadRemoteModule, 
+    importMap: ImportMap
+}>
 
 type TFederationInitializer = {
     init: TInitFederation

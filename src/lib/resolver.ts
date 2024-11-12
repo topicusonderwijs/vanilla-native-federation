@@ -3,6 +3,7 @@ import  { type TCacheHandler, cacheHandlerFactory } from "./cache/cache.handler"
 import { dependencyHandlerFactory } from "./dependency/dependency.handler";
 import type { DiscoveryCache } from "./discovery/discovery.contract";
 import { discoveryHandlerFactory } from "./discovery/discovery.handler";
+import { verifyRemoteHandlerFactory } from "./discovery/verify-remote.handler";
 import { importMapHandlerFactory } from "./import-map/import-map.handler";
 import { remoteInfoHandlerFactory } from "./remote-info/remote-info.handler";
 
@@ -24,10 +25,12 @@ const resolver = (cache: NativeFederationCache) => {
 const discoveryResolver = (cache: DiscoveryCache & NativeFederationCache) => {
     const cacheHandler = cacheHandlerFactory(cache);
     const discoveryHandler = discoveryHandlerFactory(cacheHandler);
+    const verifyRemoteHandler = verifyRemoteHandlerFactory(cacheHandler);
 
     return {
         cacheHandler, 
         discoveryHandler,
+        verifyRemoteHandler,
         ...resolveNativeFedationHandlers(cacheHandler)
     };
 }
