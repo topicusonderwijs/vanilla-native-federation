@@ -1,20 +1,22 @@
 import { toCache } from "../cache/cache.handler"
 import { federationInitializerFactory, type TFederationInitializer } from "../init-federation"
-import type { DiscoveryCache, AvailableRemoteModule, AvailableRemoteModules } from "./discovery.contract"
+import type { DiscoveryCache, RemoteModuleConfigs } from "./discovery.contract"
 import { DEFAULT_CACHE } from "../cache"
+import type { NativeFederationCache } from "../cache/cache.contract"
 import { globalCacheEntry } from "../cache/global-cache"
 import type { ImportMap } from "../import-map/import-map.contract"
 import type { TLoadRemoteModule } from "../load-remote-module"
 import type { TDiscoveryHandler } from "./discovery.handler"
-import { verifyRequestedModules } from "./verify-requested-modules"
-import type { NativeFederationCache } from "../cache/cache.contract"
+import { NativeFederationError } from "../native-federation-error"
 import { discoveryResolver } from "../resolver"
-import { NFDiscoveryError } from "./discovery.error"
+import { toLatestVersions } from "../utils/version"
+
 
 type TInitFederationWithDiscovery = (
     discoveryManifestUrl: string,
-    microfrontends: string[]|Record<string,string|"latest">
-) => Promise<{load: TLoadRemoteModule, discovery: AvailableRemoteModules, importMap: ImportMap}>
+    remoteVersions: Record<string,string|"latest">|"fetch",
+    initSpecificRemotes?: string[],
+) => Promise<{load: TLoadRemoteModule, discovery: RemoteModuleConfigs, importMap: ImportMap}>
 
 type DiscoveryFederationInitializerFactory = {
     init: TInitFederationWithDiscovery
@@ -24,41 +26,39 @@ const initFederationWithDiscoveryFactory = (
     federationInitializer: TFederationInitializer,
     discoveryHandler: TDiscoveryHandler,
 ): DiscoveryFederationInitializerFactory => {
-    const setVersions = (requested: string[]|Record<string, string|"latest">): Record<string, string|"latest">  => {
-        if(!Array.isArray(requested)) return requested;
-        return requested.reduce((acc, r) => ({...acc, [r]: "latest"}), {});
-    }
 
-    const getEntryPointUrls = (availableModules: AvailableRemoteModules, mfeFilter?: Record<string, string|"latest">): Record<string, string> => {
-        if(!mfeFilter) mfeFilter = setVersions(Object.keys(availableModules));
-    
-        return Object.entries(mfeFilter)
-            .map(([mfe, version]) => {
-                const availableModule = availableModules[mfe]?.find(m => version === "latest" || version === m.metadata.version);
-                if(!availableModule)
-                    throw new NFDiscoveryError(`Micro frontend '${mfe}' version '${version}' does not exist!`);
-                return [mfe, availableModule] as [string, AvailableRemoteModule];
-            })
-            .reduce((nfConfig, [mfe,cfg]) => ({
-                ...nfConfig, 
-                [mfe]: cfg.extras.nativefederation.remoteEntry
-            }), {})
+
+    const getEntryPointUrls = (remotes: RemoteModuleConfigs, preloadRemotes?: string[]): Record<string, string> => {    
+        if(!preloadRemotes) preloadRemotes = Object.keys(remotes);
+
+        return preloadRemotes
+            .reduce((nfConfig, mfe) => {
+                if(!remotes[mfe]) throw new NativeFederationError(`Could not preload remote '${mfe}', not available in discovery.`)
+                return {
+                    ...nfConfig, 
+                    [mfe]: remotes[mfe].extras.nativefederation.remoteEntry
+                }
+            }, {})
     }
 
     const init = (
         discoveryManifestUrl: string,
-        microfrontends: string[]|Record<string,string|"latest"> = []
-     ) => {
-        const requestedMFE = setVersions(microfrontends ?? {});
-    
-        return discoveryHandler.fetchDiscovery(discoveryManifestUrl)
-            .then(verifyRequestedModules(requestedMFE))
-            .then(availableModules => {
-                const entryPoints = getEntryPointUrls(availableModules, requestedMFE);
+        remoteVersions: Record<string,string|"latest">|"fetch",
+        initSpecificRemotes?: string[],
+     ) => {    
+
+        if(remoteVersions !== "fetch" && Object.keys(remoteVersions).length < 1 && !!initSpecificRemotes) {
+            remoteVersions = toLatestVersions(initSpecificRemotes);
+        }
+
+        return discoveryHandler
+            .fetchModuleConfigs(discoveryManifestUrl, remoteVersions)
+            .then(remotes => {
+                const entryPoints = getEntryPointUrls(remotes, initSpecificRemotes);
                 return federationInitializer.init(entryPoints)
                     .then(federationProps => ({
                         ...federationProps, 
-                        discovery: availableModules
+                        discovery: remotes
                     }))
             })
     }
@@ -69,18 +69,22 @@ const initFederationWithDiscoveryFactory = (
 
 const initFederationWithDiscovery = (
     discoveryManifestUrl: string,
-    microfrontends: string[]|Record<string,string|"latest"> = [],
-    o: {cache?: NativeFederationCache & DiscoveryCache} = {}
-): Promise<{load: TLoadRemoteModule, discovery: AvailableRemoteModules, importMap: ImportMap}> => {    
+    o: {
+        initSpecificRemotes?: string[],
+        remoteVersions?: Record<string,string|"latest">|"fetch",
+        cache?: NativeFederationCache & DiscoveryCache
+    }
+): Promise<{load: TLoadRemoteModule, discovery: RemoteModuleConfigs, importMap: ImportMap}> => {    
+    if (!o.cache) o.cache = {...DEFAULT_CACHE, ...toCache({discovery: {}}, globalCacheEntry)}
     const {
         remoteInfoHandler, 
         importMapHandler, 
         discoveryHandler
-    } = discoveryResolver(o.cache ?? {...DEFAULT_CACHE, ...toCache({discovery: {}}, globalCacheEntry)});
+    } = discoveryResolver(o.cache);
 
     const nfInitializer = federationInitializerFactory(remoteInfoHandler, importMapHandler);
     return initFederationWithDiscoveryFactory(nfInitializer, discoveryHandler)
-        .init(discoveryManifestUrl, microfrontends);
+        .init(discoveryManifestUrl, o.remoteVersions ?? {}, o.initSpecificRemotes);
 }
 
 export { initFederationWithDiscovery};

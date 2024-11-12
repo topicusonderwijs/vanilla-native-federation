@@ -1,6 +1,6 @@
 import type { CacheOf } from "../cache/cache.contract";
 
-type AvailableRemoteModule = {
+type RemoteModuleMeta = {
     url: string;
     metadata: {integrity: string; version: string},
     deployment: {traffic: number, default: boolean},
@@ -12,14 +12,21 @@ type AvailableRemoteModule = {
     }
 }
 
-type AvailableRemoteModules = Record<string, AvailableRemoteModule[]>;
+type version = string;
+type remoteName = string;
+
+type AvailableRemoteModules = Record<remoteName, RemoteModuleMeta[]>;
+
+type RemoteModuleConfigs = Record<string, RemoteModuleMeta>;
+
+type CachedRemoteModuleConfigs = Record<remoteName, Record<version, RemoteModuleMeta>>;
 
 type MfeDiscoveryManifest = {
     schema: string;
     microFrontends: AvailableRemoteModules;
 }
 
-type DiscoveryProps = { discovery: AvailableRemoteModules; }
+type DiscoveryProps = { discovery: CachedRemoteModuleConfigs; }
 type DiscoveryCache = CacheOf<DiscoveryProps>;
 
-export {MfeDiscoveryManifest, AvailableRemoteModule, AvailableRemoteModules, DiscoveryProps, DiscoveryCache}
+export {MfeDiscoveryManifest, CachedRemoteModuleConfigs, RemoteModuleConfigs, RemoteModuleMeta, AvailableRemoteModules, DiscoveryProps, DiscoveryCache}

@@ -36,18 +36,14 @@ module.exports = [
             'prettier': prettier
         },
         rules: {
-            // TypeScript rules
             '@typescript-eslint/explicit-function-return-type': 'off',
             '@typescript-eslint/no-explicit-any': 'warn',
-            '@typescript-eslint/no-unused-vars': ['error', {
-                argsIgnorePattern: '^_',
-                varsIgnorePattern: '^_',
-            }],
+            '@typescript-eslint/no-unused-vars': 'off',
+            'no-unused-vars': 'off',
             '@typescript-eslint/consistent-type-imports': ['error', {
                 prefer: 'type-imports',
             }],
             
-            // Import rules
             'import/order': ['error', {
                 'groups': [
                     ['builtin', 'external'],
@@ -67,8 +63,7 @@ module.exports = [
             'eqeqeq': ['error', 'always'],
             'no-unused-expressions': 'error',
             'no-duplicate-imports': 'error',
-            // 'curly': ['error', 'all'],
-            'prefer-const': 'error'
+            'prefer-const': 'error',
         },
         settings: {
             'import/resolver': {
