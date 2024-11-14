@@ -1,7 +1,7 @@
 import type { AvailableRemoteModules, DiscoveryProps, MfeDiscoveryManifest, RemoteModuleConfigs } from "./discovery.contract";
+import { NFDiscoveryError } from "./discovery.error";
 import type { CacheOf } from "../../lib/cache/cache.contract";
 import type { TCacheHandler } from "../../lib/cache/cache.handler";
-import { NativeFederationError } from "../../lib/native-federation-error";
 import { getLatestVersion, toLatestVersions } from "../../lib/utils/version";
 
 type TDiscoveryHandler = {
@@ -43,14 +43,14 @@ const discoveryHandlerFactory = (
 
         return Object.entries(requested).reduce((acc,[remote, version]) => {
             if(!fetchedRemotes[remote] || fetchedRemotes[remote].length < 1) 
-                throw new NativeFederationError(`Remote '${remote}' is not available in discovery.`);
+                throw new NFDiscoveryError(`Remote '${remote}' is not available in discovery.`);
             
             const config = (version === "latest" || version === "fetch")
                 ? fetchedRemotes[remote][0]
                 : fetchedRemotes[remote].find(v => v.metadata.version === version);
 
             if(!config) 
-                throw new NativeFederationError(`Version '${version}' of remote '${remote}' is not available in discovery.`);
+                throw new NFDiscoveryError(`Version '${version}' of remote '${remote}' is not available in discovery.`);
 
             return {...acc, [remote]: config};
         }, {} as RemoteModuleConfigs)

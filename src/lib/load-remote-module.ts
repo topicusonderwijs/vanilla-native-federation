@@ -1,9 +1,9 @@
 
 import { DEFAULT_CACHE } from "./cache";
 import type { NativeFederationCache } from "./cache/cache.contract";
-import { NativeFederationError } from "./native-federation-error";
-import type { RemoteInfo } from "./remote-info/remote-info.contract";
-import type { TRemoteInfoHandler } from "./remote-info/remote-info.handler";
+import { NativeFederationError } from "./native-federation.error";
+import type { TRemoteInfo } from "./remote-entry/remote-info.contract";
+import type { TRemoteInfoHandler } from "./remote-entry/remote-info.handler";
 import { resolver } from "./resolver";
 import * as _dom from "./utils/dom";
 import * as _path from "./utils/path";
@@ -38,7 +38,7 @@ const remoteModuleLoaderFactory = (remoteInfoHandler: TRemoteInfoHandler): TRemo
         throw new NativeFederationError('unexpected arguments: please pass options or a remoteName/exposedModule-pair');
     }
 
-    const getExposedModuleUrl = (remoteInfo: RemoteInfo, exposedModule: string): string => {    
+    const getExposedModuleUrl = (remoteInfo: TRemoteInfo, exposedModule: string): string => {    
         const exposed = remoteInfo.exposes.find(e => e.key === exposedModule);
         if (!exposed) throw new NativeFederationError(`Unknown exposed module ${exposedModule} in remote ${remoteInfo.name}`);
     

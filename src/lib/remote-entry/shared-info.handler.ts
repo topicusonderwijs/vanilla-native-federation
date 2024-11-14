@@ -1,24 +1,23 @@
-import type { SharedConfig } from "./shared-config";
+import type { TSharedInfo, TRemoteInfo } from "./remote-info.contract";
 import type { NativeFederationProps, TCacheEntry } from "../cache/cache.contract";
 import type { TCacheHandler } from "../cache/cache.handler";
-import type { RemoteInfo } from "../remote-info/remote-info.contract";
 import * as _path from "../utils/path";
 
-const toExternalKey = (shared: SharedConfig): string => {
+const toExternalKey = (shared: TSharedInfo): string => {
     return `${shared.packageName}@${shared.version}`;
 }
 
-type TDependencyHandler = {
-    mapSharedDeps: (remoteInfo: RemoteInfo) => Record<string, string>,
-    addSharedDepsToCache: (remoteInfo: RemoteInfo) => RemoteInfo
+type TSharedInfoHandler = {
+    mapSharedDeps: (remoteInfo: TRemoteInfo) => Record<string, string>,
+    addSharedDepsToCache: (remoteInfo: TRemoteInfo) => TRemoteInfo
 }
 
-const dependencyHandlerFactory = (cache: TCacheHandler<{"externals": TCacheEntry<Record<string, string>>}>): TDependencyHandler => {
-    const getSharedDepRef = (dep: SharedConfig): string|undefined => {
+const sharedInfoHandlerFactory = (cache: TCacheHandler<{"externals": TCacheEntry<Record<string, string>>}>): TSharedInfoHandler => {
+    const getSharedDepRef = (dep: TSharedInfo): string|undefined => {
         return cache.fetch("externals")[toExternalKey(dep)];
     }
 
-    const mapSharedDeps = (remoteInfo: RemoteInfo) => {
+    const mapSharedDeps = (remoteInfo: TRemoteInfo) => {
         return remoteInfo.shared.reduce((dependencies, moduleDep) => {
             return {
                 ...dependencies,
@@ -27,7 +26,7 @@ const dependencyHandlerFactory = (cache: TCacheHandler<{"externals": TCacheEntry
         }, {});
     }
 
-    const mapModuleDepsIntoSharedDepsList = (remoteInfo: RemoteInfo) => (sharedList: NativeFederationProps["externals"]) => {
+    const mapModuleDepsIntoSharedDepsList = (remoteInfo: TRemoteInfo) => (sharedList: NativeFederationProps["externals"]) => {
         return remoteInfo.shared.reduce((existing, dep) => {
             if(!existing[toExternalKey(dep)]) {
                 existing[toExternalKey(dep)] = _path.join(remoteInfo.baseUrl, dep.outFileName);
@@ -36,7 +35,7 @@ const dependencyHandlerFactory = (cache: TCacheHandler<{"externals": TCacheEntry
         }, sharedList)
     }
 
-    const addSharedDepsToCache = (remoteInfo: RemoteInfo) => {
+    const addSharedDepsToCache = (remoteInfo: TRemoteInfo) => {
         cache.mutate("externals", mapModuleDepsIntoSharedDepsList(remoteInfo))
         return remoteInfo;
     }
@@ -44,4 +43,4 @@ const dependencyHandlerFactory = (cache: TCacheHandler<{"externals": TCacheEntry
     return {mapSharedDeps, addSharedDepsToCache};
 }
 
-export {toExternalKey, dependencyHandlerFactory, TDependencyHandler};
+export {toExternalKey, sharedInfoHandlerFactory, TSharedInfoHandler};

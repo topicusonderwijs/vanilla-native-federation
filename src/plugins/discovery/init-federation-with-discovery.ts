@@ -1,4 +1,5 @@
 import type { DiscoveryCache, RemoteModuleConfigs } from "./discovery.contract"
+import { NFDiscoveryError } from "./discovery.error"
 import type { TDiscoveryHandler } from "./discovery.handler"
 import type { TRemoteModuleHandler } from "./remote-module.handler"
 import { resolver } from "./resolver"
@@ -9,7 +10,6 @@ import { globalCacheEntry } from "../../lib/cache/global-cache"
 import type { ImportMap } from "../../lib/import-map/import-map.contract"
 import { federationInitializerFactory, type TFederationInitializer } from "../../lib/init-federation"
 import type { TLoadRemoteModule } from "../../lib/load-remote-module"
-import { NativeFederationError } from "../../lib/native-federation-error"
 import { toLatestVersions } from "../../lib/utils/version"
 
 type TInitFederationWithDiscovery = (
@@ -37,7 +37,7 @@ const initFederationWithDiscoveryFactory = (
 
         return preloadRemotes
             .reduce((nfConfig, mfe) => {
-                if(!remotes[mfe]) throw new NativeFederationError(`Could not preload remote '${mfe}', not available in discovery.`)
+                if(!remotes[mfe]) throw new NFDiscoveryError(`Could not preload remote '${mfe}', not available in discovery.`)
                 return {
                     ...nfConfig, 
                     [mfe]: remotes[mfe].extras.nativefederation.remoteEntry

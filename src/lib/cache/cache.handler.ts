@@ -1,6 +1,6 @@
 import type { CacheEntryCreator, CacheEntryValue, CacheOf } from "./cache.contract";
 
-interface TCacheHandler<TCache extends CacheOf<Record<keyof TCache, any>>> {
+type TCacheHandler<TCache extends CacheOf<Record<keyof TCache, any>>> = {
     fetch: <K extends keyof TCache>(key: K) => CacheEntryValue<TCache[K]>;
     entry: <K extends keyof TCache>(key: K) => TCache[K];
     get: () => TCache;

@@ -1,14 +1,14 @@
 import type { NativeFederationCache } from "./cache/cache.contract";
 import  { type TCacheHandler, cacheHandlerFactory } from "./cache/cache.handler";
-import { dependencyHandlerFactory } from "./dependency/dependency.handler";
 import { importMapHandlerFactory } from "./import-map/import-map.handler";
-import { remoteInfoHandlerFactory } from "./remote-info/remote-info.handler";
+import { remoteInfoHandlerFactory } from "./remote-entry/remote-info.handler";
+import { sharedInfoHandlerFactory } from "./remote-entry/shared-info.handler";
 
 const resolveNativeFedationHandlers = (cacheHandler: TCacheHandler<NativeFederationCache>) => {
-    const dependencyHandler = dependencyHandlerFactory(cacheHandler);
-    const remoteInfoHandler = remoteInfoHandlerFactory(cacheHandler, dependencyHandler);
-    const importMapHandler = importMapHandlerFactory(dependencyHandler);
-    return {dependencyHandler, remoteInfoHandler, importMapHandler};
+    const sharedInfoHandler = sharedInfoHandlerFactory(cacheHandler);
+    const remoteInfoHandler = remoteInfoHandlerFactory(cacheHandler, sharedInfoHandler);
+    const importMapHandler = importMapHandlerFactory(sharedInfoHandler);
+    return {sharedInfoHandler, remoteInfoHandler, importMapHandler};
 }
 
 const resolver = (cache: NativeFederationCache) => {
