@@ -1,4 +1,4 @@
-import { NativeFederationError } from "../../lib/native-federation-error";
+import { NativeFederationError } from "../../lib/native-federation.error";
 
 class NFDiscoveryError extends NativeFederationError {
     constructor(message: string) {

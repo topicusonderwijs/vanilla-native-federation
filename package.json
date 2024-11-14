@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.2.1",
   "name": "vanilla-native-federation",
   "author": "aukevanoost",
   "keywords": ["native-federation"],
@@ -8,9 +8,9 @@
     "lint": "eslint . -c eslint.config.js"  
   },
   "repository": {
-  "type": "git",
-  "url": "https://github.com/Aukevanoost/vanilla-native-federation.git"
-},
+    "type": "git",
+    "url": "https://github.com/Aukevanoost/vanilla-native-federation.git"
+  },
   "devDependencies": {
     "@types/node": "^20.14.8",
     "@typescript-eslint/eslint-plugin": "^8.13.0",

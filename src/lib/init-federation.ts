@@ -4,7 +4,7 @@ import type { ImportMap } from './import-map/import-map.contract';
 import { createEmptyImportMap, type TImportMapHandler } from './import-map/import-map.handler';
 import { mergeImportMaps } from './import-map/merge-import-maps';
 import { remoteModuleLoaderFactory, type TLoadRemoteModule } from './load-remote-module';
-import type { TRemoteInfoHandler } from './remote-info/remote-info.handler';
+import type { TRemoteInfoHandler } from './remote-entry/remote-info.handler';
 import { resolver } from './resolver';
 import * as _dom from './utils/dom';
 

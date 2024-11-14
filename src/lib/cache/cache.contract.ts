@@ -1,4 +1,4 @@
-import type { RemoteInfo } from "../remote-info/remote-info.contract";
+import type { TRemoteInfo } from "../remote-entry/remote-info.contract";
 
 const NAMESPACE = "__NATIVE_FEDERATION__";
 
@@ -25,7 +25,7 @@ type CacheEntryCreator = <T>(key: string, initialValue: T) => TCacheEntry<T>;
  */
 type NativeFederationProps = {
     externals: Record<string, string>;
-    remoteNamesToRemote: Record<string, RemoteInfo>;
+    remoteNamesToRemote: Record<string, TRemoteInfo>;
     baseUrlToRemoteNames: Record<string, string>;
 }
 
