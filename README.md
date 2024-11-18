@@ -14,188 +14,43 @@ If you want to know more about Native federation, check out these sources:
 - [Some examples](https://github.com/manfredsteyer/native-federation-core-example)
 
 
+## Dependencies:
+
+Right now the library is dependent on [es-module-shims](https://www.npmjs.com/package/es-module-shims) to resolve all dependency urls and for browser support. The shim can be added in the HTML page: 
+
+```
+<script type="esms-options">{ "shimMode": true }</script>
+<script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+
+<script type="module-shim" src="./my-esm-module.js"></script>
+```
+
 ## Usage:
 
-Below you can find some examples of how to use the native-federation loader:
+Below you can find some examples of how to use the native-federation loader. The simplest implmentation is to use the initFederation function to load all remote entries. 
 
-### Simple usage:
-
-**loader.js**
 ```
 import { initFederation } from 'vanilla-native-federation';
 
 (() => {
     const manifest = {
-      "mfe1": "http://localhost:3001/remoteEntry.json",
-      "mfe2": "http://localhost:3002/remoteEntry.json",
+      "remote1": "http://localhost:3001/remoteEntry.json",
+      "remote2": "http://localhost:3002/remoteEntry.json",
     }
     initFederation(manifest)
       .then(({load, importMap}) => Promise.all([
-        load('mfe1', './Component'),
-        load('mfe2', './Component'),
+        load('remote1', './Component'),
+        load('remote2', './Component'),
       ]))
       .catch(console.error);
 })();
 ```
 
-### Usage using custom events: 
-
-**loader.js**
-```
-import { initFederation } from 'vanilla-native-federation';
-
-(() => {
-  const manifest = {
-    "mfe1": "http://localhost:3001/remoteEntry.json"
-  }
-  initFederation(manifest)
-    .then(({load, importMap}) => {
-      console.log("importMap: ", importMap);
-      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
-    })
-})();
-```
-
-**your-shell.html**
-```
-  <body>
-    <!-- webcomponent exposed by mfe1 remote -->
-    <app-mfe-one></app-mfe-one>
-
-    <script type="esms-options">{ "shimMode": true }</script>
-    <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
-
-    <script type="module-shim" src="loader.js"></script>
-
-    <script>
-      window.addEventListener('mfe-loader-available', (e) => {
-        Promise.all([
-          e.detail.load('mfe1', './Component'), 
-          // e.detail.load({ remoteName: 'mfe1', exposedModule: './Component' }),
-          // e.detail.load({ remoteEntry: 'http://localhost:3002/remoteEntry.json', exposedModule: './Component' }),
-        ]).catch(console.error);
-      }, {once: true});
-    </script>  
-  </body>
-```
-
-### Usage with discovery:
-
-This library also contains the implementation for [micro frontend discovery](https://github.com/awslabs/frontend-discovery). Convenient for micro frontend architectures that require a more robust and detailed discovery mechanism: 
-
-**loader.ts**
-```
-import { initFederationWithDiscovery } from 'vanilla-native-federation/plugins/discovery';
-
-(() => {
-  const myDiscoveryUrl = "http://localhost:3000";
-  initFederationWithDiscovery(myDiscoveryUrl)
-    .then(({load, discovery, importMap}) => {
-      console.log("discovery: ", discovery);
-      console.log("importMap: ", importMap);
-      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
-    })
-})();
-```
-
-**Expected format from discovery service:**
-```
-{
-  "schema": "https://github.com/awslabs/frontend-discovery/blob/main/schema/v1-pre.json",
-  "microFrontends": {
-    "mfe1": [
-      {
-        "url": "http://localhost:3001/mfe1.js",
-        "metadata": {
-          "integrity": "CHECKSUM",
-          "version": "1.0.0"
-        },
-        "deployment": {
-          "traffic": 100,
-          "default": true
-        },
-        "extras": {
-          "nativefederation": {
-            "remoteEntry": "http://localhost:3001/remoteEntry.json",
-            "exposedModule": "./Component",
-          }
-        }
-      }
-    ],
-    "mfe2": [
-      {
-        "url": "http://localhost:3002/mfe1.js",
-        "metadata": {
-          "integrity": "CHECKSUM",
-          "version": "1.0.0"
-        },
-        "deployment": {
-          "traffic": 100,
-          "default": true
-        },
-        "extras": {
-          "nativefederation": {
-            "remoteEntry": "http://localhost:3002/remoteEntry.json",
-            "exposedModule": "./Component",
-          }
-        }
-      }
-    ]
-  }
-}
-```
-
-**your-shell.html**
-```
-  <body>
-    <!-- webcomponent exposed by mfe1 remote -->
-    <app-mfe-one></app-mfe-one>
-    <app-mfe-two></app-mfe-two>
-
-    <script type="esms-options">{ "shimMode": true }</script>
-    <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
-
-    <script type="module-shim" src="loader.js"></script>
-
-    <script>
-      window.addEventListener('mfe-loader-available', (e) => {
-        Promise.all([
-          e.detail.load('mfe1'), // optionally with a version: e.detail.load('mfe1', '1.2.0')
-          e.detail.load('mfe2'),
-        ]).catch(console.error);
-      }, {once: true});
-    </script>  
-  </body>
-```
-
-### Using custom storage: 
-
-By default, native federation will use the window object as storage for all metadata, you can change this using a custom provided storage: 
-
-**loader.ts**
-```
-import { initFederation } from 'vanilla-native-federation';
-import { createSessionStorageCache } from 'vanilla-native-federation/plugins/storage';
-
-(() => {
-  const customCache = createSessionStorageCache({
-    externals: {},
-    remoteNamesToRemote: {},
-    baseUrlToRemoteNames: {}
-  })
-  const myDiscoveryUrl = "http://localhost:3000";
-  initFederationWithDiscovery(myDiscoveryUrl, {cache: customCache})
-    .then(({load, discovery, importMap}) => {
-      console.log("discovery: ", discovery);
-      console.log("importMap: ", importMap);
-      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
-    })
-})();
-```
+The `initFederation` will return the added importMap object together with a load callback, this function can load remote modules using the imported dependencies from the importMap. The loadModule returns a `Promise<any>` that represents the remote module.
 
 ## Building your loader.js
 
-You can use a simple ESBuild config to build your loader into a reusable script: 
+You can use a simple ESBuild config to build your loader into a reusable script, the builder will assume a directory structure like shown below: 
 
 **File structure:**
 ```
@@ -212,6 +67,8 @@ You can use a simple ESBuild config to build your loader into a reusable script:
 ├── package.json
 └── node_modules/
 ```
+
+The builder will bundle the `loader.js` into a ESM module so that it can be imported into the HTML file. 
 
 **build.js**
 ```
@@ -246,3 +103,215 @@ esbuild.build({
 }).catch(() => process.exit(1));
 ```
 
+## Custom events: 
+
+Custom events can help streamline the import process, this way you can have a general initiation process and load modules on the fly. 
+
+**loader.js**
+```
+import { initFederation } from 'vanilla-native-federation';
+
+(() => {
+  const manifest = {
+    "remote1": "http://localhost:3001/remoteEntry.json"
+  }
+  initFederation(manifest)
+    .then(({load, importMap}) => {
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
+})();
+```
+
+Modules can be loaded by awaiting the `mfe-loader-available` event that will expose the `load` callback. 
+
+**your-shell.html**
+```
+  <body>
+    <!-- webcomponent exposed by remote1 -->
+    <app-mfe-one></app-mfe-one>
+
+    <script type="esms-options">{ "shimMode": true }</script>
+    <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+
+    <script type="module-shim" src="loader.js"></script>
+
+    <script>
+      window.addEventListener('mfe-loader-available', (e) => {
+        Promise.all([
+          e.detail.load('remote1', './Component'), 
+          // e.detail.load({ remoteName: 'remote1', exposedModule: './Component' }),
+          // e.detail.load({ remoteEntry: 'http://localhost:3002/remoteEntry.json', exposedModule: './Component' }),
+        ]).catch(console.error);
+      }, {once: true});
+    </script>  
+  </body>
+```
+
+## Using custom storage (caching): 
+
+By default, native federation will use the window object as storage for all metadata and configuration, you can change this using a custom provided storage: 
+
+**loader.ts**
+```
+import { initFederation } from 'vanilla-native-federation';
+import { createSessionStorageCache } from 'vanilla-native-federation/plugins/storage';
+
+(() => {
+  const customCache = createSessionStorageCache({
+    externals: {},
+    remoteNamesToRemote: {},
+    baseUrlToRemoteNames: {}
+  })
+  const manifest = {
+    "remote1": "http://localhost:3001/remoteEntry.json"
+  }
+  initFederation(manifest, {cache: customCache})
+    .then(({load, importMap}) => {
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
+})();
+```
+
+## Usage with discovery:
+
+This library also contains an implementation plugin for [micro frontend discovery](https://github.com/awslabs/frontend-discovery). Convenient for micro frontend architectures that require a more robust and detailed discovery mechanism: 
+
+**loader.ts**
+```
+import { initFederationWithDiscovery } from 'vanilla-native-federation/plugins/discovery';
+
+(() => {
+  const myDiscoveryUrl = "http://localhost:3000";
+  initFederationWithDiscovery(myDiscoveryUrl)
+    .then(({load, discovery, importMap}) => {
+      console.log("discovery: ", discovery);
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
+})();
+```
+
+
+The discovery plugin does expect a specific format for the exposed remotes.
+
+**Discovery manifest format:**
+
+```
+{
+  "schema": "https://github.com/awslabs/frontend-discovery/blob/main/schema/v1-pre.json",
+  "microFrontends": {
+    "remote1": [
+      {
+        "url": "http://localhost:3001/remote1-module.js",
+        "metadata": {
+          "integrity": "CHECKSUM",
+          "version": "1.0.0"
+        },
+        "deployment": {
+          "traffic": 100,
+          "default": true
+        },
+        "extras": {
+          "nativefederation": {
+            "remoteEntry": "http://localhost:3001/remoteEntry.json",
+            "exposedModule": "./Component",
+          }
+        }
+      }
+    ],
+    "remote2": [
+      {
+        "url": "http://localhost:3002/remote2-module.js",
+        "metadata": {
+          "integrity": "CHECKSUM",
+          "version": "1.0.0"
+        },
+        "deployment": {
+          "traffic": 100,
+          "default": true
+        },
+        "extras": {
+          "nativefederation": {
+            "remoteEntry": "http://localhost:3002/remoteEntry.json",
+            "exposedModule": "./Component",
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+Finally, the manifest can be utilized to load the remote Modules. 
+
+**your-shell.html**
+```
+  <body>
+    <!-- webcomponent exposed by remote1 -->
+    <app-mfe-one></app-mfe-one>
+    <app-mfe-two></app-mfe-two>
+
+    <script type="esms-options">{ "shimMode": true }</script>
+    <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+
+    <script type="module-shim" src="loader.js"></script>
+
+    <script>
+      window.addEventListener('mfe-loader-available', (e) => {
+        Promise.all([
+          e.detail.load('remote1'), // optionally with a version: e.detail.load('remote1', '1.2.0')
+          e.detail.load('remote2'),
+        ]).catch(console.error);
+      }, {once: true});
+    </script>  
+  </body>
+```
+
+### Caching options: 
+
+By default, the discovery plugin will return the latest versions of all available cached remotes (which is empty since caching strategy is the Window object). It is possible to switch to a more efficient caching strategy that prefers retrieving the config from the sessionStorage unless it doesn't exist: 
+
+**loader.js:**
+
+```
+import { initFederationWithDiscovery } from 'vanilla-native-federation/plugins/discovery';
+import { createSessionStorageCache } from 'vanilla-native-federation/plugins/storage';
+import { cache } from 'vanilla-native-federation';
+
+(() => {
+    const customCache = {
+        // default props are not cached (default) 
+        ...cache.DEFAULT_CACHE,
+        // Discovery is cached in sessionStorage
+        ...createSessionStorageCache({
+            discovery: {}
+        })
+    }
+
+    const moduleVersions = {
+        'remote1': '1.0.0',
+        'remote2': '1.0.0'
+    }
+    
+    initFederationWithDiscovery(
+        "http://localhost:3000", 
+        { cache: customCache, resolveFromCache: moduleVersions }
+    ).then(({load, discovery, importMap}) => {
+      console.log("discovery: ", discovery);
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
+})();
+```
+
+Where the options of `moduleVersions` are: 
+
+| Option                         | Description |
+| ------------------------------ | ----------- |
+| "skip-cache"                   | Skip the cache entirely and fetch all latest versions from remote | 
+| "all-latest" (default)         | Get latest version of all cached modules |
+| Record<string,string|"latest"> | Choose which modules+version to load (from cache) |
+
+If a specific module or version doesnt exist in the cache, the loader will fetch the latest manifest from the discovery service and automatically resolves and updates all versions in cache from the new manifest. 

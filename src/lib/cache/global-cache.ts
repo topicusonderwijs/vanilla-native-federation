@@ -1,4 +1,5 @@
-import { type CacheEntryCreator, NAMESPACE, type CacheEntry } from "./cache.contract";
+import { type CacheEntryCreator, NAMESPACE, type CacheEntry, type NativeFederationProps, type CacheOf } from "./cache.contract";
+import { toCache } from "./cache.handler";
 
 type GlobalCache = {[NAMESPACE]: Record<string, unknown>;};
 
@@ -26,4 +27,8 @@ const globalCacheEntry: CacheEntryCreator = <T>(key: string, _fallback: T) => {
     return entry;
 }
 
-export {globalCacheEntry};
+const createGlobalCache = <TCache extends NativeFederationProps>(cache: TCache): CacheOf<TCache> => {
+    return toCache(cache, globalCacheEntry)
+}
+
+export {globalCacheEntry, createGlobalCache};
