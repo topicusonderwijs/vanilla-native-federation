@@ -1,5 +1,5 @@
 import { toCache } from "../../lib/cache/cache.handler";
-import { type CacheEntryCreator, type CacheOf, NAMESPACE, type NativeFederationProps, type TCacheEntry } from "./../../lib/cache/cache.contract";
+import { type CacheEntryCreator, type CacheOf, NAMESPACE, type NativeFederationProps, type CacheEntry } from "./../../lib/cache/cache.contract";
 
 const sessionStorageCacheEntry: CacheEntryCreator = <T>(key: string, _fallback: T) => {
     const entry = {
@@ -8,7 +8,7 @@ const sessionStorageCacheEntry: CacheEntryCreator = <T>(key: string, _fallback: 
             return JSON.parse(str);
         },
         
-        set(value: T): TCacheEntry<T> {
+        set(value: T): CacheEntry<T> {
             const clean = typeof value === 'string' ? value : JSON.stringify(value);
             sessionStorage.setItem(`${NAMESPACE}.${key}`, clean)
             return entry;

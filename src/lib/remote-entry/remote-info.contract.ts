@@ -1,4 +1,4 @@
-type TExposesInfo = {
+type ExposesInfo = {
     key: string;
     outFileName: string;
     dev?: {
@@ -6,7 +6,7 @@ type TExposesInfo = {
     };
 }
 
-type TSharedInfo = {
+type SharedInfo = {
   singleton: boolean;
   strictVersion: boolean;
   requiredVersion: string;
@@ -19,12 +19,12 @@ type TSharedInfo = {
 }
 
 // FederationInfo
-type TRemoteEntry = {
+type RemoteEntry = {
     name: string;
-    shared: TSharedInfo[];
-    exposes: TExposesInfo[];
+    shared: SharedInfo[];
+    exposes: ExposesInfo[];
 }
 
-type TRemoteInfo = TRemoteEntry & {baseUrl: string}
+type RemoteInfo = RemoteEntry & {baseUrl: string}
 
-export {TExposesInfo, TSharedInfo, TRemoteEntry, TRemoteInfo}
+export {ExposesInfo, SharedInfo, RemoteEntry, RemoteInfo}

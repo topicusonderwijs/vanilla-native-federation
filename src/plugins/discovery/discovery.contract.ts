@@ -12,14 +12,16 @@ type RemoteModuleMeta = {
     }
 }
 
-type version = string;
-type remoteName = string;
+type CacheResolveOptions = Record<string,string|"latest">|"skip-cache"|"all-latest";
 
-type AvailableRemoteModules = Record<remoteName, RemoteModuleMeta[]>;
+type Version = string;
+type RemoteName = string;
+
+type AvailableRemoteModules = Record<RemoteName, RemoteModuleMeta[]>;
 
 type RemoteModuleConfigs = Record<string, RemoteModuleMeta>;
 
-type CachedRemoteModuleConfigs = Record<remoteName, Record<version, RemoteModuleMeta>>;
+type CachedRemoteModuleConfigs = Record<RemoteName, Record<Version, RemoteModuleMeta>>;
 
 type MfeDiscoveryManifest = {
     schema: string;
@@ -29,4 +31,4 @@ type MfeDiscoveryManifest = {
 type DiscoveryProps = { discovery: CachedRemoteModuleConfigs; }
 type DiscoveryCache = CacheOf<DiscoveryProps>;
 
-export {MfeDiscoveryManifest, CachedRemoteModuleConfigs, RemoteModuleConfigs, RemoteModuleMeta, AvailableRemoteModules, DiscoveryProps, DiscoveryCache}
+export {MfeDiscoveryManifest, CachedRemoteModuleConfigs, CacheResolveOptions, RemoteModuleConfigs, RemoteModuleMeta, AvailableRemoteModules, DiscoveryProps, DiscoveryCache}

@@ -1,5 +1,5 @@
 import { toCache } from "../../lib/cache/cache.handler";
-import { type CacheEntryCreator, type CacheOf, NAMESPACE, type NativeFederationProps, type TCacheEntry } from "./../../lib/cache/cache.contract";
+import { type CacheEntryCreator, type CacheOf, NAMESPACE, type NativeFederationProps, type CacheEntry } from "./../../lib/cache/cache.contract";
 
 const localStorageCacheEntry: CacheEntryCreator = <T>(key: string, _fallback: T) => {
     const entry = {
@@ -8,7 +8,7 @@ const localStorageCacheEntry: CacheEntryCreator = <T>(key: string, _fallback: T)
             return JSON.parse(str);
         },
         
-        set(value: T): TCacheEntry<T> {
+        set(value: T): CacheEntry<T> {
             const clean = typeof value === 'string' ? value : JSON.stringify(value);
             localStorage.setItem(`${NAMESPACE}.${key}`, clean)
             return entry;
