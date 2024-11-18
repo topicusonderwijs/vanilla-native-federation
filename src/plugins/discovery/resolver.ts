@@ -17,7 +17,7 @@ const defaultConfig = (o: Partial<DiscoveryConfig>): DiscoveryConfig => {
             ...DEFAULT_CACHE, 
             ...toCache({discovery: {}}, globalCacheEntry)
         },
-        resolveFromCache: "all-latest"
+        resolveFromCache: o.resolveFromCache ?? "all-latest"
     }
 }
 

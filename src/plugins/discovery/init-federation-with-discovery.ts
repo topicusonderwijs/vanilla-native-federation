@@ -52,7 +52,7 @@ const initFederationWithDiscoveryFactory = (
             .fetchRemoteConfigs(discoveryManifestUrl, resolveFromCache)
             .then(remoteConfigs => {
                 const entryPoints = getEntryPointUrls(remoteConfigs);
-                
+
                 return federationInitializer.init(entryPoints)
                     .then(({load, importMap}) => ({
                         load: verifyAndLoadModule(load, remoteConfigs), 

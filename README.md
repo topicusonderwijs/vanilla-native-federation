@@ -314,4 +314,4 @@ Where the options of `moduleVersions` are:
 | "all-latest" (default)         | Get latest version of all cached modules |
 | Record<string,string|"latest"> | Choose which modules+version to load (from cache) |
 
-If a specific module or version doesnt exist in the cache, the loader will fetch the latest manifest from the discovery service and automatically resolves and updates all versions in cache from the new manifest. 
+If a specific module or version doesnt exist in the cache, the loader will fetch the latest manifest from the discovery service and automatically resolves and updates all versions in cache from the new manifest. Note that the third option only loads the modules that are specified so specify all remotes that you are planning on using to prevent dependency errors. 
