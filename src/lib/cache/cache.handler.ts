@@ -1,18 +1,18 @@
 import type { CacheEntryCreator, CacheEntryValue, CacheOf } from "./cache.contract";
 
-type TCacheHandler<TCache extends CacheOf<Record<keyof TCache, any>>> = {
+type CacheHandler<TCache extends CacheOf<Record<keyof TCache, any>>> = {
     fetch: <K extends keyof TCache>(key: K) => CacheEntryValue<TCache[K]>;
     entry: <K extends keyof TCache>(key: K) => TCache[K];
     get: () => TCache;
     mutate: <K extends keyof TCache>(
         key: K,
         mutateFn: (v: CacheEntryValue<TCache[K]>) => CacheEntryValue<TCache[K]>
-    ) => TCacheHandler<TCache>;
+    ) => CacheHandler<TCache>;
 }
 
 function cacheHandlerFactory<TCache extends CacheOf<Record<keyof TCache, any>>>(
     _cache: TCache
-): TCacheHandler<TCache> {
+): CacheHandler<TCache> {
     const entry = <K extends keyof TCache>(key: K): TCache[K] => {
         return _cache[key];
     };
@@ -24,7 +24,7 @@ function cacheHandlerFactory<TCache extends CacheOf<Record<keyof TCache, any>>>(
     const mutate = <K extends keyof TCache>(
         key: K,
         mutateFn: (v: CacheEntryValue<TCache[K]>) => CacheEntryValue<TCache[K]>
-    ): TCacheHandler<TCache> => {
+    ): CacheHandler<TCache> => {
         const newVal = mutateFn(fetch(key));
         _cache[key].set(newVal);
         return cacheHandlerFactory(_cache);
@@ -48,4 +48,4 @@ const toCache = <Tprops extends Record<string, any>>(
     );
 };
 
-export {toCache, cacheHandlerFactory, TCacheHandler};
+export {toCache, cacheHandlerFactory, CacheHandler};

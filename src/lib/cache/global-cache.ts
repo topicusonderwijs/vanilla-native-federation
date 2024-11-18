@@ -1,19 +1,20 @@
-import { type CacheEntryCreator, NAMESPACE, type TCacheEntry } from "./cache.contract";
+import { type CacheEntryCreator, NAMESPACE, type CacheEntry, type NativeFederationProps, type CacheOf } from "./cache.contract";
+import { toCache } from "./cache.handler";
 
-type TGlobalCache = {[NAMESPACE]: Record<string, unknown>;};
+type GlobalCache = {[NAMESPACE]: Record<string, unknown>;};
 
 const globalCacheEntry: CacheEntryCreator = <T>(key: string, _fallback: T) => {
-    if (!(globalThis as unknown as TGlobalCache)[NAMESPACE]) {
-        (globalThis as unknown as TGlobalCache)[NAMESPACE] = {};
+    if (!(globalThis as unknown as GlobalCache)[NAMESPACE]) {
+        (globalThis as unknown as GlobalCache)[NAMESPACE] = {};
     }
-    const namespace = (globalThis as unknown as TGlobalCache)[NAMESPACE];
+    const namespace = (globalThis as unknown as GlobalCache)[NAMESPACE];
     
     const entry = {
         get(): T {
             return (namespace[key] as T) ?? _fallback;
         },
         
-        set(value: T): TCacheEntry<T> {
+        set(value: T): CacheEntry<T> {
             namespace[key] = value;
             return entry;
         },
@@ -26,4 +27,8 @@ const globalCacheEntry: CacheEntryCreator = <T>(key: string, _fallback: T) => {
     return entry;
 }
 
-export {globalCacheEntry};
+const createGlobalCache = <TCache extends NativeFederationProps>(cache: TCache): CacheOf<TCache> => {
+    return toCache(cache, globalCacheEntry)
+}
+
+export {globalCacheEntry, createGlobalCache};

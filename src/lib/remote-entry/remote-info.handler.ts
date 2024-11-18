@@ -1,28 +1,28 @@
-import type { TRemoteInfo } from "./remote-info.contract";
-import type { TSharedInfoHandler } from "./shared-info.handler";
+import type { RemoteInfo } from "./remote-info.contract";
+import type { SharedInfoHandler } from "./shared-info.handler";
 import type { NativeFederationCache } from "../cache/cache.contract";
-import type { TCacheHandler } from "../cache/cache.handler";
+import type { CacheHandler } from "../cache/cache.handler";
 import * as _path from "../utils/path";
 
-type TRemoteInfoHandler = {
-    loadRemoteInfo: (remoteEntryUrl?: string, remoteName?: string) => Promise<TRemoteInfo>
+type RemoteInfoHandler = {
+    loadRemoteInfo: (remoteEntryUrl?: string, remoteName?: string) => Promise<RemoteInfo>
 }
 
-const remoteInfoHandlerFactory = (cacheHandler: TCacheHandler<NativeFederationCache>, dependencyHandler: TSharedInfoHandler): TRemoteInfoHandler => {
+const remoteInfoHandlerFactory = (cacheHandler: CacheHandler<NativeFederationCache>, dependencyHandler: SharedInfoHandler): RemoteInfoHandler => {
 
-    const fromEntryJson = (entryUrl: string): Promise<TRemoteInfo> => {
+    const fromEntryJson = (entryUrl: string): Promise<RemoteInfo> => {
         return fetch(entryUrl)
-            .then(r => r.json() as unknown as TRemoteInfo)
+            .then(r => r.json() as unknown as RemoteInfo)
             .then(cfg => ({...cfg, baseUrl: _path.getDir(entryUrl)}))
     }
 
-    const addRemoteModuleToCache = (remoteInfo: TRemoteInfo, remoteName: string): TRemoteInfo => {
+    const addRemoteModuleToCache = (remoteInfo: RemoteInfo, remoteName: string): RemoteInfo => {
         cacheHandler.mutate("remoteNamesToRemote", v => ({...v, [remoteName]: remoteInfo}));
         cacheHandler.mutate("baseUrlToRemoteNames", v => ({...v, [remoteInfo.baseUrl]: remoteName}));
         return remoteInfo;
     } 
 
-    const loadRemoteInfo = (remoteEntryUrl?: string, remoteName?: string): Promise<TRemoteInfo> => {
+    const loadRemoteInfo = (remoteEntryUrl?: string, remoteName?: string): Promise<RemoteInfo> => {
         if(!remoteName && !!remoteEntryUrl) remoteName = cacheHandler.fetch("baseUrlToRemoteNames")[_path.getDir(remoteEntryUrl)];
         if(!remoteName) return Promise.reject("Must provide valid remoteEntry or remoteName");
 
@@ -38,4 +38,4 @@ const remoteInfoHandlerFactory = (cacheHandler: TCacheHandler<NativeFederationCa
     return {loadRemoteInfo};
 }
 
-export {remoteInfoHandlerFactory, TRemoteInfoHandler};
+export {remoteInfoHandlerFactory, RemoteInfoHandler};

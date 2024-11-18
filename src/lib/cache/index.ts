@@ -1,4 +1,5 @@
 export {DEFAULT_CACHE} from './default-cache';
 
-export { TCacheEntry, CacheOf, NAMESPACE } from './cache.contract';
-export { TCacheHandler, toCache } from './cache.handler';
+export { CacheEntry, CacheOf, NAMESPACE } from './cache.contract';
+export { CacheHandler, cacheHandlerFactory, toCache } from './cache.handler';
+export { createGlobalCache } from './global-cache';

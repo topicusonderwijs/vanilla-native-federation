@@ -1,11 +1,9 @@
 
-import { DEFAULT_CACHE } from "./cache";
-import type { NativeFederationCache } from "./cache/cache.contract";
+import type { DomHandler } from "./dom/dom.handler";
 import { NativeFederationError } from "./native-federation.error";
-import type { TRemoteInfo } from "./remote-entry/remote-info.contract";
-import type { TRemoteInfoHandler } from "./remote-entry/remote-info.handler";
-import { resolver } from "./resolver";
-import * as _dom from "./utils/dom";
+import type { RemoteInfo } from "./remote-entry/remote-info.contract";
+import type { RemoteInfoHandler } from "./remote-entry/remote-info.handler";
+import { defaultConfig, resolver, type Config } from "./resolver";
 import * as _path from "./utils/path";
 
 type RemoteModule = {
@@ -14,13 +12,16 @@ type RemoteModule = {
     exposedModule: string;
 }
 
-type TLoadRemoteModule = (optionsOrRemoteName: RemoteModule | string, exposedModule?: string ) => Promise<void>
+type LoadRemoteModule = (optionsOrRemoteName: RemoteModule | string, exposedModule?: string ) => Promise<void>
 
 type TRemoteModuleLoader = {
-    load: TLoadRemoteModule
+    load: LoadRemoteModule
 }
 
-const remoteModuleLoaderFactory = (remoteInfoHandler: TRemoteInfoHandler): TRemoteModuleLoader => {
+const remoteModuleLoaderFactory = (
+    remoteInfoHandler: RemoteInfoHandler,
+    domHandler: DomHandler
+): TRemoteModuleLoader => {
 
     const mapToRemoteModule = (
         optionsOrRemoteName: RemoteModule | string,
@@ -38,7 +39,7 @@ const remoteModuleLoaderFactory = (remoteInfoHandler: TRemoteInfoHandler): TRemo
         throw new NativeFederationError('unexpected arguments: please pass options or a remoteName/exposedModule-pair');
     }
 
-    const getExposedModuleUrl = (remoteInfo: TRemoteInfo, exposedModule: string): string => {    
+    const getExposedModuleUrl = (remoteInfo: RemoteInfo, exposedModule: string): string => {    
         const exposed = remoteInfo.exposes.find(e => e.key === exposedModule);
         if (!exposed) throw new NativeFederationError(`Unknown exposed module ${exposedModule} in remote ${remoteInfo.name}`);
     
@@ -54,20 +55,23 @@ const remoteModuleLoaderFactory = (remoteInfoHandler: TRemoteInfoHandler): TRemo
         return remoteInfoHandler
             .loadRemoteInfo(remoteModule.remoteEntry, remoteModule.remoteName)
             .then(info => getExposedModuleUrl(info, remoteModule.exposedModule))
-            .then(url => (globalThis as any).importShim(url))
+            .then(domHandler.importModule)
     }
 
     return { load }
 }
 
-const loadRemoteModule: TLoadRemoteModule = (
+const loadRemoteModule: LoadRemoteModule = (
     remoteNameOrModule: RemoteModule | string,exposedModule?: string,
-    o: {cache?: NativeFederationCache} = {}
+    options: Partial<Config> = {}
 ) => {
-    const {remoteInfoHandler} = resolver(o.cache ?? DEFAULT_CACHE);
+    const {
+        remoteInfoHandler, 
+        domHandler
+    } = resolver(defaultConfig(options));
 
-    const moduleLoader = remoteModuleLoaderFactory(remoteInfoHandler);
+    const moduleLoader = remoteModuleLoaderFactory(remoteInfoHandler, domHandler);
     return moduleLoader.load(remoteNameOrModule, exposedModule);
 }
 
-export { loadRemoteModule, remoteModuleLoaderFactory, TLoadRemoteModule, RemoteModule };
+export { loadRemoteModule, remoteModuleLoaderFactory, LoadRemoteModule, RemoteModule, TRemoteModuleLoader };

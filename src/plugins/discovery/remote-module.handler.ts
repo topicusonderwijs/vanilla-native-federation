@@ -1,11 +1,11 @@
 import type { DiscoveryProps, RemoteModuleConfigs, RemoteModuleMeta } from "./discovery.contract";
 import { NFDiscoveryError } from "./discovery.error";
 import type { CacheOf } from "../../lib/cache/cache.contract";
-import type { TCacheHandler } from "../../lib/cache/cache.handler";
+import type { CacheHandler } from "../../lib/cache/cache.handler";
 import type { RemoteModule } from "../../lib/load-remote-module";
 import { getLatestVersion } from "../../lib/utils/version";
 
-type TRemoteModuleHandler = {
+type RemoteModuleHandler = {
     getIfInitialized: (
         remoteConfigs: RemoteModuleConfigs, 
         remoteName: string,
@@ -14,8 +14,8 @@ type TRemoteModuleHandler = {
 }
 
 const remoteModuleHandlerFactory = (
-    cacheHandler: TCacheHandler<CacheOf<DiscoveryProps>>,
-): TRemoteModuleHandler => {
+    cacheHandler: CacheHandler<CacheOf<DiscoveryProps>>,
+): RemoteModuleHandler => {
     const cache = cacheHandler.entry("discovery");
 
     const tryGetLatestCachedVersion = (cachedRemote?: Record<string, RemoteModuleMeta>): string|undefined => {
@@ -47,4 +47,4 @@ const remoteModuleHandlerFactory = (
     
 }
 
-export { remoteModuleHandlerFactory, TRemoteModuleHandler }
+export { remoteModuleHandlerFactory, RemoteModuleHandler }
