@@ -306,12 +306,14 @@ import { cache } from 'vanilla-native-federation';
 })();
 ```
 
-Where the options of `moduleVersions` are: 
+It is possible to optimize the `moduleVersions` using the following parameter options: 
 
-| Option                         | Description |
-| ------------------------------ | ----------- |
-| "skip-cache"                   | Skip the cache entirely and fetch all latest versions from remote | 
-| "all-latest" (default)         | Get latest version of all cached modules |
-| Record<string,string|"latest"> | Choose which modules+version to load (from cache) |
+| Option                           | Description |
+| -------------------------------- | ----------- |
+| "skip-cache"                     | Skip the cache entirely and fetch all latest versions from remote | 
+| "all-latest" (default)           | Get latest version of all cached modules |
+| Record<string, string\|"latest"> | Choose which modules+version to load (from cache) |
 
-If a specific module or version doesnt exist in the cache, the loader will fetch the latest manifest from the discovery service and automatically resolves and updates all versions in cache from the new manifest. Note that the third option only loads the modules that are specified so specify all remotes that you are planning on using to prevent dependency errors. 
+Whenever a specific module or version doesnt exist in the cache, the loader will fetch the latest manifest from the discovery service and automatically resolves and updates all versions in cache from the new manifest. 
+
+**Note:** The third option only loads the modules that are specified. Not specifying the loaded remotes can result in the import-map not being able to resolve certain dependencies. 
