@@ -1,6 +1,6 @@
 
 import type { DomHandler } from "./dom/dom.handler";
-import { NativeFederationError } from "./native-federation.error";
+import { NFError } from "./native-federation.error";
 import type { RemoteInfo } from "./remote-entry/remote-info.contract";
 import type { RemoteInfoHandler } from "./remote-entry/remote-info.handler";
 import { defaultConfig, resolver, type Config } from "./resolver";
@@ -36,12 +36,12 @@ const remoteModuleLoaderFactory = (
             return optionsOrRemoteName;
         }
         
-        throw new NativeFederationError('unexpected arguments: please pass options or a remoteName/exposedModule-pair');
+        throw new NFError('unexpected arguments: please pass options or a remoteName/exposedModule-pair');
     }
 
     const getExposedModuleUrl = (remoteInfo: RemoteInfo, exposedModule: string): string => {    
         const exposed = remoteInfo.exposes.find(e => e.key === exposedModule);
-        if (!exposed) throw new NativeFederationError(`Unknown exposed module ${exposedModule} in remote ${remoteInfo.name}`);
+        if (!exposed) throw new NFError(`Unknown exposed module ${exposedModule} in remote ${remoteInfo.name}`);
     
         return _path.join(remoteInfo.baseUrl, exposed.outFileName);
     }
@@ -51,7 +51,7 @@ const remoteModuleLoaderFactory = (
         exposedModule?: string
     ): Promise<void> => {
         const remoteModule = mapToRemoteModule(remoteNameOrModule, exposedModule);
-        if(!remoteModule.remoteName || remoteModule.remoteName === "") throw new NativeFederationError('remoteName cannot be empty');
+        if(!remoteModule.remoteName || remoteModule.remoteName === "") throw new NFError('remoteName cannot be empty');
         return remoteInfoHandler
             .loadRemoteInfo(remoteModule.remoteEntry, remoteModule.remoteName)
             .then(info => getExposedModuleUrl(info, remoteModule.exposedModule))

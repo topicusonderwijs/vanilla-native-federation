@@ -2,7 +2,6 @@ import { type DomHandler } from './dom/dom.handler';
 import type { ImportMap } from './import-map/import-map.contract';
 import { type ImportMapHandler } from './import-map/import-map.handler';
 import { remoteModuleLoaderFactory, type LoadRemoteModule } from './load-remote-module';
-import type { LogHandler } from './logging/log.handler';
 import type { RemoteInfoHandler } from './remote-entry/remote-info.handler';
 import { defaultConfig, resolver, type Config } from './resolver';
 
@@ -18,7 +17,6 @@ type FederationInitializer = {
 }
 
 const federationInitializerFactory = (
-    log: LogHandler,
     remoteInfoHandler: RemoteInfoHandler,
     importMapHandler: ImportMapHandler,
     domHandler: DomHandler
@@ -65,14 +63,12 @@ const initFederation = (
     options: Partial<Config> = {}
 ): Promise<{load: LoadRemoteModule, importMap: ImportMap}> => {   
     const {
-        logHandler,
         remoteInfoHandler, 
         importMapHandler,
         domHandler
     } = resolver(defaultConfig(options));
 
     const nfInitializer = federationInitializerFactory( 
-        logHandler,
         remoteInfoHandler, 
         importMapHandler, 
         domHandler 

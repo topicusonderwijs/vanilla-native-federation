@@ -12,8 +12,10 @@ type SharedInfoHandler = {
     addSharedDepsToCache: (remoteInfo: RemoteInfo) => RemoteInfo
 }
 
-const sharedInfoHandlerFactory = (cache: CacheHandler<{"externals": CacheEntry<Record<string, string>>}>): SharedInfoHandler => {
-    const getSharedDepRef = (dep: SharedInfo): string|undefined => {
+const sharedInfoHandlerFactory = (
+    cache: CacheHandler<{"externals": CacheEntry<Record<string, string>>}>
+): SharedInfoHandler => {
+    const getCachedSharedDepRef = (dep: SharedInfo): string|undefined => {
         return cache.fetch("externals")[toExternalKey(dep)];
     }
 
@@ -21,7 +23,7 @@ const sharedInfoHandlerFactory = (cache: CacheHandler<{"externals": CacheEntry<R
         return remoteInfo.shared.reduce((dependencies, moduleDep) => {
             return {
                 ...dependencies,
-                [moduleDep.packageName]: getSharedDepRef(moduleDep) || _path.join(remoteInfo.baseUrl, moduleDep.outFileName)
+                [moduleDep.packageName]: getCachedSharedDepRef(moduleDep) || _path.join(remoteInfo.baseUrl, moduleDep.outFileName)
             }
         }, {});
     }

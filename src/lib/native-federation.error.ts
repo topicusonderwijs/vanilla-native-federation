@@ -1,8 +1,8 @@
-class NativeFederationError extends Error {
+class NFError extends Error {
     constructor(message: string) {
       super(message); 
       this.name = "NFError"; 
     }
 }
 
-export {NativeFederationError}
+export {NFError}

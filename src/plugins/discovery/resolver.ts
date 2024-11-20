@@ -5,19 +5,19 @@ import { DEFAULT_CACHE } from "../../lib/cache";
 import type { NativeFederationCache } from "../../lib/cache/cache.contract";
 import { toCache } from "../../lib/cache/cache.handler";
 import { globalCacheEntry } from "../../lib/cache/global-cache";
-import { resolver as baseResolver, type Config } from "../../lib/resolver";
-
+import { resolver as baseResolver, type Config, defaultConfig as baseConfig } from "../../lib/resolver";
 type DiscoveryConfig = Config<NativeFederationCache & DiscoveryCache> & {
     resolveFromCache: CacheResolveOptions
 };
 
 const defaultConfig = (o: Partial<DiscoveryConfig>): DiscoveryConfig => {
     return {
+        ...baseConfig(o),
         cache: o.cache ?? {
             ...DEFAULT_CACHE, 
             ...toCache({discovery: {}}, globalCacheEntry)
         },
-        resolveFromCache: o.resolveFromCache ?? "all-latest"
+        resolveFromCache: o.resolveFromCache ?? "all-latest",
     }
 }
 
