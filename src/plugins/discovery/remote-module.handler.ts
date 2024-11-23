@@ -1,32 +1,31 @@
-import type { DiscoveryProps, RemoteModuleConfigs, RemoteModuleMeta } from "./discovery.contract";
+import type { DiscoveryCache, CachedRemoteVersions, RemoteModuleConfig } from "./discovery.contract";
 import { NFDiscoveryError } from "./discovery.error";
-import type { CacheOf } from "../../lib/cache/cache.contract";
 import type { CacheHandler } from "../../lib/cache/cache.handler";
 import type { RemoteModule } from "../../lib/load-remote-module";
 import { getLatestVersion } from "../../lib/utils/version";
 
 type RemoteModuleHandler = {
     getIfInitialized: (
-        remoteConfigs: RemoteModuleConfigs, 
+        remoteConfigs: RemoteModuleConfig, 
         remoteName: string,
         version?: string
     ) => RemoteModule
 }
 
 const remoteModuleHandlerFactory = (
-    cacheHandler: CacheHandler<CacheOf<DiscoveryProps>>,
+    cacheHandler: CacheHandler<DiscoveryCache>,
 ): RemoteModuleHandler => {
     const cache = cacheHandler.entry("discovery");
 
-    const tryGetLatestCachedVersion = (cachedRemote?: Record<string, RemoteModuleMeta>): string|undefined => {
+    const tryGetLatestCachedVersion = (cachedRemote?: CachedRemoteVersions): string|undefined => {
         return getLatestVersion(Object.keys(cachedRemote ?? {}));
     }
 
-    const tryGetInitializedVersion = (remoteName: string, remoteConfigs: RemoteModuleConfigs): string|undefined => {
-        return remoteConfigs[remoteName]?.metadata.version;
+    const tryGetInitializedVersion = (remoteName: string, remoteConfigs: RemoteModuleConfig): string|undefined => {
+        return remoteConfigs[remoteName]?.version;
     }
 
-    const getIfInitialized = (remoteConfigs: RemoteModuleConfigs, remoteName: string, version?: string): RemoteModule => {
+    const getIfInitialized = (remoteConfigs: RemoteModuleConfig, remoteName: string, version?: string): RemoteModule => {
         const cachedRemote = cache.get()[remoteName];
         if(!cachedRemote || Object.keys(cachedRemote).length < 1) throw new NFDiscoveryError(`Remote '${remoteName}' is not initialized.`);
 
@@ -38,8 +37,8 @@ const remoteModuleHandlerFactory = (
 
         return { 
             remoteName, 
-            remoteEntry: remote.extras.nativefederation.remoteEntry,
-            exposedModule: remote.extras.nativefederation.exposedModule
+            remoteEntry: remote.nativefederation.remoteEntry,
+            exposedModule: remote.nativefederation.exposedModule
          };
         
     }

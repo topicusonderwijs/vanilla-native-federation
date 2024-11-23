@@ -1,34 +1,40 @@
-import type { CacheOf } from "../../lib/cache/cache.contract";
+import type { CacheOf } from "../../lib/cache";
 
-type RemoteModuleMeta = {
-    url: string;
-    metadata: {integrity: string; version: string},
-    deployment: {traffic: number, default: boolean},
-    extras: Record<string, any> & {
-        nativefederation: {
-            remoteEntry: string,
-            exposedModule: string
-        }
-    }
-}
-
-type CacheResolveOptions = Record<string,string|"latest">|"skip-cache"|"all-latest";
-
+/**
+ * Discovered remotes structure
+ */
 type Version = string;
 type RemoteName = string;
 
-type AvailableRemoteModules = Record<RemoteName, RemoteModuleMeta[]>;
-
-type RemoteModuleConfigs = Record<string, RemoteModuleMeta>;
-
-type CachedRemoteModuleConfigs = Record<RemoteName, Record<Version, RemoteModuleMeta>>;
-
-type MfeDiscoveryManifest = {
-    schema: string;
-    microFrontends: AvailableRemoteModules;
+type CachedRemoteModuleCfg = {
+    url: string;
+    version: string;
+    nativefederation: {
+        remoteEntry: string;
+        exposedModule: string;
+    }
 }
 
-type DiscoveryProps = { discovery: CachedRemoteModuleConfigs; }
+type CachedRemoteVersions = Record<Version, CachedRemoteModuleCfg>
+
+type DiscoveredRemotes = Record<RemoteName, CachedRemoteVersions>
+
+type RemoteModuleConfig = Record<RemoteName, CachedRemoteModuleCfg>
+
+
+/**
+ * Cache
+ */
+
+type CacheResolveOptions = Record<string,string|"latest">|"skip-cache"|"all-latest";
+
+type DiscoveryProps = { discovery: DiscoveredRemotes; }
 type DiscoveryCache = CacheOf<DiscoveryProps>;
 
-export {MfeDiscoveryManifest, CachedRemoteModuleConfigs, CacheResolveOptions, RemoteModuleConfigs, RemoteModuleMeta, AvailableRemoteModules, DiscoveryProps, DiscoveryCache}
+/**
+ * Mapper
+ */
+
+type DiscoveryMapper<T = any, U extends DiscoveredRemotes = DiscoveredRemotes> = (input: T) => U;
+
+export { CacheResolveOptions, DiscoveryCache, DiscoveredRemotes, CachedRemoteVersions, RemoteModuleConfig, CachedRemoteModuleCfg, DiscoveryMapper }

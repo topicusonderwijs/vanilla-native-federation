@@ -1,4 +1,4 @@
-import type { RemoteModuleConfigs, CacheResolveOptions } from "./discovery.contract"
+import type { CacheResolveOptions, RemoteModuleConfig } from "./discovery.contract"
 import { NFDiscoveryError } from "./discovery.error"
 import type { DiscoveryHandler } from "./discovery.handler"
 import type { RemoteModuleHandler } from "./remote-module.handler"
@@ -7,37 +7,37 @@ import type { ImportMap } from "../../lib/import-map/import-map.contract"
 import { federationInitializerFactory, type FederationInitializer } from "../../lib/init-federation"
 import type { LoadRemoteModule } from "../../lib/load-remote-module"
 
-type InitFederationWithDiscovery = (
+type InitFederationFromDiscovery = (
     discoveryManifestUrl: string,
     resolveFromCache: CacheResolveOptions,
 ) => Promise<{
     load: (remote: string, version?: string) => Promise<any>, 
-    discovery: RemoteModuleConfigs, 
+    discovery: RemoteModuleConfig, 
     importMap: ImportMap
 }>
 
 type DiscoveryFederationInitializerFactory = {
-    init: InitFederationWithDiscovery
+    init: InitFederationFromDiscovery
 }
 
-const initFederationWithDiscoveryFactory = (
+const initFederationFromDiscoveryFactory = (
     discoveryHandler: DiscoveryHandler,
     remoteModuleHandler: RemoteModuleHandler,
     federationInitializer: FederationInitializer,
 ): DiscoveryFederationInitializerFactory => {
 
-    const getEntryPointUrls = (remotes: RemoteModuleConfigs): Record<string, string> => {    
+    const getEntryPointUrls = (remotes: RemoteModuleConfig): Record<string, string> => {    
         return Object.keys(remotes)
             .reduce((nfConfig, mfe) => {
                 if(!remotes[mfe]) throw new NFDiscoveryError(`Could not preload remote '${mfe}', not available in discovery.`)
                 return {
                     ...nfConfig, 
-                    [mfe]: remotes[mfe].extras.nativefederation.remoteEntry
+                    [mfe]: remotes[mfe].nativefederation.remoteEntry
                 }
             }, {})
     }
 
-    const verifyAndLoadModule = (load: LoadRemoteModule, remoteConfigs: RemoteModuleConfigs) => {
+    const verifyAndLoadModule = (load: LoadRemoteModule, remoteConfigs: RemoteModuleConfig) => {
         return (remote: string, version?: string): Promise<any> => {
             const remoteModule = remoteModuleHandler.getIfInitialized(remoteConfigs, remote, version);
             return load(remoteModule); 
@@ -49,7 +49,7 @@ const initFederationWithDiscoveryFactory = (
         resolveFromCache: CacheResolveOptions,
      ) => {
         return discoveryHandler
-            .fetchRemoteConfigs(discoveryManifestUrl, resolveFromCache)
+            .fetchDiscoveredRemotes(discoveryManifestUrl, resolveFromCache)
             .then(remoteConfigs => {
                 const entryPoints = getEntryPointUrls(remoteConfigs);
 
@@ -64,7 +64,7 @@ const initFederationWithDiscoveryFactory = (
     return {init};
 }
 
-const initFederationWithDiscovery = (
+const initFederationFromDiscovery = (
     discoveryManifestUrl: string,
     options: Partial<DiscoveryConfig> = {}
 ) => {    
@@ -77,11 +77,11 @@ const initFederationWithDiscovery = (
         remoteModuleHandler
     } = resolver(cfg);
 
-    return initFederationWithDiscoveryFactory(
+    return initFederationFromDiscoveryFactory(
         discoveryHandler, 
         remoteModuleHandler,
         federationInitializerFactory(remoteInfoHandler, importMapHandler, domHandler), 
     ).init(discoveryManifestUrl, cfg.resolveFromCache);
 }
 
-export { initFederationWithDiscovery};
+export { initFederationFromDiscovery};

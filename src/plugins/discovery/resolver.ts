@@ -1,13 +1,16 @@
-import type { DiscoveryCache, CacheResolveOptions } from "./discovery.contract";
+import type { DiscoveryCache, CacheResolveOptions, DiscoveryMapper } from "./discovery.contract";
 import { discoveryHandlerFactory } from "./discovery.handler";
+import { noopMapper } from "./noop.mapper";
 import { remoteModuleHandlerFactory } from "./remote-module.handler";
 import { DEFAULT_CACHE } from "../../lib/cache";
 import type { NativeFederationCache } from "../../lib/cache/cache.contract";
 import { toCache } from "../../lib/cache/cache.handler";
 import { globalCacheEntry } from "../../lib/cache/global-cache";
 import { resolver as baseResolver, type Config, defaultConfig as baseConfig } from "../../lib/resolver";
+
 type DiscoveryConfig = Config<NativeFederationCache & DiscoveryCache> & {
-    resolveFromCache: CacheResolveOptions
+    resolveFromCache: CacheResolveOptions,
+    discoveryMapper: DiscoveryMapper
 };
 
 const defaultConfig = (o: Partial<DiscoveryConfig>): DiscoveryConfig => {
@@ -18,6 +21,7 @@ const defaultConfig = (o: Partial<DiscoveryConfig>): DiscoveryConfig => {
             ...toCache({discovery: {}}, globalCacheEntry)
         },
         resolveFromCache: o.resolveFromCache ?? "all-latest",
+        discoveryMapper: o.discoveryMapper ?? noopMapper
     }
 }
 
@@ -30,7 +34,7 @@ const resolver = (
         domHandler,
         importMapHandler, 
     } = baseResolver(cfg);
-    const discoveryHandler = discoveryHandlerFactory(cacheHandler);
+    const discoveryHandler = discoveryHandlerFactory(cacheHandler, cfg.discoveryMapper);
     const remoteModuleHandler = remoteModuleHandlerFactory(cacheHandler);
 
     return {
