@@ -43,7 +43,7 @@ const resolver = <TCache extends NativeFederationCache & CacheExtension>(
     const remoteModuleHandler = remoteModuleHandlerFactory(logHandler, remoteInfoHandler, domHandler);
 
     // Init federation
-    const initFederationHandler = initFederationHandlerFactory(domHandler, remoteInfoHandler, importMapHandler, remoteModuleHandler);
+    const initFederationHandler = initFederationHandlerFactory(domHandler, logHandler, remoteInfoHandler, importMapHandler, remoteModuleHandler);
 
     return {
         domHandler,

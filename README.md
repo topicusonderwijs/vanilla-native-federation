@@ -322,6 +322,28 @@ Now the library expects the official format:
 
 Finally, it is also possible to provide your own custom mapper, as long as the output of the mapper at least includes the minimal discovery format defined before.
 
+### Logging: 
+
+For debugging, the library contains a simple logger that can give a more detailed insight in the loading process
+
+**
+loader.js**
+
+```
+import { initFederation, consoleLogger, noopLogger } from 'vanilla-native-federation';
+
+(() => {
+  initFederation("http://localhost:3000", {
+    logLevel: 'debug',     // 'debug'|'warn'|'error' -> default: 'error'
+    logger: consoleLogger  // default: noopLogger
+  })
+    .then(({load, importMap}) => {
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
+})();
+```
+
 ### Caching options: 
 
 By default, the discovery plugin will return the latest versions of all available cached remotes (which is empty since caching strategy is the Window object). It is possible to switch to a more efficient caching strategy that prefers retrieving the config from the sessionStorage unless it doesn't exist: 
@@ -351,8 +373,8 @@ import { cache } from 'vanilla-native-federation';
     initFederationFromDiscovery(
         "http://localhost:3000", 
         { cache: customCache, resolveFromCache: moduleVersions }
-    ).then(({load, discovery, importMap}) => {
-      console.log("discovery: ", discovery);
+    ).then(({load, discovered, importMap}) => {
+      console.log("discovered: ", discovered);
       console.log("importMap: ", importMap);
       window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
     })

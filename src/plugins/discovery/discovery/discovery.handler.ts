@@ -32,7 +32,7 @@ const discoveryHandlerFactory = (
         const cachedRemoteConfigs: RemoteModuleConfig = {};
 
         if(resolveFromCache === "all-latest"){
-            logger.debug(`[disc] Adding 'latest' tag to cached remotes: [${Object.keys(cache).join(',')}]`);
+            logger.debug(`[disc] Adding 'latest' tag to cached remotes: ["${Object.keys(cache).join('", "')}"]`);
             resolveFromCache = addLatestTag(Object.keys(cache));
         } 
 

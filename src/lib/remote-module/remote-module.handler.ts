@@ -48,7 +48,7 @@ const remoteModuleHandlerFactory = (
         exposedModule?: string
     ): Promise<void> => {
         const remoteModule = mapToRemoteModule(remoteNameOrModule, exposedModule);
-        logger.debug(`Loading module ${remoteModule.exposedModule} from ${remoteModule.remoteName}@${remoteModule.remoteEntry}`)
+        logger.debug(`Loading module ${JSON.stringify(remoteModule)}`)
 
         if(!remoteModule.remoteName || remoteModule.remoteName === "") throw new NFError('remoteName cannot be empty');
         return remoteInfoHandler

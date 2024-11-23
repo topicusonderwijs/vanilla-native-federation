@@ -28,7 +28,7 @@ const remoteInfoHandlerFactory = (
         cacheHandler.mutate("remoteNamesToRemote", v => ({...v, [remoteName]: remoteInfo}));
         cacheHandler.mutate("baseUrlToRemoteNames", v => ({...v, [remoteInfo.baseUrl]: remoteName}));
 
-        logger.debug(`Added remote ${remoteName} to the cache.`);
+        logger.debug(`Added remote '${remoteName}' to the cache.`);
 
         return remoteInfo;
     } 
@@ -39,12 +39,12 @@ const remoteInfoHandlerFactory = (
 
         const cachedRemote = cacheHandler.fetch("remoteNamesToRemote")[remoteName];
         if (!!cachedRemote) {
-            logger.debug(`Remote ${cachedRemote.name} retrieved from cache.`);
+            logger.debug(`Remote '${cachedRemote.name}' retrieved from cache.`);
             return Promise.resolve(cachedRemote)
         };
         if(!remoteEntryUrl) return Promise.reject(new NFError(`Module not registered, provide a valid remoteEntryUrl for '${remoteName}'`));
 
-        logger.debug(`Remote ${remoteName} not found in cache, fetching from: ` + remoteEntryUrl);
+        logger.debug(`Remote '${remoteName}' not found in cache, fetching from: ` + remoteEntryUrl);
         return fromEntryJson(remoteEntryUrl)
             .then(info => addRemoteModuleToCache(info, remoteName ?? info.name))
             .then(dependencyHandler.addSharedDepsToCache)

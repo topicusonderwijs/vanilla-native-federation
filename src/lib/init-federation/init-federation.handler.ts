@@ -1,3 +1,4 @@
+import type { LogHandler } from '../logging/log.handler';
 import type { DomHandler } from './../dom/dom.handler';
 import type { ImportMap } from './../import-map/import-map.contract';
 import type { ImportMapHandler } from './../import-map/import-map.handler';
@@ -6,13 +7,13 @@ import type { RemoteModuleHandler } from './../remote-module/remote-module.handl
 import type { InitFederation } from './init-federation.contract';
 
 
-
 type InitFederationHandler = {
     init: InitFederation
 }
 
 const initFederationHandlerFactory = (
     domHandler: DomHandler,
+    logger: LogHandler,
     remoteInfoHandler: RemoteInfoHandler,
     importMapHandler: ImportMapHandler,
     remoteModuleLoader: RemoteModuleHandler
@@ -29,7 +30,7 @@ const initFederationHandlerFactory = (
         return remoteInfoHandler.loadRemoteInfo(remoteEntryUrl, remoteName)
             .then(info => importMapHandler.toImportMap(info, remoteName))
             .catch(_ => {
-                console.warn(`Error loading remoteEntry for ${remoteName} at '${remoteEntryUrl}', skipping module`);
+                logger.warn(`Error loading remoteEntry for ${remoteName} at '${remoteEntryUrl}', skipping module`);
                 return importMapHandler.createEmpty();
             })
     }
