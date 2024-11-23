@@ -5,7 +5,7 @@ import type { RemoteModuleHandler } from "./remote-module.handler"
 import { type DiscoveryConfig, resolver, defaultConfig } from "./resolver"
 import type { ImportMap } from "../../lib/import-map/import-map.contract"
 import { federationInitializerFactory, type FederationInitializer } from "../../lib/init-federation"
-import type { LoadRemoteModule } from "../../lib/load-remote-module"
+import type { LoadRemoteModule } from "../../lib/remote-module/load-remote-module"
 
 type InitFederationFromDiscovery = (
     discoveryManifestUrl: string,
@@ -32,7 +32,7 @@ const initFederationFromDiscoveryFactory = (
                 if(!remotes[mfe]) throw new NFDiscoveryError(`Could not preload remote '${mfe}', not available in discovery.`)
                 return {
                     ...nfConfig, 
-                    [mfe]: remotes[mfe].nativefederation.remoteEntry
+                    [mfe]: remotes[mfe].module.remoteEntry
                 }
             }, {})
     }

@@ -200,9 +200,10 @@ import { initFederationFromDiscovery } from 'vanilla-native-federation/plugins/d
 {
   "remote1": {
     "1.0.0": {
-      url: "http://localhost:3001/remote1-module.js",
+      url: "http://localhost:3001/remote1-component.js",
       version: "1.0.0"
-      nativefederation: {
+      module: {
+        "remoteName": "remote1",
         "remoteEntry": "http://localhost:3001/remoteEntry.json",
         "exposedModule": "./Component",
       }
@@ -210,9 +211,10 @@ import { initFederationFromDiscovery } from 'vanilla-native-federation/plugins/d
   },
   "remote2": {
     "1.0.0": {
-      url: "http://localhost:3002/remote2-module.js",
+      url: "http://localhost:3002/remote2-component.js",
       version: "1.0.0"
-      nativefederation: {
+      module: {
+        "remoteName": "remote1",
         "remoteEntry": "http://localhost:3002/remoteEntry.json",
         "exposedModule": "./Component",
       }
@@ -278,7 +280,7 @@ Now the library expects the official format:
   "microFrontends": {
     "remote1": [
       {
-        "url": "http://localhost:3001/remote1-module.js",
+        "url": "http://localhost:3001/remote1-component.js",
         "metadata": {
           "integrity": "CHECKSUM",
           "version": "1.0.0"
@@ -297,7 +299,7 @@ Now the library expects the official format:
     ],
     "remote2": [
       {
-        "url": "http://localhost:3002/remote2-module.js",
+        "url": "http://localhost:3002/remote2-component.js",
         "metadata": {
           "integrity": "CHECKSUM",
           "version": "1.0.0"

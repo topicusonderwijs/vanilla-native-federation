@@ -1,7 +1,7 @@
 import { type DomHandler } from './dom/dom.handler';
 import type { ImportMap } from './import-map/import-map.contract';
 import { type ImportMapHandler } from './import-map/import-map.handler';
-import { remoteModuleLoaderFactory, type LoadRemoteModule } from './load-remote-module';
+import { remoteModuleLoaderFactory, type LoadRemoteModule } from './remote-module/load-remote-module';
 import type { RemoteInfoHandler } from './remote-entry/remote-info.handler';
 import { defaultConfig, resolver, type Config } from './resolver';
 

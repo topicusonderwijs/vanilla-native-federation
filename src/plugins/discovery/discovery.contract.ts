@@ -1,4 +1,5 @@
 import type { CacheOf } from "../../lib/cache";
+import type { RemoteModule } from "../../lib/remote-module/remote-module.contract";
 
 /**
  * Discovered remotes structure
@@ -9,10 +10,7 @@ type RemoteName = string;
 type CachedRemoteModuleCfg = {
     url: string;
     version: string;
-    nativefederation: {
-        remoteEntry: string;
-        exposedModule: string;
-    }
+    module: RemoteModule
 }
 
 type CachedRemoteVersions = Record<Version, CachedRemoteModuleCfg>
@@ -25,7 +23,6 @@ type RemoteModuleConfig = Record<RemoteName, CachedRemoteModuleCfg>
 /**
  * Cache
  */
-
 type CacheResolveOptions = Record<string,string|"latest">|"skip-cache"|"all-latest";
 
 type DiscoveryProps = { discovery: DiscoveredRemotes; }

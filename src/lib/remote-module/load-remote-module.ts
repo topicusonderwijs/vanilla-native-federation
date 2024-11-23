@@ -1,18 +1,14 @@
 
-import type { DomHandler } from "./dom/dom.handler";
-import { NFError } from "./native-federation.error";
-import type { RemoteInfo } from "./remote-entry/remote-info.contract";
-import type { RemoteInfoHandler } from "./remote-entry/remote-info.handler";
-import { defaultConfig, resolver, type Config } from "./resolver";
-import * as _path from "./utils/path";
+import type { DomHandler } from "../dom/dom.handler";
+import { NFError } from "../native-federation.error";
+import type { RemoteModuleOptions } from "./remote-module.contract";
+import type { RemoteInfo } from "../remote-entry/remote-info.contract";
+import type { RemoteInfoHandler } from "../remote-entry/remote-info.handler";
+import { defaultConfig, resolver, type Config } from "../resolver";
+import * as _path from "../utils/path";
 
-type RemoteModule = {
-    remoteName?: string;
-    remoteEntry?: string;
-    exposedModule: string;
-}
 
-type LoadRemoteModule = (optionsOrRemoteName: RemoteModule | string, exposedModule?: string ) => Promise<void>
+type LoadRemoteModule = (optionsOrRemoteName: RemoteModuleOptions | string, exposedModule?: string ) => Promise<void>
 
 type TRemoteModuleLoader = {
     load: LoadRemoteModule
@@ -24,9 +20,9 @@ const remoteModuleLoaderFactory = (
 ): TRemoteModuleLoader => {
 
     const mapToRemoteModule = (
-        optionsOrRemoteName: RemoteModule | string,
+        optionsOrRemoteName: RemoteModuleOptions | string,
         exposedModule?: string
-    ): RemoteModule =>  {
+    ): RemoteModuleOptions =>  {
         if (typeof optionsOrRemoteName === 'string' && exposedModule) {
             return {
                 remoteName: optionsOrRemoteName,
@@ -47,7 +43,7 @@ const remoteModuleLoaderFactory = (
     }
 
     const load = (
-        remoteNameOrModule: RemoteModule | string,
+        remoteNameOrModule: RemoteModuleOptions | string,
         exposedModule?: string
     ): Promise<void> => {
         const remoteModule = mapToRemoteModule(remoteNameOrModule, exposedModule);
@@ -62,7 +58,7 @@ const remoteModuleLoaderFactory = (
 }
 
 const loadRemoteModule: LoadRemoteModule = (
-    remoteNameOrModule: RemoteModule | string,exposedModule?: string,
+    remoteNameOrModule: RemoteModuleOptions | string,exposedModule?: string,
     options: Partial<Config> = {}
 ) => {
     const {
@@ -74,4 +70,4 @@ const loadRemoteModule: LoadRemoteModule = (
     return moduleLoader.load(remoteNameOrModule, exposedModule);
 }
 
-export { loadRemoteModule, remoteModuleLoaderFactory, LoadRemoteModule, RemoteModule, TRemoteModuleLoader };
+export { loadRemoteModule, remoteModuleLoaderFactory, LoadRemoteModule, RemoteModuleOptions, TRemoteModuleLoader };

@@ -1,7 +1,7 @@
 import type { DiscoveryCache, CachedRemoteVersions, RemoteModuleConfig } from "./discovery.contract";
 import { NFDiscoveryError } from "./discovery.error";
 import type { CacheHandler } from "../../lib/cache/cache.handler";
-import type { RemoteModule } from "../../lib/load-remote-module";
+import type { RemoteModule } from "../../lib/remote-module/remote-module.contract";
 import { getLatestVersion } from "../../lib/utils/version";
 
 type RemoteModuleHandler = {
@@ -35,12 +35,7 @@ const remoteModuleHandlerFactory = (
         const remote = cachedRemote[version]
         if(!remote) throw new NFDiscoveryError(`Version '${version}' from remote '${remoteName}' is not initialized.`);
 
-        return { 
-            remoteName, 
-            remoteEntry: remote.nativefederation.remoteEntry,
-            exposedModule: remote.nativefederation.exposedModule
-         };
-        
+        return remote.module; 
     }
     return { getIfInitialized };
     

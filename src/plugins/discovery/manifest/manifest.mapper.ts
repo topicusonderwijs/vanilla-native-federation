@@ -4,21 +4,22 @@ import type { DiscoveryManifest, ManifestMicroFrontends, ManifestRemoteModule } 
 type ManifestMapper = DiscoveryMapper<DiscoveryManifest>;
 
 const manifestMapper: ManifestMapper = (manifest: DiscoveryManifest) => {
-    const mapRemoteModule = (m: ManifestRemoteModule) 
+    const mapRemoteModule = (remote: string, module: ManifestRemoteModule) 
         : CachedRemoteModuleCfg => ({
-            url: m.url,
-            version: m.metadata.version,
-            nativefederation: {
-                remoteEntry: m.extras.nativefederation.remoteEntry,
-                exposedModule: m.extras.nativefederation.exposedModule,
+            url: module.url,
+            version: module.metadata.version,
+            module: {
+                remoteName: remote,
+                remoteEntry: module.extras.nativefederation.remoteEntry,
+                exposedModule: module.extras.nativefederation.exposedModule,
             }
         })
 
-    const mapVersion = (modules: ManifestRemoteModule[])
+    const mapVersion = (remote: string, modules: ManifestRemoteModule[])
         : CachedRemoteVersions => 
-            modules.reduce((acc, m) => ({
+            modules.reduce((acc, module) => ({
                 ...acc, 
-                [m.metadata.version]: mapRemoteModule(m)
+                [module.metadata.version]: mapRemoteModule(remote, module)
             }), {})
 
     const mapRemotes = (mfe: ManifestMicroFrontends)
@@ -26,7 +27,7 @@ const manifestMapper: ManifestMapper = (manifest: DiscoveryManifest) => {
             Object.entries(mfe)
                 .reduce((acc, [remote, cfg]) => ({
                     ...acc, 
-                    [remote]: mapVersion(cfg)
+                    [remote]: mapVersion(remote, cfg)
                 }), {})
 
     return mapRemotes(manifest.microFrontends)
