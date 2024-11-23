@@ -1,6 +1,6 @@
-import { NativeFederationError } from "../../lib/native-federation.error";
+import { NFError } from "../../../lib/native-federation.error";
 
-class NFDiscoveryError extends NativeFederationError {
+class NFDiscoveryError extends NFError {
     constructor(message: string) {
       super(message); 
       this.name = "NFDiscoveryError"; 

@@ -176,15 +176,17 @@ import { createSessionStorageCache } from 'vanilla-native-federation/plugins/sto
 
 ## Usage with discovery:
 
-This library also contains an implementation plugin for [micro frontend discovery](https://github.com/awslabs/frontend-discovery). Convenient for micro frontend architectures that require a more robust and detailed discovery mechanism: 
+It is possible to use a discovery service to decouple your micro frontends from the shell application. This means
+that the library will attempt to fetch the available micro frontends from an external source before loading the 
+remote modules: 
 
 **loader.ts**
 ```
-import { initFederationWithDiscovery } from 'vanilla-native-federation/plugins/discovery';
+import { initFederationFromDiscovery } from 'vanilla-native-federation/plugins/discovery';
 
 (() => {
   const myDiscoveryUrl = "http://localhost:3000";
-  initFederationWithDiscovery(myDiscoveryUrl)
+  initFederationFromDiscovery(myDiscoveryUrl)
     .then(({load, discovery, importMap}) => {
       console.log("discovery: ", discovery);
       console.log("importMap: ", importMap);
@@ -193,53 +195,30 @@ import { initFederationWithDiscovery } from 'vanilla-native-federation/plugins/d
 })();
 ```
 
-
-The discovery plugin does expect a specific format for the exposed remotes.
-
-**Discovery manifest format:**
-
+**required minimal discovery format**
 ```
 {
-  "schema": "https://github.com/awslabs/frontend-discovery/blob/main/schema/v1-pre.json",
-  "microFrontends": {
-    "remote1": [
-      {
-        "url": "http://localhost:3001/remote1-module.js",
-        "metadata": {
-          "integrity": "CHECKSUM",
-          "version": "1.0.0"
-        },
-        "deployment": {
-          "traffic": 100,
-          "default": true
-        },
-        "extras": {
-          "nativefederation": {
-            "remoteEntry": "http://localhost:3001/remoteEntry.json",
-            "exposedModule": "./Component",
-          }
-        }
+  "remote1": {
+    "1.0.0": {
+      url: "http://localhost:3001/remote1-component.js",
+      version: "1.0.0"
+      module: {
+        "remoteName": "remote1",
+        "remoteEntry": "http://localhost:3001/remoteEntry.json",
+        "exposedModule": "./Component",
       }
-    ],
-    "remote2": [
-      {
-        "url": "http://localhost:3002/remote2-module.js",
-        "metadata": {
-          "integrity": "CHECKSUM",
-          "version": "1.0.0"
-        },
-        "deployment": {
-          "traffic": 100,
-          "default": true
-        },
-        "extras": {
-          "nativefederation": {
-            "remoteEntry": "http://localhost:3002/remoteEntry.json",
-            "exposedModule": "./Component",
-          }
-        }
+    }
+  },
+  "remote2": {
+    "1.0.0": {
+      url: "http://localhost:3002/remote2-component.js",
+      version: "1.0.0"
+      module: {
+        "remoteName": "remote1",
+        "remoteEntry": "http://localhost:3002/remoteEntry.json",
+        "exposedModule": "./Component",
       }
-    ]
+    }
   }
 }
 ```
@@ -269,6 +248,102 @@ Finally, the manifest can be utilized to load the remote Modules.
   </body>
 ```
 
+### Official Micro Frontend discovery manifest:
+
+This library also contains an implementation plugin for [micro frontend discovery](https://github.com/awslabs/frontend-discovery). Convenient for micro frontend architectures that require a more robust and detailed discovery mechanism: 
+
+**loader.js:**
+```
+import { initFederationFromDiscovery, manifestMapper } from 'vanilla-native-federation/plugins/discovery';
+
+(() => {
+  const myDiscoveryUrl = "http://localhost:3000";
+  initFederationFromDiscovery(
+    myDiscoveryUrl,
+    {discoveryMapper: manifestMapper}
+  )
+    .then(({load, discovery, importMap}) => {
+      console.log("discovery: ", discovery);
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
+})();
+```
+
+Now the library expects the official format: 
+
+**Discovery manifest format:**
+
+```
+{
+  "schema": "https://github.com/awslabs/frontend-discovery/blob/main/schema/v1-pre.json",
+  "microFrontends": {
+    "remote1": [
+      {
+        "url": "http://localhost:3001/remote1-component.js",
+        "metadata": {
+          "integrity": "CHECKSUM",
+          "version": "1.0.0"
+        },
+        "deployment": {
+          "traffic": 100,
+          "default": true
+        },
+        "extras": {
+          "nativefederation": {
+            "remoteEntry": "http://localhost:3001/remoteEntry.json",
+            "exposedModule": "./Component",
+          }
+        }
+      }
+    ],
+    "remote2": [
+      {
+        "url": "http://localhost:3002/remote2-component.js",
+        "metadata": {
+          "integrity": "CHECKSUM",
+          "version": "1.0.0"
+        },
+        "deployment": {
+          "traffic": 100,
+          "default": true
+        },
+        "extras": {
+          "nativefederation": {
+            "remoteEntry": "http://localhost:3002/remoteEntry.json",
+            "exposedModule": "./Component",
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+Finally, it is also possible to provide your own custom mapper, as long as the output of the mapper at least includes the minimal discovery format defined before.
+
+### Logging: 
+
+For debugging, the library contains a simple logger that can give a more detailed insight in the loading process
+
+**
+loader.js**
+
+```
+import { initFederation, consoleLogger, noopLogger } from 'vanilla-native-federation';
+
+(() => {
+  initFederation("http://localhost:3000", {
+    logLevel: 'debug',     // 'debug'|'warn'|'error' -> default: 'error'
+    logger: consoleLogger  // default: noopLogger
+  })
+    .then(({load, importMap}) => {
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
+})();
+```
+
 ### Caching options: 
 
 By default, the discovery plugin will return the latest versions of all available cached remotes (which is empty since caching strategy is the Window object). It is possible to switch to a more efficient caching strategy that prefers retrieving the config from the sessionStorage unless it doesn't exist: 
@@ -276,7 +351,7 @@ By default, the discovery plugin will return the latest versions of all availabl
 **loader.js:**
 
 ```
-import { initFederationWithDiscovery } from 'vanilla-native-federation/plugins/discovery';
+import { initFederationFromDiscovery } from 'vanilla-native-federation/plugins/discovery';
 import { createSessionStorageCache } from 'vanilla-native-federation/plugins/storage';
 import { cache } from 'vanilla-native-federation';
 
@@ -295,11 +370,11 @@ import { cache } from 'vanilla-native-federation';
         'remote2': '1.0.0'
     }
     
-    initFederationWithDiscovery(
+    initFederationFromDiscovery(
         "http://localhost:3000", 
         { cache: customCache, resolveFromCache: moduleVersions }
-    ).then(({load, discovery, importMap}) => {
-      console.log("discovery: ", discovery);
+    ).then(({load, discovered, importMap}) => {
+      console.log("discovered: ", discovered);
       console.log("importMap: ", importMap);
       window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
     })
