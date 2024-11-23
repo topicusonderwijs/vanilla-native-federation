@@ -1,5 +1,6 @@
 
 import type { DomHandler } from "../dom/dom.handler";
+import type { LogHandler } from "../logging/log.handler";
 import { NFError } from "../native-federation.error";
 import type { RemoteModuleOptions } from "./remote-module.contract";
 import type { RemoteInfo } from "../remote-entry/remote-info.contract";
@@ -10,14 +11,15 @@ import * as _path from "../utils/path";
 
 type LoadRemoteModule = (optionsOrRemoteName: RemoteModuleOptions | string, exposedModule?: string ) => Promise<void>
 
-type TRemoteModuleLoader = {
+type RemoteModuleLoader = {
     load: LoadRemoteModule
 }
 
 const remoteModuleLoaderFactory = (
+    logger: LogHandler,
     remoteInfoHandler: RemoteInfoHandler,
     domHandler: DomHandler
-): TRemoteModuleLoader => {
+): RemoteModuleLoader => {
 
     const mapToRemoteModule = (
         optionsOrRemoteName: RemoteModuleOptions | string,
@@ -31,13 +33,16 @@ const remoteModuleLoaderFactory = (
         } else if (typeof optionsOrRemoteName === 'object' && !exposedModule) {
             return optionsOrRemoteName;
         }
-        
-        throw new NFError('unexpected arguments: please pass options or a remoteName/exposedModule-pair');
+        logger.error(`Failed to load remote module: exposedModule and/or remoteName not provided`)
+        throw new NFError('Failed to load remote module');
     }
 
     const getExposedModuleUrl = (remoteInfo: RemoteInfo, exposedModule: string): string => {    
         const exposed = remoteInfo.exposes.find(e => e.key === exposedModule);
-        if (!exposed) throw new NFError(`Unknown exposed module ${exposedModule} in remote ${remoteInfo.name}`);
+        if (!exposed) {
+            logger.error(`Module '${exposedModule}'is not exposed in remote '${remoteInfo.name}'`)
+            throw new NFError('Failed to load remote module');
+        }
     
         return _path.join(remoteInfo.baseUrl, exposed.outFileName);
     }
@@ -47,10 +52,13 @@ const remoteModuleLoaderFactory = (
         exposedModule?: string
     ): Promise<void> => {
         const remoteModule = mapToRemoteModule(remoteNameOrModule, exposedModule);
+        logger.debug(`Loading module ${remoteModule.exposedModule} from ${remoteModule.remoteName}@${remoteModule.remoteEntry}`)
+
         if(!remoteModule.remoteName || remoteModule.remoteName === "") throw new NFError('remoteName cannot be empty');
         return remoteInfoHandler
             .loadRemoteInfo(remoteModule.remoteEntry, remoteModule.remoteName)
             .then(info => getExposedModuleUrl(info, remoteModule.exposedModule))
+            .then(url => {logger.debug("Importing module: " + url); return url})
             .then(domHandler.importModule)
     }
 
@@ -62,12 +70,13 @@ const loadRemoteModule: LoadRemoteModule = (
     options: Partial<Config> = {}
 ) => {
     const {
+        logHandler,
         remoteInfoHandler, 
         domHandler
     } = resolver(defaultConfig(options));
 
-    const moduleLoader = remoteModuleLoaderFactory(remoteInfoHandler, domHandler);
+    const moduleLoader = remoteModuleLoaderFactory(logHandler, remoteInfoHandler, domHandler);
     return moduleLoader.load(remoteNameOrModule, exposedModule);
 }
 
-export { loadRemoteModule, remoteModuleLoaderFactory, LoadRemoteModule, RemoteModuleOptions, TRemoteModuleLoader };
+export { loadRemoteModule, remoteModuleLoaderFactory, LoadRemoteModule, RemoteModuleOptions, RemoteModuleLoader };

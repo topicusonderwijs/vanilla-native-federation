@@ -5,7 +5,7 @@ import type { RemoteModuleHandler } from "./remote-module.handler"
 import { type DiscoveryConfig, resolver, defaultConfig } from "./resolver"
 import type { ImportMap } from "../../lib/import-map/import-map.contract"
 import { federationInitializerFactory, type FederationInitializer } from "../../lib/init-federation"
-import type { LoadRemoteModule } from "../../lib/remote-module/load-remote-module"
+import { remoteModuleLoaderFactory, type LoadRemoteModule } from "../../lib/remote-module/load-remote-module"
 
 type InitFederationFromDiscovery = (
     discoveryManifestUrl: string,
@@ -70,6 +70,7 @@ const initFederationFromDiscovery = (
 ) => {    
     const cfg = defaultConfig(options);
     const {
+        logHandler,
         remoteInfoHandler, 
         importMapHandler, 
         domHandler,
@@ -77,10 +78,17 @@ const initFederationFromDiscovery = (
         remoteModuleHandler
     } = resolver(cfg);
 
+    const baseInitializer = federationInitializerFactory(
+        remoteInfoHandler, 
+        importMapHandler, 
+        domHandler,
+        remoteModuleLoaderFactory(logHandler, remoteInfoHandler, domHandler)
+    )
+
     return initFederationFromDiscoveryFactory(
         discoveryHandler, 
         remoteModuleHandler,
-        federationInitializerFactory(remoteInfoHandler, importMapHandler, domHandler), 
+        baseInitializer, 
     ).init(discoveryManifestUrl, cfg.resolveFromCache);
 }
 

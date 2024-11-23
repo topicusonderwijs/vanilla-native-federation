@@ -18,7 +18,7 @@ const defaultConfig = (o: Partial<Config<NativeFederationCache & CacheExtension>
     return {
         cache: o.cache ?? DEFAULT_CACHE,
         logger: o.logger ?? noopLogger,
-        logLevel: "error"
+        logLevel: o.logLevel ?? "error"
     }
 }
 

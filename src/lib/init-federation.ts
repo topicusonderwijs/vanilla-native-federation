@@ -1,16 +1,13 @@
 import { type DomHandler } from './dom/dom.handler';
 import type { ImportMap } from './import-map/import-map.contract';
 import { type ImportMapHandler } from './import-map/import-map.handler';
-import { remoteModuleLoaderFactory, type LoadRemoteModule } from './remote-module/load-remote-module';
 import type { RemoteInfoHandler } from './remote-entry/remote-info.handler';
+import { type RemoteModuleLoader, remoteModuleLoaderFactory, type LoadRemoteModule } from './remote-module/load-remote-module';
 import { defaultConfig, resolver, type Config } from './resolver';
 
 type InitFederation = (
     remotesOrManifestUrl: string | Record<string, string>
-) => Promise<{
-    load: LoadRemoteModule, 
-    importMap: ImportMap
-}>
+) => Promise<{ load: LoadRemoteModule, importMap: ImportMap }>
 
 type FederationInitializer = {
     init: InitFederation
@@ -19,9 +16,9 @@ type FederationInitializer = {
 const federationInitializerFactory = (
     remoteInfoHandler: RemoteInfoHandler,
     importMapHandler: ImportMapHandler,
-    domHandler: DomHandler
+    domHandler: DomHandler,
+    remoteModuleLoader: RemoteModuleLoader
 ): FederationInitializer => {
-    const remoteModuleLoader = remoteModuleLoaderFactory(remoteInfoHandler, domHandler);
 
     const fetchRemotes = (remotesOrManifestUrl: string | Record<string, string> = {}): Promise<Record<string, string>> => {
         return (typeof remotesOrManifestUrl === 'string')
@@ -63,6 +60,7 @@ const initFederation = (
     options: Partial<Config> = {}
 ): Promise<{load: LoadRemoteModule, importMap: ImportMap}> => {   
     const {
+        logHandler,
         remoteInfoHandler, 
         importMapHandler,
         domHandler
@@ -71,8 +69,10 @@ const initFederation = (
     const nfInitializer = federationInitializerFactory( 
         remoteInfoHandler, 
         importMapHandler, 
-        domHandler 
+        domHandler,
+        remoteModuleLoaderFactory(logHandler, remoteInfoHandler, domHandler)
     );
+    
     return nfInitializer.init(remotesOrManifestUrl)
 }
 

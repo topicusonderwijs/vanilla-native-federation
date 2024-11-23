@@ -40,6 +40,7 @@ const resolver = (
 
     return {
         cacheHandler, 
+        logHandler,
         remoteInfoHandler, 
         importMapHandler, 
         domHandler,
