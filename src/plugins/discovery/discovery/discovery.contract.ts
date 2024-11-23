@@ -1,5 +1,19 @@
-import type { CacheOf } from "../../lib/cache";
-import type { RemoteModule } from "../../lib/remote-module/remote-module.contract";
+import type { CacheOf } from "../../../lib/cache";
+import type { ImportMap } from "../../../lib/import-map/import-map.contract";
+import type { RemoteModule } from "../../../lib/remote-module/remote-module.contract";
+
+/**
+ * Initialization
+ */
+
+type InitFederationFromDiscovery = (
+    discoveryManifestUrl: string,
+    resolveFromCache: CacheResolveOptions,
+) => Promise<{
+    load: (remote: string, version?: string) => Promise<any>, 
+    discovered: RemoteModuleConfig, 
+    importMap: ImportMap
+}>
 
 /**
  * Discovered remotes structure
@@ -34,4 +48,4 @@ type DiscoveryCache = CacheOf<DiscoveryProps>;
 
 type DiscoveryMapper<T = any, U extends DiscoveredRemotes = DiscoveredRemotes> = (input: T) => U;
 
-export { CacheResolveOptions, DiscoveryCache, DiscoveredRemotes, CachedRemoteVersions, RemoteModuleConfig, CachedRemoteModuleCfg, DiscoveryMapper }
+export { InitFederationFromDiscovery, CacheResolveOptions, DiscoveryCache, DiscoveredRemotes, CachedRemoteVersions, RemoteModuleConfig, CachedRemoteModuleCfg, DiscoveryMapper }

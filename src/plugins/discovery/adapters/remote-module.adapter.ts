@@ -1,10 +1,10 @@
-import type { DiscoveryCache, CachedRemoteVersions, RemoteModuleConfig } from "./discovery.contract";
-import { NFDiscoveryError } from "./discovery.error";
-import type { CacheHandler } from "../../lib/cache/cache.handler";
-import type { RemoteModule } from "../../lib/remote-module/remote-module.contract";
-import { getLatestVersion } from "../../lib/utils/version";
+import type { CacheHandler } from "../../../lib/cache/cache.handler";
+import type { RemoteModule } from "../../../lib/remote-module/remote-module.contract";
+import { getLatestVersion } from "../../../lib/utils/version";
+import type { DiscoveryCache, CachedRemoteVersions, RemoteModuleConfig } from "../discovery/discovery.contract";
+import { NFDiscoveryError } from "../discovery/discovery.error";
 
-type DiscoveryRemoteModuleHandler = {
+type RemoteModuleAdapter = {
     getIfInitialized: (
         remoteConfigs: RemoteModuleConfig, 
         remoteName: string,
@@ -12,9 +12,9 @@ type DiscoveryRemoteModuleHandler = {
     ) => RemoteModule
 }
 
-const discoveryRemoteModuleHandlerFactory = (
+const remoteModuleAdapterFactory = (
     cacheHandler: CacheHandler<DiscoveryCache>,
-): DiscoveryRemoteModuleHandler => {
+): RemoteModuleAdapter => {
     const cache = cacheHandler.entry("discovery");
 
     const tryGetLatestCachedVersion = (cachedRemote?: CachedRemoteVersions): string|undefined => {
@@ -40,4 +40,4 @@ const discoveryRemoteModuleHandlerFactory = (
     return { getIfInitialized };
 }
 
-export { discoveryRemoteModuleHandlerFactory, DiscoveryRemoteModuleHandler }
+export { remoteModuleAdapterFactory, RemoteModuleAdapter }

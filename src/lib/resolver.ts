@@ -3,6 +3,7 @@ import  { cacheHandlerFactory } from "./cache/cache.handler";
 import { DEFAULT_CACHE } from "./cache/default-cache";
 import { domHandlerFactory } from "./dom/dom.handler";
 import { importMapHandlerFactory } from "./import-map/import-map.handler";
+import { initFederationHandlerFactory } from "./init-federation/init-federation.handler";
 import { logHandlerFactory, type LogType, type LogHandler } from "./logging/log.handler";
 import { noopLogger } from "./logging/noop.logger";
 import { remoteInfoHandlerFactory } from "./remote-entry/remote-info.handler";
@@ -41,6 +42,9 @@ const resolver = <TCache extends NativeFederationCache & CacheExtension>(
     // remote-module
     const remoteModuleHandler = remoteModuleHandlerFactory(logHandler, remoteInfoHandler, domHandler);
 
+    // Init federation
+    const initFederationHandler = initFederationHandlerFactory(domHandler, remoteInfoHandler, importMapHandler, remoteModuleHandler);
+
     return {
         domHandler,
         cacheHandler, 
@@ -48,10 +52,9 @@ const resolver = <TCache extends NativeFederationCache & CacheExtension>(
         sharedInfoHandler, 
         remoteInfoHandler, 
         importMapHandler, 
-        remoteModuleHandler
+        remoteModuleHandler,
+        initFederationHandler
     };
 }
-
-
 
 export {Config, defaultConfig, resolver};

@@ -1,5 +1,5 @@
-import type { DiscoveredRemotes, DiscoveryMapper, CachedRemoteVersions, CachedRemoteModuleCfg } from "../discovery.contract";
-import type { DiscoveryManifest, ManifestMicroFrontends, ManifestRemoteModule } from "./discovery-manifest.contract";
+import type { DiscoveredRemotes, DiscoveryMapper, CachedRemoteVersions, CachedRemoteModuleCfg } from "../discovery/discovery.contract";
+import type { DiscoveryManifest, ManifestMicroFrontends, ManifestRemoteModule } from "../manifest/discovery-manifest.contract";
 
 type ManifestMapper = DiscoveryMapper<DiscoveryManifest>;
 

@@ -1,8 +1,8 @@
 import type { CacheResolveOptions, DiscoveredRemotes, DiscoveryCache, DiscoveryMapper, RemoteModuleConfig } from "./discovery.contract";
 import { NFDiscoveryError } from "./discovery.error";
-import type { CacheHandler } from "../../lib/cache/cache.handler";
-import type { LogHandler } from "../../lib/logging/log.handler";
-import { getLatestVersion, addLatestTag, getLatestVersionBefore } from "../../lib/utils/version";
+import type { CacheHandler } from "../../../lib/cache/cache.handler";
+import type { LogHandler } from "../../../lib/logging/log.handler";
+import { getLatestVersion, addLatestTag, getLatestVersionBefore } from "../../../lib/utils/version";
 
 type DiscoveryHandler = {
     fetchDiscoveredRemotes: (

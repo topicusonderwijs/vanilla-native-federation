@@ -1,17 +1,20 @@
-import { discoveryRemoteModuleHandlerFactory } from "./discovery-remote-module.handler";
-import type { DiscoveryCache, CacheResolveOptions, DiscoveryMapper } from "./discovery.contract";
-import { discoveryHandlerFactory } from "./discovery.handler";
-import { noopMapper } from "./noop.mapper";
+import { initFederationAdapterFactory } from "./adapters/init-federation.adapter";
+import { remoteModuleAdapterFactory } from "./adapters/remote-module.adapter";
+import type { DiscoveryCache, CacheResolveOptions, DiscoveryMapper } from "./discovery/discovery.contract";
+import { discoveryHandlerFactory } from "./discovery/discovery.handler";
+import { noopMapper } from "./mapper/noop.mapper";
 import { DEFAULT_CACHE } from "../../lib/cache";
 import type { NativeFederationCache } from "../../lib/cache/cache.contract";
 import { toCache } from "../../lib/cache/cache.handler";
 import { globalCacheEntry } from "../../lib/cache/global-cache";
 import { resolver as baseResolver, type Config, defaultConfig as baseConfig } from "../../lib/resolver";
 
+
 type DiscoveryConfig = Config<NativeFederationCache & DiscoveryCache> & {
     resolveFromCache: CacheResolveOptions,
     discoveryMapper: DiscoveryMapper
 };
+
 
 const defaultConfig = (o: Partial<DiscoveryConfig>): DiscoveryConfig => {
     return {
@@ -25,29 +28,22 @@ const defaultConfig = (o: Partial<DiscoveryConfig>): DiscoveryConfig => {
     }
 }
 
+
 const resolver = (
     cfg: DiscoveryConfig
 ) => {
-    const { 
-        cacheHandler,
-        logHandler,
-        remoteInfoHandler, 
-        domHandler,
-        importMapHandler, 
-        remoteModuleHandler,
-    } = baseResolver(cfg);
-    const discoveryHandler = discoveryHandlerFactory(cacheHandler, logHandler, cfg.discoveryMapper);
-    const discoveryRemoteModuleHandler = discoveryRemoteModuleHandlerFactory(cacheHandler);
+    const base = baseResolver(cfg);
+
+    const discoveryHandler = discoveryHandlerFactory(base.cacheHandler, base.logHandler, cfg.discoveryMapper);
+
+    const remoteModuleAdapter = remoteModuleAdapterFactory(base.cacheHandler);
+    const initFederationAdapter = initFederationAdapterFactory(base.initFederationHandler, discoveryHandler, remoteModuleAdapter)
 
     return {
-        cacheHandler, 
-        logHandler,
-        remoteInfoHandler, 
-        importMapHandler, 
-        domHandler,
-        discoveryHandler,
-        remoteModuleHandler,
-        discoveryRemoteModuleHandler
+        ...base,
+        discoveryHandler, 
+        remoteModuleAdapter,
+        initFederationAdapter
     };
 }
 
