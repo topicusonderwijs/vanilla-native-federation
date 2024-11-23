@@ -30,11 +30,12 @@ const resolver = (
 ) => {
     const { 
         cacheHandler,
+        logHandler,
         remoteInfoHandler, 
         domHandler,
         importMapHandler, 
     } = baseResolver(cfg);
-    const discoveryHandler = discoveryHandlerFactory(cacheHandler, cfg.discoveryMapper);
+    const discoveryHandler = discoveryHandlerFactory(cacheHandler, logHandler, cfg.discoveryMapper);
     const remoteModuleHandler = remoteModuleHandlerFactory(cacheHandler);
 
     return {

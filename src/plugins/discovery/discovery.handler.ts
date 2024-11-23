@@ -1,6 +1,7 @@
 import type { CacheResolveOptions, DiscoveredRemotes, DiscoveryCache, DiscoveryMapper, RemoteModuleConfig } from "./discovery.contract";
 import { NFDiscoveryError } from "./discovery.error";
 import type { CacheHandler } from "../../lib/cache/cache.handler";
+import type { LogHandler } from "../../lib/logging/log.handler";
 import { getLatestVersion, addLatestTag, getLatestVersionBefore } from "../../lib/utils/version";
 
 type DiscoveryHandler = {
@@ -12,28 +13,44 @@ type DiscoveryHandler = {
 
 const discoveryHandlerFactory = (
     cacheHandler: CacheHandler<DiscoveryCache>,
+    logger: LogHandler,
     mapper: DiscoveryMapper
 ): DiscoveryHandler => {
 
     const getCachedRemoteVersions = (resolveFromCache: CacheResolveOptions): RemoteModuleConfig|false => {
-        if (resolveFromCache === "skip-cache") return false;
-        if (!cacheHandler.entry("discovery").exists()) return false;
+        if (resolveFromCache === "skip-cache") {
+            logger.debug("[disc] Skipping cached module configs");
+            return false;
+        }
+        if (!cacheHandler.entry("discovery").exists()){
+            logger.debug("[disc] Discovery cache not found.");
+            return false;
+        } 
 
         const cache = cacheHandler.fetch("discovery");
 
         const cachedRemoteConfigs: RemoteModuleConfig = {};
 
-        if(resolveFromCache === "all-latest") resolveFromCache = addLatestTag(Object.keys(cache));
+        if(resolveFromCache === "all-latest"){
+            logger.debug(`[disc] Adding 'latest' tag to cached remotes: [${Object.keys(cache).join(',')}]`);
+            resolveFromCache = addLatestTag(Object.keys(cache));
+        } 
 
         for (const [remote, reqVersion] of Object.entries(resolveFromCache)) {
 
-            if(!cache[remote] || Object.keys(cache[remote]).length === 0) return false;
+            if(!cache[remote] || Object.keys(cache[remote]).length === 0) {
+                logger.warn(`[disc] Remote ${remote} does not exist in cache. Omitting cache`);
+                return false;
+            }
 
             const version = (reqVersion === "latest")
                 ? getLatestVersion(Object.keys(cache[remote]))!
                 : reqVersion;
 
-            if(!cache[remote][version]) return false;
+            if(!cache[remote][version]){
+                logger.warn(`[disc] Version ${version} of ${remote} does not exist in cache. Omitting cache`);
+                return false;
+            }
             cachedRemoteConfigs[remote] = cache[remote][version]!
         }
 
@@ -52,15 +69,15 @@ const discoveryHandlerFactory = (
 
             if (version === "latest") version = getLatestVersion(Object.keys(fetchedRemotes[remote]))!
 
-
             if(!fetchedRemotes[remote][version]) {
-                console.warn(`Version '${version}' of remote '${remote}' is not available in discovery.`);
+                logger.warn(`Version '${version}' of remote '${remote}' is not available in discovery.`)
+
                 const fallbackVersion = getLatestVersionBefore(Object.keys(fetchedRemotes[remote]), version);
                 if (!fallbackVersion) {
                     throw new NFDiscoveryError(`Remote '${remote}' has no versions available before '${version}' in discovery.`);
                 }
 
-                console.warn("Falling back to " + fallbackVersion);
+                logger.warn(`[disc] Remote ${remote} is falling back to version ${fallbackVersion}`)
                 version = fallbackVersion;
             }
 
@@ -79,17 +96,26 @@ const discoveryHandlerFactory = (
         return newRemoteConfigs;
     }
 
+    const handleError = (msg: string) => (e: any) => {
+        logger.error(`${msg}: ${e?.message ?? e}`)
+        throw new NFDiscoveryError("Could not load remote module configs")
+    }
 
     const fetchDiscoveredRemotes = (discoveryManifestUrl: string, resolveFromCache: CacheResolveOptions)
         : Promise<RemoteModuleConfig> => {
             const cachedVersions = getCachedRemoteVersions(resolveFromCache);
             if (cachedVersions) return Promise.resolve(cachedVersions);
 
+            logger.debug(`[disc] Fetching discovery from ${discoveryManifestUrl}`);
+
             if(resolveFromCache === "all-latest") resolveFromCache = {};
             return fetch(discoveryManifestUrl)
+                .catch(handleError("Fetching manifest failed"))
                 .then(response => mapper(response.json()))
                 .then(mapToRequestedVersion(resolveFromCache))
-                .then(updateCachedRemoteConfigs);
+                .catch(handleError("Mapping manifest failed"))
+                .then(updateCachedRemoteConfigs)
+                .catch(handleError("Could not update cache"))
         }
     return {fetchDiscoveredRemotes};
 }
