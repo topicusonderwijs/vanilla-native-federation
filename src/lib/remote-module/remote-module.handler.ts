@@ -2,24 +2,20 @@
 import type { DomHandler } from "../dom/dom.handler";
 import type { LogHandler } from "../logging/log.handler";
 import { NFError } from "../native-federation.error";
-import type { RemoteModuleOptions } from "./remote-module.contract";
+import type { LoadRemoteModule, RemoteModuleOptions } from "./remote-module.contract";
 import type { RemoteInfo } from "../remote-entry/remote-info.contract";
 import type { RemoteInfoHandler } from "../remote-entry/remote-info.handler";
-import { defaultConfig, resolver, type Config } from "../resolver";
 import * as _path from "../utils/path";
 
-
-type LoadRemoteModule = (optionsOrRemoteName: RemoteModuleOptions | string, exposedModule?: string ) => Promise<void>
-
-type RemoteModuleLoader = {
+type RemoteModuleHandler = {
     load: LoadRemoteModule
 }
 
-const remoteModuleLoaderFactory = (
+const remoteModuleHandlerFactory = (
     logger: LogHandler,
     remoteInfoHandler: RemoteInfoHandler,
     domHandler: DomHandler
-): RemoteModuleLoader => {
+): RemoteModuleHandler => {
 
     const mapToRemoteModule = (
         optionsOrRemoteName: RemoteModuleOptions | string,
@@ -65,18 +61,6 @@ const remoteModuleLoaderFactory = (
     return { load }
 }
 
-const loadRemoteModule: LoadRemoteModule = (
-    remoteNameOrModule: RemoteModuleOptions | string,exposedModule?: string,
-    options: Partial<Config> = {}
-) => {
-    const {
-        logHandler,
-        remoteInfoHandler, 
-        domHandler
-    } = resolver(defaultConfig(options));
 
-    const moduleLoader = remoteModuleLoaderFactory(logHandler, remoteInfoHandler, domHandler);
-    return moduleLoader.load(remoteNameOrModule, exposedModule);
-}
 
-export { loadRemoteModule, remoteModuleLoaderFactory, LoadRemoteModule, RemoteModuleOptions, RemoteModuleLoader };
+export { remoteModuleHandlerFactory, RemoteModuleHandler, RemoteModuleOptions };

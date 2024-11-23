@@ -1,7 +1,7 @@
+import { discoveryRemoteModuleHandlerFactory } from "./discovery-remote-module.handler";
 import type { DiscoveryCache, CacheResolveOptions, DiscoveryMapper } from "./discovery.contract";
 import { discoveryHandlerFactory } from "./discovery.handler";
 import { noopMapper } from "./noop.mapper";
-import { remoteModuleHandlerFactory } from "./remote-module.handler";
 import { DEFAULT_CACHE } from "../../lib/cache";
 import type { NativeFederationCache } from "../../lib/cache/cache.contract";
 import { toCache } from "../../lib/cache/cache.handler";
@@ -34,9 +34,10 @@ const resolver = (
         remoteInfoHandler, 
         domHandler,
         importMapHandler, 
+        remoteModuleHandler,
     } = baseResolver(cfg);
     const discoveryHandler = discoveryHandlerFactory(cacheHandler, logHandler, cfg.discoveryMapper);
-    const remoteModuleHandler = remoteModuleHandlerFactory(cacheHandler);
+    const discoveryRemoteModuleHandler = discoveryRemoteModuleHandlerFactory(cacheHandler);
 
     return {
         cacheHandler, 
@@ -46,6 +47,7 @@ const resolver = (
         domHandler,
         discoveryHandler,
         remoteModuleHandler,
+        discoveryRemoteModuleHandler
     };
 }
 

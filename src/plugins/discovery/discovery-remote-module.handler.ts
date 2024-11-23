@@ -4,7 +4,7 @@ import type { CacheHandler } from "../../lib/cache/cache.handler";
 import type { RemoteModule } from "../../lib/remote-module/remote-module.contract";
 import { getLatestVersion } from "../../lib/utils/version";
 
-type RemoteModuleHandler = {
+type DiscoveryRemoteModuleHandler = {
     getIfInitialized: (
         remoteConfigs: RemoteModuleConfig, 
         remoteName: string,
@@ -12,9 +12,9 @@ type RemoteModuleHandler = {
     ) => RemoteModule
 }
 
-const remoteModuleHandlerFactory = (
+const discoveryRemoteModuleHandlerFactory = (
     cacheHandler: CacheHandler<DiscoveryCache>,
-): RemoteModuleHandler => {
+): DiscoveryRemoteModuleHandler => {
     const cache = cacheHandler.entry("discovery");
 
     const tryGetLatestCachedVersion = (cachedRemote?: CachedRemoteVersions): string|undefined => {
@@ -40,4 +40,4 @@ const remoteModuleHandlerFactory = (
     return { getIfInitialized };
 }
 
-export { remoteModuleHandlerFactory, RemoteModuleHandler }
+export { discoveryRemoteModuleHandlerFactory, DiscoveryRemoteModuleHandler }

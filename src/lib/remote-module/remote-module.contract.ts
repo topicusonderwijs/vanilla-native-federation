@@ -7,4 +7,6 @@ type RemoteModuleOptions = {
 
 type RemoteModule = Required<RemoteModuleOptions>;
 
-export {RemoteModuleOptions, RemoteModule}
+type LoadRemoteModule = (optionsOrRemoteName: RemoteModuleOptions | string, exposedModule?: string ) => Promise<any>
+
+export {RemoteModuleOptions, RemoteModule, LoadRemoteModule}

@@ -1,8 +1,9 @@
-import { type DomHandler } from './dom/dom.handler';
+import type { DomHandler } from './dom/dom.handler';
 import type { ImportMap } from './import-map/import-map.contract';
-import { type ImportMapHandler } from './import-map/import-map.handler';
+import type { ImportMapHandler } from './import-map/import-map.handler';
 import type { RemoteInfoHandler } from './remote-entry/remote-info.handler';
-import { type RemoteModuleLoader, remoteModuleLoaderFactory, type LoadRemoteModule } from './remote-module/load-remote-module';
+import type { LoadRemoteModule } from './remote-module/remote-module.contract';
+import type { RemoteModuleHandler } from './remote-module/remote-module.handler';
 import { defaultConfig, resolver, type Config } from './resolver';
 
 type InitFederation = (
@@ -14,10 +15,10 @@ type FederationInitializer = {
 }
 
 const federationInitializerFactory = (
+    domHandler: DomHandler,
     remoteInfoHandler: RemoteInfoHandler,
     importMapHandler: ImportMapHandler,
-    domHandler: DomHandler,
-    remoteModuleLoader: RemoteModuleLoader
+    remoteModuleLoader: RemoteModuleHandler
 ): FederationInitializer => {
 
     const fetchRemotes = (remotesOrManifestUrl: string | Record<string, string> = {}): Promise<Record<string, string>> => {
@@ -55,25 +56,29 @@ const federationInitializerFactory = (
     return {init}
 }
 
+const resolveInitFederation = (
+    options: Partial<Config> = {}
+): FederationInitializer => {
+    const {
+        domHandler,
+        remoteInfoHandler, 
+        importMapHandler,
+        remoteModuleHandler
+    } = resolver(defaultConfig(options));
+
+    return federationInitializerFactory( 
+        domHandler,
+        remoteInfoHandler, 
+        importMapHandler, 
+        remoteModuleHandler
+    );
+}
+
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string> = {},
     options: Partial<Config> = {}
 ): Promise<{load: LoadRemoteModule, importMap: ImportMap}> => {   
-    const {
-        logHandler,
-        remoteInfoHandler, 
-        importMapHandler,
-        domHandler
-    } = resolver(defaultConfig(options));
-
-    const nfInitializer = federationInitializerFactory( 
-        remoteInfoHandler, 
-        importMapHandler, 
-        domHandler,
-        remoteModuleLoaderFactory(logHandler, remoteInfoHandler, domHandler)
-    );
-    
-    return nfInitializer.init(remotesOrManifestUrl)
+    return resolveInitFederation(options).init(remotesOrManifestUrl)
 }
 
-export { initFederation, federationInitializerFactory, FederationInitializer};
+export { resolveInitFederation, initFederation, federationInitializerFactory, FederationInitializer};

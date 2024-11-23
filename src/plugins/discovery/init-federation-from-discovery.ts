@@ -1,11 +1,11 @@
+import type { DiscoveryRemoteModuleHandler } from "./discovery-remote-module.handler"
 import type { CacheResolveOptions, RemoteModuleConfig } from "./discovery.contract"
 import { NFDiscoveryError } from "./discovery.error"
 import type { DiscoveryHandler } from "./discovery.handler"
-import type { RemoteModuleHandler } from "./remote-module.handler"
 import { type DiscoveryConfig, resolver, defaultConfig } from "./resolver"
 import type { ImportMap } from "../../lib/import-map/import-map.contract"
 import { federationInitializerFactory, type FederationInitializer } from "../../lib/init-federation"
-import { remoteModuleLoaderFactory, type LoadRemoteModule } from "../../lib/remote-module/load-remote-module"
+import type { LoadRemoteModule } from "../../lib/remote-module/remote-module.contract"
 
 type InitFederationFromDiscovery = (
     discoveryManifestUrl: string,
@@ -21,9 +21,9 @@ type DiscoveryFederationInitializerFactory = {
 }
 
 const initFederationFromDiscoveryFactory = (
-    discoveryHandler: DiscoveryHandler,
-    remoteModuleHandler: RemoteModuleHandler,
     federationInitializer: FederationInitializer,
+    discoveryHandler: DiscoveryHandler,
+    discoveryRemoteModuleHandler: DiscoveryRemoteModuleHandler,
 ): DiscoveryFederationInitializerFactory => {
 
     const getEntryPointUrls = (remotes: RemoteModuleConfig): Record<string, string> => {    
@@ -39,7 +39,7 @@ const initFederationFromDiscoveryFactory = (
 
     const verifyAndLoadModule = (load: LoadRemoteModule, remoteConfigs: RemoteModuleConfig) => {
         return (remote: string, version?: string): Promise<any> => {
-            const remoteModule = remoteModuleHandler.getIfInitialized(remoteConfigs, remote, version);
+            const remoteModule = discoveryRemoteModuleHandler.getIfInitialized(remoteConfigs, remote, version);
             return load(remoteModule); 
         }
     }
@@ -69,27 +69,28 @@ const initFederationFromDiscovery = (
     options: Partial<DiscoveryConfig> = {}
 ) => {    
     const cfg = defaultConfig(options);
+    
     const {
-        logHandler,
         remoteInfoHandler, 
         importMapHandler, 
         domHandler,
         discoveryHandler,
-        remoteModuleHandler
+        remoteModuleHandler,
+        discoveryRemoteModuleHandler
     } = resolver(cfg);
 
-    const baseInitializer = federationInitializerFactory(
-        remoteInfoHandler, 
-        importMapHandler, 
-        domHandler,
-        remoteModuleLoaderFactory(logHandler, remoteInfoHandler, domHandler)
-    )
-
-    return initFederationFromDiscoveryFactory(
+    const nfInitializer = initFederationFromDiscoveryFactory(
+        federationInitializerFactory(
+            domHandler,
+            remoteInfoHandler, 
+            importMapHandler, 
+            remoteModuleHandler,
+        ),
         discoveryHandler, 
-        remoteModuleHandler,
-        baseInitializer, 
-    ).init(discoveryManifestUrl, cfg.resolveFromCache);
+        discoveryRemoteModuleHandler,
+    );
+    
+    return nfInitializer.init(discoveryManifestUrl, cfg.resolveFromCache);
 }
 
 export { initFederationFromDiscovery};

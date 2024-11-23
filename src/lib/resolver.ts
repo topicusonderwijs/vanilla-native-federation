@@ -7,6 +7,7 @@ import { logHandlerFactory, type LogType, type LogHandler } from "./logging/log.
 import { noopLogger } from "./logging/noop.logger";
 import { remoteInfoHandlerFactory } from "./remote-entry/remote-info.handler";
 import { sharedInfoHandlerFactory } from "./remote-entry/shared-info.handler";
+import { remoteModuleHandlerFactory } from "./remote-module/remote-module.handler";
 
 type Config<TCache extends NativeFederationCache = NativeFederationCache> = {
     cache: TCache,
@@ -25,13 +26,32 @@ const defaultConfig = (o: Partial<Config<NativeFederationCache & CacheExtension>
 const resolver = <TCache extends NativeFederationCache & CacheExtension>(
     {cache, logger, logLevel}: Config<TCache>
 ) => {
+    // Base handlers
+    const domHandler = domHandlerFactory();
     const cacheHandler = cacheHandlerFactory(cache);
     const logHandler = logHandlerFactory(logLevel, logger)
+
+    // remote-entry
     const sharedInfoHandler = sharedInfoHandlerFactory(cacheHandler);
     const remoteInfoHandler = remoteInfoHandlerFactory(cacheHandler, logHandler, sharedInfoHandler);
+
+    // import map
     const importMapHandler = importMapHandlerFactory(sharedInfoHandler);
-    const domHandler = domHandlerFactory()
-    return {cacheHandler, logHandler, sharedInfoHandler, remoteInfoHandler, importMapHandler, domHandler};
+    
+    // remote-module
+    const remoteModuleHandler = remoteModuleHandlerFactory(logHandler, remoteInfoHandler, domHandler);
+
+    return {
+        domHandler,
+        cacheHandler, 
+        logHandler, 
+        sharedInfoHandler, 
+        remoteInfoHandler, 
+        importMapHandler, 
+        remoteModuleHandler
+    };
 }
 
-export {resolver, Config, defaultConfig};
+
+
+export {Config, defaultConfig, resolver};
