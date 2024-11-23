@@ -44,7 +44,7 @@ const remoteInfoHandlerFactory = (
         };
         if(!remoteEntryUrl) return Promise.reject(new NFError(`Module not registered, provide a valid remoteEntryUrl for '${remoteName}'`));
 
-        logger.debug(`Remote '${remoteName}' not found in cache, fetching from: ` + remoteEntryUrl);
+        logger.debug(`Fetching remote '${remoteName}' from: ` + remoteEntryUrl);
         return fromEntryJson(remoteEntryUrl)
             .then(info => addRemoteModuleToCache(info, remoteName ?? info.name))
             .then(dependencyHandler.addSharedDepsToCache)
