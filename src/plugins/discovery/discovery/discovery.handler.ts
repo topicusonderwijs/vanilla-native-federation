@@ -19,11 +19,11 @@ const discoveryHandlerFactory = (
 
     const getCachedRemoteVersions = (resolveFromCache: CacheResolveOptions): RemoteModuleConfig|false => {
         if (resolveFromCache === "skip-cache") {
-            logger.debug("[disc] Skipping cached module configs");
+            logger.debug("[discovery] Skipping cached module configs");
             return false;
         }
         if (!cacheHandler.entry("discovery").exists()){
-            logger.debug("[disc] Discovery cache not found.");
+            logger.debug("[discovery] Discovery cache not found.");
             return false;
         } 
 
@@ -32,14 +32,14 @@ const discoveryHandlerFactory = (
         const cachedRemoteConfigs: RemoteModuleConfig = {};
 
         if(resolveFromCache === "all-latest"){
-            logger.debug(`[disc] Adding 'latest' tag to cached remotes: ["${Object.keys(cache).join('", "')}"]`);
+            logger.debug(`[discovery] Adding 'latest' tag to cached remotes: ["${Object.keys(cache).join('", "')}"]`);
             resolveFromCache = addLatestTag(Object.keys(cache));
         } 
 
         for (const [remote, reqVersion] of Object.entries(resolveFromCache)) {
 
             if(!cache[remote] || Object.keys(cache[remote]).length === 0) {
-                logger.warn(`[disc] Remote ${remote} does not exist in cache. Omitting cache`);
+                logger.warn(`[discovery] Remote ${remote} does not exist in cache. Omitting cache`);
                 return false;
             }
 
@@ -48,7 +48,7 @@ const discoveryHandlerFactory = (
                 : reqVersion;
 
             if(!cache[remote][version]){
-                logger.warn(`[disc] Version ${version} of ${remote} does not exist in cache. Omitting cache`);
+                logger.warn(`[discovery] Version ${version} of ${remote} does not exist in cache. Omitting cache`);
                 return false;
             }
             cachedRemoteConfigs[remote] = cache[remote][version]!
@@ -70,14 +70,14 @@ const discoveryHandlerFactory = (
             if (version === "latest") version = getLatestVersion(Object.keys(fetchedRemotes[remote]))!
 
             if(!fetchedRemotes[remote][version]) {
-                logger.warn(`Version '${version}' of remote '${remote}' is not available in discovery.`)
+                logger.warn(`[discovery] Version '${version}' of remote '${remote}' is not available in discovery.`)
 
                 const fallbackVersion = getLatestVersionBefore(Object.keys(fetchedRemotes[remote]), version);
                 if (!fallbackVersion) {
                     throw new NFDiscoveryError(`Remote '${remote}' has no versions available before '${version}' in discovery.`);
                 }
 
-                logger.warn(`[disc] Remote ${remote} is falling back to version ${fallbackVersion}`)
+                logger.warn(`[discovery] Remote ${remote} is falling back to version ${fallbackVersion}`)
                 version = fallbackVersion;
             }
 
@@ -98,15 +98,19 @@ const discoveryHandlerFactory = (
 
     const handleError = (msg: string) => (e: any) => {
         logger.error(`${msg}: ${e?.message ?? e}`)
-        throw new NFDiscoveryError("Could not load remote module configs")
+        throw new NFDiscoveryError("[discovery] Could not load remote module configs")
     }
 
     const fetchDiscoveredRemotes = (discoveryManifestUrl: string, resolveFromCache: CacheResolveOptions)
         : Promise<RemoteModuleConfig> => {
             const cachedVersions = getCachedRemoteVersions(resolveFromCache);
-            if (cachedVersions) return Promise.resolve(cachedVersions);
+            if (cachedVersions) {
+                logger.debug("[discovery] Retrieved remote configs from cache.");
 
-            logger.debug(`[disc] Fetching discovery from ${discoveryManifestUrl}`);
+                return Promise.resolve(cachedVersions);
+            }
+
+            logger.debug(`[discovery] Fetching discovery from ${discoveryManifestUrl}`);
 
             if(resolveFromCache === "all-latest") resolveFromCache = {};
             return fetch(discoveryManifestUrl)
