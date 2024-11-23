@@ -12,7 +12,7 @@ type InitFederationFromDiscovery = (
     resolveFromCache: CacheResolveOptions,
 ) => Promise<{
     load: (remote: string, version?: string) => Promise<any>, 
-    discovery: RemoteModuleConfig, 
+    discovered: RemoteModuleConfig, 
     importMap: ImportMap
 }>
 
@@ -57,7 +57,7 @@ const initFederationFromDiscoveryFactory = (
                     .then(({load, importMap}) => ({
                         load: verifyAndLoadModule(load, remoteConfigs), 
                         importMap,
-                        discovery: remoteConfigs
+                        discovered: remoteConfigs
                     }))
             })
     }

@@ -38,7 +38,6 @@ const remoteModuleHandlerFactory = (
         return remote.module; 
     }
     return { getIfInitialized };
-    
 }
 
 export { remoteModuleHandlerFactory, RemoteModuleHandler }
