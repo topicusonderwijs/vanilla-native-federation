@@ -183,8 +183,7 @@ Modules can be loaded by awaiting the `mfe-loader-available` event that will exp
 
 For debugging, the library contains a simple logger that can give a more detailed insight in the loading process
 
-**
-loader.js**
+**loader.js**
 
 ```
 import { initFederation, consoleLogger, noopLogger } from 'vanilla-native-federation';
