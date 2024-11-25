@@ -2,19 +2,27 @@
 
 Check the full description of native-federation on [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation). This library is specifically made for applications that require a small library to (lazy) load micro frontends or webcomponents on HTML pages using native-federation (e.g. PHP, Ruby or Java applications) without the need for a JavaScript framework. 
 
-This library is under [MIT License](./LICENSE.md) and is inspired on [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime).
-
-## More information: 
-
-If you want to know more about Native federation, check out these sources: 
+This library is under [MIT License](./LICENSE.md) and is inspired on [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime). If you want to know more about Native federation, check out these sources: 
 
 - [Talk by Manfred Steyer](https://www.youtube.com/watch?v=cofoI5_S3lE)
 - [The official native federation package](https://www.npmjs.com/package/@angular-architects/native-federation)
 - [Angular-architects blogpost](https://www.angulararchitects.io/blog/announcing-native-federation-1-0/)
 - [Some examples](https://github.com/manfredsteyer/native-federation-core-example)
 
+## Table of Contents
 
-## Dependencies:
+1. Dependencies
+2. Usage
+3. Bundling your loader.js
+4. Examples
+    1. Communication through 'custom events'
+    2. Custom Logging
+    3. Generic loader.js
+5. Plugins
+    1. Custom storage (caching)
+    2. Micro frontend discovery
+
+## 1 &nbsp; Dependencies:
 
 Right now the library is dependent on [es-module-shims](https://www.npmjs.com/package/es-module-shims) to resolve all dependency urls and for browser support. The shim can be added in the HTML page: 
 
@@ -25,7 +33,9 @@ Right now the library is dependent on [es-module-shims](https://www.npmjs.com/pa
 <script type="module-shim" src="./my-esm-module.js"></script>
 ```
 
-## Usage:
+**Important:** The examples assume that the fetched remote modules bootstrap a [custom element](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements). The `load()` method in this vanilla-native-federation library returns a promise of the contents of the remote JavaScript module returned. It is also possible to write a different (custom) handler for the returned module. 
+
+## 2 &nbsp; Usage:
 
 Below you can find some examples of how to use the native-federation loader. The simplest implmentation is to use the initFederation function to load all remote entries. 
 
@@ -46,9 +56,25 @@ import { initFederation } from 'vanilla-native-federation';
 })();
 ```
 
-The `initFederation` will return the added importMap object together with a load callback, this function can load remote modules using the imported dependencies from the importMap. The loadModule returns a `Promise<any>` that represents the remote module.
+The `initFederation` will return the importMap object that was appended to the HTML page together with a `load()` callback, this function can load remote modules using the imported dependencies from the importMap. The `load()` callback returns a `Promise<any>` that represents the remote module that was retrieved.
 
-## Building your loader.js
+Below are the types of the exposed functions: 
+
+```
+type InitFederation = (
+    remotesOrManifestUrl: string | Record<string, string> = {},
+    options?: Partial<{cache: TCache, logger: LogHandler, logLevel: LogType}>
+) => Promise<{load: LoadRemoteModule, importMap: ImportMap}>
+
+
+type LoadRemoteModule = (
+  optionsOrRemoteName: RemoteModuleOptions | string, 
+  exposedModule?: string 
+) => Promise<any>
+```
+
+
+## 3 &nbsp; Bundling your loader.js
 
 You can use a simple ESBuild config to build your loader into a reusable script, the builder will assume a directory structure like shown below: 
 
@@ -103,7 +129,12 @@ esbuild.build({
 }).catch(() => process.exit(1));
 ```
 
-## Custom events: 
+## 4 &nbsp; Examples
+
+Below are some examples of how to use the library in different scenario's.
+
+### 4.1 &nbsp; Communication through 'custom events': 
+<hr>
 
 Custom events can help streamline the import process, this way you can have a general initiation process and load modules on the fly. 
 
@@ -148,7 +179,77 @@ Modules can be loaded by awaiting the `mfe-loader-available` event that will exp
   </body>
 ```
 
-## Using custom storage (caching): 
+### 4.2 &nbsp; Custom logging: 
+
+For debugging, the library contains a simple logger that can give a more detailed insight in the loading process
+
+**
+loader.js**
+
+```
+import { initFederation, consoleLogger, noopLogger } from 'vanilla-native-federation';
+
+(() => {
+  initFederation("http://localhost:3000", {
+    logLevel: 'debug',     // 'debug'|'warn'|'error' -> default: 'error'
+    logger: consoleLogger  // default: noopLogger
+  })
+    .then(({load, importMap}) => {
+      console.log("importMap: ", importMap);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
+})();
+```
+
+### 4.3 &nbsp; Generic loader.js: 
+<hr>
+
+It is possible to make the loader.js even more generic. This allows you to reduce the amount of config you have to provide to the loader.js.
+
+**loader.js**
+```
+import { initFederation } from 'vanilla-native-federation';
+
+const initMicroFrontends = (urlOrManifest, remotes) => {
+  return initFederation(urlOrManifest)
+    .then(({load, importMap}) => Promise.all(
+      remotes.map(r => load(r, "./Component"))
+    ))
+}
+
+export { initMicroFrontends };
+```
+
+Remotes can now be defined in the new method and the loading is abstracted away by the loader.js file. 
+
+**your-shell.html**
+```
+  <body>
+    <app-mfe-one></app-mfe-one>
+    <app-mfe-two></app-mfe-two>
+
+    <script type="esms-options">{ "shimMode": true }</script>
+    <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+
+    <script type="module-shim">
+      import { initMicroFrontends } from "./loader.js";
+
+      (async () => {
+        await initMicroFrontends(
+          "http://localhost:3000", 
+          ["remote1", "remote2"]
+        )
+      })()
+    </script> 
+  </body>
+```
+
+
+## 5 &nbsp; Plugins
+
+There are a few plugins baked into the library to customize the initialization even further. 
+
+## 5.2 &nbsp; Custom storage (caching): 
 
 By default, native federation will use the window object as storage for all metadata and configuration, you can change this using a custom provided storage: 
 
@@ -174,11 +275,10 @@ import { createSessionStorageCache } from 'vanilla-native-federation/plugins/sto
 })();
 ```
 
-## Usage with discovery:
+### 5.2 &nbsp; Micro frontend discovery:
 
-It is possible to use a discovery service to decouple your micro frontends from the shell application. This means
-that the library will attempt to fetch the available micro frontends from an external source before loading the 
-remote modules: 
+The micro frontend discovery service decouples the remotes (micro frontends) from the shell application. This plugin 
+allows the library to fetch the available micro frontends from an external source before loading the remote modules: 
 
 **loader.ts**
 ```
@@ -194,6 +294,9 @@ import { initFederationFromDiscovery } from 'vanilla-native-federation/plugins/d
     })
 })();
 ```
+
+By default, the plugin requires a certain JSON format to initialize the remote module configuration. The format consists
+of Records with the remote names as keys and the configuration objects as values: 
 
 **required minimal discovery format**
 ```
@@ -223,7 +326,7 @@ import { initFederationFromDiscovery } from 'vanilla-native-federation/plugins/d
 }
 ```
 
-Finally, the manifest can be utilized to load the remote Modules. 
+The manifest can be utilized to load the remote modules into the HTML page. 
 
 **your-shell.html**
 ```
@@ -248,8 +351,8 @@ Finally, the manifest can be utilized to load the remote Modules.
   </body>
 ```
 
-### Official Micro Frontend discovery manifest:
-
+#### Official "Micro Frontend discovery" manifest:
+<hr />
 This library also contains an implementation plugin for [micro frontend discovery](https://github.com/awslabs/frontend-discovery). Convenient for micro frontend architectures that require a more robust and detailed discovery mechanism: 
 
 **loader.js:**
@@ -322,29 +425,8 @@ Now the library expects the official format:
 
 Finally, it is also possible to provide your own custom mapper, as long as the output of the mapper at least includes the minimal discovery format defined before.
 
-### Logging: 
-
-For debugging, the library contains a simple logger that can give a more detailed insight in the loading process
-
-**
-loader.js**
-
-```
-import { initFederation, consoleLogger, noopLogger } from 'vanilla-native-federation';
-
-(() => {
-  initFederation("http://localhost:3000", {
-    logLevel: 'debug',     // 'debug'|'warn'|'error' -> default: 'error'
-    logger: consoleLogger  // default: noopLogger
-  })
-    .then(({load, importMap}) => {
-      console.log("importMap: ", importMap);
-      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
-    })
-})();
-```
-
-### Caching options: 
+#### Caching options: 
+<hr />
 
 By default, the discovery plugin will return the latest versions of all available cached remotes (which is empty since caching strategy is the Window object). It is possible to switch to a more efficient caching strategy that prefers retrieving the config from the sessionStorage unless it doesn't exist: 
 
@@ -357,7 +439,7 @@ import { cache } from 'vanilla-native-federation';
 
 (() => {
     const customCache = {
-        // default props are not cached (default) 
+        // base props are not cached (default) 
         ...cache.DEFAULT_CACHE,
         // Discovery is cached in sessionStorage
         ...createSessionStorageCache({
