@@ -12,6 +12,8 @@ module.exports = [
             'coverage/**',
             '**/*.js',
             '**/*.d.ts',
+            '**/*.spec.ts',
+            '**/*.mock.ts',
             'build.ts'
         ]
     },

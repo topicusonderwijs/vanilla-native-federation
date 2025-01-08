@@ -34,6 +34,7 @@ async function generateBuilds() {
       bundle: false,
       outExtension: { '.js': '.mjs' },
       sourcemap: false,
+      exclude: ['src/**/*.mock.ts', 'src/**/*.spec.ts'],
     },
     fesm2022: {
       ...commonConfig,
@@ -52,6 +53,7 @@ async function generateBuilds() {
       outfile: `dist/fesm2022/vanilla-native-federation-${plugin}.mjs`,
       bundle: true,
       sourcemap: true,
+      exclude: ['src/**/*.mock.ts', 'src/**/*.spec.ts'],
     };
   }
 
