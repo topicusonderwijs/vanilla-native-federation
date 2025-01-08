@@ -1,11 +1,14 @@
 {
-  "version": "0.4.1",
+  "version": "0.5.0",
   "name": "vanilla-native-federation",
   "author": "aukevanoost",
-  "keywords": ["native-federation"],
+  "keywords": [
+    "native-federation",
+    "native-federation-runtime"
+  ],
   "scripts": {
     "build": "node build.js",
-    "lint": "eslint . -c eslint.config.js"  
+    "lint": "eslint . -c eslint.config.js"
   },
   "repository": {
     "type": "git",
@@ -24,7 +27,8 @@
     "eslint-plugin-prettier": "^5.2.1",
     "json5": "^2.2.3",
     "serve": "^14.2.4",
-    "typescript": "^5.4.4"
+    "typescript": "^5.4.4",
+    "@softarc/native-federation-runtime": "^2.0.15"
   },
   "sideEffects": false
 }

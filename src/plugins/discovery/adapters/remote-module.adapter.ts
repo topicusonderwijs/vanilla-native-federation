@@ -1,7 +1,7 @@
-import type { CacheHandler } from "../../../lib/cache/cache.handler";
 import type { RemoteModule } from "../../../lib/remote-module/remote-module.contract";
+import type { StorageHandler } from "../../../lib/storage/storage.handler";
 import { getLatestVersion } from "../../../lib/utils/version";
-import type { DiscoveryCache, CachedRemoteVersions, RemoteModuleConfig } from "../discovery/discovery.contract";
+import type { DiscoveryStorage, CachedRemoteVersions, RemoteModuleConfig } from "../discovery/discovery.contract";
 import { NFDiscoveryError } from "../discovery/discovery.error";
 
 type RemoteModuleAdapter = {
@@ -13,7 +13,7 @@ type RemoteModuleAdapter = {
 }
 
 const remoteModuleAdapterFactory = (
-    cacheHandler: CacheHandler<DiscoveryCache>,
+    cacheHandler: StorageHandler<DiscoveryStorage>,
 ): RemoteModuleAdapter => {
     const cache = cacheHandler.entry("discovery");
 

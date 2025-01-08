@@ -1,6 +1,3 @@
-import type { CacheExtension, NativeFederationCache } from "./cache/cache.contract";
-import  { cacheHandlerFactory } from "./cache/cache.handler";
-import { DEFAULT_CACHE } from "./cache/default-cache";
 import { domHandlerFactory } from "./dom/dom.handler";
 import { importMapHandlerFactory } from "./import-map/import-map.handler";
 import { initFederationHandlerFactory } from "./init-federation/init-federation.handler";
@@ -9,32 +6,35 @@ import { noopLogger } from "./logging/noop.logger";
 import { remoteInfoHandlerFactory } from "./remote-entry/remote-info.handler";
 import { sharedInfoHandlerFactory } from "./remote-entry/shared-info.handler";
 import { remoteModuleHandlerFactory } from "./remote-module/remote-module.handler";
+import { DEFAULT_STORAGE } from "./storage/default-storage";
+import type { StorageExtension, NfStorage } from "./storage/storage.contract";
+import { storageHandlerFactory } from "./storage/storage.handler";
 
-type Config<TCache extends NativeFederationCache = NativeFederationCache> = {
+type Config<TCache extends NfStorage = NfStorage> = {
     cache: TCache,
     logger: LogHandler,
     logLevel: LogType
 }
 
-const defaultConfig = (o: Partial<Config<NativeFederationCache & CacheExtension>>): Config<NativeFederationCache & CacheExtension> => {
+const defaultConfig = (o: Partial<Config<NfStorage & StorageExtension>>): Config<NfStorage & StorageExtension> => {
     return {
-        cache: o.cache ?? DEFAULT_CACHE,
+        cache: o.cache ?? DEFAULT_STORAGE,
         logger: o.logger ?? noopLogger,
         logLevel: o.logLevel ?? "error"
     }
 }
 
-const resolver = <TCache extends NativeFederationCache & CacheExtension>(
+const resolver = <TCache extends NfStorage & StorageExtension>(
     {cache, logger, logLevel}: Config<TCache>
 ) => {
     // Base handlers
     const domHandler = domHandlerFactory();
-    const cacheHandler = cacheHandlerFactory(cache);
+    const storageHandler = storageHandlerFactory(cache);
     const logHandler = logHandlerFactory(logLevel, logger)
 
     // remote-entry
-    const sharedInfoHandler = sharedInfoHandlerFactory(cacheHandler);
-    const remoteInfoHandler = remoteInfoHandlerFactory(cacheHandler, logHandler, sharedInfoHandler);
+    const sharedInfoHandler = sharedInfoHandlerFactory(storageHandler);
+    const remoteInfoHandler = remoteInfoHandlerFactory(storageHandler, logHandler, sharedInfoHandler);
 
     // import map
     const importMapHandler = importMapHandlerFactory(sharedInfoHandler);
@@ -47,7 +47,7 @@ const resolver = <TCache extends NativeFederationCache & CacheExtension>(
 
     return {
         domHandler,
-        cacheHandler, 
+        storageHandler, 
         logHandler, 
         sharedInfoHandler, 
         remoteInfoHandler, 

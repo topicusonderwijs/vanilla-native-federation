@@ -1,7 +1,7 @@
-import type { CacheResolveOptions, DiscoveredRemotes, DiscoveryCache, DiscoveryMapper, RemoteModuleConfig } from "./discovery.contract";
+import type { CacheResolveOptions, DiscoveredRemotes, DiscoveryStorage, DiscoveryMapper, RemoteModuleConfig } from "./discovery.contract";
 import { NFDiscoveryError } from "./discovery.error";
-import type { CacheHandler } from "../../../lib/cache/cache.handler";
 import type { LogHandler } from "../../../lib/logging/log.handler";
+import type { StorageHandler } from "../../../lib/storage/storage.handler";
 import { getLatestVersion, addLatestTag, getLatestVersionBefore } from "../../../lib/utils/version";
 
 type DiscoveryHandler = {
@@ -12,7 +12,7 @@ type DiscoveryHandler = {
 }
 
 const discoveryHandlerFactory = (
-    cacheHandler: CacheHandler<DiscoveryCache>,
+    storage: StorageHandler<DiscoveryStorage>,
     logger: LogHandler,
     mapper: DiscoveryMapper
 ): DiscoveryHandler => {
@@ -22,12 +22,12 @@ const discoveryHandlerFactory = (
             logger.debug("[discovery] Skipping cached module configs");
             return false;
         }
-        if (!cacheHandler.entry("discovery").exists()){
+        if (!storage.entry("discovery").exists()){
             logger.debug("[discovery] Discovery cache not found.");
             return false;
         } 
 
-        const cache = cacheHandler.fetch("discovery");
+        const cache = storage.fetch("discovery");
 
         const cachedRemoteConfigs: RemoteModuleConfig = {};
 
@@ -86,7 +86,7 @@ const discoveryHandlerFactory = (
     }
 
     const updateCachedRemoteConfigs = (newRemoteConfigs: RemoteModuleConfig) => {
-        cacheHandler.mutate("discovery", cache => {
+        storage.mutate("discovery", cache => {
             Object.entries(newRemoteConfigs).forEach(([remote, cfg]) => {
                 if(!cache[remote]) cache[remote] = {};
                 if(!cache[remote][cfg.version]) cache[remote][cfg.version] = cfg;

@@ -1,6 +1,6 @@
-import type { SharedInfo, RemoteInfo } from "./remote-info.contract";
-import type { NativeFederationProps, CacheEntry } from "../cache/cache.contract";
-import type { CacheHandler } from "../cache/cache.handler";
+import type { Remote, SharedInfo } from "./remote-info.contract";
+import type { NfCache, StorageEntry } from "../storage/storage.contract";
+import type { StorageHandler } from "../storage/storage.handler";
 import * as _path from "../utils/path";
 
 const toExternalKey = (shared: SharedInfo): string => {
@@ -8,27 +8,26 @@ const toExternalKey = (shared: SharedInfo): string => {
 }
 
 type SharedInfoHandler = {
-    mapSharedDeps: (remoteInfo: RemoteInfo) => Record<string, string>,
-    addSharedDepsToCache: (remoteInfo: RemoteInfo) => RemoteInfo
+    mapSharedDeps: (remoteInfo: Remote) => Record<string, string>,
+    addSharedDepsToCache: (remoteInfo: Remote) => Remote
 }
 
 const sharedInfoHandlerFactory = (
-    cache: CacheHandler<{"externals": CacheEntry<Record<string, string>>}>
+    storage: StorageHandler<{"externals": StorageEntry<Record<string, string>>}>
 ): SharedInfoHandler => {
     const getCachedSharedDepRef = (dep: SharedInfo): string|undefined => {
-        return cache.fetch("externals")[toExternalKey(dep)];
+        return storage.fetch("externals")[toExternalKey(dep)];
     }
 
-    const mapSharedDeps = (remoteInfo: RemoteInfo) => {
-        return remoteInfo.shared.reduce((dependencies, moduleDep) => {
-            return {
+    const mapSharedDeps = (remoteInfo: Remote) => {
+        return remoteInfo.shared
+            .reduce((dependencies, moduleDep) => ({
                 ...dependencies,
                 [moduleDep.packageName]: getCachedSharedDepRef(moduleDep) || _path.join(remoteInfo.baseUrl, moduleDep.outFileName)
-            }
-        }, {});
+            }), {});
     }
 
-    const mapModuleDepsIntoSharedDepsList = (remoteInfo: RemoteInfo) => (sharedList: NativeFederationProps["externals"]) => {
+    const mapModuleDepsIntoSharedDepsList = (remoteInfo: Remote) => (sharedList: NfCache["externals"]) => {
         return remoteInfo.shared.reduce((existing, dep) => {
             if(!existing[toExternalKey(dep)]) {
                 existing[toExternalKey(dep)] = _path.join(remoteInfo.baseUrl, dep.outFileName);
@@ -37,8 +36,8 @@ const sharedInfoHandlerFactory = (
         }, sharedList)
     }
 
-    const addSharedDepsToCache = (remoteInfo: RemoteInfo) => {
-        cache.mutate("externals", mapModuleDepsIntoSharedDepsList(remoteInfo))
+    const addSharedDepsToCache = (remoteInfo: Remote) => {
+        storage.mutate("externals", mapModuleDepsIntoSharedDepsList(remoteInfo))
         return remoteInfo;
     }
 

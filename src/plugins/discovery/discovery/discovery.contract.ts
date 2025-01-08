@@ -1,6 +1,6 @@
-import type { CacheOf } from "../../../lib/cache";
 import type { ImportMap } from "../../../lib/import-map/import-map.contract";
 import type { RemoteModule } from "../../../lib/remote-module/remote-module.contract";
+import type { StorageOf } from "../../../lib/storage/storage.contract";
 
 /**
  * Initialization
@@ -39,8 +39,8 @@ type RemoteModuleConfig = Record<RemoteName, CachedRemoteModuleCfg>
  */
 type CacheResolveOptions = Record<string,string|"latest">|"skip-cache"|"all-latest";
 
-type DiscoveryProps = { discovery: DiscoveredRemotes; }
-type DiscoveryCache = CacheOf<DiscoveryProps>;
+type DiscoveryCache = { discovery: DiscoveredRemotes; }
+type DiscoveryStorage = StorageOf<DiscoveryCache>;
 
 /**
  * Mapper
@@ -48,4 +48,4 @@ type DiscoveryCache = CacheOf<DiscoveryProps>;
 
 type DiscoveryMapper<T = any, U extends DiscoveredRemotes = DiscoveredRemotes> = (input: T) => U;
 
-export { InitFederationFromDiscovery, CacheResolveOptions, DiscoveryCache, DiscoveredRemotes, CachedRemoteVersions, RemoteModuleConfig, CachedRemoteModuleCfg, DiscoveryMapper }
+export { InitFederationFromDiscovery, CacheResolveOptions, DiscoveryStorage, DiscoveredRemotes, CachedRemoteVersions, RemoteModuleConfig, CachedRemoteModuleCfg, DiscoveryMapper }

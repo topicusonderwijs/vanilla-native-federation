@@ -3,7 +3,7 @@ import type { DomHandler } from "../dom/dom.handler";
 import type { LogHandler } from "../logging/log.handler";
 import { NFError } from "../native-federation.error";
 import type { LoadRemoteModule, RemoteModuleOptions } from "./remote-module.contract";
-import type { RemoteInfo } from "../remote-entry/remote-info.contract";
+import type { Remote } from "../remote-entry/remote-info.contract";
 import type { RemoteInfoHandler } from "../remote-entry/remote-info.handler";
 import * as _path from "../utils/path";
 
@@ -33,8 +33,8 @@ const remoteModuleHandlerFactory = (
         throw new NFError('Failed to load remote module');
     }
 
-    const getExposedModuleUrl = (remoteInfo: RemoteInfo, exposedModule: string): string => {    
-        const exposed = remoteInfo.exposes.find(e => e.key === exposedModule);
+    const getExposedModuleUrl = (remoteInfo: Remote, exposedModule: string): string => {    
+        const exposed = remoteInfo.exposes.find(m => m.key === exposedModule);
         if (!exposed) {
             logger.error(`Module '${exposedModule}'is not exposed in remote '${remoteInfo.name}'`)
             throw new NFError('Failed to load remote module');

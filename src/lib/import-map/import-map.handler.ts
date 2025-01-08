@@ -1,10 +1,10 @@
 import type { ImportMap } from "./import-map.contract";
-import type { RemoteInfo } from "../remote-entry/remote-info.contract";
+import type { Remote } from "../remote-entry/remote-info.contract";
 import type { SharedInfoHandler } from "../remote-entry/shared-info.handler";
 import * as _path from "../utils/path";
 
 type ImportMapHandler = {
-    toImportMap: (remoteInfo: RemoteInfo, remoteName?: string) => ImportMap,
+    toImportMap: (remoteInfo: Remote, remoteName?: string) => ImportMap,
     createEmpty: () => ImportMap,
     merge: (maps: ImportMap[]) => ImportMap
 }
@@ -26,18 +26,18 @@ const importMapHandlerFactory = (sharedInfoHandler: SharedInfoHandler): ImportMa
         );
     }
 
-    const getImports = (remoteInfo: RemoteInfo, remoteName: string) => {
+    const getImports = (remoteInfo: Remote, remoteName: string) => {
         return remoteInfo.exposes.reduce((acc,remote) => ({
             ...acc, 
             [_path.join(remoteName, remote.key)]: _path.join(remoteInfo.baseUrl, remote.outFileName)
         }), {});
     }
 
-    const getScopedDeps = (remoteInfo: RemoteInfo) => {
+    const getScopedDeps = (remoteInfo: Remote) => {
         return {[remoteInfo.baseUrl + '/']: sharedInfoHandler.mapSharedDeps(remoteInfo)}
     }
 
-    const toImportMap = (remoteInfo: RemoteInfo, remoteName?: string): ImportMap => {
+    const toImportMap = (remoteInfo: Remote, remoteName?: string): ImportMap => {
         if(!remoteName) remoteName = remoteInfo.name as string;
 
         return { 

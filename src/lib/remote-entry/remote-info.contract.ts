@@ -1,30 +1,5 @@
-type ExposesInfo = {
-    key: string;
-    outFileName: string;
-    dev?: {
-      entryPoint: string;
-    };
-}
+import type { FederationInfo } from '@softarc/native-federation-runtime';
 
-type SharedInfo = {
-  singleton: boolean;
-  strictVersion: boolean;
-  requiredVersion: string;
-  version?: string;
-  packageName: string;
-  outFileName: string;
-  dev?: {
-    entryPoint: string;
-  };
-}
+export type Remote = FederationInfo & {baseUrl: string}
 
-// FederationInfo
-type RemoteEntry = {
-    name: string;
-    shared: SharedInfo[];
-    exposes: ExposesInfo[];
-}
-
-type RemoteInfo = RemoteEntry & {baseUrl: string}
-
-export {ExposesInfo, SharedInfo, RemoteEntry, RemoteInfo}
+export type { SharedInfo, ExposesInfo, FederationInfo } from '@softarc/native-federation-runtime';

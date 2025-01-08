@@ -1,43 +1,43 @@
-import type { RemoteInfo } from "./remote-info.contract";
+import type { Remote } from "./remote-info.contract";
 import type { SharedInfoHandler } from "./shared-info.handler";
-import type { NativeFederationCache } from "../cache/cache.contract";
-import type { CacheHandler } from "../cache/cache.handler";
 import type { LogHandler } from "../logging/log.handler";
 import { NFError } from "../native-federation.error";
+import type { NfStorage } from "../storage/storage.contract";
+import type { StorageHandler } from "../storage/storage.handler";
 import * as _path from "../utils/path";
 
 type RemoteInfoHandler = {
-    loadRemoteInfo: (remoteEntryUrl?: string, remoteName?: string) => Promise<RemoteInfo>
+    loadRemoteInfo: (remoteEntryUrl?: string, remoteName?: string) => Promise<Remote>
 }
 
 const remoteInfoHandlerFactory = (
-    cacheHandler: CacheHandler<NativeFederationCache>, 
+    storage: StorageHandler<NfStorage>, 
     logger: LogHandler,
     dependencyHandler: SharedInfoHandler,
 ): RemoteInfoHandler => {
 
-    const fromEntryJson = (entryUrl: string): Promise<RemoteInfo> => {
+    const fromEntryJson = (entryUrl: string): Promise<Remote> => {
         return fetch(entryUrl)
-            .then(r => r.json() as unknown as RemoteInfo)
+            .then(r => r.json() as unknown as Remote)
             .then(cfg => {
                 return {...cfg, baseUrl: _path.getDir(entryUrl)}
             })
     }
 
-    const addRemoteModuleToCache = (remoteInfo: RemoteInfo, remoteName: string): RemoteInfo => {
-        cacheHandler.mutate("remoteNamesToRemote", v => ({...v, [remoteName]: remoteInfo}));
-        cacheHandler.mutate("baseUrlToRemoteNames", v => ({...v, [remoteInfo.baseUrl]: remoteName}));
+    const addRemoteModuleToCache = (remote: Remote, remoteName: string): Remote => {
+        storage.mutate("remoteNamesToRemote", v => ({...v, [remoteName]: remote}));
+        storage.mutate("baseUrlToRemoteNames", v => ({...v, [remote.baseUrl]: remoteName}));
 
         logger.debug(`Added remote '${remoteName}' to the cache.`);
 
-        return remoteInfo;
+        return remote;
     } 
 
-    const loadRemoteInfo = (remoteEntryUrl?: string, remoteName?: string): Promise<RemoteInfo> => {
-        if(!remoteName && !!remoteEntryUrl) remoteName = cacheHandler.fetch("baseUrlToRemoteNames")[_path.getDir(remoteEntryUrl)];
+    const loadRemoteInfo = (remoteEntryUrl?: string, remoteName?: string): Promise<Remote> => {
+        if(!remoteName && !!remoteEntryUrl) remoteName = storage.fetch("baseUrlToRemoteNames")[_path.getDir(remoteEntryUrl)];
         if(!remoteName) return Promise.reject(new NFError("Must provide valid remoteEntry or remoteName"));
 
-        const cachedRemote = cacheHandler.fetch("remoteNamesToRemote")[remoteName];
+        const cachedRemote = storage.fetch("remoteNamesToRemote")[remoteName];
         if (!!cachedRemote) {
             logger.debug(`Remote '${cachedRemote.name}' retrieved from cache.`);
             return Promise.resolve(cachedRemote)
