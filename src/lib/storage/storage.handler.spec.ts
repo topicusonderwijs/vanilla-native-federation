@@ -2,6 +2,7 @@ import type { NfCache, StorageOf } from './storage.contract';
 import { toStorage, storageHandlerFactory, type StorageHandler } from './storage.handler';
 import { createMockStorageEntry } from '../../mock/storage.mock';
 import { Remote, SharedInfo } from '../remote-entry/remote-info.contract';
+import { REMOTE_MFE1_MOCK, REMOTE_MFE2_MOCK } from '../../mock/models/remote.mock';
 
 describe('storageHandlerFactory', () => {
 
@@ -9,21 +10,15 @@ describe('storageHandlerFactory', () => {
     let handler: StorageHandler<StorageOf<NfCache>>;
 
     beforeEach(() => {
+        const remote1 = REMOTE_MFE1_MOCK();
         mockStorage = {
             remoteNamesToRemote: createMockStorageEntry(
                 'remoteNamesToRemote',
-                {
-                    'team/mfe1': {
-                        name: 'team/mfe1', 
-                        shared: [] as SharedInfo[], 
-                        exposes: [{key: './Comp', outFileName: 'main.js'}], 
-                        baseUrl: 'http://localhost:3001/mfe1'
-                    }
-                } as Record<string, Remote>
+                { [remote1.name]: remote1 } as Record<string, Remote>
             ),
             baseUrlToRemoteNames: createMockStorageEntry(
                 'baseUrlToRemoteNames',
-                {'http://localhost:3001/mfe1': 'team/mfe1'} as Record<string, string>
+                {[remote1.baseUrl]: remote1.name} as Record<string, string>
             ),
             externals: createMockStorageEntry('externals', {})
         };
@@ -32,17 +27,25 @@ describe('storageHandlerFactory', () => {
 
     describe('fetch', () => {
         it('should retrieve the current value of a storage entry', () => {
+            const expected_remote = REMOTE_MFE1_MOCK();
+
             expect(handler.fetch('externals')).toEqual({});
-            expect(handler.fetch('baseUrlToRemoteNames')).toEqual({'http://localhost:3001/mfe1': 'team/mfe1'});
+            expect(handler.fetch('baseUrlToRemoteNames')).toEqual({[expected_remote.baseUrl]: [expected_remote.name]});
         });
     });
 
     describe('entry', () => {
         it('should return the storage entry object', () => {
-            const countEntry = handler.entry('baseUrlToRemoteNames');
-            expect(countEntry.get()).toEqual({'http://localhost:3001/mfe1': 'team/mfe1'});
-            expect(typeof countEntry.set).toBe('function');
-            expect(countEntry.exists()).toEqual(true);
+            const expected_remote = REMOTE_MFE1_MOCK();
+            const new_remote = REMOTE_MFE2_MOCK();
+
+            const cacheEntry = handler.entry('baseUrlToRemoteNames')
+            expect(cacheEntry.get()).toEqual({[expected_remote.baseUrl]: [expected_remote.name]});
+            
+            cacheEntry.set({[new_remote.baseUrl]: new_remote.baseUrl})
+            expect(cacheEntry.get()).toEqual({[new_remote.baseUrl]: [new_remote.name]});
+
+            expect(cacheEntry.exists()).toEqual(true);
         });
     });
 
