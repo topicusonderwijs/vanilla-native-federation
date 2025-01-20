@@ -1,4 +1,4 @@
-## 0.5.2 - Fixed FESM export
+## 0.5.3 - Fixed FESM export
 - Fixed bad FESM dist not exporting functions
 
 ## 0.5.1 - Added CDN build
