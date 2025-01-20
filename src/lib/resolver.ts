@@ -3,8 +3,8 @@ import { importMapHandlerFactory } from "./import-map/import-map.handler";
 import { initFederationHandlerFactory } from "./init-federation/init-federation.handler";
 import { logHandlerFactory, type LogType, type LogHandler } from "./logging/log.handler";
 import { noopLogger } from "./logging/noop.logger";
-import { remoteInfoHandlerFactory } from "./remote-entry/remote-info.handler";
-import { sharedInfoHandlerFactory } from "./remote-entry/shared-info.handler";
+import { remoteInfoHandlerFactory } from "./remote-info/remote-info.handler";
+import { sharedInfoHandlerFactory } from "./remote-info/shared-info.handler";
 import { remoteModuleHandlerFactory } from "./remote-module/remote-module.handler";
 import { DEFAULT_STORAGE } from "./storage/default-storage";
 import type { StorageExtension, NfStorage } from "./storage/storage.contract";
@@ -40,7 +40,7 @@ const resolver = <TCache extends NfStorage & StorageExtension>(
     const importMapHandler = importMapHandlerFactory(sharedInfoHandler);
     
     // remote-module
-    const remoteModuleHandler = remoteModuleHandlerFactory(logHandler, remoteInfoHandler, domHandler);
+    const remoteModuleHandler = remoteModuleHandlerFactory(logHandler, remoteInfoHandler);
 
     // Init federation
     const initFederationHandler = initFederationHandlerFactory(domHandler, logHandler, remoteInfoHandler, importMapHandler, remoteModuleHandler);

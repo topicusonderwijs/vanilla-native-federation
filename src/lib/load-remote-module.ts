@@ -9,10 +9,9 @@ const loadRemoteModule: LoadRemoteModule = (
     const {
         logHandler,
         remoteInfoHandler, 
-        domHandler
     } = resolver(defaultConfig(options));
 
-    const moduleLoader = remoteModuleHandlerFactory(logHandler, remoteInfoHandler, domHandler);
+    const moduleLoader = remoteModuleHandlerFactory(logHandler, remoteInfoHandler);
     return moduleLoader.load(remoteNameOrModule, exposedModule);
 }
 

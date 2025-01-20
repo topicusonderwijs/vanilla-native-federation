@@ -5,4 +5,8 @@ type InitFederation = (
     remotesOrManifestUrl: string | Record<string, string>
 ) => Promise<{ load: LoadRemoteModule, importMap: ImportMap }>
 
-export { InitFederation }
+type InitFederationHandler = {
+    init: InitFederation
+}
+
+export { InitFederation, InitFederationHandler }

@@ -1,4 +1,4 @@
-import type { Remote } from '../remote-entry/remote-info.contract';
+import type { Remote } from '../remote-info/remote-info.contract';
 
 const nfNamespace = "__NATIVE_FEDERATION__";
 

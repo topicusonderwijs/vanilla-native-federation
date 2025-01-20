@@ -23,18 +23,36 @@ async function getPlugins() {
     .map(dir => dir.name);
 }
 
+async function getSourceFiles(dir) {
+  const getAllFiles = async (dir) => {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    const files = await Promise.all(
+      entries.map(async (entry) => {
+        const res = path.resolve(dir, entry.name);
+        if (entry.isDirectory()) {
+          return getAllFiles(res);
+        }
+        return res;
+      })
+    );
+    return files.flat();
+  };
+
+  return getAllFiles(dir).then(a => a.filter(file => file.endsWith('.ts') && !file.endsWith('.spec.ts')))
+    
+}
+
 async function generateBuilds() {
   const plugins = await getPlugins();
   
   const builds = {
     esm2022: {
       ...commonConfig,
-      entryPoints: ['src/**/*.ts'],
+      entryPoints: await Promise.all([getSourceFiles('src/lib'), getSourceFiles('src/plugins')]).then(dirs => dirs.flat()),
       outdir: 'dist/esm2022',
       bundle: false,
       outExtension: { '.js': '.mjs' },
       sourcemap: false,
-      exclude: ['src/**/*.mock.ts', 'src/**/*.spec.ts'],
     },
     fesm2022: {
       ...commonConfig,
@@ -53,7 +71,6 @@ async function generateBuilds() {
       outfile: `dist/fesm2022/vanilla-native-federation-${plugin}.mjs`,
       bundle: true,
       sourcemap: true,
-      exclude: ['src/**/*.mock.ts', 'src/**/*.spec.ts'],
     };
   }
 

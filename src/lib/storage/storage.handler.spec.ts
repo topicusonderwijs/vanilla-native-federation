@@ -1,7 +1,7 @@
 import type { NfCache, StorageOf } from './storage.contract';
 import { toStorage, storageHandlerFactory, type StorageHandler } from './storage.handler';
 import { createMockStorageEntry } from '../../mock/storage.mock';
-import { Remote, SharedInfo } from '../remote-entry/remote-info.contract';
+import { Remote, SharedInfo } from '../remote-info/remote-info.contract';
 import { REMOTE_MFE1_MOCK, REMOTE_MFE2_MOCK } from '../../mock/models/remote.mock';
 
 describe('storageHandlerFactory', () => {

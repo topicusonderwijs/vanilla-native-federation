@@ -2,7 +2,7 @@ module.exports = {
     verbose: true,
     rootDir: '.',
     roots: ['<rootDir>/src'],
-    testEnvironment: 'node',
+    testEnvironment: 'jsdom',
     testMatch: [
         '**/*.spec.ts'
     ],

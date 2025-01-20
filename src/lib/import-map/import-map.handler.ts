@@ -1,6 +1,6 @@
 import type { ImportMap } from "./import-map.contract";
-import type { Remote } from "../remote-entry/remote-info.contract";
-import type { SharedInfoHandler } from "../remote-entry/shared-info.handler";
+import type { Remote } from "../remote-info/remote-info.contract";
+import type { SharedInfoHandler } from "../remote-info/shared-info.handler";
 import * as _path from "../utils/path";
 
 type ImportMapHandler = {

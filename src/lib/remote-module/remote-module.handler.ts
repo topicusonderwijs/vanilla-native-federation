@@ -1,10 +1,9 @@
 
-import type { DomHandler } from "../dom/dom.handler";
 import type { LogHandler } from "../logging/log.handler";
 import { NFError } from "../native-federation.error";
 import type { LoadRemoteModule, RemoteModuleOptions } from "./remote-module.contract";
-import type { Remote } from "../remote-entry/remote-info.contract";
-import type { RemoteInfoHandler } from "../remote-entry/remote-info.handler";
+import type { Remote } from "../remote-info/remote-info.contract";
+import type { RemoteInfoHandler } from "../remote-info/remote-info.handler";
 import * as _path from "../utils/path";
 
 type RemoteModuleHandler = {
@@ -14,7 +13,6 @@ type RemoteModuleHandler = {
 const remoteModuleHandlerFactory = (
     logger: LogHandler,
     remoteInfoHandler: RemoteInfoHandler,
-    domHandler: DomHandler
 ): RemoteModuleHandler => {
 
     const mapToRemoteModule = (
@@ -55,12 +53,10 @@ const remoteModuleHandlerFactory = (
             .loadRemoteInfo(remoteModule.remoteEntry, remoteModule.remoteName)
             .then(info => getExposedModuleUrl(info, remoteModule.exposedModule))
             .then(url => {logger.debug("Importing module: " + url); return url})
-            .then(domHandler.importModule)
+            .then(m => (globalThis as any).importShim(m))
     }
 
     return { load }
 }
-
-
 
 export { remoteModuleHandlerFactory, RemoteModuleHandler, RemoteModuleOptions };
