@@ -1,3 +1,6 @@
+## 0.5.2 - Fixed FESM export
+- Fixed bad FESM dist not exporting functions
+
 ## 0.5.1 - Added CDN build
 - Added specific 'CDN' folder that contains minified bundles for direct import from a CDN. 
 
