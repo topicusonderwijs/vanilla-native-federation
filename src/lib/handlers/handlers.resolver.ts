@@ -1,8 +1,8 @@
+import { exposedModuleHandlerFactory } from "./exposed-module/exposed-module.handler";
 import type { Handlers } from "./handlers.contract";
 import { importMapHandlerFactory } from "./import-map/import-map.handler";
 import { logHandlerFactory } from "./logging/log.handler";
 import { remoteInfoHandlerFactory } from "./remote-info/remote-info.handler";
-import { remoteModuleHandlerFactory } from "./remote-module/remote-module.handler";
 import { sharedInfoHandlerFactory } from "./shared-info/shared-info.handler";
 import type { StorageExtension, NfStorage } from "./storage/storage.contract";
 import { storageHandlerFactory } from "./storage/storage.handler";
@@ -20,8 +20,8 @@ const resolveHandlers = <TCache extends NfStorage & StorageExtension>(
     const remoteInfoHandler = remoteInfoHandlerFactory(storageHandler, logHandler);
 
     const importMapHandler = importMapHandlerFactory(sharedInfoHandler);
-    
-    const remoteModuleHandler = remoteModuleHandlerFactory(logHandler, remoteInfoHandler, sharedInfoHandler);
+
+    const exposedModuleHandler = exposedModuleHandlerFactory(logHandler);
 
     return {
         storageHandler,
@@ -29,7 +29,7 @@ const resolveHandlers = <TCache extends NfStorage & StorageExtension>(
         sharedInfoHandler,
         remoteInfoHandler,
         importMapHandler,
-        remoteModuleHandler
+        exposedModuleHandler
     }
 }
 

@@ -16,4 +16,4 @@ const logHandlerFactory = (minLevel: LogType, logger: LogHandler): LogHandler =>
   }, {} as LogHandler);
 };
 
-  export { logHandlerFactory };
+export { logHandlerFactory };
