@@ -1,7 +1,7 @@
 ## 0.6.0 - Structural upgrade
 - Added Jest unit-testing framework
 - Moved handler types to different contract interface.
-- Introduced 'steps' that are overridable with custom behavior for extensibility.
+- Introduced 'steps' that can be overridden.
 - Removed redundant 'loadRemoteModule', loader will now always be provided by initFederation.
 - Added tests to utils folder.
 - Exported types of all handlers and steps
