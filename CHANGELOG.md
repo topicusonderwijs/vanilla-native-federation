@@ -1,6 +1,10 @@
-## 0.5.4 - Testing
+## 0.6.0 - Structural upgrade
 - Added Jest unit-testing framework
 - Moved handler types to different contract interface.
+- Introduced 'steps' that are overridable with custom behavior for extensibility.
+- Removed redundant 'loadRemoteModule', loader will now always be provided by initFederation.
+- Added tests to utils folder.
+- Exported types of all handlers and steps
 
 ## 0.5.3 - Fixed FESM export
 - Fixed bad FESM dist not exporting functions

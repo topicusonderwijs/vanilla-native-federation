@@ -109,7 +109,7 @@ async function generatePackageExports() {
 }
 
 async function generateTypes() {
-  console.log('📝 Generating declaration files...');
+  console.log('📝 Generating declaration files..');
   try {
     execSync('tsc -p tsconfig.json', { stdio: 'inherit' });
     console.log('✓ Types generated');
@@ -149,9 +149,14 @@ async function copyFiles() {
 }
 
 async function setupDist() {
+  console.log('🧹 Tidying up.');
   await fs.rm('dist', { force: true, recursive: true });
+  console.log('✓ Removed dist folders');
   await fs.mkdir('dist/fesm2022', { recursive: true });
   await fs.mkdir('dist/esm2022', { recursive: true });
+  console.log('✓ Created new dist folders');
+
+
 }
 
 async function build() {

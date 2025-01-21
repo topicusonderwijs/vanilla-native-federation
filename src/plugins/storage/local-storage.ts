@@ -1,5 +1,5 @@
-import { toStorage } from "../../lib/storage/storage.handler";
-import { type StorageEntryCreator, type StorageOf, nfNamespace, type NfCache, type StorageEntry } from "./../../lib/storage/storage.contract";
+import { toStorage } from "../../lib/handlers/storage/storage.handler";
+import { type StorageEntryCreator, type StorageOf, nfNamespace, type NfCache, type StorageEntry } from "./../../lib/handlers/storage/storage.contract";
 
 const localStorageEntry: StorageEntryCreator = <T>(key: string, _fallback: T) => {
     const entry = {

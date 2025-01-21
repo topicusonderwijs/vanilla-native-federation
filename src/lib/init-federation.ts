@@ -1,14 +1,21 @@
-import type { ImportMap } from "./import-map/import-map.contract";
-import type { LoadRemoteModule } from "./remote-module/remote-module.contract";
-import { type Config, defaultConfig, resolver } from "./resolver";
-
+import type { StepFactories } from "./steps/steps.contract";
+import { resolver } from "./steps/steps.resolver";
+import { defaultConfig } from "./utils/config/config";
+import type { Config } from "./utils/config/config.contract";
 
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string> = {},
-    options: Partial<Config> = {}
-): Promise<{load: LoadRemoteModule, importMap: ImportMap}> => {   
-    const { initFederationHandler } = resolver(defaultConfig(options));
-    return initFederationHandler.init(remotesOrManifestUrl)
+    override: {options?: Partial<Config>, steps?: Partial<StepFactories>} = {}
+) => {   
+    const steps = resolver(
+        defaultConfig(override?.options ?? {}), 
+        override?.steps ?? {}
+    );
+
+    return steps.fetchImportMaps(remotesOrManifestUrl)
+        .then(steps.mergeImportMaps)
+        .then(steps.updateDOM)
+        .then(steps.returnLoader)
 }
 
 export { initFederation };

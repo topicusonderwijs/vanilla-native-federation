@@ -1,4 +1,6 @@
-import type { StorageEntry, StorageEntryCreator } from './../lib/storage/storage.contract';
+import { Remote } from '../lib/remote-info/remote-info.contract';
+import type { NfStorage, StorageEntry, StorageEntryCreator } from './../lib/storage/storage.contract';
+import { REMOTE_MFE1_MOCK } from './models/remote.mock';
 
 const createMockStorageEntry: StorageEntryCreator = <T>(_: string, initialValue: T): StorageEntry<T> => {
     let value = initialValue;
@@ -15,7 +17,16 @@ const createMockStorageEntry: StorageEntryCreator = <T>(_: string, initialValue:
     return mockEntry;
 };
 
+const createMockStorage = (): NfStorage =>  ({
+    remoteNamesToRemote: createMockStorageEntry(
+        'remoteNamesToRemote',
+        { [REMOTE_MFE1_MOCK.name]: REMOTE_MFE1_MOCK() } as Record<string, Remote>
+    ),
+    baseUrlToRemoteNames: createMockStorageEntry(
+        'baseUrlToRemoteNames',
+        {[REMOTE_MFE1_MOCK().baseUrl]: REMOTE_MFE1_MOCK().name} as Record<string, string>
+    ),
+    externals: createMockStorageEntry('externals', {})
+});
 
-
-
-export {createMockStorageEntry}
+export {createMockStorageEntry, createMockStorage}
