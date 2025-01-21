@@ -1,3 +1,10 @@
+## 0.5.4 - Testing
+- Added Jest unit-testing framework
+- Moved handler types to different contract interface.
+
+## 0.5.3 - Fixed FESM export
+- Fixed bad FESM dist not exporting functions
+
 ## 0.5.1 - Added CDN build
 - Added specific 'CDN' folder that contains minified bundles for direct import from a CDN. 
 

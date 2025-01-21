@@ -1,10 +1,10 @@
 import type { Remote } from "./remote-info.contract";
-import type { SharedInfoHandler } from "./shared-info.handler";
 import type { LogHandler } from "../logging/log.handler";
 import { NFError } from "../native-federation.error";
 import type { NfStorage } from "../storage/storage.contract";
 import type { StorageHandler } from "../storage/storage.handler";
 import * as _path from "../utils/path";
+import type { SharedInfoHandler } from "./../shared-info/shared-info.contract";
 
 type RemoteInfoHandler = {
     loadRemoteInfo: (remoteEntryUrl?: string, remoteName?: string) => Promise<Remote>
@@ -13,7 +13,7 @@ type RemoteInfoHandler = {
 const remoteInfoHandlerFactory = (
     storage: StorageHandler<NfStorage>, 
     logger: LogHandler,
-    dependencyHandler: SharedInfoHandler,
+    sharedInfoHandler: SharedInfoHandler,
 ): RemoteInfoHandler => {
 
     const fromEntryJson = (entryUrl: string): Promise<Remote> => {
@@ -47,7 +47,7 @@ const remoteInfoHandlerFactory = (
         logger.debug(`Fetching '${remoteName}' remoteEntry.json from: ` + remoteEntryUrl);
         return fromEntryJson(remoteEntryUrl)
             .then(info => addRemoteModuleToCache(info, remoteName ?? info.name))
-            .then(dependencyHandler.addSharedDepsToCache)
+            .then(sharedInfoHandler.addSharedDepsToCache)
             .catch(e => {
                 logger.error("Failed to load remoteEntry: " + (e?.message ?? e));
                 return Promise.reject(new NFError("Failed to load remoteEntry"));
