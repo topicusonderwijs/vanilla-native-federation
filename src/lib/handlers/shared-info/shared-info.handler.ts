@@ -33,12 +33,12 @@ const sharedInfoHandlerFactory = (
         }, sharedList)
     }
 
-    const addSharedDepsToCache = (remoteInfo: Remote) => {
+    const addToCache = (remoteInfo: Remote) => {
         storage.mutate("externals", mapModuleDepsIntoSharedDepsList(remoteInfo))
         return remoteInfo;
     }
 
-    return {mapSharedDeps, addSharedDepsToCache};
+    return {mapSharedDeps, addToCache};
 }
 
 export {sharedInfoHandlerFactory};

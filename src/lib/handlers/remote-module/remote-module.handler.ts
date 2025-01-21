@@ -4,13 +4,15 @@ import * as _path from "../../utils/path";
 import type { LogHandler } from "../logging";
 import type { Remote } from "../remote-info/remote-info.contract";
 import type { RemoteInfoHandler } from "../remote-info/remote-info.handler";
+import type { SharedInfoHandler } from "../shared-info";
 
 const remoteModuleHandlerFactory = (
     logger: LogHandler,
     remoteInfoHandler: RemoteInfoHandler,
+    sharedInfoHandler: SharedInfoHandler
 ): RemoteModuleHandler => {
 
-    const mapToRemoteModule = (
+    const mapTo = (
         optionsOrRemoteName: RemoteModuleOptions | string,
         exposedModule?: string
     ): RemoteModuleOptions =>  {
@@ -40,12 +42,14 @@ const remoteModuleHandlerFactory = (
         remoteNameOrModule: RemoteModuleOptions | string,
         exposedModule?: string
     ): Promise<void> => {
-        const remoteModule = mapToRemoteModule(remoteNameOrModule, exposedModule);
+        const remoteModule = mapTo(remoteNameOrModule, exposedModule);
         logger.debug(`Loading module ${JSON.stringify(remoteModule)}`)
 
         if(!remoteModule.remoteName || remoteModule.remoteName === "") throw new NFError('remoteName cannot be empty');
         return remoteInfoHandler
-            .loadRemoteInfo(remoteModule.remoteEntry, remoteModule.remoteName)
+            .get(remoteModule.remoteEntry, remoteModule.remoteName)
+            .then(remoteInfoHandler.addToCache)
+            .then(sharedInfoHandler.addToCache)
             .then(info => getExposedModuleUrl(info, remoteModule.exposedModule))
             .then(url => {logger.debug("Importing module: " + url); return url})
             .then(m => (globalThis as any).importShim(m))

@@ -17,11 +17,11 @@ const resolveHandlers = <TCache extends NfStorage & StorageExtension>(
 
     // Core
     const sharedInfoHandler = sharedInfoHandlerFactory(storageHandler);
-    const remoteInfoHandler = remoteInfoHandlerFactory(storageHandler, logHandler, sharedInfoHandler);
+    const remoteInfoHandler = remoteInfoHandlerFactory(storageHandler, logHandler);
 
     const importMapHandler = importMapHandlerFactory(sharedInfoHandler);
     
-    const remoteModuleHandler = remoteModuleHandlerFactory(logHandler, remoteInfoHandler);
+    const remoteModuleHandler = remoteModuleHandlerFactory(logHandler, remoteInfoHandler, sharedInfoHandler);
 
     return {
         storageHandler,
