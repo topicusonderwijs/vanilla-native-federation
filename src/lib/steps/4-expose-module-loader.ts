@@ -4,14 +4,14 @@ import type { ImportMap } from "../handlers/import-map/import-map.contract"
 import { NFError } from "../native-federation.error";
 import * as _path from "../utils/path";
 
-type LoadRemoteModule = (importMap: ImportMap) => Promise<{
+type ExposeModuleLoader = (importMap: ImportMap) => Promise<{
     load: (optionsOrRemoteName: ExposedModule | string, exposedModule?: string) => Promise<any>, 
     importMap: ImportMap
 }>
 
-const loadRemoteModule = (
+const exposeModuleLoader = (
     {sharedInfoHandler, remoteInfoHandler, logHandler, exposedModuleHandler }: Handlers
-): LoadRemoteModule => {
+): ExposeModuleLoader => {
 
     const load = (
         remoteNameOrModule: ExposedModule | string,
@@ -34,4 +34,4 @@ const loadRemoteModule = (
 }
 
 
-export {LoadRemoteModule, loadRemoteModule}
+export {ExposeModuleLoader, exposeModuleLoader}

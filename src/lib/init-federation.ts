@@ -15,7 +15,7 @@ const initFederation = (
     return steps.fetchImportMaps(remotesOrManifestUrl)
         .then(steps.mergeImportMaps)
         .then(steps.updateDOM)
-        .then(steps.loadRemoteModule)
+        .then(steps.exposeModuleLoader)
 }
 
 export { initFederation };
