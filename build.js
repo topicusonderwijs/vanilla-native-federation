@@ -4,8 +4,6 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const commonConfig = {
-  platform: 'browser',
-  format: 'esm',
   mainFields: ['browser', 'module', 'main'],
   conditions: ['import', 'browser', 'module'],
   resolveExtensions: ['.ts', '.js'],
@@ -61,9 +59,21 @@ async function generateBuilds() {
       bundle: true,
       sourcemap: true,
     },
+    minified: {
+      ...commonConfig,
+      entryPoints: ['src/index.ts'],
+      outfile: 'dist/cdn/vanilla-native-federation.dist.js',
+      bundle: true,
+      platform: "browser",
+      format: "esm",
+      conditions: ["es2022", "browser", "es2015", "module"],
+      splitting: false,
+      minify: true,        
+      target: ['es2022'],    
+      treeShaking: true,
+    }
   };
 
-  // Add builds for each plugin
   for (const plugin of plugins) {
     builds[`fesm2022_${plugin}`] = {
       ...commonConfig,
@@ -72,6 +82,19 @@ async function generateBuilds() {
       bundle: true,
       sourcemap: true,
     };
+    builds[`minified_${plugin}`] = {
+      ...commonConfig,
+      entryPoints: [`src/plugins/${plugin}/index.ts`],
+      outfile: `dist/cdn/vanilla-native-federation-${plugin}.dist.js`,
+      bundle: true,
+      platform: "browser",
+      format: "esm",
+      conditions: ["es2022", "browser", "es2015", "module"],
+      splitting: false,
+      minify: true,        
+      target: ['es2022'],    
+      treeShaking: true,
+    }
   }
 
   return builds;
@@ -152,6 +175,7 @@ async function setupDist() {
   await fs.rm('dist', { force: true, recursive: true });
   await fs.mkdir('dist/fesm2022', { recursive: true });
   await fs.mkdir('dist/esm2022', { recursive: true });
+  await fs.mkdir('dist/cdn', { recursive: true });
 }
 
 async function build() {
