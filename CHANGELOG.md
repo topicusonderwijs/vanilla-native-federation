@@ -5,6 +5,8 @@
 - Removed redundant 'loadRemoteModule', loader will now always be provided by initFederation.
 - Added tests to utils folder.
 - Exported types of all handlers and steps
+- Taking a step back, temporarily removed Discovery support to allow structural refactor for a more extensible shim.
+- Fixed SEMVER version comparison.
 
 ## 0.5.3 - Fixed FESM export
 - Fixed bad FESM dist not exporting functions

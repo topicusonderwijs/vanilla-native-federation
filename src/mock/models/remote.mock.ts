@@ -1,5 +1,5 @@
-import { Remote } from "../../lib/remote-info/remote-info.contract";
-import { SharedInfo } from "../../lib/shared-info/shared-info.contract"
+import { Remote } from "../../lib/handlers/remote-info/remote-info.contract";
+import { SharedInfo } from "../../lib/handlers/shared-info/shared-info.contract"
 
 export const REMOTE_MFE1_MOCK: () => Remote = () => 
     JSON.parse(JSON.stringify({

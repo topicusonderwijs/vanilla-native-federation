@@ -1,5 +1,5 @@
-import { Remote } from '../lib/remote-info/remote-info.contract';
-import type { NfStorage, StorageEntry, StorageEntryCreator } from './../lib/storage/storage.contract';
+import { Remote } from '../lib/handlers/remote-info/remote-info.contract';
+import type { NfStorage, StorageEntry, StorageEntryCreator } from './../lib/handlers/storage/storage.contract';
 import { REMOTE_MFE1_MOCK } from './models/remote.mock';
 
 const createMockStorageEntry: StorageEntryCreator = <T>(_: string, initialValue: T): StorageEntry<T> => {
