@@ -1,5 +1,5 @@
 import { Remote } from '../lib/handlers/remote-info/remote-info.contract';
-import type { NfStorage, StorageEntry, StorageEntryCreator } from './../lib/handlers/storage/storage.contract';
+import type { NfStorage, StorageEntry, StorageEntryCreator, StorageHandler } from './../lib/handlers/storage/storage.contract';
 import { REMOTE_MFE1_MOCK } from './models/remote.mock';
 
 const createMockStorageEntry: StorageEntryCreator = <T>(_: string, initialValue: T): StorageEntry<T> => {
@@ -29,4 +29,11 @@ const createMockStorage = (): NfStorage =>  ({
     externals: createMockStorageEntry('externals', {})
 });
 
-export {createMockStorageEntry, createMockStorage}
+const mockStorageHandler = <TStorage extends Record<keyof TStorage, any>>(): StorageHandler<TStorage> => ({
+    fetch: jest.fn(),
+    entry: jest.fn(),
+    get: jest.fn(),
+    mutate: jest.fn().mockReturnThis(),
+});
+
+export {createMockStorageEntry, createMockStorage, mockStorageHandler}

@@ -1,6 +1,5 @@
 import { exposedModuleHandlerFactory } from './exposed-module.handler';
 import { ExposedModuleHandler } from './exposed-module.contract';
-import { logHandlerMock } from '../../../mock/log.mock';
 import { Remote } from '../remote-info';
 import { SharedInfo } from '@softarc/native-federation-runtime';
 import { NFError } from '../../native-federation.error';
@@ -17,9 +16,7 @@ describe('appendImportMapToDOM', () => {
         }))
 
     beforeEach(() => {
-        exposedModuleHandler = exposedModuleHandlerFactory(
-            logHandlerMock
-        );
+        exposedModuleHandler = exposedModuleHandlerFactory();
     });
 
     describe('mapFrom', () => {
@@ -60,7 +57,7 @@ describe('appendImportMapToDOM', () => {
             const actual = () => exposedModuleHandler.mapFrom("team/mfe1");
 
             expect(actual).toThrow(NFError);
-            expect(actual).toThrow("Could not map exposedModule");
+            expect(actual).toThrow("Failed to map remote module: exposedModule not provided");
         });
     }),
 
@@ -81,7 +78,7 @@ describe('appendImportMapToDOM', () => {
             const actual = () => exposedModuleHandler.getUrl(remote, exposedModule)
 
             expect(actual).toThrow(NFError);
-            expect(actual).toThrow("Failed to load remote module");
+            expect(actual).toThrow("Module './other-comp' is not exposed in remote 'team/mfe1'");
         });
     })
 });

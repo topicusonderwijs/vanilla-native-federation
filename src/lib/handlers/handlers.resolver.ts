@@ -21,7 +21,7 @@ const resolveHandlers = <TCache extends NfStorage & StorageExtension>(
 
     const importMapHandler = importMapHandlerFactory(sharedInfoHandler);
 
-    const exposedModuleHandler = exposedModuleHandlerFactory(logHandler);
+    const exposedModuleHandler = exposedModuleHandlerFactory();
 
     return {
         storageHandler,

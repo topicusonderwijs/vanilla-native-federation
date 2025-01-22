@@ -4,6 +4,13 @@ import type { NfCache, StorageEntry } from "../storage/storage.contract";
 import type { StorageHandler } from "../storage/storage.handler";
 import type { Remote } from "./../remote-info/remote-info.contract";
 
+/**
+ * Handles the shared dependencies (Externals) from the remotes.
+ * - Shared dependencies are cached in the 'externals' entry. This way the dependency HTTP calls can be
+ *   reused instead of fetching the dependencies from multiple sources. 
+ * @param storage 
+ * @returns 
+ */
 const sharedInfoHandlerFactory = (
     storage: StorageHandler<{"externals": StorageEntry<Record<string, string>>}>
 ): SharedInfoHandler => {
@@ -12,7 +19,7 @@ const sharedInfoHandlerFactory = (
         return `${shared.packageName}@${shared.version}`;
     }
 
-    const getCachedSharedDepRef = (dep: SharedInfo): string|undefined => {
+    const getCachedSharedDepUrl = (dep: SharedInfo): string|undefined => {
         return storage.fetch("externals")[toExternalKey(dep)];
     }
 
@@ -20,21 +27,22 @@ const sharedInfoHandlerFactory = (
         return remoteInfo.shared
             .reduce((dependencies, moduleDep) => ({
                 ...dependencies,
-                [moduleDep.packageName]: getCachedSharedDepRef(moduleDep) || _path.join(remoteInfo.baseUrl, moduleDep.outFileName)
+                [moduleDep.packageName]: getCachedSharedDepUrl(moduleDep) || _path.join(remoteInfo.baseUrl, moduleDep.outFileName)
             }), {});
     }
 
-    const mapModuleDepsIntoSharedDepsList = (remoteInfo: Remote) => (sharedList: NfCache["externals"]) => {
+    const addToExternalsList = (remoteInfo: Remote) => (externals: NfCache["externals"]) => {
         return remoteInfo.shared.reduce((existing, dep) => {
             if(!existing[toExternalKey(dep)]) {
                 existing[toExternalKey(dep)] = _path.join(remoteInfo.baseUrl, dep.outFileName);
             }
             return existing;
-        }, sharedList)
+        }, externals)
     }
 
     const addToCache = (remoteInfo: Remote) => {
-        storage.mutate("externals", mapModuleDepsIntoSharedDepsList(remoteInfo))
+        const mutation = addToExternalsList(remoteInfo);
+        storage.mutate("externals", mutation)
         return remoteInfo;
     }
 
