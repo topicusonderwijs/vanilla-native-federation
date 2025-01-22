@@ -1,3 +1,6 @@
+## 0.6.1 - Test coverage
+- Added tests to handlers
+
 ## 0.6.0 - Structural upgrade
 - Added Jest unit-testing framework
 - Moved handler types to different contract interface.

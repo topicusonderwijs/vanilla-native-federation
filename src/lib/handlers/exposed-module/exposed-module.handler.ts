@@ -16,15 +16,19 @@ const exposedModuleHandlerFactory = (
                 remoteName: optionsOrRemoteName,
                 exposedModule,
             };
-        } else if (typeof optionsOrRemoteName === 'object' && !exposedModule) {
+        } else if (typeof optionsOrRemoteName === 'object') {
+            if(!optionsOrRemoteName.exposedModule && !!exposedModule) {
+                optionsOrRemoteName.exposedModule = exposedModule;
+            }
             return optionsOrRemoteName;
         }
-        log.error(`Failed to load remote module: exposedModule and/or remoteName not provided`)
-        throw new NFError('Failed to load remote module');
+        log.error(`Failed to map remote module: exposedModule and/or remoteName not provided`)
+        throw new NFError('Could not map exposedModule');
     }
 
     const getUrl = (remoteInfo: Remote, exposedModule: string): string => {    
         const exposed = remoteInfo.exposes.find(m => m.key === exposedModule);
+
         if (!exposed) {
             log.error(`Module '${exposedModule}'is not exposed in remote '${remoteInfo.name}'`)
             throw new NFError('Failed to load remote module');
