@@ -5,10 +5,10 @@ import type { Config } from "./utils/config/config.contract";
 
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string> = {},
-    override: {options?: Partial<Config>, steps?: Partial<StepFactories>} = {}
+    override: Partial<Config> & {steps?: Partial<StepFactories>} = {}
 ) => {   
     const steps = resolver(
-        defaultConfig(override?.options ?? {}), 
+        defaultConfig(override ?? {}), 
         override?.steps ?? {}
     );
 

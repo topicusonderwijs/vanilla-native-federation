@@ -4,7 +4,7 @@ import type { ImportMap } from "../handlers/import-map/import-map.contract";
 type FetchImportMaps = (remotesOrManifestUrl: string | Record<string, string>) => Promise<ImportMap[]>
 
 const fetchImportMaps = (
-    { remoteInfoHandler, sharedInfoHandler, importMapHandler, logHandler }: Handlers
+    { remoteInfoHandler, importMapHandler, logHandler }: Handlers
 ): FetchImportMaps => 
     (remotesOrManifestUrl: string | Record<string, string> = {}) => {
     
@@ -16,8 +16,6 @@ const fetchImportMaps = (
 
         const mapToImportMaps = ([remoteName, remoteEntryUrl]: [string,string]) => {
             return remoteInfoHandler.get(remoteEntryUrl, remoteName)
-                .then(remoteInfoHandler.addToCache)
-                .then(sharedInfoHandler.addToCache)
                 .then(importMapHandler.toImportMap)
                 .catch(_ => {
                     logHandler.warn(`Error loading remoteEntry for ${remoteName} at '${remoteEntryUrl}', skipping module`);

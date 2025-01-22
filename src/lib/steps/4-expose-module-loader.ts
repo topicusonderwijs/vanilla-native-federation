@@ -3,6 +3,7 @@ import type { Handlers } from "../handlers/handlers.contract";
 import type { ImportMap } from "../handlers/import-map/import-map.contract"
 import { NFError } from "../native-federation.error";
 import * as _path from "../utils/path";
+import { tap } from "../utils/tap";
 
 type ExposeModuleLoader = (importMap: ImportMap) => Promise<{
     load: (optionsOrRemoteName: ExposedModule | string, exposedModule?: string) => Promise<any>, 
@@ -10,7 +11,7 @@ type ExposeModuleLoader = (importMap: ImportMap) => Promise<{
 }>
 
 const exposeModuleLoader = (
-    {sharedInfoHandler, remoteInfoHandler, logHandler, exposedModuleHandler }: Handlers
+    {remoteInfoHandler, logHandler, exposedModuleHandler }: Handlers
 ): ExposeModuleLoader => {
 
     const load = (
@@ -23,15 +24,12 @@ const exposeModuleLoader = (
         if(!remoteModule.remoteName || remoteModule.remoteName === "") throw new NFError('remoteName cannot be empty');
         return remoteInfoHandler
             .get(remoteModule.remoteEntry, remoteModule.remoteName)
-            .then(remoteInfoHandler.addToCache)
-            .then(sharedInfoHandler.addToCache)
             .then(info => exposedModuleHandler.getUrl(info, remoteModule.exposedModule))
-            .then(url => logHandler.debug("Importing module: " + url))
+            .then(tap(url => logHandler.debug("Importing module: " + url)))
             .then(m => (globalThis as any).importShim(m))
     }
 
     return (importMap: ImportMap) => Promise.resolve({ importMap, load });
 }
-
 
 export {ExposeModuleLoader, exposeModuleLoader}
