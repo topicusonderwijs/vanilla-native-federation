@@ -20,7 +20,6 @@ This library is under [MIT License](./LICENSE.md) and is inspired on [@softarc/n
     3. Generic loader.js
 5. Plugins
     1. Custom storage (caching)
-    2. Micro frontend discovery
 
 ## 1 &nbsp; Dependencies:
 
@@ -63,7 +62,7 @@ Below are the types of the exposed functions:
 ```
 type InitFederation = (
     remotesOrManifestUrl: string | Record<string, string> = {},
-    options?: Partial<{cache: TCache, logger: LogHandler, logLevel: LogType}>
+    options?: Partial<{cache?: TCache, logger?: LogHandler, logLevel?: LogType}>
 ) => Promise<{load: LoadRemoteModule, importMap: ImportMap}>
 
 
@@ -113,17 +112,16 @@ esbuild.build({
   entryPoints: ['src/loader.js'],
   outdir: 'dist',
   bundle: true,
-  format: 'esm',
-  minify: true,
-  minifyIdentifiers: true,
-  minifySyntax: true,
-  minifyWhitespace: true,
-  target: ['es2022'],
+  platform: "browser",
+  format: "esm",
+  resolveExtensions: [".js", ".mjs"],
+  splitting: false,
+  minify: true,        
+  sourcemap: false,      
+  metafile: true,        
+  target: ['es2022'],    
   treeShaking: true,
-  charset: 'utf8',
-  metafile: true
 }).then(async (result) => {
-  // Log bundle size analysis
   const text = await esbuild.analyzeMetafile(result.metafile);
   console.log(text);
 }).catch(() => process.exit(1));
@@ -273,203 +271,3 @@ import { createSessionStorageCache } from 'vanilla-native-federation/plugins/sto
     })
 })();
 ```
-
-### 5.2 &nbsp; Micro frontend discovery:
-
-The micro frontend discovery service decouples the remotes (micro frontends) from the shell application. This plugin 
-allows the library to fetch the available micro frontends from an external source before loading the remote modules: 
-
-**loader.ts**
-```
-import { initFederationFromDiscovery } from 'vanilla-native-federation/plugins/discovery';
-
-(() => {
-  const myDiscoveryUrl = "http://localhost:3000";
-  initFederationFromDiscovery(myDiscoveryUrl)
-    .then(({load, discovery, importMap}) => {
-      console.log("discovery: ", discovery);
-      console.log("importMap: ", importMap);
-      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
-    })
-})();
-```
-
-By default, the plugin requires a certain JSON format to initialize the remote module configuration. The format consists
-of Records with the remote names as keys and the configuration objects as values: 
-
-**required minimal discovery format**
-```
-{
-  "remote1": {
-    "1.0.0": {
-      url: "http://localhost:3001/remote1-component.js",
-      version: "1.0.0"
-      module: {
-        "remoteName": "remote1",
-        "remoteEntry": "http://localhost:3001/remoteEntry.json",
-        "exposedModule": "./Component",
-      }
-    }
-  },
-  "remote2": {
-    "1.0.0": {
-      url: "http://localhost:3002/remote2-component.js",
-      version: "1.0.0"
-      module: {
-        "remoteName": "remote1",
-        "remoteEntry": "http://localhost:3002/remoteEntry.json",
-        "exposedModule": "./Component",
-      }
-    }
-  }
-}
-```
-
-The manifest can be utilized to load the remote modules into the HTML page. 
-
-**your-shell.html**
-```
-  <body>
-    <!-- webcomponent exposed by remote1 -->
-    <app-mfe-one></app-mfe-one>
-    <app-mfe-two></app-mfe-two>
-
-    <script type="esms-options">{ "shimMode": true }</script>
-    <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
-
-    <script type="module-shim" src="loader.js"></script>
-
-    <script>
-      window.addEventListener('mfe-loader-available', (e) => {
-        Promise.all([
-          e.detail.load('remote1'), // optionally with a version: e.detail.load('remote1', '1.2.0')
-          e.detail.load('remote2'),
-        ]).catch(console.error);
-      }, {once: true});
-    </script>  
-  </body>
-```
-
-#### Official "Micro Frontend discovery" manifest:
-<hr />
-This library also contains an implementation plugin for [micro frontend discovery](https://github.com/awslabs/frontend-discovery). Convenient for micro frontend architectures that require a more robust and detailed discovery mechanism: 
-
-**loader.js:**
-```
-import { initFederationFromDiscovery, manifestMapper } from 'vanilla-native-federation/plugins/discovery';
-
-(() => {
-  const myDiscoveryUrl = "http://localhost:3000";
-  initFederationFromDiscovery(
-    myDiscoveryUrl,
-    {discoveryMapper: manifestMapper}
-  )
-    .then(({load, discovery, importMap}) => {
-      console.log("discovery: ", discovery);
-      console.log("importMap: ", importMap);
-      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
-    })
-})();
-```
-
-Now the library expects the official format: 
-
-**Discovery manifest format:**
-
-```
-{
-  "schema": "https://github.com/awslabs/frontend-discovery/blob/main/schema/v1-pre.json",
-  "microFrontends": {
-    "remote1": [
-      {
-        "url": "http://localhost:3001/remote1-component.js",
-        "metadata": {
-          "integrity": "CHECKSUM",
-          "version": "1.0.0"
-        },
-        "deployment": {
-          "traffic": 100,
-          "default": true
-        },
-        "extras": {
-          "nativefederation": {
-            "remoteEntry": "http://localhost:3001/remoteEntry.json",
-            "exposedModule": "./Component",
-          }
-        }
-      }
-    ],
-    "remote2": [
-      {
-        "url": "http://localhost:3002/remote2-component.js",
-        "metadata": {
-          "integrity": "CHECKSUM",
-          "version": "1.0.0"
-        },
-        "deployment": {
-          "traffic": 100,
-          "default": true
-        },
-        "extras": {
-          "nativefederation": {
-            "remoteEntry": "http://localhost:3002/remoteEntry.json",
-            "exposedModule": "./Component",
-          }
-        }
-      }
-    ]
-  }
-}
-```
-
-Finally, it is also possible to provide your own custom mapper, as long as the output of the mapper at least includes the minimal discovery format defined before.
-
-#### Caching options: 
-<hr />
-
-By default, the discovery plugin will return the latest versions of all available cached remotes (which is empty since caching strategy is the Window object). It is possible to switch to a more efficient caching strategy that prefers retrieving the config from the sessionStorage unless it doesn't exist: 
-
-**loader.js:**
-
-```
-import { initFederationFromDiscovery } from 'vanilla-native-federation/plugins/discovery';
-import { createSessionStorageCache } from 'vanilla-native-federation/plugins/storage';
-import { cache } from 'vanilla-native-federation';
-
-(() => {
-    const customCache = {
-        // base props are not cached (default) 
-        ...cache.DEFAULT_CACHE,
-        // Discovery is cached in sessionStorage
-        ...createSessionStorageCache({
-            discovery: {}
-        })
-    }
-
-    const moduleVersions = {
-        'remote1': '1.0.0',
-        'remote2': '1.0.0'
-    }
-    
-    initFederationFromDiscovery(
-        "http://localhost:3000", 
-        { cache: customCache, resolveFromCache: moduleVersions }
-    ).then(({load, discovered, importMap}) => {
-      console.log("discovered: ", discovered);
-      console.log("importMap: ", importMap);
-      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
-    })
-})();
-```
-
-It is possible to optimize the `moduleVersions` using the following parameter options: 
-
-| Option                           | Description |
-| -------------------------------- | ----------- |
-| "skip-cache"                     | Skip the cache entirely and fetch all latest versions from remote | 
-| "all-latest" (default)           | Get latest version of all cached modules |
-| Record<string, string\|"latest"> | Choose which modules+version to load (from cache) |
-
-Whenever a specific module or version doesnt exist in the cache, the loader will fetch the latest manifest from the discovery service and automatically resolves and updates all versions in cache from the new manifest. 
-
-**Note:** The third option only loads the modules that are specified. Not specifying the loaded remotes can result in the import-map not being able to resolve certain dependencies. 
