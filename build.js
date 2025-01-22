@@ -6,8 +6,6 @@ const { execSync } = require('child_process');
 const commonConfig = {
   platform: 'browser',
   format: 'esm',
-  mainFields: ['browser', 'module', 'main'],
-  conditions: ['import', 'browser', 'module'],
   resolveExtensions: ['.ts', '.js'],
   tsconfig: 'tsconfig.json',
   minify: false,

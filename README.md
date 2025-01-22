@@ -62,7 +62,7 @@ Below are the types of the exposed functions:
 ```
 type InitFederation = (
     remotesOrManifestUrl: string | Record<string, string> = {},
-    options?: Partial<{cache: TCache, logger: LogHandler, logLevel: LogType}>
+    options?: Partial<{cache?: TCache, logger?: LogHandler, logLevel?: LogType}>
 ) => Promise<{load: LoadRemoteModule, importMap: ImportMap}>
 
 
@@ -114,7 +114,6 @@ esbuild.build({
   bundle: true,
   platform: "browser",
   format: "esm",
-  mainFields: ["es2022", "browser", "module", "main"],
   resolveExtensions: [".js", ".mjs"],
   splitting: false,
   minify: true,        
