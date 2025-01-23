@@ -2,10 +2,10 @@ import { sharedInfoHandlerFactory } from './shared-info.handler';
 import { SharedInfoHandler } from './shared-info.contract';
 import { Remote } from '../remote-info';
 import { SharedInfo } from '@softarc/native-federation-runtime';
-import { mockStorageHandler } from '../../../mock/storage.mock';
+import { mockStorageHandler } from '../../../mock/handlers.mock';
 import { StorageEntry, StorageHandler } from '../storage/storage.contract';
 
-describe('appendImportMapToDOM', () => {
+describe('sharedInfoHandler', () => {
     let storageHandler: StorageHandler<{"externals": StorageEntry<Record<string, string>>}>;
     let sharedInfoHandler: SharedInfoHandler;
 
@@ -66,7 +66,6 @@ describe('appendImportMapToDOM', () => {
             }} as {externals: Record<string,string>}
 
             const expected = {
-                // "<packageName>@<version>": "<baseUrl>/<outFileName>"
                 "rxjs@7.8.1": "http://localhost:3001/mfe1/rxjs.js",
                 "rxjs/operators@7.8.1": "http://localhost:3001/mfe1/rxjs_operators.js",
                 "tslib@2.8.1": "http://localhost:3001/mfe1/tslib.js"
@@ -88,7 +87,6 @@ describe('appendImportMapToDOM', () => {
             }} as {externals: Record<string,string>}
 
             const expected = {
-                // "<packageName>@<version>": "<baseUrl>/<outFileName>"
                 "rxjs@7.8.1": "http://localhost:3001/mfe1/rxjs.js",
                 "tslib@2.8.1": "http://localhost:3001/mfe1/tslib.js"
             }
@@ -112,7 +110,6 @@ describe('appendImportMapToDOM', () => {
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
             const expected = {
-                // "<packageName>@<version>": "<baseUrl>/<outFileName>"
                 "rxjs": "http://localhost:3001/mfe1/rxjs.js",
                 "tslib": "http://localhost:3001/mfe1/tslib.js"
             }
@@ -131,7 +128,6 @@ describe('appendImportMapToDOM', () => {
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
             const expected = {
-                // "<packageName>@<version>": "<baseUrl>/<outFileName>"
                 "rxjs": "http://localhost:3001/other-source/rxjs.js",
                 "tslib": "http://localhost:3001/mfe1/tslib.js"
             }
@@ -150,7 +146,6 @@ describe('appendImportMapToDOM', () => {
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
             const expected = {
-                // "<packageName>@<version>": "<baseUrl>/<outFileName>"
                 "rxjs": "http://localhost:3001/mfe1/rxjs.js",
                 "tslib": "http://localhost:3001/mfe1/tslib.js"
             }
@@ -169,7 +164,6 @@ describe('appendImportMapToDOM', () => {
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
             const expected = {
-                // "<packageName>@<version>": "<baseUrl>/<outFileName>"
                 "rxjs": "http://localhost:3001/mfe1/rxjs.js",
                 "tslib": "http://localhost:3001/mfe1/tslib.js"
             }

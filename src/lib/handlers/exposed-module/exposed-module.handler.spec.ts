@@ -4,7 +4,7 @@ import { Remote } from '../remote-info';
 import { SharedInfo } from '@softarc/native-federation-runtime';
 import { NFError } from '../../native-federation.error';
 
-describe('appendImportMapToDOM', () => {
+describe('exposedModuleHandler', () => {
     let exposedModuleHandler: ExposedModuleHandler;
 
     const REMOTE_MFE1_MOCK: () => Remote = () => 

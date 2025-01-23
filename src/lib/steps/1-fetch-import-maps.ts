@@ -1,5 +1,6 @@
 import type { Handlers } from "../handlers/handlers.contract";
 import type { ImportMap } from "../handlers/import-map/import-map.contract";
+import { tap } from "../utils/tap";
 
 type FetchImportMaps = (remotesOrManifestUrl: string | Record<string, string>) => Promise<ImportMap[]>
 
@@ -15,7 +16,17 @@ const fetchImportMaps = (
         }
 
         const mapToImportMaps = ([remoteName, remoteEntryUrl]: [string,string]) => {
-            return remoteInfoHandler.get(remoteEntryUrl, remoteName)
+            return remoteInfoHandler.getFromCache(remoteEntryUrl, remoteName)
+                .catch(e => {
+                    logHandler.warn("Cache lookup failed: "+e.message)
+                    return remoteInfoHandler.getFromEntry(remoteEntryUrl)
+                })
+                .then(tap(m => {
+                    logHandler.debug(`Initialized remoteEntry: ${JSON.stringify({name: m.name, exposes: m.exposes})}`);
+                    if(!!remoteName && m.name !== remoteName) {
+                        logHandler.warn(`Fetched remote '${m.name}' does not match requested '${remoteName}'`);
+                    }
+                }))
                 .then(importMapHandler.toImportMap)
                 .catch(_ => {
                     logHandler.warn(`Error loading remoteEntry for ${remoteName} at '${remoteEntryUrl}', skipping module`);
