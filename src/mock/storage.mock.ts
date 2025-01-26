@@ -1,6 +1,23 @@
+import { SharedInfo } from '@softarc/native-federation-runtime';
 import { Remote } from '../lib/handlers/remote-info/remote-info.contract';
 import type { NfStorage, StorageEntry, StorageEntryCreator } from './../lib/handlers/storage/storage.contract';
-import { REMOTE_MFE1_MOCK } from './models/remote.mock';
+
+const REMOTE_MFE1_MOCK: () => Remote = () => 
+    JSON.parse(JSON.stringify({
+        name: 'team/mfe1', 
+        shared: [
+            {
+                packageName: "rxjs",
+                outFileName: "rxjs.js",
+                requiredVersion: "~7.8.0",
+                singleton: true,
+                strictVersion: true,
+                version: "7.8.1",
+            }
+        ] as SharedInfo[], 
+        exposes: [{key: './comp', outFileName: 'comp.js'}], 
+        baseUrl: 'http://localhost:3001'
+    }))
 
 const createMockStorageEntry: StorageEntryCreator = <T>(_: string, initialValue: T): StorageEntry<T> => {
     let value = initialValue;

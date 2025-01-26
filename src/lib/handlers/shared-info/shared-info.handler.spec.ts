@@ -30,8 +30,8 @@ describe('sharedInfoHandler', () => {
                     version: "2.8.1",
                 },
             ] as SharedInfo[], 
-            exposes: [{key: './comp', outFileName: 'main.js'}], 
-            baseUrl: 'http://localhost:3001/mfe1'
+            exposes: [{key: './comp', outFileName: 'comp.js'}], 
+            baseUrl: 'http://localhost:3001'
         }))
 
     beforeEach(() => {
@@ -46,8 +46,8 @@ describe('sharedInfoHandler', () => {
 
             const expected = {
                 // "<packageName>@<version>": "<baseUrl>/<outFileName>"
-                "rxjs@7.8.1": "http://localhost:3001/mfe1/rxjs.js",
-                "tslib@2.8.1": "http://localhost:3001/mfe1/tslib.js"
+                "rxjs@7.8.1": "http://localhost:3001/rxjs.js",
+                "tslib@2.8.1": "http://localhost:3001/tslib.js"
             }
 
             sharedInfoHandler.addToCache(remote);
@@ -62,13 +62,13 @@ describe('sharedInfoHandler', () => {
         it('should append new externals to cache', () => {
             const remote = REMOTE_MFE1_MOCK();
             const cache = {externals: {
-                "rxjs/operators@7.8.1": "http://localhost:3001/mfe1/rxjs_operators.js"
+                "rxjs/operators@7.8.1": "http://localhost:3001/rxjs_operators.js"
             }} as {externals: Record<string,string>}
 
             const expected = {
-                "rxjs@7.8.1": "http://localhost:3001/mfe1/rxjs.js",
-                "rxjs/operators@7.8.1": "http://localhost:3001/mfe1/rxjs_operators.js",
-                "tslib@2.8.1": "http://localhost:3001/mfe1/tslib.js"
+                "rxjs@7.8.1": "http://localhost:3001/rxjs.js",
+                "rxjs/operators@7.8.1": "http://localhost:3001/rxjs_operators.js",
+                "tslib@2.8.1": "http://localhost:3001/tslib.js"
             }
 
             sharedInfoHandler.addToCache(remote);
@@ -83,12 +83,12 @@ describe('sharedInfoHandler', () => {
         it('should not create duplicate externals in cache', () => {
             const remote = REMOTE_MFE1_MOCK();
             const cache = {externals: {
-                "rxjs@7.8.1": "http://localhost:3001/mfe1/rxjs.js"
+                "rxjs@7.8.1": "http://localhost:3001/rxjs.js"
             }} as {externals: Record<string,string>}
 
             const expected = {
-                "rxjs@7.8.1": "http://localhost:3001/mfe1/rxjs.js",
-                "tslib@2.8.1": "http://localhost:3001/mfe1/tslib.js"
+                "rxjs@7.8.1": "http://localhost:3001/rxjs.js",
+                "tslib@2.8.1": "http://localhost:3001/tslib.js"
             }
 
             sharedInfoHandler.addToCache(remote);
@@ -110,8 +110,8 @@ describe('sharedInfoHandler', () => {
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
             const expected = {
-                "rxjs": "http://localhost:3001/mfe1/rxjs.js",
-                "tslib": "http://localhost:3001/mfe1/tslib.js"
+                "rxjs": "http://localhost:3001/rxjs.js",
+                "tslib": "http://localhost:3001/tslib.js"
             }
 
             const actual = sharedInfoHandler.mapSharedDeps(remote);
@@ -122,14 +122,14 @@ describe('sharedInfoHandler', () => {
         it('Should prioritize cached returning shared dependencies', () => {
             const remote = REMOTE_MFE1_MOCK();
             const cache = {externals: {
-                "rxjs@7.8.1": "http://localhost:3001/other-source/rxjs.js"
+                "rxjs@7.8.1": "http://other.source/rxjs.js"
             }} as {externals: Record<string,string>};
 
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
             const expected = {
-                "rxjs": "http://localhost:3001/other-source/rxjs.js",
-                "tslib": "http://localhost:3001/mfe1/tslib.js"
+                "rxjs": "http://other.source/rxjs.js",
+                "tslib": "http://localhost:3001/tslib.js"
             }
 
             const actual = sharedInfoHandler.mapSharedDeps(remote);
@@ -140,14 +140,14 @@ describe('sharedInfoHandler', () => {
         it('Should only return shared dependencies from remote', () => {
             const remote = REMOTE_MFE1_MOCK();
             const cache = {externals: {
-                "rxjs/operators@7.8.1": "http://localhost:3001/mfe1/rxjs_operators.js"
+                "rxjs/operators@7.8.1": "http://localhost:3001/rxjs_operators.js"
             }} as {externals: Record<string,string>};
 
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
             const expected = {
-                "rxjs": "http://localhost:3001/mfe1/rxjs.js",
-                "tslib": "http://localhost:3001/mfe1/tslib.js"
+                "rxjs": "http://localhost:3001/rxjs.js",
+                "tslib": "http://localhost:3001/tslib.js"
             }
 
             const actual = sharedInfoHandler.mapSharedDeps(remote);
@@ -158,14 +158,14 @@ describe('sharedInfoHandler', () => {
         it('Should only return the right version', () => {
             const remote = REMOTE_MFE1_MOCK();
             const cache = {externals: {
-                "rxjs@7.8.2": "http://localhost:3001/other-source/rxjs.js"
+                "rxjs@7.8.1": "http://other.source/rxjs.js"
             }} as {externals: Record<string,string>};
 
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
             const expected = {
-                "rxjs": "http://localhost:3001/mfe1/rxjs.js",
-                "tslib": "http://localhost:3001/mfe1/tslib.js"
+                "rxjs": "http://other.source/rxjs.js",
+                "tslib": "http://localhost:3001/tslib.js"
             }
 
             const actual = sharedInfoHandler.mapSharedDeps(remote);

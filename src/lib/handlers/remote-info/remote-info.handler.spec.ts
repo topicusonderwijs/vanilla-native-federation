@@ -24,8 +24,8 @@ describe('remoteInfoHandler', () => {
                     version: "7.8.1",
                 }
             ] as SharedInfo[], 
-            exposes: [{key: './comp', outFileName: 'main.js'}], 
-            baseUrl: 'http://localhost:3001/mfe1'
+            exposes: [{key: './comp', outFileName: 'comp.js'}], 
+            baseUrl: 'http://localhost:3001'
         }))
 
     const REMOTE_MFE2_MOCK: () => Remote = () => 
@@ -41,8 +41,8 @@ describe('remoteInfoHandler', () => {
                     version: "7.8.1",
                 }
             ] as SharedInfo[], 
-            exposes: [{key: './comp', outFileName: 'main.js'}], 
-            baseUrl: 'http://localhost:3001/mfe2'
+            exposes: [{key: './comp', outFileName: 'comp.js'}], 
+            baseUrl: 'http://localhost:3002'
         }))
 
     beforeEach(() => {
@@ -60,7 +60,7 @@ describe('remoteInfoHandler', () => {
             } 
             const expected = {
                 remoteNamesToRemote: { "team/mfe1": REMOTE_MFE1_MOCK() },
-                baseUrlToRemoteNames: { "http://localhost:3001/mfe1": "team/mfe1" }
+                baseUrlToRemoteNames: { "http://localhost:3001": "team/mfe1" }
             }
 
             remoteInfoHandler.addToCache(remote);
@@ -80,7 +80,7 @@ describe('remoteInfoHandler', () => {
 
             const cache = {
                 remoteNamesToRemote: { "team/mfe2": REMOTE_MFE2_MOCK() },
-                baseUrlToRemoteNames: { "http://localhost:3001/mfe2": "team/mfe2" }
+                baseUrlToRemoteNames: { "http://localhost:3002": "team/mfe2" }
             } 
             const expected = {
                 remoteNamesToRemote: { 
@@ -88,8 +88,8 @@ describe('remoteInfoHandler', () => {
                     "team/mfe2": REMOTE_MFE2_MOCK()
                 },
                 baseUrlToRemoteNames: { 
-                    "http://localhost:3001/mfe2": "team/mfe2",
-                    "http://localhost:3001/mfe1": "team/mfe1" 
+                    "http://localhost:3002": "team/mfe2",
+                    "http://localhost:3001": "team/mfe1" 
                 }
             }
 
@@ -130,7 +130,7 @@ describe('remoteInfoHandler', () => {
                 )
             );
 
-            const actual = await remoteInfoHandler.getFromEntry("http://localhost:3001/mfe1/remoteEntry.json");
+            const actual = await remoteInfoHandler.getFromEntry("http://localhost:3001/remoteEntry.json");
         
             expect(actual).toEqual(expected);
         });    
@@ -144,10 +144,10 @@ describe('remoteInfoHandler', () => {
                 })
             );
 
-            const actual = remoteInfoHandler.getFromEntry("http://localhost:3001/mfe1/remoteEntry.json");
+            const actual = remoteInfoHandler.getFromEntry("http://localhost:3001/remoteEntry.json");
 
             expect(actual).rejects.toThrow(NFError);
-            expect(actual).rejects.toThrow(`Fetching remote from 'http://localhost:3001/mfe1/remoteEntry.json' failed: 404 - Entry does not exist`);
+            expect(actual).rejects.toThrow(`Fetching remote from 'http://localhost:3001/remoteEntry.json' failed: 404 - Entry does not exist`);
         });    
 
         it('Should throw error if no remoteEntryUrl', async () => {
@@ -164,7 +164,7 @@ describe('remoteInfoHandler', () => {
         beforeEach(() => {
             cache = { 
                 remoteNamesToRemote: { "team/mfe1": REMOTE_MFE1_MOCK() },
-                baseUrlToRemoteNames: { "http://localhost:3001/mfe1": "team/mfe1" }
+                baseUrlToRemoteNames: { "http://localhost:3001": "team/mfe1" }
             };
             (storageHandler.fetch as jest.Mock).mockImplementation(
                 (entry: 'remoteNamesToRemote'|'baseUrlToRemoteNames') => cache[entry] as any
@@ -174,7 +174,7 @@ describe('remoteInfoHandler', () => {
         it('should fetch the remote from the cache', async () => {
             const expected = REMOTE_MFE1_MOCK();
 
-            const actual = await remoteInfoHandler.getFromCache("http://localhost:3001/mfe1/remoteEntry.json", "team/mfe1");
+            const actual = await remoteInfoHandler.getFromCache("http://localhost:3001/remoteEntry.json", "team/mfe1");
         
             expect(actual).toEqual(expected);
         });  
@@ -190,7 +190,7 @@ describe('remoteInfoHandler', () => {
         it('should get the remoteName from the url when not provided', async () => {
             const expected = REMOTE_MFE1_MOCK();
 
-            const actual = await remoteInfoHandler.getFromCache("http://localhost:3001/mfe1/remoteEntry.json", undefined);
+            const actual = await remoteInfoHandler.getFromCache("http://localhost:3001/remoteEntry.json", undefined);
         
             expect(actual).toEqual(expected);
         });  
@@ -210,7 +210,7 @@ describe('remoteInfoHandler', () => {
         });  
 
         it('should reject if no remoteName and URL is not in cache', async () => {
-            const actual = remoteInfoHandler.getFromCache("http://wrong.url/mfe1/remoteEntry.json", undefined);
+            const actual = remoteInfoHandler.getFromCache("http://wrong.url/remoteEntry.json", undefined);
         
             expect(actual).rejects.toThrow(NFError);
             expect(actual).rejects.toThrow("Invalid remoteEntry or remoteName");
