@@ -1,5 +1,5 @@
 import { type StorageEntryCreator, nfNamespace, type StorageEntry, type NfCache, type StorageOf } from "./storage.contract";
-import { toStorage } from "./storage.handler";
+import { toStorage } from "./to-storage";
 
 type GlobalThisStorage = {[nfNamespace]: Record<string, unknown>;};
 

@@ -1,4 +1,4 @@
-import type { StorageEntryCreator, StorageEntryValue, StorageHandler, StorageOf } from "./storage.contract";
+import type { StorageEntryValue, StorageHandler, StorageOf } from "./storage.contract";
 
 function storageHandlerFactory<TStorage extends StorageOf<Record<keyof TStorage, any>>>(
     _cache: TStorage
@@ -25,17 +25,4 @@ function storageHandlerFactory<TStorage extends StorageOf<Record<keyof TStorage,
     return { fetch, mutate, get, entry };
 }
 
-const toStorage = <Tprops extends Record<string, any>>(
-    props: Tprops,
-    cacheEntryCreator: StorageEntryCreator
-): StorageOf<Tprops> => {
-    return Object.entries(props).reduce(
-        (acc, [key, value]) => ({
-            ...acc,
-            [key]: cacheEntryCreator(key, value)
-        }),
-        {} as StorageOf<Tprops>
-    );
-};
-
-export {toStorage, storageHandlerFactory, StorageHandler};
+export {storageHandlerFactory, StorageHandler};

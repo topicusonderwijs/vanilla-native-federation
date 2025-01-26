@@ -1,6 +1,6 @@
 import { globalThisStorageEntry } from './global-this-storage';
 import type { NfStorage, NfCache } from './storage.contract';
-import { toStorage } from './storage.handler';
+import { toStorage } from './to-storage';
 
 const DEFAULT_PROPS: NfCache = {
     externals: {},
