@@ -25,6 +25,7 @@ module.exports = {
     'src/**/*.{js,ts}',
     '!src/**/*.d.ts',
     '!src/**/index.ts',
+    '!src/**/*.resolver.ts',
   ],
   preset: 'ts-jest',
   clearMocks: true
