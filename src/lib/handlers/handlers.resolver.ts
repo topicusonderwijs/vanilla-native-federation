@@ -9,10 +9,10 @@ import type { NfCache } from "./storage/storage.contract";
 import { storageHandlerFactory } from "./storage/storage.handler";
 
 const resolveHandlers = <TCache extends NfCache>(
-    {storage, cache, logger, logLevel}: Config<TCache>,
+    {storageType, cache, logger, logLevel}: Config<TCache>,
 ): Handlers => {
     // Utils
-    const storageHandler = storageHandlerFactory(cache, storage);
+    const storageHandler = storageHandlerFactory(cache, storageType);
     const logHandler = logHandlerFactory(logLevel, logger)
 
     // Core

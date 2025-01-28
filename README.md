@@ -248,23 +248,18 @@ There are a few plugins baked into the library to customize the initialization e
 
 ## 5.2 &nbsp; Custom storage (caching): 
 
-By default, native federation will use the window object as storage for all metadata and configuration, you can change this using a custom provided storage: 
+By default, native federation will use the window object as storage for all metadata and configuration, you can change this using a custom provided storage types like sessionStorage and localStorage: 
 
 **loader.ts**
 ```
 import { initFederation } from 'vanilla-native-federation';
-import { createSessionStorageCache } from 'vanilla-native-federation/plugins/storage';
+import { sessionStorageEntry } from 'vanilla-native-federation/plugins/storage';
 
 (() => {
-  const customCache = createSessionStorageCache({
-    externals: {},
-    remoteNamesToRemote: {},
-    baseUrlToRemoteNames: {}
-  })
   const manifest = {
     "remote1": "http://localhost:3001/remoteEntry.json"
   }
-  initFederation(manifest, {cache: customCache})
+  initFederation(manifest, {storageType: sessionStorageEntry})
     .then(({load, importMap}) => {
       console.log("importMap: ", importMap);
       window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));

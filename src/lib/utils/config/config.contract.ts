@@ -3,7 +3,7 @@ import type { NfCache, StorageEntryCreator } from "../../handlers/storage/storag
 
 type Config<TCache extends NfCache = NfCache> = {
     cache: TCache,
-    storage: StorageEntryCreator,
+    storageType: StorageEntryCreator,
     logger: LogHandler,
     logLevel: LogType
 }

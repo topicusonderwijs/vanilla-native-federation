@@ -1,6 +1,7 @@
 ## 0.7.0 - Test coverage
 - Added tests to handlers
 - Reworked StorageHandler, it now provides more type-safety.
+- Added storageType to config object and simplified cache config object.
 
 ## 0.6.0 - Structural upgrade
 - Added Jest unit-testing framework

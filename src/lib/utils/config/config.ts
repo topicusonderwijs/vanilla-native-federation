@@ -6,7 +6,7 @@ import { createCache, type NfCache } from "../../handlers/storage/storage.contra
 const defaultConfig = <TCache extends NfCache>(o: Partial<Config<TCache>>): Config<TCache> => {
     return {
         cache: (o.cache ?? createCache()) as TCache,
-        storage: o.storage ?? globalThisStorageEntry,
+        storageType: o.storageType ?? globalThisStorageEntry,
         logger: o.logger ?? noopLogger,
         logLevel: o.logLevel ?? "error"
     }
