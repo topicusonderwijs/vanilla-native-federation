@@ -1,32 +1,26 @@
-import { type StorageEntryCreator, nfNamespace, type StorageEntry, type NfCache, type StorageOf } from "./storage.contract";
-import { toStorage } from "./storage.handler";
+import { cloneEntry } from "./clone-entry";
+import { type StorageEntryCreator, nfNamespace, type StorageEntry, type NfCache } from "./storage.contract";
 
-type GlobalThisStorage = {[nfNamespace]: Record<string, unknown>;};
-
-const globalThisStorageEntry: StorageEntryCreator = <T>(key: string, _fallback: T) => {
-    if (!(globalThis as unknown as GlobalThisStorage)[nfNamespace]) {
-        (globalThis as unknown as GlobalThisStorage)[nfNamespace] = {};
-    }
-    const namespace = (globalThis as unknown as GlobalThisStorage)[nfNamespace];
-    
-    const entry = {
-        get(): T {
-            return (namespace[key] as T) ?? _fallback;
-        },
-        set(value: T): StorageEntry<T> {
-            namespace[key] = value;
-            return entry;
-        },
-        exists(): boolean {
-            return key in namespace;
+const globalThisStorageEntry: StorageEntryCreator = <TCache extends NfCache, K extends keyof TCache = keyof TCache>
+    (key: K, initialValue: TCache[K]) => {
+        if (!(globalThis as unknown as {[nfNamespace]: unknown})[nfNamespace]) {
+            (globalThis as unknown as {[nfNamespace]: unknown})[nfNamespace] = {};
         }
-    };
+        
+        const namespace = (globalThis as unknown as {[nfNamespace]: Pick<TCache, K>})[nfNamespace];
+        if(!namespace[key]) namespace[key] = initialValue;
+        
+        const entry: StorageEntry<TCache[K]> = {
+            get(): TCache[K] {
+                return cloneEntry(key, namespace[key])!;
+            },
+            set(value: TCache[K]): StorageEntry<TCache[K]> {
+                namespace[key] = cloneEntry(key, value);
+                return entry;
+            }
+        };
 
-    return entry;
-}
+        return entry;
+    }
 
-const createGlobalThisStorageCache = <TCache extends NfCache>(cache: TCache): StorageOf<TCache> => {
-    return toStorage(cache, globalThisStorageEntry)
-}
-
-export {GlobalThisStorage, globalThisStorageEntry, createGlobalThisStorageCache};
+export {globalThisStorageEntry};

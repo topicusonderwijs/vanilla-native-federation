@@ -1,29 +1,20 @@
-import { toStorage } from "../../lib/handlers/storage/storage.handler";
-import { type StorageEntryCreator, type StorageOf, nfNamespace, type NfCache, type StorageEntry } from "./../../lib/handlers/storage/storage.contract";
+import { type StorageEntryCreator, nfNamespace, type NfCache, type StorageEntry } from "./../../lib/handlers/storage/storage.contract";
 
-const localStorageEntry: StorageEntryCreator = <T>(key: string, _fallback: T) => {
-    const entry = {
-        get(): T {
-            const asString = localStorage.getItem(`${nfNamespace}.${key}`) ?? JSON.stringify(_fallback)
+const localStorageEntry: StorageEntryCreator = <TCache extends NfCache, K extends keyof TCache>(key: K, initialValue: TCache[K]) => {
+
+    const entry: StorageEntry<TCache[K]> = {
+        get(): TCache[K] {
+            const asString = localStorage.getItem(`${nfNamespace}.${String(key)}`) ?? JSON.stringify(initialValue)
             return JSON.parse(asString);
         },
-        
-        set(value: T): StorageEntry<T> {
+        set(value: TCache[K]): StorageEntry<TCache[K]> {
             const asString = typeof value === 'string' ? value : JSON.stringify(value);
-            localStorage.setItem(`${nfNamespace}.${key}`, asString)
+            localStorage.setItem(`${nfNamespace}.${String(key)}`, asString)
             return entry;
         },
-        
-        exists(): boolean {
-            return !!localStorage.getItem(`${nfNamespace}.${key}`);
-        }
     };
 
     return entry;
 }
 
-const createLocalStorageCache = <TCache extends NfCache>(cache: TCache): StorageOf<TCache> => {
-    return toStorage(cache, localStorageEntry)
-}
-
-export {createLocalStorageCache, localStorageEntry};
+export {localStorageEntry};

@@ -22,8 +22,11 @@ const exposeModuleLoader = (
         logHandler.debug(`Loading module ${JSON.stringify(remoteModule)}`)
 
         if(!remoteModule.remoteName || remoteModule.remoteName === "") throw new NFError('remoteName cannot be empty');
-        return remoteInfoHandler
-            .get(remoteModule.remoteEntry, remoteModule.remoteName)
+        return remoteInfoHandler.getFromCache(remoteModule.remoteEntry, remoteModule.remoteName)
+                .catch(e => {
+                    logHandler.warn("Cache lookup failed: "+e.message)
+                    return remoteInfoHandler.getFromEntry(remoteModule.remoteEntry!)
+                })
             .then(info => exposedModuleHandler.getUrl(info, remoteModule.exposedModule))
             .then(tap(url => logHandler.debug("Importing module: " + url)))
             .then(m => (globalThis as any).importShim(m))

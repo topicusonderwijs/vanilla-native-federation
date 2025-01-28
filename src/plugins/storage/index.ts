@@ -1,2 +1,2 @@
-export { createSessionStorageCache } from './session-storage';
-export { createLocalStorageCache } from './local-storage';
+export { sessionStorageEntry } from './session-storage';
+export { localStorageEntry } from './local-storage';

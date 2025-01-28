@@ -1,41 +1,42 @@
-import type { StorageEntryCreator, StorageEntryValue, StorageHandler, StorageOf } from "./storage.contract";
+import type { StorageHandler, StorageEntry, NfCache, StorageEntryCreator, StorageOf } from "./storage.contract";
 
-function storageHandlerFactory<TStorage extends StorageOf<Record<keyof TStorage, any>>>(
-    _cache: TStorage
-): StorageHandler<TStorage> {
-    const entry = <K extends keyof TStorage>(key: K): TStorage[K] => {
-        return _cache[key];
+function storageHandlerFactory<TCache extends NfCache>(
+    cache: TCache,
+    cacheEntryCreator: StorageEntryCreator
+): StorageHandler<TCache> {
+
+    const STORAGE: StorageOf<TCache> = (Object.entries(cache) as { [K in keyof TCache]: [K, TCache[K]]; }[keyof TCache][])
+        .reduce(
+            (acc, [key, value]) => ({
+                ...acc,
+                [key]: cacheEntryCreator<TCache, typeof key>(key, value)
+            }),
+            {} as StorageOf<TCache>
+        );
+
+    function entry<K extends keyof TCache>(key: K): StorageEntry<TCache[K]> {
+        return STORAGE[key];
     };
 
-    const fetch = <K extends keyof TStorage>(key: K): StorageEntryValue<TStorage[K]> => {
-        return _cache[key].get();
+    function fetch<K extends keyof TCache>(key: K): TCache[K] {
+        return STORAGE[key].get();
     };
 
-    const mutate = <K extends keyof TStorage>(
+    function update<K extends keyof TCache>(
+        this:StorageHandler<TCache>,
         key: K,
-        mutateFn: (v: StorageEntryValue<TStorage[K]>) => StorageEntryValue<TStorage[K]>
-    ): StorageHandler<TStorage> => {
-        const newVal = mutateFn(fetch(key));
-        _cache[key].set(newVal);
-        return storageHandlerFactory(_cache);
+        updateFn: (v: TCache[K]) => TCache[K]
+    ): StorageHandler<TCache> {
+        const newVal = updateFn(fetch(key));
+        STORAGE[key].set(newVal);
+        return this;
     };
 
-    const get = (): TStorage => _cache;
+    function get(): StorageOf<TCache>{
+        return STORAGE;
+    }
 
-    return { fetch, mutate, get, entry };
+    return {fetch, get, entry, update};
 }
 
-const toStorage = <Tprops extends Record<string, any>>(
-    props: Tprops,
-    cacheEntryCreator: StorageEntryCreator
-): StorageOf<Tprops> => {
-    return Object.entries(props).reduce(
-        (acc, [key, value]) => ({
-            ...acc,
-            [key]: cacheEntryCreator(key, value)
-        }),
-        {} as StorageOf<Tprops>
-    );
-};
-
-export {toStorage, storageHandlerFactory, StorageHandler};
+export {storageHandlerFactory};
