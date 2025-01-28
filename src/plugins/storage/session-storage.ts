@@ -1,29 +1,20 @@
-import { toStorage } from "../../lib/handlers/storage/to-storage";
-import { type StorageEntryCreator, type StorageOf, nfNamespace, type NfCache, type StorageEntry } from "./../../lib/handlers/storage/storage.contract";
+import { type StorageEntryCreator, nfNamespace, type NfCache, type StorageEntry } from "./../../lib/handlers/storage/storage.contract";
 
-const sessionStorageEntry: StorageEntryCreator = <T>(key: string, _fallback: T) => {
-    const entry = {
-        get(): T {
-            const asString = sessionStorage.getItem(`${nfNamespace}.${key}`) ?? JSON.stringify(_fallback)
+const sessionStorageEntry: StorageEntryCreator = <TCache extends NfCache, K extends keyof TCache>(key: K, initialValue: TCache[K]) => {
+
+    const entry: StorageEntry<TCache[K]> = {
+        get(): TCache[K] {
+            const asString = sessionStorage.getItem(`${nfNamespace}.${String(key)}`) ?? JSON.stringify(initialValue)
             return JSON.parse(asString);
         },
-        
-        set(value: T): StorageEntry<T> {
+        set(value: TCache[K]): StorageEntry<TCache[K]> {
             const asString = typeof value === 'string' ? value : JSON.stringify(value);
-            sessionStorage.setItem(`${nfNamespace}.${key}`, asString)
+            sessionStorage.setItem(`${nfNamespace}.${String(key)}`, asString)
             return entry;
         },
-        
-        exists(): boolean {
-            return !!sessionStorage.getItem(`${nfNamespace}.${key}`);
-        }
     };
 
     return entry;
 }
 
-const createSessionStorageCache = <TCache extends NfCache>(cache: TCache): StorageOf<TCache> => {
-    return toStorage(cache, sessionStorageEntry)
-}
-
-export {createSessionStorageCache, sessionStorageEntry};
+export {sessionStorageEntry};

@@ -32,7 +32,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "json5": "^2.2.3",
     "serve": "^14.2.4",
-    "typescript": "^5.4.4"
+    "typescript": "^5.7.3"
   },
   "sideEffects": false,
   "dependencies": {

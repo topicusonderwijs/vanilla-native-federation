@@ -11,32 +11,32 @@ type NfCache = {
     baseUrlToRemoteNames: Record<string, string>;
 };
 
-type StorageEntry<T> = {
-    set: (value: T) => StorageEntry<T>;
-    get: () => T;
-    exists: () => boolean;
+type StorageEntry<TValue> = {
+    set: (value: TValue) => StorageEntry<TValue>;
+    get: () => TValue;
 };
 
-type StorageEntryValue<T> = T extends StorageEntry<infer U> ? U : never;
-
-type StorageOf<T> = {
-    [K in keyof T]: StorageEntry<T[K]>;
+type StorageOf<TCache extends NfCache> = {
+    [K in keyof TCache]: StorageEntry<TCache[K]>;
 };
 
-type StorageExtension = StorageOf<Record<string, any>>;
+type StorageEntryCreator = <TCache extends NfCache, K extends keyof TCache>(key: K, initialValue: TCache[K]) => StorageEntry<TCache[K]>;
 
-type StorageEntryCreator = <T>(key: string, initialValue: T) => StorageEntry<T>;
-
-type NfStorage = StorageOf<NfCache>
-
-type StorageHandler<TStorage extends StorageOf<Record<keyof TStorage, any>>> = {
-    fetch: <K extends keyof TStorage>(key: K) => StorageEntryValue<TStorage[K]>;
-    entry: <K extends keyof TStorage>(key: K) => TStorage[K];
-    get: () => TStorage;
-    mutate: <K extends keyof TStorage>(
+type StorageHandler<TCache extends NfCache> = {
+    fetch: <K extends keyof TCache>(key: K) => TCache[K];
+    get: () => StorageOf<TCache>;
+    entry: <K extends keyof TCache>(key: K) => StorageEntry<TCache[K]>;
+    update: <K extends keyof TCache>(
         key: K,
-        mutateFn: (v: StorageEntryValue<TStorage[K]>) => StorageEntryValue<TStorage[K]>
-    ) => StorageHandler<TStorage>;
+        updateFn: (v: TCache[K]) => TCache[K]
+    ) => StorageHandler<TCache>;
+    
 }
 
-export {nfNamespace, StorageEntryValue, StorageEntry, StorageExtension, StorageOf, NfCache, NfStorage, StorageEntryCreator, StorageHandler}
+const createCache: () => NfCache = () => ({
+    externals: {},
+    remoteNamesToRemote: {},
+    baseUrlToRemoteNames: {}
+})
+
+export {nfNamespace, StorageEntry, StorageOf, NfCache, StorageEntryCreator, StorageHandler, createCache}

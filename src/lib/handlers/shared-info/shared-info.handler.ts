@@ -1,7 +1,6 @@
 import type { SharedInfoHandler, SharedInfo } from "./shared-info.contract";
 import * as _path from "../../utils/path";
-import type { NfCache, StorageEntry } from "../storage/storage.contract";
-import type { StorageHandler } from "../storage/storage.handler";
+import type { NfCache, StorageHandler } from "../storage/storage.contract";
 import type { Remote } from "./../remote-info/remote-info.contract";
 
 /**
@@ -12,7 +11,7 @@ import type { Remote } from "./../remote-info/remote-info.contract";
  * @returns 
  */
 const sharedInfoHandlerFactory = (
-    storage: StorageHandler<{"externals": StorageEntry<Record<string, string>>}>
+    storage: StorageHandler<NfCache>
 ): SharedInfoHandler => {
 
     const toExternalKey = (shared: SharedInfo): string => {
@@ -42,7 +41,7 @@ const sharedInfoHandlerFactory = (
 
     const addToCache = (remoteInfo: Remote) => {
         const mutation = addToExternalsList(remoteInfo);
-        storage.mutate("externals", mutation)
+        storage.update("externals", mutation)
         return remoteInfo;
     }
 

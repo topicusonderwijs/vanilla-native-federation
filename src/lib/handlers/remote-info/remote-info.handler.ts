@@ -2,10 +2,10 @@ import type { Remote, RemoteInfoHandler } from "./remote-info.contract";
 import { NFError } from "../../native-federation.error";
 import * as _path from "../../utils/path";
 import type { SharedInfoHandler } from "../shared-info";
-import type { NfStorage, StorageHandler } from "../storage/storage.contract";
+import type { NfCache, StorageHandler } from "../storage/storage.contract";
 
-const remoteInfoHandlerFactory = (
-    storage: StorageHandler<NfStorage>, 
+const remoteInfoHandlerFactory = <TCache extends NfCache>(
+    storage: StorageHandler<TCache>, 
     sharedInfoHandler: SharedInfoHandler
 ): RemoteInfoHandler => {
 
@@ -46,8 +46,8 @@ const remoteInfoHandlerFactory = (
     }
 
     const addToCache = (remote: Remote): Remote => {
-        storage.mutate("remoteNamesToRemote", v => ({...v, [remote.name]: remote}));
-        storage.mutate("baseUrlToRemoteNames", v => ({...v, [remote.baseUrl]: remote.name}));
+        storage.update("remoteNamesToRemote", v => ({...v, [remote.name]: remote}));
+        storage.update("baseUrlToRemoteNames", v => ({...v, [remote.baseUrl]: remote.name}));
         
         sharedInfoHandler.addToCache(remote)
 

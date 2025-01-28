@@ -4,14 +4,14 @@ import { updateDOM } from "./3-update-dom";
 import { exposeModuleLoader } from "./4-expose-module-loader";
 import type { StepFactories } from "./steps.contract";
 import { resolveHandlers } from "../handlers/handlers.resolver";
-import type { StorageExtension, NfStorage } from "../handlers/storage/storage.contract";
+import type { NfCache } from "../handlers/storage/storage.contract";
 import type { Config } from "../utils/config/config.contract";
 
-const resolver = <TCache extends NfStorage & StorageExtension>(
+const resolver = <TCache extends NfCache>(
     config: Config<TCache>,
     stepsOverride: Partial<StepFactories> = {}
 ) => {
-    const handlers = resolveHandlers(config);
+    const handlers = resolveHandlers<TCache>(config);
     return {
         fetchImportMaps:    (stepsOverride?.fetchImportMaps    ?? fetchImportMaps)(handlers),
         mergeImportMaps:    (stepsOverride?.mergeImportMaps    ?? mergeImportMaps)(handlers),

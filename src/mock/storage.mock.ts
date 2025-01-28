@@ -1,49 +1,28 @@
-import { SharedInfo } from '@softarc/native-federation-runtime';
-import { Remote } from '../lib/handlers/remote-info/remote-info.contract';
-import type { NfStorage, StorageEntry, StorageEntryCreator } from './../lib/handlers/storage/storage.contract';
+import type { NfCache, StorageEntry, StorageEntryCreator, StorageOf } from './../lib/handlers/storage/storage.contract';
+import { toStorage } from '../lib/handlers/storage/to-storage';
 
-const REMOTE_MFE1_MOCK: () => Remote = () => 
-    JSON.parse(JSON.stringify({
-        name: 'team/mfe1', 
-        shared: [
-            {
-                packageName: "rxjs",
-                outFileName: "rxjs.js",
-                requiredVersion: "~7.8.0",
-                singleton: true,
-                strictVersion: true,
-                version: "7.8.1",
-            }
-        ] as SharedInfo[], 
-        exposes: [{key: './comp', outFileName: 'comp.js'}], 
-        baseUrl: 'http://localhost:3001'
-    }))
 
-const createMockStorageEntry: StorageEntryCreator = <T>(_: string, initialValue: T): StorageEntry<T> => {
-    let value = initialValue;
-
-    const mockEntry = {
-        get: () => value,
-        set: (newValue: T) => {
-            value = newValue;
-            return mockEntry;
+const mockStorage: StorageEntryCreator = <T>(key: string, _fallback: T) => {
+    const storage = {} as Record<string, any>;
+    
+    const entry = {
+        get(): T {
+            return (storage[key] as T) ?? _fallback;
         },
-        exists: () => true
+        set(value: T): StorageEntry<T> {
+            storage[key] = value;
+            return entry;
+        },
+        exists(): boolean {
+            return key in storage;
+        }
     };
 
-    return mockEntry;
-};
+    return entry;
+}
 
-const createMockStorage = (): NfStorage =>  ({
-    remoteNamesToRemote: createMockStorageEntry(
-        'remoteNamesToRemote',
-        { [REMOTE_MFE1_MOCK.name]: REMOTE_MFE1_MOCK() } as Record<string, Remote>
-    ),
-    baseUrlToRemoteNames: createMockStorageEntry(
-        'baseUrlToRemoteNames',
-        {[REMOTE_MFE1_MOCK().baseUrl]: REMOTE_MFE1_MOCK().name} as Record<string, string>
-    ),
-    externals: createMockStorageEntry('externals', {})
-});
+const createMockStorage = <TCache extends NfCache>(cache: TCache): StorageOf<TCache> => {
+    return toStorage(cache, mockStorage)
+}
 
-export {createMockStorageEntry, createMockStorage}
+export {mockStorage, createMockStorage}

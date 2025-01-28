@@ -1,11 +1,12 @@
 import type { Config } from "./config.contract"
 import { noopLogger } from "../../handlers/logging/noop.logger"
-import { DEFAULT_STORAGE } from "../../handlers/storage/default-storage"
-import type { NfStorage, StorageExtension } from "../../handlers/storage/storage.contract"
+import { globalThisStorageEntry } from "../../handlers/storage/global-this-storage"
+import { createCache, type NfCache } from "../../handlers/storage/storage.contract"
 
-const defaultConfig = (o: Partial<Config<NfStorage & StorageExtension>>): Config<NfStorage & StorageExtension> => {
+const defaultConfig = <TCache extends NfCache>(o: Partial<Config<TCache>>): Config<TCache> => {
     return {
-        cache: o.cache ?? DEFAULT_STORAGE,
+        cache: (o.cache ?? createCache()) as TCache,
+        storage: o.storage ?? globalThisStorageEntry,
         logger: o.logger ?? noopLogger,
         logLevel: o.logLevel ?? "error"
     }
