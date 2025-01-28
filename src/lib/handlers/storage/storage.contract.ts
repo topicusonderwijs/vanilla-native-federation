@@ -16,11 +16,13 @@ type StorageEntry<TValue> = {
     get: () => TValue;
 };
 
+type StorageEntryKey = number|symbol|string;
+
 type StorageOf<TCache extends NfCache> = {
     [K in keyof TCache]: StorageEntry<TCache[K]>;
 };
 
-type StorageEntryCreator = <TCache extends NfCache, K extends keyof TCache>(key: K, initialValue: TCache[K]) => StorageEntry<TCache[K]>;
+type StorageEntryCreator = <TCache extends NfCache, K extends keyof TCache = keyof TCache>(key: K, initialValue: TCache[K]) => StorageEntry<TCache[K]>;
 
 type StorageHandler<TCache extends NfCache> = {
     fetch: <K extends keyof TCache>(key: K) => TCache[K];
@@ -39,4 +41,4 @@ const createCache: () => NfCache = () => ({
     baseUrlToRemoteNames: {}
 })
 
-export {nfNamespace, StorageEntry, StorageOf, NfCache, StorageEntryCreator, StorageHandler, createCache}
+export {nfNamespace, StorageEntry, StorageEntryKey, StorageOf, NfCache, StorageEntryCreator, StorageHandler, createCache}

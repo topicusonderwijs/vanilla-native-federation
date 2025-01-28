@@ -1,5 +1,6 @@
-## 0.6.1 - Test coverage
+## 0.7.0 - Test coverage
 - Added tests to handlers
+- Reworked StorageHandler, it now provides more type-safety.
 
 ## 0.6.0 - Structural upgrade
 - Added Jest unit-testing framework

@@ -1,28 +1,20 @@
-import type { NfCache, StorageEntry, StorageEntryCreator, StorageOf } from './../lib/handlers/storage/storage.contract';
-import { toStorage } from '../lib/handlers/storage/to-storage';
+import type { NfCache, StorageEntry, StorageEntryCreator } from './../lib/handlers/storage/storage.contract';
 
 
-const mockStorage: StorageEntryCreator = <T>(key: string, _fallback: T) => {
-    const storage = {} as Record<string, any>;
-    
-    const entry = {
-        get(): T {
-            return (storage[key] as T) ?? _fallback;
-        },
-        set(value: T): StorageEntry<T> {
-            storage[key] = value;
-            return entry;
-        },
-        exists(): boolean {
-            return key in storage;
-        }
-    };
+const mockStorageEntry: StorageEntryCreator = <TCache extends NfCache, K extends keyof TCache = keyof TCache>
+    (key: K, initialValue: TCache[K]) => {
+        const STORAGE = { [key]: initialValue } as Pick<TCache, K>;
 
-    return entry;
-}
+        const entry: StorageEntry<TCache[K]> = {
+            get(): TCache[K] {
+                return STORAGE[key]!;
+            },
+            set(value: TCache[K]): StorageEntry<TCache[K]> {
+                STORAGE[key] = value;
+                return entry;
+            }
+        };
 
-const createMockStorage = <TCache extends NfCache>(cache: TCache): StorageOf<TCache> => {
-    return toStorage(cache, mockStorage)
-}
-
-export {mockStorage, createMockStorage}
+        return entry;
+    }
+export {mockStorageEntry}

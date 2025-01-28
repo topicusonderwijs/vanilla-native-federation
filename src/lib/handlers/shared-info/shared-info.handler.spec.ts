@@ -3,10 +3,10 @@ import { SharedInfoHandler } from './shared-info.contract';
 import { Remote } from '../remote-info';
 import { SharedInfo } from '@softarc/native-federation-runtime';
 import { mockStorageHandler } from '../../../mock/handlers.mock';
-import { StorageEntry, StorageHandler } from '../storage/storage.contract';
+import { NfCache, StorageHandler } from '../storage/storage.contract';
 
 describe('sharedInfoHandler', () => {
-    let storageHandler: StorageHandler<{"externals": StorageEntry<Record<string, string>>}>;
+    let storageHandler: StorageHandler<NfCache>;
     let sharedInfoHandler: SharedInfoHandler;
 
     const REMOTE_MFE1_MOCK: () => Remote = () => 
@@ -52,7 +52,7 @@ describe('sharedInfoHandler', () => {
 
             sharedInfoHandler.addToCache(remote);
 
-            const [key, mutation] = (storageHandler.mutate as any).mock.calls[0];
+            const [key, mutation] = (storageHandler.update as any).mock.calls[0];
             const actual = mutation(cache.externals);
 
             expect(key).toBe("externals");
@@ -73,7 +73,7 @@ describe('sharedInfoHandler', () => {
 
             sharedInfoHandler.addToCache(remote);
 
-            const [key, mutation] = (storageHandler.mutate as any).mock.calls[0];
+            const [key, mutation] = (storageHandler.update as any).mock.calls[0];
             const actual = mutation(cache.externals);
 
             expect(key).toBe("externals");
@@ -93,7 +93,7 @@ describe('sharedInfoHandler', () => {
 
             sharedInfoHandler.addToCache(remote);
 
-            const [key, mutation] = (storageHandler.mutate as any).mock.calls[0];
+            const [key, mutation] = (storageHandler.update as any).mock.calls[0];
             const actual = mutation(cache.externals);
 
             expect(key).toBe("externals");

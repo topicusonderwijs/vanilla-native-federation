@@ -5,7 +5,6 @@ function storageHandlerFactory<TCache extends NfCache>(
     cacheEntryCreator: StorageEntryCreator
 ): StorageHandler<TCache> {
 
-
     const STORAGE: StorageOf<TCache> = (Object.entries(cache) as { [K in keyof TCache]: [K, TCache[K]]; }[keyof TCache][])
         .reduce(
             (acc, [key, value]) => ({
@@ -14,7 +13,6 @@ function storageHandlerFactory<TCache extends NfCache>(
             }),
             {} as StorageOf<TCache>
         );
-    
 
     function entry<K extends keyof TCache>(key: K): StorageEntry<TCache[K]> {
         return STORAGE[key];

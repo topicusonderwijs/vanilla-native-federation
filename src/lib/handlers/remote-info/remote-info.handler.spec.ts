@@ -1,5 +1,5 @@
 import { SharedInfo } from "@softarc/native-federation-runtime";
-import { NfStorage, StorageHandler } from "../storage/storage.contract";
+import { NfCache, StorageHandler } from "../storage/storage.contract";
 import { Remote, RemoteInfoHandler } from "./remote-info.contract";
 import { mockStorageHandler, mockSharedInfoHandler } from './../../../mock/handlers.mock';
 import { remoteInfoHandlerFactory } from './remote-info.handler';
@@ -7,7 +7,7 @@ import { SharedInfoHandler } from "../shared-info";
 import { NFError } from "../../native-federation.error";
 
 describe('remoteInfoHandler', () => {
-    let storageHandler: StorageHandler<NfStorage>;
+    let storageHandler: StorageHandler<NfCache>;
     let sharedInfoHandler: SharedInfoHandler;
     let remoteInfoHandler: RemoteInfoHandler;
 
@@ -65,8 +65,8 @@ describe('remoteInfoHandler', () => {
 
             remoteInfoHandler.addToCache(remote);
 
-            const [m1_key, m1_mutation] = (storageHandler.mutate as any).mock.calls[0];
-            const [m2_key, m2_mutation] = (storageHandler.mutate as any).mock.calls[1];
+            const [m1_key, m1_mutation] = (storageHandler.update as any).mock.calls[0];
+            const [m2_key, m2_mutation] = (storageHandler.update as any).mock.calls[1];
 
             expect(m1_key).toBe("remoteNamesToRemote");
             expect(m1_mutation(cache.remoteNamesToRemote)).toEqual(expected.remoteNamesToRemote);
@@ -95,8 +95,8 @@ describe('remoteInfoHandler', () => {
 
             remoteInfoHandler.addToCache(remote);
 
-            const [m1_key, m1_mutation] = (storageHandler.mutate as any).mock.calls[0];
-            const [m2_key, m2_mutation] = (storageHandler.mutate as any).mock.calls[1];
+            const [m1_key, m1_mutation] = (storageHandler.update as any).mock.calls[0];
+            const [m2_key, m2_mutation] = (storageHandler.update as any).mock.calls[1];
 
             expect(m1_key).toBe("remoteNamesToRemote");
             expect(m1_mutation(cache.remoteNamesToRemote)).toEqual(expected.remoteNamesToRemote);
