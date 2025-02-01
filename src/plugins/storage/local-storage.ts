@@ -4,12 +4,15 @@ const localStorageEntry: StorageEntryCreator = <TCache extends NfCache, K extend
 
     const entry: StorageEntry<TCache[K]> = {
         get(): TCache[K] {
-            const asString = localStorage.getItem(`${nfNamespace}.${String(key)}`) ?? JSON.stringify(initialValue)
-            return JSON.parse(asString);
+            const fromCache = localStorage.getItem(`${nfNamespace}.${String(key)}`);
+            if (!fromCache) { 
+                entry.set(initialValue);
+                return initialValue;
+            }
+            return JSON.parse(fromCache);
         },
         set(value: TCache[K]): StorageEntry<TCache[K]> {
-            const asString = typeof value === 'string' ? value : JSON.stringify(value);
-            localStorage.setItem(`${nfNamespace}.${String(key)}`, asString)
+            localStorage.setItem(`${nfNamespace}.${String(key)}`, JSON.stringify(value));
             return entry;
         },
     };

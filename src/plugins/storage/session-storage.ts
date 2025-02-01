@@ -4,12 +4,15 @@ const sessionStorageEntry: StorageEntryCreator = <TCache extends NfCache, K exte
 
     const entry: StorageEntry<TCache[K]> = {
         get(): TCache[K] {
-            const asString = sessionStorage.getItem(`${nfNamespace}.${String(key)}`) ?? JSON.stringify(initialValue)
-            return JSON.parse(asString);
+            const fromCache = sessionStorage.getItem(`${nfNamespace}.${String(key)}`);
+            if (!fromCache) { 
+                entry.set(initialValue);
+                return initialValue;
+            }
+            return JSON.parse(fromCache);
         },
         set(value: TCache[K]): StorageEntry<TCache[K]> {
-            const asString = typeof value === 'string' ? value : JSON.stringify(value);
-            sessionStorage.setItem(`${nfNamespace}.${String(key)}`, asString)
+            sessionStorage.setItem(`${nfNamespace}.${String(key)}`, JSON.stringify(value));
             return entry;
         },
     };

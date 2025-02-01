@@ -61,17 +61,6 @@ async function generateBuilds() {
     },
   };
 
-  // Add builds for each plugin
-  for (const plugin of plugins) {
-    builds[`fesm2022_${plugin}`] = {
-      ...commonConfig,
-      entryPoints: [`src/plugins/${plugin}/index.ts`],
-      outfile: `dist/fesm2022/vanilla-native-federation-${plugin}.mjs`,
-      bundle: true,
-      sourcemap: true,
-    };
-  }
-
   return builds;
 }
 
