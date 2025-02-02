@@ -10,14 +10,23 @@ type ExposeModuleLoader = (importMap: ImportMap) => Promise<{
     importMap: ImportMap
 }>
 
+declare function importShim<T>(url: string): T;
+
+
 const exposeModuleLoader = (
     {remoteInfoHandler, logHandler, exposedModuleHandler }: Handlers
 ): ExposeModuleLoader => {
 
-    const load = (
+    function _importModule(url: string) {
+        return typeof importShim !== 'undefined'
+          ? importShim<unknown>(url)
+          : import(url);
+    }
+
+    function load(
         remoteNameOrModule: ExposedModule | string,
         exposedModule?: string
-    ): Promise<unknown> => {
+    ): Promise<unknown> {
         const remoteModule = exposedModuleHandler.mapFrom(remoteNameOrModule, exposedModule);
         logHandler.debug(`Loading module ${JSON.stringify(remoteModule)}`)
 
@@ -29,7 +38,7 @@ const exposeModuleLoader = (
                 })
             .then(info => exposedModuleHandler.getUrl(info, remoteModule.exposedModule))
             .then(tap(url => logHandler.debug("Importing module: " + url)))
-            .then(m => (globalThis as any).importShim(m))
+            .then(_importModule)
     }
 
     return (importMap: ImportMap) => Promise.resolve({ importMap, load });
