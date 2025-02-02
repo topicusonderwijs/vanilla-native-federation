@@ -43,6 +43,7 @@ async function getSourceFiles(dir) {
 async function generateBuilds() {
   const plugins = await getPlugins();
   
+  // CORE FESM and ESM build
   const builds = {
     esm2022: {
       ...commonConfig,
@@ -61,6 +62,17 @@ async function generateBuilds() {
     },
   };
 
+  // FESM build per plugin
+  for (const plugin of plugins) {
+    builds[`fesm2022_${plugin}`] = {
+      ...commonConfig,
+      entryPoints: [`src/plugins/${plugin}/index.ts`],
+      outfile: `dist/fesm2022/vanilla-native-federation-${plugin}.mjs`,
+      bundle: true,
+      sourcemap: true,
+    };
+  }
+
   return builds;
 }
 
@@ -71,7 +83,6 @@ async function generatePackageExports() {
     "./package.json": { default: "./package.json" },
     ".": {
       types: "./index.d.ts",
-      esm2022: "./esm2022/vanilla-native-federation.mjs",
       esm: "./esm2022/vanilla-native-federation.mjs",
       default: "./fesm2022/vanilla-native-federation.mjs",
     },
@@ -81,7 +92,6 @@ async function generatePackageExports() {
   for (const plugin of plugins) {
     exports[`./plugins/${plugin}`] = {
       types: `./plugins/${plugin}/index.d.ts`,
-      esm2022: `./esm2022/vanilla-native-federation-${plugin}.mjs`,
       esm: `./esm2022/vanilla-native-federation-${plugin}.mjs`,
       default: `./fesm2022/vanilla-native-federation-${plugin}.mjs`,
     };

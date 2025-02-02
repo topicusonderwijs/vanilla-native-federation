@@ -1,8 +1,13 @@
+## 0.7.1 - Moved logging to separate plugin
+- Moved logging to separate plugin.
+- Removed `fesm2022` option from package.json.
+- Re-added `fesm` build to plugins. 
+
 ## 0.7.0 - Test coverage
-- Added tests to handlers
+- Added tests to handlers.
 - Reworked StorageHandler, it now provides more type-safety.
 - Added storageType to config object and simplified cache config object.
-- Updated dependencies
+- Updated dependencies.
 
 ## 0.6.0 - Structural upgrade
 - Added Jest unit-testing framework
