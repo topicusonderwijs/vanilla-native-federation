@@ -1,4 +1,5 @@
 import type { SharedInfoHandler, SharedInfo } from "./shared-info.contract";
+import type { Config } from "../../utils";
 import * as _path from "../../utils/path";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
 import type { Remote } from "./../remote-info/remote-info.contract";
@@ -11,6 +12,7 @@ import type { Remote } from "./../remote-info/remote-info.contract";
  * @returns 
  */
 const sharedInfoHandlerFactory = (
+    {builderType}: Config<NfCache>,
     storage: StorageHandler<NfCache>
 ): SharedInfoHandler => {
 
@@ -30,13 +32,18 @@ const sharedInfoHandlerFactory = (
             }), {});
     }
 
+    const filterByBuilderType = (dep: SharedInfo) => 
+        (builderType === 'vite') === dep.packageName.startsWith('/@id/');
+
     const addToExternalsList = (remoteInfo: Remote) => (externals: NfCache["externals"]) => {
-        return remoteInfo.shared.reduce((existing, dep) => {
-            if(!existing[toExternalKey(dep)]) {
-                existing[toExternalKey(dep)] = _path.join(remoteInfo.baseUrl, dep.outFileName);
-            }
-            return existing;
-        }, externals)
+        return remoteInfo.shared
+                .filter(filterByBuilderType)
+                .reduce((existing, dep) => {
+                    if(!existing[toExternalKey(dep)]) {
+                        existing[toExternalKey(dep)] = _path.join(remoteInfo.baseUrl, dep.outFileName);
+                    }
+                    return existing;
+                }, externals)
     }
 
     const addToCache = (remoteInfo: Remote) => {

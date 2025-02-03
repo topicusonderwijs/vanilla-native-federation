@@ -1,15 +1,15 @@
-import type { StorageHandler, StorageEntry, NfCache, StorageEntryCreator, StorageOf } from "./storage.contract";
+import type { StorageHandler, StorageEntry, NfCache, StorageOf } from "./storage.contract";
+import type { Config } from "../../utils";
 
 function storageHandlerFactory<TCache extends NfCache>(
-    cache: TCache,
-    cacheEntryCreator: StorageEntryCreator
+    {cache, toStorageEntry}: Config<TCache>
 ): StorageHandler<TCache> {
 
     const STORAGE: StorageOf<TCache> = (Object.entries(cache) as { [K in keyof TCache]: [K, TCache[K]]; }[keyof TCache][])
         .reduce(
             (acc, [key, value]) => ({
                 ...acc,
-                [key]: cacheEntryCreator<TCache, typeof key>(key, value)
+                [key]: toStorageEntry<TCache, typeof key>(key, value)
             }),
             {} as StorageOf<TCache>
         );

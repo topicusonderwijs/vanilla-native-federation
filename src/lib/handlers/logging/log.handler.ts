@@ -1,15 +1,19 @@
+import type { Config } from "../../utils";
+import type { NfCache } from "../storage";
 import { type LogHandler, type LogType, LogLevel } from "./log.contract";
 
-const logHandlerFactory = (minLevel: LogType, logger: LogHandler): LogHandler => {
+const logHandlerFactory = ({logger, logLevel}: Config<NfCache>): LogHandler => {
   const logTypes = Object.keys(LogLevel)
     .filter(key => isNaN(Number(key))) as LogType[];
   
-  return logTypes.reduce((acc, logType) => {    
+
+
+  return logTypes.reduce((acc, logMessageType) => {    
     return {
       ...acc,
-      [logType]: (message: string) => {
-        if (LogLevel[logType] >= LogLevel[minLevel]) {
-          logger[logType](message);
+      [logMessageType]: (message: string) => {
+        if (LogLevel[logMessageType] >= LogLevel[logLevel]) {
+          logger[logMessageType](message);
         }
       }
     };

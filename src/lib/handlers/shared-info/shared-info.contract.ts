@@ -1,3 +1,5 @@
+import type {SharedInfo, ShareObject, ShareConfig, ShareOptions} from '@softarc/native-federation-runtime';
+
 import type { Remote } from "./../remote-info/remote-info.contract"
 
 type SharedInfoHandler = {
@@ -5,5 +7,11 @@ type SharedInfoHandler = {
     addToCache: (remoteInfo: Remote) => Remote
 }
 
-export { SharedInfoHandler }
-export type { SharedInfo } from '@softarc/native-federation-runtime';
+// const defaultShareOptions: ShareOptions = {
+//     singleton: false,
+//     requiredVersionPrefix: '',
+// };
+
+// https://github.com/angular-architects/module-federation-plugin/blob/main/libs/native-federation-runtime/src/lib/get-shared.ts#L34
+
+export { SharedInfoHandler, SharedInfo, ShareObject, ShareConfig, ShareOptions }
