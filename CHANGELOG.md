@@ -1,3 +1,7 @@
+## 0.7.1 - ...
+- Added choice to resolve vite or non-vite dependencies.
+- Renamed Config prop (storageType -> toStorageEntry).
+
 ## 0.7.0 - Test coverage
 - Added tests to handlers
 - Reworked StorageHandler, it now provides more type-safety.

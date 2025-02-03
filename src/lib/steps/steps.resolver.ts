@@ -1,5 +1,5 @@
 import { fetchImportMaps } from "./1-fetch-import-maps";
-import { mergeImportMaps } from "./2-merge-import-maps";
+import { mergeToImportMap } from "./2-merge-to-importmap";
 import { updateDOM } from "./3-update-dom";
 import { exposeModuleLoader } from "./4-expose-module-loader";
 import type { StepFactories } from "./steps.contract";
@@ -14,7 +14,7 @@ const resolver = <TCache extends NfCache>(
     const handlers = resolveHandlers<TCache>(config);
     return {
         fetchImportMaps:    (stepsOverride?.fetchImportMaps    ?? fetchImportMaps)(handlers),
-        mergeImportMaps:    (stepsOverride?.mergeImportMaps    ?? mergeImportMaps)(handlers),
+        mergeToImportMap:   (stepsOverride?.mergeToImportMap    ?? mergeToImportMap)(handlers),
         updateDOM:          (stepsOverride?.updateDOM          ?? updateDOM)(handlers),
         exposeModuleLoader: (stepsOverride?.exposeModuleLoader ?? exposeModuleLoader)(handlers)
     };

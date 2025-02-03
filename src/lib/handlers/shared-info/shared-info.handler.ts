@@ -24,16 +24,17 @@ const sharedInfoHandlerFactory = (
         return storage.fetch("externals")[toExternalKey(dep)];
     }
 
+    const filterByBuilderType = (dep: SharedInfo) => 
+        (builderType === 'vite') === dep.packageName.startsWith('/@id/');
+
     const mapSharedDeps = (remoteInfo: Remote) => {
         return remoteInfo.shared
+            .filter(filterByBuilderType)
             .reduce((dependencies, moduleDep) => ({
                 ...dependencies,
                 [moduleDep.packageName]: getCachedSharedDepUrl(moduleDep) || _path.join(remoteInfo.baseUrl, moduleDep.outFileName)
             }), {});
     }
-
-    const filterByBuilderType = (dep: SharedInfo) => 
-        (builderType === 'vite') === dep.packageName.startsWith('/@id/');
 
     const addToExternalsList = (remoteInfo: Remote) => (externals: NfCache["externals"]) => {
         return remoteInfo.shared

@@ -13,7 +13,7 @@ const initFederation = (
     );
 
     return steps.fetchImportMaps(remotesOrManifestUrl)
-        .then(steps.mergeImportMaps)
+        .then(steps.mergeToImportMap)
         .then(steps.updateDOM)
         .then(steps.exposeModuleLoader)
 }

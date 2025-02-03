@@ -1,11 +1,12 @@
+import type { Remote } from "../handlers";
 import type { Handlers } from "../handlers/handlers.contract";
-import type { ImportMap } from "../handlers/import-map/import-map.contract";
+import { NFError } from "../native-federation.error";
 import { tap } from "../utils/tap";
 
-type FetchImportMaps = (remotesOrManifestUrl: string | Record<string, string>) => Promise<ImportMap[]>
+type FetchImportMaps = (remotesOrManifestUrl: string | Record<string, string>) => Promise<Remote[]>
 
 const fetchImportMaps = (
-    { remoteInfoHandler, importMapHandler, logHandler }: Handlers
+    { remoteInfoHandler, logHandler }: Handlers
 ): FetchImportMaps => 
     (remotesOrManifestUrl: string | Record<string, string> = {}) => {
     
@@ -15,7 +16,7 @@ const fetchImportMaps = (
                 : Promise.resolve(remotesOrManifestUrl)
         }
 
-        const mapToImportMaps = ([remoteName, remoteEntryUrl]: [string,string]) => {
+        const mapToSharedInfo = ([remoteName, remoteEntryUrl]: [string,string]): Promise<Remote> => {
             return remoteInfoHandler.getFromCache(remoteEntryUrl, remoteName)
                 .catch(e => {
                     logHandler.warn("Cache lookup failed: "+e.message)
@@ -27,16 +28,15 @@ const fetchImportMaps = (
                         logHandler.warn(`Fetched remote '${m.name}' does not match requested '${remoteName}'`);
                     }
                 }))
-                .then(importMapHandler.toImportMap)
                 .catch(_ => {
                     logHandler.warn(`Error loading remoteEntry for ${remoteName} at '${remoteEntryUrl}', skipping module`);
-                    return importMapHandler.createEmpty();
+                    throw new NFError("Error loading remoteEntry for ${remoteName} at '${remoteEntryUrl}'")
                 })
         }
 
         return fetchRemotes()
             .then(r => Object.entries(r))
-            .then(r => Promise.all(r.map(mapToImportMaps)))
+            .then(r => Promise.all(r.map(mapToSharedInfo)))
     }
 
 export {FetchImportMaps, fetchImportMaps}

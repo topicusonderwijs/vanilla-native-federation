@@ -1,6 +1,6 @@
 
 export { FetchImportMaps } from "./1-fetch-import-maps";
-export { MergeImportMaps } from "./2-merge-import-maps";
+export { MergeToImportMap } from "./2-merge-to-importmap";
 export { UpdateDOM } from "./3-update-dom";
 export { ExposeModuleLoader } from "./4-expose-module-loader";
 
