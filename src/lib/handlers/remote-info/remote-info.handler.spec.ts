@@ -1,14 +1,14 @@
 import { SharedInfo } from "@softarc/native-federation-runtime";
 import { NfCache, StorageHandler } from "../storage/storage.contract";
 import { Remote, RemoteInfoHandler } from "./remote-info.contract";
-import { mockStorageHandler, mockSharedInfoHandler } from './../../../mock/handlers.mock';
+import { mockStorageHandler, mockExternalsHandler } from './../../../mock/handlers.mock';
 import { remoteInfoHandlerFactory } from './remote-info.handler';
-import { SharedInfoHandler } from "../shared-info";
+import { ExternalsHandler } from "../externals";
 import { NFError } from "../../native-federation.error";
 
 describe('remoteInfoHandler', () => {
     let storageHandler: StorageHandler<NfCache>;
-    let sharedInfoHandler: SharedInfoHandler;
+    let externalsHandler: ExternalsHandler;
     let remoteInfoHandler: RemoteInfoHandler;
 
     const REMOTE_MFE1_MOCK: () => Remote = () => 
@@ -47,12 +47,12 @@ describe('remoteInfoHandler', () => {
 
     beforeEach(() => {
         storageHandler = mockStorageHandler();
-        sharedInfoHandler = mockSharedInfoHandler();
-        remoteInfoHandler = remoteInfoHandlerFactory(storageHandler, sharedInfoHandler);
+        externalsHandler = mockExternalsHandler();
+        remoteInfoHandler = remoteInfoHandlerFactory(storageHandler, externalsHandler);
     });
 
-    describe('addToCache', () => {
-        it('should add remote to cache', () => {
+    describe('addToStorage', () => {
+        it('should add remote to the storage', () => {
             const remote = REMOTE_MFE1_MOCK();
             const cache = {
                 remoteNamesToRemote: {},
@@ -63,7 +63,7 @@ describe('remoteInfoHandler', () => {
                 baseUrlToRemoteNames: { "http://localhost:3001": "team/mfe1" }
             }
 
-            remoteInfoHandler.addToCache(remote);
+            remoteInfoHandler.addToStorage(remote);
 
             const [m1_key, m1_mutation] = (storageHandler.update as any).mock.calls[0];
             const [m2_key, m2_mutation] = (storageHandler.update as any).mock.calls[1];
@@ -93,7 +93,7 @@ describe('remoteInfoHandler', () => {
                 }
             }
 
-            remoteInfoHandler.addToCache(remote);
+            remoteInfoHandler.addToStorage(remote);
 
             const [m1_key, m1_mutation] = (storageHandler.update as any).mock.calls[0];
             const [m2_key, m2_mutation] = (storageHandler.update as any).mock.calls[1];
@@ -108,9 +108,9 @@ describe('remoteInfoHandler', () => {
         it('should also cache the externals', () => {
             const remote = REMOTE_MFE1_MOCK();
 
-            remoteInfoHandler.addToCache(remote);
+            remoteInfoHandler.addToStorage(remote);
 
-            expect(sharedInfoHandler.addToCache).toHaveBeenCalledWith(remote);
+            expect(externalsHandler.addToStorage).toHaveBeenCalledWith(remote);
         });
     });
 

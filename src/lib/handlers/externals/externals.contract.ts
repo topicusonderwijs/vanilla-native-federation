@@ -2,9 +2,10 @@ import type {SharedInfo, ShareObject, ShareConfig, ShareOptions} from '@softarc/
 
 import type { Remote } from "./../remote-info/remote-info.contract"
 
-type SharedInfoHandler = {
-    mapSharedDeps: (remoteInfo: Remote) => Record<string, string>,
-    addToCache: (remoteInfo: Remote) => Remote
+type ExternalsHandler = {
+    toScope(scopeUrl: string): string,
+    getFromScope(scope: string|'global'): Record<string, {version:string, url: string}>;
+    addToStorage(remoteInfo: Remote): Remote
 }
 
 // const defaultShareOptions: ShareOptions = {
@@ -14,4 +15,4 @@ type SharedInfoHandler = {
 
 // https://github.com/angular-architects/module-federation-plugin/blob/main/libs/native-federation-runtime/src/lib/get-shared.ts#L34
 
-export { SharedInfoHandler, SharedInfo, ShareObject, ShareConfig, ShareOptions }
+export { ExternalsHandler, SharedInfo, ShareObject, ShareConfig, ShareOptions }

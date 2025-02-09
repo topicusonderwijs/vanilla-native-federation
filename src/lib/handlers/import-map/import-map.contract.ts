@@ -5,9 +5,9 @@ import type { Remote } from '../remote-info/remote-info.contract';
 
 type ImportMapHandler = {
     // toImportMap: (remoteInfo: Remote, remoteName?: string) => ImportMap,
-    createEmpty: () => ImportMap,
-    toImportMap: (remotes: Remote[]) => ImportMap
+    create: (from?: ImportMap) => ImportMap,
+    createFromStorage: (remotes: Remote[]) => ImportMap
 }
 
-export { Imports } from '@softarc/native-federation-runtime';
+export { Imports, Scopes } from '@softarc/native-federation-runtime';
 export { ImportMapHandler, ImportMap}

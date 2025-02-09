@@ -28,17 +28,19 @@ describe('storageHandler', () => {
 
     beforeEach(() => {
         storage = {
-            externals: {"rxjs@7.8.1": "http://localhost:3001/rxjs.js"},
+            externals: {
+                global: {"rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/rxjs.js"} }
+            },
             remoteNamesToRemote: { "team/mfe1": REMOTE_MFE1_MOCK() },
             baseUrlToRemoteNames: { "http://localhost:3001": "team/mfe1" }
         };
-        storageHandler = storageHandlerFactory(storage, mockStorageEntry);
+        storageHandler = storageHandlerFactory({cache: storage, toStorageEntry: mockStorageEntry});
     });
 
     describe('entry', () => {
         it('should get the initial values', () => {            
             expect(storageHandler.entry("externals").get()).toEqual(
-                {"rxjs@7.8.1": "http://localhost:3001/rxjs.js"}
+                {global: {"rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url:"http://localhost:3001/rxjs.js"}}}
             );
             expect(storageHandler.entry("remoteNamesToRemote").get()).toEqual(
                 { "team/mfe1": REMOTE_MFE1_MOCK() }
@@ -52,7 +54,7 @@ describe('storageHandler', () => {
     describe('fetch', () => {
         it('should get the value', () => {
             expect(storageHandler.fetch("externals")).toEqual(
-                {"rxjs@7.8.1": "http://localhost:3001/rxjs.js"}
+                {global: {"rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url:"http://localhost:3001/rxjs.js"}}}
             );
             expect(storageHandler.fetch("remoteNamesToRemote")).toEqual(
                 { "team/mfe1": REMOTE_MFE1_MOCK() }
@@ -65,7 +67,8 @@ describe('storageHandler', () => {
 
     describe('update', () => {
         it('should update the value', () => {
-            const expected: Record<string,string> = {"tslib@2.8.1": "http://localhost:3001/tslib.js"};
+            const expected = {global: {"tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url:"http://localhost:3001/tslib.js"}}}
+
             storageHandler.update("externals", _ => (expected));
             
             const actual = storageHandler.fetch("externals");
@@ -85,11 +88,11 @@ describe('storageHandler', () => {
 
         it('should update multiple entries', () => {
             storageHandler
-                .update("externals", _ => ({"tslib@2.8.1": "http://localhost:3001/tslib.js"}))
+                .update("externals", _ => ({global: {"tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url:"http://localhost:3001/tslib.js"}}}))
                 .update("baseUrlToRemoteNames", _ => ({"http://localhost:3002": "team/mfe2"}));
             
             const actual1 = storageHandler.fetch("externals");
-            expect(actual1).toEqual({"tslib@2.8.1": "http://localhost:3001/tslib.js"});
+            expect(actual1).toEqual({global: {"tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url:"http://localhost:3001/tslib.js"}}});
 
             const actual2 = storageHandler.fetch("baseUrlToRemoteNames");
             expect(actual2).toEqual({"http://localhost:3002": "team/mfe2"});
@@ -98,14 +101,17 @@ describe('storageHandler', () => {
         it('should be able to manipulate the current entry value', () => {
             storageHandler
                 .update("externals", v => {
-                    v["tslib@2.8.1"] = "http://localhost:3001/tslib.js";
+                    v["global"]["tslib"] = {version: "2.8.1", requiredVersion: "~2.8.0", url:"http://localhost:3001/tslib.js"};
                     return v;
                 })
             
             const actual = storageHandler.fetch("externals");
             expect(actual).toEqual({
-                "rxjs@7.8.1": "http://localhost:3001/rxjs.js",
-                "tslib@2.8.1": "http://localhost:3001/tslib.js"
+                global: {
+                "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url:"http://localhost:3001/rxjs.js"},
+                "tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url:"http://localhost:3001/tslib.js"}
+                }
+
             });
         });
     });
@@ -114,7 +120,7 @@ describe('storageHandler', () => {
         it('should get the storage object', () => {
             const actual: StorageOf<NfCache> = storageHandler.get();
 
-            expect(actual["externals"].get()).toEqual({"rxjs@7.8.1": "http://localhost:3001/rxjs.js"});
+            expect(actual["externals"].get()).toEqual({global: {"rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url:"http://localhost:3001/rxjs.js"}}});
             expect(actual["remoteNamesToRemote"].get()).toEqual({"team/mfe1": REMOTE_MFE1_MOCK()});
             expect(actual["baseUrlToRemoteNames"].get()).toEqual({"http://localhost:3001": "team/mfe1"});
 

@@ -3,12 +3,20 @@ import type { NfCache, StorageEntryCreator } from "../../handlers/storage/storag
 
 type BuilderType = 'vite'|'default';
 
-type Config<TCache extends NfCache = NfCache> = {
+type StorageConfig<TCache extends NfCache = NfCache> = {
     cache: TCache,
     toStorageEntry: StorageEntryCreator,
+}
+
+type LoggingConfig = {
     logger: LogHandler,
     logLevel: LogType,
+}
+
+type BuilderConfig = {
     builderType: BuilderType
 }
 
-export { Config, BuilderType }
+type Config<TCache extends NfCache = NfCache> = StorageConfig<TCache> & LoggingConfig & BuilderConfig
+
+export { Config, StorageConfig, LoggingConfig, BuilderConfig }

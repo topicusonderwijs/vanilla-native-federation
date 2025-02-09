@@ -1,22 +1,70 @@
-import type { ImportMap, ImportMapHandler } from "./import-map.contract";
+import type { ImportMap, ImportMapHandler, Imports, Scopes } from "./import-map.contract";
 import * as _path from "../../utils/path";
+import type { ExternalsHandler } from "../externals/externals.contract";
 import type { Remote } from "../remote-info/remote-info.contract";
-import type { SharedInfoHandler } from "../shared-info/shared-info.contract";
 
-const importMapHandlerFactory = (sharedInfoHandler: SharedInfoHandler): ImportMapHandler => {
+const importMapHandlerFactory = (
+    externalsHandler: ExternalsHandler
+): ImportMapHandler => {
+
+    const toImportMapFormat = (deps:Record<string, {version:string, url: string}>)
+        : Record<string, string> => 
+        Object.keys(deps).reduce((acc, v) => ({...acc, [v]: deps[v]!.url}), {});
+        
+    // const filterByBuilderType = (dep: {packageName: string}) => 
+    //     (builderType === 'vite') === dep.packageName.startsWith('/@id/');
+
+    // const mergeVersionIntoList = (module: SharedInfo, baseUrl: string) => (imports: Imports) => ({
+    //     ...imports, 
+    //     [module.packageName]: externalsHandler.getSharedInfoUrl(module, baseUrl)
+    // })
+
+    function create(from: ImportMap = {imports: {} as Imports, scopes: {} as Scopes}): ImportMap {
+        return {...from}
+    }
+
+    // const appendDependencies = (importMap: ImportMap, remote: Remote): ImportMap => {
+
+    //     importMap.scopes[remote.baseUrl + '/'] ??= {} as Record<string, string>;
+
+    //     remote.shared
+    //         .filter(filterByBuilderType)
+    //         .reduce((importMap, moduleDep) => {
+    //             if(moduleDep.singleton){
+    //                 return importMap.updateGlobalImport(mergeVersionIntoList(moduleDep, remote.baseUrl));
+    //             }
+    //             return importMap.updateScopedImport(remote.baseUrl + '/', mergeVersionIntoList(moduleDep, remote.baseUrl));
+    //         }, importMapBuilder())
+    //         .get();
+
+    //     return importMap;
+    // }
+
+    function appendScopedExternals(importMap: ImportMap, remote: Remote) {
+        const scopedExternals = toImportMapFormat(externalsHandler.getFromScope(remote.baseUrl));
+        importMap.scopes[externalsHandler.toScope(remote.baseUrl)] = scopedExternals;
+        return importMap;
+    }
+
+    function appendExposedModules(importMap: ImportMap, remote: Remote) {
+        remote.exposes.forEach((component) => {
+            importMap.imports[_path.join(remote.name, component.key)] = _path.join(remote.baseUrl, component.outFileName);
+        });
+    }
     
-    const createEmpty = (): ImportMap => ({
-        imports: {},
-        scopes: {}
-    })
-
-    const toImportMap = (remotes: Remote[]) => {
+    function createFromStorage(remotes: Remote[]) {
+        const globalExternals = toImportMapFormat(externalsHandler.getFromScope('global'));
+        const importMap = create({
+            imports: globalExternals,
+            scopes: {}
+        });
         return remotes.reduce(
-            (acc: ImportMap, remote: Remote) => {
-                acc.scopes[remote.baseUrl + '/'] = sharedInfoHandler.mapSharedDeps(remote);
-                return acc;
+            (importMap: ImportMap, remote: Remote) => {
+                appendExposedModules(importMap, remote);
+                appendScopedExternals(importMap, remote);
+                return importMap;
             },
-            createEmpty()
+            importMap
         );
     }
 
@@ -38,7 +86,7 @@ const importMapHandlerFactory = (sharedInfoHandler: SharedInfoHandler): ImportMa
     //     };
     // }
 
-    return {toImportMap, createEmpty};
+    return {createFromStorage, create};
 }
 
 export {importMapHandlerFactory};

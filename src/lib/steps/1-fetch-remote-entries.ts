@@ -3,11 +3,11 @@ import type { Handlers } from "../handlers/handlers.contract";
 import { NFError } from "../native-federation.error";
 import { tap } from "../utils/tap";
 
-type FetchImportMaps = (remotesOrManifestUrl: string | Record<string, string>) => Promise<Remote[]>
+type FetchRemoteEntries = (remotesOrManifestUrl: string | Record<string, string>) => Promise<Remote[]>
 
-const fetchImportMaps = (
+const fetchRemoteEntries = (
     { remoteInfoHandler, logHandler }: Handlers
-): FetchImportMaps => 
+): FetchRemoteEntries => 
     (remotesOrManifestUrl: string | Record<string, string> = {}) => {
     
         const fetchRemotes = (): Promise<Record<string, string>> => {
@@ -39,4 +39,4 @@ const fetchImportMaps = (
             .then(r => Promise.all(r.map(mapToSharedInfo)))
     }
 
-export {FetchImportMaps, fetchImportMaps}
+export {FetchRemoteEntries, fetchRemoteEntries}

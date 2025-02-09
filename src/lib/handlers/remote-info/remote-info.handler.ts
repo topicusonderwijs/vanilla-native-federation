@@ -1,12 +1,12 @@
 import type { Remote, RemoteInfoHandler } from "./remote-info.contract";
 import { NFError } from "../../native-federation.error";
 import * as _path from "../../utils/path";
-import type { SharedInfoHandler } from "../shared-info";
+import type { ExternalsHandler } from "../externals";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
 
 const remoteInfoHandlerFactory = <TCache extends NfCache>(
     storage: StorageHandler<TCache>, 
-    sharedInfoHandler: SharedInfoHandler
+    sharedInfoHandler: ExternalsHandler
 ): RemoteInfoHandler => {
 
     const fetchRemoteEntryJson = (entryUrl: string): Promise<Remote> => {
@@ -25,7 +25,7 @@ const remoteInfoHandlerFactory = <TCache extends NfCache>(
         if(!remoteEntryUrl || typeof remoteEntryUrl !== "string") 
             return Promise.reject(new NFError(`Module not registered, provide a valid remoteEntryUrl.`));
 
-        return fetchRemoteEntryJson(remoteEntryUrl).then(addToCache)
+        return fetchRemoteEntryJson(remoteEntryUrl).then(addToStorage)
     }
 
     const getRemoteNameFromUrl = (remoteEntryUrl?: string, remoteName?: string): string|undefined => {
@@ -45,16 +45,16 @@ const remoteInfoHandlerFactory = <TCache extends NfCache>(
         return Promise.resolve(cachedRemote);
     }
 
-    const addToCache = (remote: Remote): Remote => {
+    const addToStorage = (remote: Remote): Remote => {
         storage.update("remoteNamesToRemote", v => ({...v, [remote.name]: remote}));
         storage.update("baseUrlToRemoteNames", v => ({...v, [remote.baseUrl]: remote.name}));
         
-        sharedInfoHandler.addToCache(remote)
+        sharedInfoHandler.addToStorage(remote)
 
         return remote;
     }
 
-    return {addToCache, getFromCache, getFromEntry};
+    return {addToStorage, getFromCache, getFromEntry};
 }
 
 export {remoteInfoHandlerFactory, RemoteInfoHandler};

@@ -1,7 +1,7 @@
 import type { FederationInfo } from '@softarc/native-federation-runtime';
 
 type RemoteInfoHandler = {
-    addToCache: (remote: Remote, remoteName?: string) => Remote,
+    addToStorage: (remote: Remote, remoteName?: string) => Remote,
     getFromCache: (remoteEntryUrl?: string, remoteName?: string) => Promise<Remote>,
     getFromEntry: (remoteEntryUrl: string) => Promise<Remote>
 }

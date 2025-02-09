@@ -5,9 +5,10 @@ const nfNamespace = "__NATIVE_FEDERATION__";
 /**
  * Records instead of Map
  */
+
 type NfCache = {
-    externals: Record<string, string>;
-    remoteNamesToRemote: Record<string, Remote>;
+    externals:{global: Record<string, {version: string, requiredVersion: string, url: string}>} & Record<string, Record<string, {version: string, requiredVersion: string, url: string}>>;
+    remoteNamesToRemote: Record<string, Remote>; 
     baseUrlToRemoteNames: Record<string, string>;
 };
 
@@ -36,7 +37,7 @@ type StorageHandler<TCache extends NfCache> = {
 }
 
 const createCache: () => NfCache = () => ({
-    externals: {},
+    externals: {global: {}},
     remoteNamesToRemote: {},
     baseUrlToRemoteNames: {}
 })
