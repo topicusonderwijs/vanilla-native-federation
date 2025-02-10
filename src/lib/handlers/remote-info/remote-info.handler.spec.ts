@@ -1,130 +1,113 @@
-import { SharedInfo } from "@softarc/native-federation-runtime";
 import { NfCache, StorageHandler } from "../storage/storage.contract";
-import { Remote, RemoteInfoHandler } from "./remote-info.contract";
-import { mockStorageHandler, mockExternalsHandler } from './../../../mock/handlers.mock';
+import { RemoteInfo, RemoteInfoHandler } from "./remote-info.contract";
+import { mockStorageHandler } from './../../../mock/handlers.mock';
 import { remoteInfoHandlerFactory } from './remote-info.handler';
-import { ExternalsHandler } from "../externals";
+import { ExposesInfo, SharedInfo } from "@softarc/native-federation-runtime";
 import { NFError } from "../../native-federation.error";
 
 describe('remoteInfoHandler', () => {
     let storageHandler: StorageHandler<NfCache>;
-    let externalsHandler: ExternalsHandler;
     let remoteInfoHandler: RemoteInfoHandler;
 
-    const REMOTE_MFE1_MOCK: () => Remote = () => 
+    const MOCK_SHARED_INFO = (): SharedInfo[] => 
+        [
+            {
+                packageName: "rxjs",
+                outFileName: "rxjs.js",
+                requiredVersion: "~7.8.0",
+                singleton: true,
+                strictVersion: true,
+                version: "7.8.1",
+            }
+        ] as SharedInfo[]
+
+   const MOCK_FEDERATION_INFO = (): {name: string, exposes: ExposesInfo[]} => 
         JSON.parse(JSON.stringify({
             name: 'team/mfe1', 
-            shared: [
-                {
-                    packageName: "rxjs",
-                    outFileName: "rxjs.js",
-                    requiredVersion: "~7.8.0",
-                    singleton: true,
-                    strictVersion: true,
-                    version: "7.8.1",
-                }
-            ] as SharedInfo[], 
-            exposes: [{key: './comp', outFileName: 'comp.js'}], 
-            baseUrl: 'http://localhost:3001'
+            exposes: [{key: './comp', outFileName: 'comp.js'}]
         }))
 
-    const REMOTE_MFE2_MOCK: () => Remote = () => 
-        JSON.parse(JSON.stringify({
-            name: 'team/mfe2', 
-            shared: [
-                {
-                    packageName: "rxjs",
-                    outFileName: "rxjs.js",
-                    requiredVersion: "~7.8.0",
-                    singleton: true,
-                    strictVersion: true,
-                    version: "7.8.1",
-                }
-            ] as SharedInfo[], 
-            exposes: [{key: './comp', outFileName: 'comp.js'}], 
-            baseUrl: 'http://localhost:3002'
-        }))
+
+
+    const MOCK_FEDERATION_INFO_II = (): {name: string, exposes: ExposesInfo[]} => 
+            JSON.parse(JSON.stringify({
+                name: 'team/mfe2', 
+                exposes: [{key: './comp', outFileName: 'comp.js'}]
+            }))
 
     beforeEach(() => {
         storageHandler = mockStorageHandler();
-        externalsHandler = mockExternalsHandler();
-        remoteInfoHandler = remoteInfoHandlerFactory(storageHandler, externalsHandler);
+        remoteInfoHandler = remoteInfoHandlerFactory(storageHandler);
     });
 
-    describe('addToStorage', () => {
+    describe('toStorage', () => {
         it('should add remote to the storage', () => {
-            const remote = REMOTE_MFE1_MOCK();
             const cache = {
-                remoteNamesToRemote: {},
-                baseUrlToRemoteNames: {}
+                remotes: {},
             } 
             const expected = {
-                remoteNamesToRemote: { "team/mfe1": REMOTE_MFE1_MOCK() },
-                baseUrlToRemoteNames: { "http://localhost:3001": "team/mfe1" }
-            }
-
-            remoteInfoHandler.addToStorage(remote);
-
-            const [m1_key, m1_mutation] = (storageHandler.update as any).mock.calls[0];
-            const [m2_key, m2_mutation] = (storageHandler.update as any).mock.calls[1];
-
-            expect(m1_key).toBe("remoteNamesToRemote");
-            expect(m1_mutation(cache.remoteNamesToRemote)).toEqual(expected.remoteNamesToRemote);
-
-            expect(m2_key).toBe("baseUrlToRemoteNames");
-            expect(m2_mutation(cache.remoteNamesToRemote)).toEqual(expected.baseUrlToRemoteNames);
-        });
-
-        it('should append a remote to cache', () => {
-            const remote = REMOTE_MFE1_MOCK();
-
-            const cache = {
-                remoteNamesToRemote: { "team/mfe2": REMOTE_MFE2_MOCK() },
-                baseUrlToRemoteNames: { "http://localhost:3002": "team/mfe2" }
-            } 
-            const expected = {
-                remoteNamesToRemote: { 
-                    "team/mfe1": REMOTE_MFE1_MOCK(),
-                    "team/mfe2": REMOTE_MFE2_MOCK()
-                },
-                baseUrlToRemoteNames: { 
-                    "http://localhost:3002": "team/mfe2",
-                    "http://localhost:3001": "team/mfe1" 
+                remotes: { 
+                    "team/mfe1": {
+                        scopeUrl: "http://localhost:3001/",
+                        remoteName: "team/mfe1",
+                        exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+                    } 
                 }
             }
 
-            remoteInfoHandler.addToStorage(remote);
+            remoteInfoHandler.toStorage(MOCK_FEDERATION_INFO(), "http://localhost:3001");
 
-            const [m1_key, m1_mutation] = (storageHandler.update as any).mock.calls[0];
-            const [m2_key, m2_mutation] = (storageHandler.update as any).mock.calls[1];
+            const [entry, mutationFn] = (storageHandler.update as any).mock.calls[0];
 
-            expect(m1_key).toBe("remoteNamesToRemote");
-            expect(m1_mutation(cache.remoteNamesToRemote)).toEqual(expected.remoteNamesToRemote);
-
-            expect(m2_key).toBe("baseUrlToRemoteNames");
-            expect(m2_mutation(cache.baseUrlToRemoteNames)).toEqual(expected.baseUrlToRemoteNames);
+            expect(entry).toBe("remotes");
+            expect(mutationFn(cache.remotes)).toEqual(expected.remotes);
         });
 
-        it('should also cache the externals', () => {
-            const remote = REMOTE_MFE1_MOCK();
+        it('should append a remote to cache', () => {
+            const cache = {
+                remotes: {
+                    "team/mfe1": {
+                        scopeUrl: "http://localhost:3001/",
+                        remoteName: "team/mfe1",
+                        exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+                    }
+                },
+            } 
+            const expected = {
+                remotes: { 
+                    "team/mfe1": {
+                        scopeUrl: "http://localhost:3001/",
+                        remoteName: "team/mfe1",
+                        exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+                    },
+                    "team/mfe2": {
+                        scopeUrl: "http://localhost:3002/",
+                        remoteName: "team/mfe2",
+                        exposes: [{moduleName: "./comp", url: "http://localhost:3002/comp.js"}]
+                    }
+                }
+            }
 
-            remoteInfoHandler.addToStorage(remote);
+            remoteInfoHandler.toStorage(MOCK_FEDERATION_INFO_II(), "http://localhost:3002");
 
-            expect(externalsHandler.addToStorage).toHaveBeenCalledWith(remote);
+            const [entry, mutationFn] = (storageHandler.update as any).mock.calls[0];
+
+            expect(entry).toBe("remotes");
+            expect(mutationFn(cache.remotes)).toEqual(expected.remotes);
         });
     });
 
     describe('getFromEntry', () => {
 
         it('Should fetch the remote from the remoteEntryUrl', async () => {
-            const expected = REMOTE_MFE1_MOCK();
+            const expected = { ...MOCK_FEDERATION_INFO(), shared: MOCK_SHARED_INFO() };
 
             (global.fetch as any) = jest.fn(() =>
                 Promise.resolve({
                     status: 200,
                     ok: true,
                     json: () => {
-                        const {name, shared, exposes} = REMOTE_MFE1_MOCK();
+                        const {name, shared, exposes} = { ...MOCK_FEDERATION_INFO(), shared: MOCK_SHARED_INFO() };
                         return Promise.resolve({name, shared, exposes})
                     }}
                 )
@@ -159,61 +142,87 @@ describe('remoteInfoHandler', () => {
     });
 
     describe('getFromCache', () => {
-        let cache: { remoteNamesToRemote: Record<string, Remote>,  baseUrlToRemoteNames: Record<string,string> }
+        let cache: { remotes: Record<string, RemoteInfo> }
 
         beforeEach(() => {
             cache = { 
-                remoteNamesToRemote: { "team/mfe1": REMOTE_MFE1_MOCK() },
-                baseUrlToRemoteNames: { "http://localhost:3001": "team/mfe1" }
+                remotes: { 
+                    "team/mfe1": {
+                        scopeUrl: "http://localhost:3001/",
+                        remoteName: "team/mfe1",
+                        exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+                    }
+                },
             };
             (storageHandler.fetch as jest.Mock).mockImplementation(
-                (entry: 'remoteNamesToRemote'|'baseUrlToRemoteNames') => cache[entry] as any
+                () => cache["remotes"] as Record<string, RemoteInfo>
             );
         })
 
-        it('should fetch the remote from the cache', async () => {
-            const expected = REMOTE_MFE1_MOCK();
+        it('should fetch the remote from storage', () => {
+            const expected = {
+                scopeUrl: "http://localhost:3001/",
+                remoteName: "team/mfe1",
+                exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+            };
 
-            const actual = await remoteInfoHandler.getFromCache("http://localhost:3001/remoteEntry.json", "team/mfe1");
+            const actual = remoteInfoHandler.fromStorage("team/mfe1");
         
             expect(actual).toEqual(expected);
         });  
-        
-        it('should fetch the remote from the cache if no url provided', async () => {
-            const expected = REMOTE_MFE1_MOCK();
+        it('should fetch the remote module from storage', () => {
+            const expected = {moduleName: "./comp", url: "http://localhost:3001/comp.js"};
 
-            const actual = await remoteInfoHandler.getFromCache(undefined, "team/mfe1");
-        
-            expect(actual).toEqual(expected);
-        });    
-
-        it('should get the remoteName from the url when not provided', async () => {
-            const expected = REMOTE_MFE1_MOCK();
-
-            const actual = await remoteInfoHandler.getFromCache("http://localhost:3001/remoteEntry.json", undefined);
+            const actual = remoteInfoHandler.fromStorage("team/mfe1", "./comp");
         
             expect(actual).toEqual(expected);
-        });  
-
-        it('should reject if remoteName is not in cache', async () => {
-            const actual = remoteInfoHandler.getFromCache(undefined, "team/unknown-mfe");
-        
-            expect(actual).rejects.toThrow(NFError);
-            await expect(actual).rejects.toThrow("Remote 'team/unknown-mfe' not found in cache.");
-        });  
-
-        it('should reject if no remoteName and URL are provided', async () => {
-            const actual = remoteInfoHandler.getFromCache(undefined, undefined);
-        
-            expect(actual).rejects.toThrow(NFError);
-            expect(actual).rejects.toThrow("Invalid remoteEntry or remoteName");
-        });  
-
-        it('should reject if no remoteName and URL is not in cache', async () => {
-            const actual = remoteInfoHandler.getFromCache("http://wrong.url/remoteEntry.json", undefined);
-        
-            expect(actual).rejects.toThrow(NFError);
-            expect(actual).rejects.toThrow("Invalid remoteEntry or remoteName");
         }); 
+
+        it('should reject if remoteName is not in storage', async () => {
+            const actual = () => remoteInfoHandler.fromStorage("team/UNKNOWN-MFE", "./comp");
+        
+            expect(actual).toThrow(NFError);
+            await expect(actual).toThrow("Remote 'team/UNKNOWN-MFE' not found in storage.");
+        });  
+
+        it('should reject if exposedModule is not in storage', async () => {
+            const actual = () => remoteInfoHandler.fromStorage("team/mfe1", "./UNKNOWN-COMP");
+        
+            expect(actual).toThrow(NFError);
+            expect(actual).toThrow("Exposed module './UNKNOWN-COMP' from remote 'team/mfe1' not found in storage.");
+        });  
     })
+
+    describe('toScope', () => {
+        it('should return the scope based on the remoteEntry url', () => {
+            const remoteEntry = "http://localhost:3001/remoteEntry.json";
+
+            const actual = remoteInfoHandler.toScope(remoteEntry);
+
+            expect(actual).toBe("http://localhost:3001/");
+        });
+
+        it('should return the scope based on a folder url', () => {
+            const remoteEntry = "http://localhost:3001/";
+
+            const actual = remoteInfoHandler.toScope(remoteEntry);
+
+            expect(actual).toBe("http://localhost:3001/");
+        });
+
+        it("should add the '/' suffix", () => {
+            const remoteEntry = "http://localhost:3001";
+
+            const actual = remoteInfoHandler.toScope(remoteEntry);
+
+            expect(actual).toBe("http://localhost:3001/");
+        });
+
+        it("should not alter the global scope", () => {
+
+            const actual = remoteInfoHandler.toScope("global");
+
+            expect(actual).toBe("global");
+        });
+    });
 });

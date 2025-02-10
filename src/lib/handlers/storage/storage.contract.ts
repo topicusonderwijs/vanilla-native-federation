@@ -1,15 +1,14 @@
-import type { Remote } from '../remote-info/remote-info.contract';
+import type { RemoteInfo } from '../remote-info';
+import type { Version } from '../version/version.contract';
 
 const nfNamespace = "__NATIVE_FEDERATION__";
 
 /**
  * Records instead of Map
  */
-
 type NfCache = {
-    externals:{global: Record<string, {version: string, requiredVersion: string, url: string}>} & Record<string, Record<string, {version: string, requiredVersion: string, url: string}>>;
-    remoteNamesToRemote: Record<string, Remote>; 
-    baseUrlToRemoteNames: Record<string, string>;
+    externals:{global: Record<string, Version>} & Record<string, Record<string, Version>>;
+    remotes: Record<string, RemoteInfo>; 
 };
 
 type StorageEntry<TValue> = {
@@ -38,8 +37,7 @@ type StorageHandler<TCache extends NfCache> = {
 
 const createCache: () => NfCache = () => ({
     externals: {global: {}},
-    remoteNamesToRemote: {},
-    baseUrlToRemoteNames: {}
+    remotes: {}
 })
 
 export {nfNamespace, StorageEntry, StorageEntryKey, StorageOf, NfCache, StorageEntryCreator, StorageHandler, createCache}

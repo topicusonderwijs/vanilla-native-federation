@@ -1,60 +1,70 @@
-import type { Remote, RemoteInfoHandler } from "./remote-info.contract";
+import type { ExposesInfo, FederationInfo, RemoteEntry, RemoteInfo, RemoteInfoHandler, RemoteModule } from "./remote-info.contract";
 import { NFError } from "../../native-federation.error";
 import * as _path from "../../utils/path";
-import type { ExternalsHandler } from "../externals";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
 
 const remoteInfoHandlerFactory = <TCache extends NfCache>(
-    storage: StorageHandler<TCache>, 
-    sharedInfoHandler: ExternalsHandler
+    storageHandler: StorageHandler<TCache>, 
 ): RemoteInfoHandler => {
 
-    const fetchRemoteEntryJson = (entryUrl: string): Promise<Remote> => {
-        return fetch(entryUrl)
-            .then(r => {
-                if (!r.ok) return Promise.reject(new NFError(`${r.status} - ${r.statusText}`));
-                return r.json() as unknown as Remote;
-            })
-            .then(cfg => ({...cfg, baseUrl: _path.getDir(entryUrl)}))
-            .catch(e => {
-                return Promise.reject(new NFError(`Fetching remote from '${entryUrl}' failed: ${e.message}`));
-            })
+    const fetchRemoteEntryJson = (entryUrl: RemoteEntry)
+        : Promise<FederationInfo> => {
+            return fetch(entryUrl)
+                .then(r => {
+                    if (!r.ok) return Promise.reject(new NFError(`${r.status} - ${r.statusText}`));
+                    return r.json() as unknown as FederationInfo;
+                })
+                .catch(e => {
+                    return Promise.reject(new NFError(`Fetching remote from '${entryUrl}' failed: ${e.message}`));
+                })
+        }
+
+    const getFromEntry = (remoteEntryUrl: RemoteEntry)
+        : Promise<FederationInfo> => {
+            if(!remoteEntryUrl || typeof remoteEntryUrl !== "string") 
+                return Promise.reject(new NFError(`Module not registered, provide a valid remoteEntryUrl.`));
+
+            return fetchRemoteEntryJson(remoteEntryUrl);
+        }
+
+    function toScope(baseUrl: string): string {
+        if (baseUrl === "global") return baseUrl;
+        return baseUrl.endsWith("remoteEntry.json") 
+            ? baseUrl.slice(0, -16) 
+            : baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
     }
 
-    const getFromEntry = (remoteEntryUrl: string): Promise<Remote> => {
-        if(!remoteEntryUrl || typeof remoteEntryUrl !== "string") 
-            return Promise.reject(new NFError(`Module not registered, provide a valid remoteEntryUrl.`));
+    function fromStorage(remoteName: string): RemoteInfo;
+    function fromStorage(remoteName: string, exposedModule: string): RemoteModule;
+    function fromStorage(remoteName: string, exposedModule?: string): RemoteInfo | RemoteModule {
+        const storage = storageHandler.fetch("remotes");
+        if(!storage[remoteName]) throw new NFError(`Remote '${remoteName}' not found in storage.`);
 
-        return fetchRemoteEntryJson(remoteEntryUrl).then(addToStorage)
+        if (!exposedModule) return storage[remoteName];
+    
+        const remoteModule = storage[remoteName].exposes.find(m => m.moduleName === exposedModule);
+        if(!remoteModule) throw new NFError(`Exposed module '${exposedModule}' from remote '${remoteName}' not found in storage.`);
+    
+        return remoteModule;
     }
 
-    const getRemoteNameFromUrl = (remoteEntryUrl?: string, remoteName?: string): string|undefined => {
-        if(!!remoteName) return remoteName;
+    function toStorage(remote: {name: string; exposes: ExposesInfo[]}, baseUrl: string): RemoteInfo {
+        const remoteInfo: RemoteInfo = {
+            remoteName: remote.name,
+            scopeUrl: toScope(baseUrl),
+            exposes: Object.values(remote.exposes ?? [])
+                        .map(m => ({
+                            moduleName: m.key,
+                            url: _path.join(baseUrl, m.outFileName) 
+                        }))    
+        };
+
+        storageHandler.update("remotes", v => ({ ...v, [remote.name]: remoteInfo }));
         
-        if(!remoteEntryUrl) return undefined;
-        return storage.fetch("baseUrlToRemoteNames")[_path.getDir(remoteEntryUrl)];
+        return remoteInfo;
     }
 
-    const getFromCache = (remoteEntryUrl?: string, remoteName?: string): Promise<Remote> => {
-        remoteName = getRemoteNameFromUrl(remoteEntryUrl, remoteName);
-        if (!remoteName) return Promise.reject(new NFError("Invalid remoteEntry or remoteName"));
-
-        const cachedRemote = storage.fetch("remoteNamesToRemote")[remoteName!]
-        if (!cachedRemote) return Promise.reject(new NFError(`Remote '${remoteName}' not found in cache.`))
-
-        return Promise.resolve(cachedRemote);
-    }
-
-    const addToStorage = (remote: Remote): Remote => {
-        storage.update("remoteNamesToRemote", v => ({...v, [remote.name]: remote}));
-        storage.update("baseUrlToRemoteNames", v => ({...v, [remote.baseUrl]: remote.name}));
-        
-        sharedInfoHandler.addToStorage(remote)
-
-        return remote;
-    }
-
-    return {addToStorage, getFromCache, getFromEntry};
+    return {toStorage, fromStorage, getFromEntry, toScope};
 }
 
 export {remoteInfoHandlerFactory, RemoteInfoHandler};

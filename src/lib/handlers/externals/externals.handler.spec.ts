@@ -3,7 +3,6 @@ import { ExternalsHandler, SharedInfo } from './externals.contract';
 import { mockStorageHandler, mockVersionHandler } from '../../../mock/handlers.mock';
 import { NfCache, StorageHandler } from '../storage/storage.contract';
 import { VersionHandler } from '../version/version.contract';
-import { Remote } from '../remote-info/remote-info.contract';
 
 /**
  * SharedInfo = meta info regarding a shared dependency.
@@ -19,22 +18,18 @@ describe('externalsHandler', () => {
     type CacheGlobalExternals = {global: Record<string, {version: string,requiredVersion: string, url: string}>};
     type CacheScopedExternals = Record<string, Record<string, {version: string,requiredVersion: string, url: string}>>;
 
-    const REMOTE_MFE1_MOCK: (opt: {singleton: boolean}) => Remote = ({singleton}) => 
-        JSON.parse(JSON.stringify({
-            name: 'team/mfe1', 
-            shared: [
-                {
-                    packageName: "rxjs",
-                    outFileName: "rxjs.js",
-                    requiredVersion: "~7.8.0",
-                    singleton,
-                    strictVersion: true,
-                    version: "7.8.1",
-                },
-            ] as SharedInfo[], 
-            exposes: [{key: './comp', outFileName: 'comp.js'}], 
-            baseUrl: 'http://localhost:3001'
-        }))
+    const MOCK_SHARED_INFO = ({singleton}: {singleton: boolean}) => ([
+        {
+            packageName: "rxjs",
+            outFileName: "rxjs.js",
+            requiredVersion: "~7.8.0",
+            singleton,
+            strictVersion: true,
+            version: "7.8.1",
+        },
+    ] as SharedInfo[]);
+
+    const MOCK_SCOPE = () => "http://localhost:3001/";
 
     beforeEach(() => {
         storageHandler = mockStorageHandler();
@@ -46,26 +41,15 @@ describe('externalsHandler', () => {
         );
     });
 
-    describe('toScope', () => {
-        it("should suffix a '/' to the scope", () => {
-            const expected = "http://localhost:3001/";
-            const actual = externalsHandler.toScope('http://localhost:3001')
-            expect(actual).toEqual(expected);
-        });
-        it("should not alter the global scope", () => {
-            const expected = "global";
-            const actual = externalsHandler.toScope('global')
-            expect(actual).toEqual(expected);
-        });
-    });
-
     describe('getFromScope', () => {
 
         it('should return the cached scope of deps', () => {
+            const SCOPE = MOCK_SCOPE(); 
+
             const cache = {
                 externals: {
                     global: {},
-                    "http://localhost:3001/": {
+                    [SCOPE]: {
                         "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/cached-rxjs.js"}
                     }
                 } as CacheGlobalExternals & CacheScopedExternals
@@ -73,7 +57,7 @@ describe('externalsHandler', () => {
 
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
-            const actual = externalsHandler.getFromScope("http://localhost:3001");
+            const actual = externalsHandler.fromStorage(SCOPE);
 
             expect(actual).toEqual({
                 "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/cached-rxjs.js"}
@@ -81,18 +65,20 @@ describe('externalsHandler', () => {
         });
 
         it('should return the cached global scope of deps', () => {
+            const SCOPE = MOCK_SCOPE(); 
+
             const cache = {
                 externals: {
                     global: {
                         "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/cached-rxjs.js"}
                     },
-                    "http://localhost:3001/": {}
+                    [SCOPE]: {}
                 } as CacheGlobalExternals & CacheScopedExternals
             };
 
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
-            const actual = externalsHandler.getFromScope("global");
+            const actual = externalsHandler.fromStorage("global");
 
             expect(actual).toEqual({
                 "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/cached-rxjs.js"}
@@ -100,6 +86,8 @@ describe('externalsHandler', () => {
         });
 
         it('should return an empty map if the scope doesn\'t exist', () => {
+            const SCOPE = MOCK_SCOPE(); 
+
             const cache = {
                 externals: {
                     global: {},
@@ -108,54 +96,73 @@ describe('externalsHandler', () => {
 
             (storageHandler.fetch as jest.Mock).mockReturnValue(cache.externals);
 
-            const actual = externalsHandler.getFromScope("http://localhost:3001");
+            const actual = externalsHandler.fromStorage(SCOPE);
 
             expect(actual).toEqual({});
         });
     });
 
-    describe('addToStorage', () => {
-        it('should add externals of RemoteInfo to global storage', () => {
-            const remote = REMOTE_MFE1_MOCK({singleton: true});
-            const cache = {externals: {global: {}} as CacheGlobalExternals & CacheScopedExternals}
+    describe('toStorage', () => {
+        it('should add externals of RemoteInfo to global scope', () => {
+            const SCOPE = MOCK_SCOPE(); 
+            const sharedInfo = MOCK_SHARED_INFO({singleton: true});
+
+            let actual = {global: {}} as CacheGlobalExternals & CacheScopedExternals
 
             const expected = {
                 global: {
                     "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/rxjs.js" }
                 },
+                [SCOPE]: {}
             }
 
-            externalsHandler.addToStorage(remote);
+            externalsHandler.toStorage(sharedInfo, SCOPE);
 
-            const [entry, mutation] = (storageHandler.update as any).mock.calls[0];
-            const actual = mutation(cache.externals);
+            // 1) REMOVE OLD DEPS FROM SCOPE IN STORAGE
+            let [storageEntry1, clearScopeFn] = (storageHandler.update as any).mock.calls[0];
+            actual = clearScopeFn(actual);
+            expect(storageEntry1).toBe("externals");
+            expect(actual).toEqual({global: {}, [SCOPE]: {}});
 
-            expect(entry).toBe("externals");
+            // 2) ADD DEPS TO GLOBAL AND REMOTE SCOPE
+            let [storageEntry2, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
+            actual = addExternalsFn(actual);
             expect(actual).toEqual(expected);
+            expect(storageEntry2).toBe("externals");
         });  
 
         it('should add externals of RemoteInfo to scoped storage', () => {
-            const remote = REMOTE_MFE1_MOCK({singleton: false});
-            const cache = {externals: {global: {}} as CacheGlobalExternals & CacheScopedExternals}
+            const SCOPE = MOCK_SCOPE(); 
+            const sharedInfo = MOCK_SHARED_INFO({singleton: false});
+
+            let actual = {global: {}} as CacheGlobalExternals & CacheScopedExternals
 
             const expected = {
                 global: {},
-                "http://localhost:3001/": {
+                [SCOPE]: {
                     "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/rxjs.js" }
                 }
             }
 
-            externalsHandler.addToStorage(remote);
+            externalsHandler.toStorage(sharedInfo, SCOPE);
 
-            const [key, mutation] = (storageHandler.update as any).mock.calls[0];
-            const actual = mutation(cache.externals);
+            // 1) REMOVE OLD DEPS FROM SCOPE IN STORAGE
+            let [storageEntry1, clearScopeFn] = (storageHandler.update as any).mock.calls[0];
+            actual = clearScopeFn(actual);
+            expect(storageEntry1).toBe("externals");
+            expect(actual).toEqual({global: {}, [SCOPE]: {}});
 
-            expect(key).toBe("externals");
+            // 2) ADD DEPS TO GLOBAL AND SCOPE
+            let [storageEntry2, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
+            actual = addExternalsFn(actual);
             expect(actual).toEqual(expected);
+            expect(storageEntry2).toBe("externals");
         });  
         
         it('should append new externals to cache', () => {
-            const remote = REMOTE_MFE1_MOCK({singleton: true});
+            const SCOPE = MOCK_SCOPE(); 
+            const sharedInfo = MOCK_SHARED_INFO({singleton: true});
+
             const cache = {
                 externals: {
                     global: {
@@ -171,9 +178,9 @@ describe('externalsHandler', () => {
                 }
             }
 
-            externalsHandler.addToStorage(remote);
+            externalsHandler.toStorage(sharedInfo, SCOPE);
 
-            const [key, mutation] = (storageHandler.update as any).mock.calls[0];
+            const [key, mutation] = (storageHandler.update as any).mock.calls[1];
             const actual = mutation(cache.externals);
 
             expect(key).toBe("externals");
@@ -181,7 +188,9 @@ describe('externalsHandler', () => {
         });
 
         it('should override if the version is newer', () => {
-            const remote = REMOTE_MFE1_MOCK({singleton: true});
+            const SCOPE = MOCK_SCOPE(); 
+            const sharedInfo = MOCK_SHARED_INFO({singleton: true});
+
             const cache = {
                 externals: {
                     global: {
@@ -198,9 +207,9 @@ describe('externalsHandler', () => {
 
             (versionHandler.compareVersions as jest.Mock).mockReturnValue(1); // version is higher than cached
 
-            externalsHandler.addToStorage(remote);
+            externalsHandler.toStorage(sharedInfo, SCOPE);
 
-            const [key, mutation] = (storageHandler.update as any).mock.calls[0];
+            const [key, mutation] = (storageHandler.update as any).mock.calls[1];
             const actual = mutation(cache.externals);
 
             expect(key).toBe("externals");
@@ -208,7 +217,9 @@ describe('externalsHandler', () => {
         });
 
         it('should not override if the version is equal', () => {
-            const remote = REMOTE_MFE1_MOCK({singleton: true});
+            const scopeUrl = "http://localhost:3001/";
+            const sharedInfo = MOCK_SHARED_INFO({singleton: true});
+
             const cache = {
                 externals: {
                     global: {
@@ -225,9 +236,9 @@ describe('externalsHandler', () => {
 
             (versionHandler.compareVersions as jest.Mock).mockReturnValue(0); // version is equal to cached
 
-            externalsHandler.addToStorage(remote);
+            externalsHandler.toStorage(sharedInfo, scopeUrl);
 
-            const [key, mutation] = (storageHandler.update as any).mock.calls[0];
+            const [key, mutation] = (storageHandler.update as any).mock.calls[1];
             const actual = mutation(cache.externals);
 
             expect(key).toBe("externals");
@@ -235,7 +246,9 @@ describe('externalsHandler', () => {
         });
 
         it('should not override if the version is older', () => {
-            const remote = REMOTE_MFE1_MOCK({singleton: true});
+            const SCOPE = MOCK_SCOPE(); 
+            const sharedInfo = MOCK_SHARED_INFO({singleton: true});
+
             const cache = {
                 externals: {
                     global: {
@@ -252,9 +265,9 @@ describe('externalsHandler', () => {
 
             (versionHandler.compareVersions as jest.Mock).mockReturnValue(-1); // version is older than cached
 
-            externalsHandler.addToStorage(remote);
+            externalsHandler.toStorage(sharedInfo, SCOPE);
 
-            const [key, mutation] = (storageHandler.update as any).mock.calls[0];
+            const [key, mutation] = (storageHandler.update as any).mock.calls[1];
             const actual = mutation(cache.externals);
 
             expect(key).toBe("externals");

@@ -1,4 +1,3 @@
-import type { ExposedModuleHandler } from "./exposed-module";
 import type { ExternalsHandler } from "./externals";
 import type { ImportMapHandler } from "./import-map";
 import type { LogHandler } from "./logging";
@@ -10,8 +9,7 @@ type Handlers = {
     remoteInfoHandler: RemoteInfoHandler, 
     externalsHandler: ExternalsHandler,
     logHandler: LogHandler,
-    storageHandler: StorageHandler<NfCache>,
-    exposedModuleHandler: ExposedModuleHandler
+    storageHandler: StorageHandler<NfCache>
 }
 
 export { Handlers }

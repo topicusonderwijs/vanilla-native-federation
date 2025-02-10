@@ -1,20 +1,16 @@
-import type { ExposedModule } from "../handlers/exposed-module/exposed-module.contract";
 import type { Handlers } from "../handlers/handlers.contract";
-import type { ImportMap } from "../handlers/import-map/import-map.contract"
-import { NFError } from "../native-federation.error";
+import type { RemoteEntry, RemoteName } from "../handlers/remote-info/remote-info.contract";
 import * as _path from "../utils/path";
-import { tap } from "../utils/tap";
 
-type ExposeModuleLoader = (importMap: ImportMap) => Promise<{
-    load: (optionsOrRemoteName: ExposedModule | string, exposedModule?: string) => Promise<any>, 
-    importMap: ImportMap
+type ExposeModuleLoader = (manifest: Record<RemoteName, RemoteEntry>) => Promise<{
+    load: (remoteName: string, exposedModule: string) => Promise<any>, 
+    manifest: Record<RemoteName, RemoteEntry>
 }>
 
 declare function importShim<T>(url: string): T;
 
-
 const exposeModuleLoader = (
-    {remoteInfoHandler, logHandler, exposedModuleHandler }: Handlers
+    {logHandler, remoteInfoHandler }: Handlers
 ): ExposeModuleLoader => {
 
     function _importModule(url: string) {
@@ -24,24 +20,15 @@ const exposeModuleLoader = (
     }
 
     function load(
-        remoteNameOrModule: ExposedModule | string,
-        exposedModule?: string
+        remoteName: string, exposedModule: string
     ): Promise<unknown> {
-        const remoteModule = exposedModuleHandler.mapFrom(remoteNameOrModule, exposedModule);
+        const remoteModule = remoteInfoHandler.fromStorage(remoteName, exposedModule);
         logHandler.debug(`Loading module ${JSON.stringify(remoteModule)}`)
 
-        if(!remoteModule.remoteName || remoteModule.remoteName === "") throw new NFError('remoteName cannot be empty');
-        return remoteInfoHandler.getFromCache(remoteModule.remoteEntry, remoteModule.remoteName)
-                .catch(e => {
-                    logHandler.warn("Cache lookup failed: "+e.message)
-                    return remoteInfoHandler.getFromEntry(remoteModule.remoteEntry!)
-                })
-            .then(info => exposedModuleHandler.getUrl(info, remoteModule.exposedModule))
-            .then(tap(url => logHandler.debug("Importing module: " + url)))
-            .then(_importModule)
+        return Promise.resolve(_importModule(remoteModule.url));
     }
 
-    return (importMap: ImportMap) => Promise.resolve({ importMap, load });
+    return (manifest: Record<RemoteName, RemoteEntry>) => Promise.resolve({ manifest, load });
 }
 
 export {ExposeModuleLoader, exposeModuleLoader}

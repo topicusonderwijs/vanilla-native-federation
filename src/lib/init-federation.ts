@@ -12,9 +12,9 @@ const initFederation = (
         override?.steps ?? {}
     );
 
-    return steps.fetchRemoteEntries(remotesOrManifestUrl)
+    return steps.fetchManifest(remotesOrManifestUrl)
+        .then(steps.fetchRemoteEntries)
         .then(steps.createImportMap)
-        .then(steps.updateDOM)
         .then(steps.exposeModuleLoader)
 }
 

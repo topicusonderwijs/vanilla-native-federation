@@ -1,9 +1,8 @@
 import type { ExternalsHandler, SharedInfo } from "./externals.contract";
+import type { BuilderConfig } from "../../utils/config/config.contract";
 import * as _path from "../../utils/path";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
 import type { VersionHandler } from "../version/version.contract";
-import type { Remote } from "./../remote-info/remote-info.contract";
-import type { BuilderConfig } from "../../utils/config/config.contract";
 
 /**
  * Handles the shared dependencies (Externals) from the remotes.
@@ -18,48 +17,47 @@ const externalsHandlerFactory = (
     versionHandler: VersionHandler
 ): ExternalsHandler => {
 
-
     const filterByBuilderType = (dep: SharedInfo) => 
         (builderType === 'vite') === dep.packageName.startsWith('/@id/');
 
-    const appendSharedInfo = (dep: SharedInfo, scopeUrl: string) => (externals: NfCache["externals"]) => {
-        const SCOPE = toScope(dep.singleton ? 'global' : scopeUrl)
+    const appendToDependencyScope = (scopeUrl: string) => (external: SharedInfo) => (externals: NfCache["externals"]) => {
+        const scope = (external.singleton) ? "global" : scopeUrl;
+        externals[scope] ??= {};
 
-        externals[SCOPE] ??= {};
-
-        const currentVersion = externals[SCOPE]?.[dep.packageName]?.version;
-        if(!currentVersion || versionHandler.compareVersions(dep.version, currentVersion) > 0) {
-            const scope = externals[SCOPE]!;
-            scope[dep.packageName] = {
-                version: dep.version,
-                requiredVersion: dep.requiredVersion,
-                url: _path.join(scopeUrl, dep.outFileName),
-
+        const currentVersion = externals[scope]?.[external.packageName]?.version;
+        if(!currentVersion || versionHandler.compareVersions(external.version, currentVersion) > 0) {
+            externals[scope]![external.packageName] = {
+                version: external.version,
+                requiredVersion: external.requiredVersion,
+                url: _path.join(scopeUrl, external.outFileName),
             }
         }
         
         return externals;
     }
 
-    function toScope(baseUrl: string){
-        return (baseUrl === 'global') ? baseUrl : baseUrl + '/';
+    function clearDependencyScope(scopeUrl: string) {
+        storageHandler.update("externals", e => ({...e, [scopeUrl]: {}}));
     }
 
-    function getFromScope(scope: 'global'|string) {
-        return storageHandler.fetch('externals')[toScope(scope)] ?? {};
+    function fromStorage(scope: 'global'|string) {
+        return storageHandler.fetch('externals')[scope] ?? {};
     } 
 
-    function addToStorage(remoteInfo: Remote) {
-        remoteInfo.shared
+    function toStorage(externals: SharedInfo[], scopeUrl: string) {
+        clearDependencyScope(scopeUrl);
+
+        externals
             .filter(filterByBuilderType)
-            .map(d => appendSharedInfo(d, remoteInfo.baseUrl))
-            .forEach(mutation => {
-                storageHandler.update("externals", mutation);
-            });        
-        return remoteInfo;
+            .map(appendToDependencyScope(scopeUrl))
+            .forEach(updateFn => storageHandler.update("externals", updateFn));
+
+        return externals;
     }
 
-    return {toScope, getFromScope, addToStorage};
+
+
+    return {fromStorage, toStorage};
 }
 
 export {externalsHandlerFactory};

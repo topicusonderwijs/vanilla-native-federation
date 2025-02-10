@@ -1,8 +1,8 @@
 import { LogHandler } from "../lib/handlers/logging/log.contract";
-import { Remote } from "../lib/handlers/remote-info/remote-info.contract";
 import { ExternalsHandler } from "../lib/handlers/externals";
 import { NfCache, StorageHandler } from "../lib/handlers/storage/storage.contract";
 import { VersionHandler } from "../lib/handlers/version/version.contract";
+import { RemoteInfoHandler } from "../lib/handlers/remote-info";
 
 const mockLogHandler = (): LogHandler => ({
     debug: jest.fn(() => {}),
@@ -18,9 +18,15 @@ const mockStorageHandler = <TCache extends NfCache>(): StorageHandler<TCache> =>
 });
 
 const mockExternalsHandler = (): ExternalsHandler => ({
-    addToStorage: jest.fn((r: Remote) => r),
-    toScope: jest.fn(),
-    getFromScope: jest.fn(),
+    toStorage: jest.fn(),
+    fromStorage: jest.fn(),
+});
+
+const mockRemoteInfoHandler = (): RemoteInfoHandler => ({
+    toStorage: jest.fn(),
+    fromStorage: jest.fn(),
+    getFromEntry: jest.fn(),
+    toScope: jest.fn()
 });
 
 const mockVersionHandler = (): VersionHandler => ({
@@ -33,5 +39,6 @@ export {
     mockLogHandler,
     mockStorageHandler,
     mockExternalsHandler,
-    mockVersionHandler
+    mockVersionHandler,
+    mockRemoteInfoHandler
 }

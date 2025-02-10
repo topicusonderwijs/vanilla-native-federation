@@ -1,18 +1,10 @@
 import type {SharedInfo, ShareObject, ShareConfig, ShareOptions} from '@softarc/native-federation-runtime';
 
-import type { Remote } from "./../remote-info/remote-info.contract"
+import type { Version } from '../version/version.contract';
 
 type ExternalsHandler = {
-    toScope(scopeUrl: string): string,
-    getFromScope(scope: string|'global'): Record<string, {version:string, url: string}>;
-    addToStorage(remoteInfo: Remote): Remote
+    fromStorage(scope: string|'global'): Record<string, Version>;
+    toStorage(externals: SharedInfo[], scopeUrl: string): SharedInfo[]
 }
-
-// const defaultShareOptions: ShareOptions = {
-//     singleton: false,
-//     requiredVersionPrefix: '',
-// };
-
-// https://github.com/angular-architects/module-federation-plugin/blob/main/libs/native-federation-runtime/src/lib/get-shared.ts#L34
 
 export { ExternalsHandler, SharedInfo, ShareObject, ShareConfig, ShareOptions }

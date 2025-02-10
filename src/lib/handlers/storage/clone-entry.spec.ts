@@ -1,14 +1,14 @@
 import { cloneEntry } from './clone-entry';
 
 describe('cloneEntry', () => {
-  test('should clone primitive values', () => {
+  it('should clone primitive values', () => {
     expect(cloneEntry('test',42)).toBe(42);
     expect(cloneEntry('test','hello')).toBe('hello');
     expect(cloneEntry('test',true)).toBe(true);
     expect(cloneEntry('test',null)).toBe(null);
   });
 
-  test('should deep clone objects', () => {
+  it('should deep clone objects', () => {
     const original = { a: 1, b: { c: 2 } };
     const cloned = cloneEntry('test',original);
     
@@ -17,7 +17,7 @@ describe('cloneEntry', () => {
     expect(cloned.b).not.toBe(original.b);
   });
 
-  test('should deep clone arrays', () => {
+  it('should deep clone arrays', () => {
     const original = [1, [2, 3], { a: 4 }];
     const cloned = cloneEntry('test',original);
     
@@ -27,7 +27,7 @@ describe('cloneEntry', () => {
     expect(cloned[2]).not.toBe(original[2]);
   });
   
-  test('should clone complex nested structures', () => {
+  it('should clone complex nested structures', () => {
     const original = {
       numbers: [1, 2, 3],
       nested: {
@@ -43,7 +43,7 @@ describe('cloneEntry', () => {
     expect(cloned.nested.a).not.toBe(original.nested.a);
   });
 
-  test('should handle environments where structuredClone is not defined', () => {
+  it('should handle environments where structuredClone is not defined', () => {
     const originalStructuredClone = globalThis.structuredClone;
     delete (globalThis as any).structuredClone;
 
@@ -56,44 +56,42 @@ describe('cloneEntry', () => {
     } finally {
         (globalThis as any).structuredClone = originalStructuredClone;
     }
-});
-
-describe('FALLBACK Json parse', () => {
-  let originalStructuredClone: any;
-
-  beforeEach(() => {
-    originalStructuredClone = global.structuredClone;
-    delete (global as any).structuredClone;
   });
 
-  afterEach(() => {
-    (global as any).structuredClone = originalStructuredClone;
-  });
+  describe('FALLBACK Json parse', () => {
+    let originalStructuredClone: any;
 
-  it('should handle JSON-safe values in fallback mode', () => {
-    const original = {
-      string: 'hello',
-      number: 42,
-      boolean: true,
-      null: null,
-      array: [1, 2, 3],
-      nested: { a: 1 }
-    };
-    
-    const cloned = cloneEntry('test',original);
-    expect(cloned).toEqual(original);
-    expect(cloned).not.toBe(original);
-  });
+    beforeEach(() => {
+      originalStructuredClone = global.structuredClone;
+      delete (global as any).structuredClone;
+    });
 
-  it('should throw an error if the entry is not parse-able', () => {
-    const original: any = { a: 1 };
-    original.self = original;
+    afterEach(() => {
+      (global as any).structuredClone = originalStructuredClone;
+    });
 
-    const actual = () => cloneEntry("test",original);
+    it('should handle JSON-safe values in fallback mode', () => {
+      const original = {
+        string: 'hello',
+        number: 42,
+        boolean: true,
+        null: null,
+        array: [1, 2, 3],
+        nested: { a: 1 }
+      };
+      
+      const cloned = cloneEntry('test',original);
+      expect(cloned).toEqual(original);
+      expect(cloned).not.toBe(original);
+    });
 
-    expect(actual).toThrow(`Could not parse storage entry 'test'`);
+    it('should throw an error if the entry is not parse-able', () => {
+      const original: any = { a: 1 };
+      original.self = original;
+
+      const actual = () => cloneEntry("test",original);
+
+      expect(actual).toThrow(`Could not parse storage entry 'test'`);
+    })
   })
-})
-
-  
 });
