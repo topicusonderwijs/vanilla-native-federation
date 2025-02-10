@@ -52,28 +52,22 @@ const versionHandlerFactory = (): VersionHandler => {
     const isCompatible = (version: string, requiredVersion: string): boolean => {
         const [major,minor,patch,_] = toParts(version);
         
-        if(requiredVersion.startsWith("^") || requiredVersion.startsWith("~")){
-            const [reqMajor,reqMinor,reqPatch] = toParts(requiredVersion.slice(1));
 
-            if(
-                requiredVersion.startsWith("^") // Most recent major
-                && (major !== reqMajor || minor < reqMinor)
-            ) {
+        if(requiredVersion.startsWith("^")) {
+            const [reqMajor,reqMinor,_] = toParts(requiredVersion.slice(1));
+            if(major !== reqMajor || minor < reqMinor) {
                 return false;
-                // throw new NFError(`Version '${version}' is not supported by range '${requiredVersion}'`)
             }
-
-            if(
-                requiredVersion.startsWith("~") // Most recent minor
-                && (major !== reqMajor || minor !== reqMinor || patch < reqPatch)
-            ) {
-                return false;
-                //throw new NFError(`Version '${version}' is not supported by range '${requiredVersion}'`)
-            }
-
-            // TODO: Add support for version range
         }
-        return true;
+
+        if(requiredVersion.startsWith("~")) {
+            const [reqMajor,reqMinor,reqPatch] = toParts(requiredVersion.slice(1));
+            if(major !== reqMajor || minor !== reqMinor || patch < reqPatch) {
+                return false;
+            }
+        }
+
+        return version.localeCompare(requiredVersion) === 0;
     }
 
     const getLatestVersion = (newVersion: Version, currentVersion?: Version) => {
@@ -81,7 +75,7 @@ const versionHandlerFactory = (): VersionHandler => {
         
         if(compareVersions(newVersion.version, currentVersion.version) > 0) {
             if (!isCompatible(newVersion.version, currentVersion.requiredVersion)) {
-                
+                // TODO: Version check
             }
             return newVersion;
         }

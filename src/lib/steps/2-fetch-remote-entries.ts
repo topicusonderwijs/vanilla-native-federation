@@ -3,7 +3,6 @@ import type { Handlers } from "../handlers/handlers.contract";
 import { NFError } from "../native-federation.error";
 import { tap } from "../utils/tap";
 
-
 type FetchRemoteEntries = (remotesOrManifestUrl: Record<RemoteName, RemoteEntry>) => Promise<Record<RemoteName, RemoteEntry>>
 
 const fetchRemoteEntries = (
@@ -31,8 +30,6 @@ const fetchRemoteEntries = (
                 })
                 .then(addRemoteEntryToStorage(remoteEntry))
         }
-
-
 
         return Promise.resolve(Object.entries(manifest))
             .then(r => Promise.all(r.map(fetchRemoteEntries)))
