@@ -25,9 +25,9 @@ const externalsHandlerFactory = (
         externals[scope] ??= {};
 
         const currentVersion = externals[scope]?.[external.packageName]?.version;
-        if(!currentVersion || versionHandler.compareVersions(external.version, currentVersion) > 0) {
+        if(!currentVersion || versionHandler.compareVersions(external.version!, currentVersion) > 0) {
             externals[scope]![external.packageName] = {
-                version: external.version,
+                version: external.version!,
                 requiredVersion: external.requiredVersion,
                 url: _path.join(scopeUrl, external.outFileName),
             }
