@@ -55,7 +55,7 @@ import { initFederation } from 'vanilla-native-federation';
 })();
 ```
 
-The `initFederation` will return the importMap object that was appended to the HTML page together with a `load()` callback, this function can load remote modules using the imported dependencies from the importMap. The `load()` callback returns a `Promise<any>` that represents the remote module that was retrieved.
+The `initFederation` will return the importMap object that was appended to the HTML page together with a `load()` callback, this function can load remote modules using the imported dependencies from the importMap. The `load()` callback returns a `Promise<unknown>` that represents the remote module that was retrieved.
 
 Below are the types of the exposed functions: 
 

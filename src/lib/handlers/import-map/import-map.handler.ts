@@ -1,44 +1,66 @@
-import type { ImportMap, ImportMapHandler } from "./import-map.contract";
+import type { ImportMap, ImportMapHandler, Imports, Scopes } from "./import-map.contract";
 import * as _path from "../../utils/path";
-import type { ExposesInfo, Remote } from "../remote-info/remote-info.contract";
-import type { SharedInfoHandler } from "../shared-info/shared-info.contract";
+import type { ExternalsHandler } from "../externals/externals.contract";
+import type { RemoteInfo, RemoteInfoHandler, RemoteName } from "../remote-info";
 
-const importMapHandlerFactory = (sharedInfoHandler: SharedInfoHandler): ImportMapHandler => {
-    
-    const createEmpty = (): ImportMap => ({
-        imports: {},
-        scopes: {}
-    })
+const importMapHandlerFactory = (
+    externalsHandler: ExternalsHandler,
+    remoteInfoHandler: RemoteInfoHandler
+): ImportMapHandler => {
 
-    const merge = (maps: ImportMap[]) => {
-        return maps.reduce(
-            (acc: ImportMap, map: ImportMap) => ({
-                imports: { ...acc.imports, ...map.imports },
-                scopes: { ...acc.scopes, ...map.scopes },
-            }),
-            createEmpty()
+    const toImportMapFormat = (deps:Record<string, {version:string, url: string}>)
+        : Record<string, string> => 
+        Object.keys(deps).reduce((acc, v) => ({...acc, [v]: deps[v]!.url}), {});
+
+    const appendExposedModules = (importMap: ImportMap, remoteInfo: RemoteInfo)
+        : ImportMap => {
+            remoteInfo.exposes.forEach(
+                m => importMap.imports[_path.join(remoteInfo.remoteName, m.moduleName)] = m.url
+            );
+            return importMap;
+        }
+
+    const appendScopedExternals = (importMap: ImportMap, remoteInfo: RemoteInfo) 
+        : ImportMap => {
+            const scopedExternals = toImportMapFormat(externalsHandler.fromStorage(remoteInfo.scopeUrl));
+            importMap.scopes[remoteInfo.scopeUrl] = scopedExternals;
+            return importMap;
+        }
+       
+
+    function create(from: ImportMap = {imports: {} as Imports, scopes: {} as Scopes}): ImportMap {
+        return {...from}
+    }
+
+
+    function addToDOM(importMap: ImportMap) {
+        document.head.appendChild(
+            Object.assign(document.createElement('script'), {
+                type: 'importmap-shim',
+                innerHTML: JSON.stringify(importMap),
+            })
+        );
+        return importMap;
+    }
+
+    function fromStorage(remotes: RemoteName[]): ImportMap {
+        const importMap = create({
+            imports: toImportMapFormat(externalsHandler.fromStorage('global')),
+            scopes: {}
+        });
+
+        return remotes.reduce(
+            (importMap: ImportMap, remoteName: string) => {
+                const remoteInfo: RemoteInfo = remoteInfoHandler.fromStorage(remoteName);
+                importMap = appendExposedModules(importMap, remoteInfo);
+                importMap = appendScopedExternals(importMap, remoteInfo);
+                return importMap;
+            }, 
+            importMap
         );
     }
 
-    const getImports = ({exposes, name, baseUrl}: {exposes: ExposesInfo[], name: string, baseUrl: string}) => {
-        return exposes.reduce((acc,remote) => ({
-            ...acc, 
-            [_path.join(name, remote.key)]: _path.join(baseUrl, remote.outFileName)
-        }), {});
-    }
-
-    const getScopedDeps = (remoteInfo: Remote) => {
-        return {[remoteInfo.baseUrl + '/']: sharedInfoHandler.mapSharedDeps(remoteInfo)}
-    }
-
-    const toImportMap = (remoteInfo: Remote): ImportMap => {
-        return { 
-            imports: getImports(remoteInfo), 
-            scopes: getScopedDeps(remoteInfo)
-        };
-    }
-
-    return {toImportMap, createEmpty, merge};
+    return {fromStorage, create, addToDOM};
 }
 
 export {importMapHandlerFactory};

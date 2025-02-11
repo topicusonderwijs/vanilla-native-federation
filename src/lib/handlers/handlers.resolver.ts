@@ -1,35 +1,33 @@
 import type { Config } from "../utils";
-import { exposedModuleHandlerFactory } from "./exposed-module/exposed-module.handler";
+import { externalsHandlerFactory } from "./externals/externals.handler";
 import type { Handlers } from "./handlers.contract";
 import { importMapHandlerFactory } from "./import-map/import-map.handler";
 import { logHandlerFactory } from "./logging/log.handler";
 import { remoteInfoHandlerFactory } from "./remote-info/remote-info.handler";
-import { sharedInfoHandlerFactory } from "./shared-info/shared-info.handler";
 import type { NfCache } from "./storage/storage.contract";
 import { storageHandlerFactory } from "./storage/storage.handler";
+import { versionHandlerFactory } from "./version/version.handler";
 
 const resolveHandlers = <TCache extends NfCache>(
-    {storageType, cache, logger, logLevel}: Config<TCache>,
+    config: Config<TCache>,
 ): Handlers => {
     // Utils
-    const storageHandler = storageHandlerFactory(cache, storageType);
-    const logHandler = logHandlerFactory(logLevel, logger)
+    const storageHandler = storageHandlerFactory(config);
+    const logHandler = logHandlerFactory(config)
 
     // Core
-    const sharedInfoHandler = sharedInfoHandlerFactory(storageHandler);
-    const remoteInfoHandler = remoteInfoHandlerFactory(storageHandler, sharedInfoHandler);
+    const versionHandler = versionHandlerFactory();
+    const externalsHandler = externalsHandlerFactory(config, storageHandler, versionHandler);
+    const remoteInfoHandler = remoteInfoHandlerFactory(storageHandler);
 
-    const importMapHandler = importMapHandlerFactory(sharedInfoHandler);
-
-    const exposedModuleHandler = exposedModuleHandlerFactory();
+    const importMapHandler = importMapHandlerFactory(externalsHandler, remoteInfoHandler);
 
     return {
         storageHandler,
         logHandler,
-        sharedInfoHandler,
+        externalsHandler,
         remoteInfoHandler,
-        importMapHandler,
-        exposedModuleHandler
+        importMapHandler
     }
 }
 

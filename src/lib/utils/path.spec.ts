@@ -31,16 +31,16 @@ describe('join', () => {
     expect(join('path/to', 'file.txt')).toBe('path/to/file.txt');
   });
 
-  it('should handle leading slash in first path', () => {
-    expect(join('/path/to', 'file.txt')).toBe('path/to/file.txt');
+  it('should handle trailing slash in first path', () => {
+    expect(join('path/to/', 'file.txt')).toBe('path/to/file.txt');
   });
 
-  it('should handle trailing slash in second path', () => {
-    expect(join('path/to', 'directory/')).toBe('path/to/directory');
+  it('should handle leading slash in second path', () => {
+    expect(join('path/to', '/directory')).toBe('path/to/directory');
   });
 
   it('should handle both leading and trailing slashes', () => {
-    expect(join('/path/to', 'directory/')).toBe('path/to/directory');
+    expect(join('path/to/', '/directory')).toBe('path/to/directory');
   });
 
   it('should handle single segment paths', () => {
