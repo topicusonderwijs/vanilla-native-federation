@@ -2,7 +2,7 @@ import type { ExternalsHandler, SharedInfo } from "./externals.contract";
 import type { BuilderConfig } from "../../utils/config/config.contract";
 import * as _path from "../../utils/path";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
-import type { VersionHandler } from "../version/version.contract";
+import type { Version, VersionHandler } from "../version/version.contract";
 
 /**
  * Handles the shared dependencies (Externals) from the remotes.
@@ -22,16 +22,31 @@ const externalsHandlerFactory = (
 
     const appendToDependencyScope = (scopeUrl: string) => (external: SharedInfo) => (externals: NfCache["externals"]) => {
         const scope = (external.singleton) ? "global" : scopeUrl;
+        const reqVersion = (external.strictVersion) ? 'requiredVersion' : 'strictRequiredVersion';
+
         externals[scope] ??= {};
 
-        const currentVersion = externals[scope]?.[external.packageName]?.version;
-        if(!currentVersion || versionHandler.compareVersions(external.version!, currentVersion) > 0) {
+        if(!externals[scope]?.[external.packageName]) {
             externals[scope]![external.packageName] = {
                 version: external.version!,
-                requiredVersion: external.requiredVersion,
                 url: _path.join(scopeUrl, external.outFileName),
             }
+
+            externals[scope]![external.packageName]![reqVersion] = external.requiredVersion;
+            
+            return externals;
         }
+        
+        const storedExternal:Version = externals[scope]![external.packageName]!;
+        if(versionHandler.compareVersions(external.version!, storedExternal.version) > 0) {
+            storedExternal.version = external.version!;
+            storedExternal.url = _path.join(scopeUrl, external.outFileName);
+        }
+
+        if(!storedExternal[reqVersion] || versionHandler.compareVersions(external.requiredVersion, storedExternal[reqVersion]) < 0) {
+            storedExternal[reqVersion] = external.requiredVersion;
+        }
+
         
         return externals;
     }

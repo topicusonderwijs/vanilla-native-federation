@@ -2,11 +2,6 @@ import type { Version, VersionHandler } from './version.contract';
 import { NFError } from '../../native-federation.error';
 
 const versionHandlerFactory = (): VersionHandler => {
-    // ^ = patch AND minor can be higher
-    // ~ = only higher minor versions
-    // singleton = in imports object
-    // strictVersion = fail instead of warning (singleton mismatch)
-    // requiredVersion = '>=1.0.0 <3.0.0'
 
     const isSemver = (version: string) => {
         // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
@@ -16,13 +11,16 @@ const versionHandlerFactory = (): VersionHandler => {
 
     const toParts = (version:string): [number,number,number,string|undefined] => {
         if(!isSemver(version)) throw new NFError(`Invalid version '${version}'.`);
-        return version.split(/^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?/) as [number,number,number,string];
+        const parts = [...version.matchAll(/^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?/g)][0]!;
+        return [Number(parts[1]), Number(parts[2]), Number(parts[3]), parts[4]?.toString()]
     }
+
+    const stripVersionRange = (version:string) => (version.split(' ').pop() ?? version).replace(/^[~^>=<]+/, '');
 
     const compareVersions = (v1: string, v2: string): number => {
         try{
-            const v1Parts = toParts(v1);
-            const v2Parts = toParts(v2);
+            const v1Parts = toParts(stripVersionRange(v1));
+            const v2Parts = toParts(v2.replace(/^[~^>=]+/, ''));
     
             // Check numeric part (1.1.0)
             for (let i = 0; i < 3; i++) {
@@ -54,17 +52,13 @@ const versionHandlerFactory = (): VersionHandler => {
         
 
         if(requiredVersion.startsWith("^")) {
-            const [reqMajor,reqMinor,_] = toParts(requiredVersion.slice(1));
-            if(major !== reqMajor || minor < reqMinor) {
-                return false;
-            }
+            const [reqMajor,reqMinor,reqPatch] = toParts(requiredVersion.slice(1));
+            return (major === reqMajor && (minor > reqMinor || (minor === reqMinor && patch >= reqPatch)))
         }
 
         if(requiredVersion.startsWith("~")) {
             const [reqMajor,reqMinor,reqPatch] = toParts(requiredVersion.slice(1));
-            if(major !== reqMajor || minor !== reqMinor || patch < reqPatch) {
-                return false;
-            }
+            return (major === reqMajor && minor === reqMinor && patch >= reqPatch);
         }
 
         return version.localeCompare(requiredVersion) === 0;
@@ -74,15 +68,12 @@ const versionHandlerFactory = (): VersionHandler => {
         if(!currentVersion) return newVersion;
         
         if(compareVersions(newVersion.version, currentVersion.version) > 0) {
-            if (!isCompatible(newVersion.version, currentVersion.requiredVersion)) {
-                // TODO: Version check
-            }
             return newVersion;
         }
         return currentVersion;
     }
 
-    return {compareVersions, getLatestVersion, isCompatible};
+    return {compareVersions, getLatestVersion, isCompatible, stripVersionRange};
 }
 
 export { versionHandlerFactory}
