@@ -32,7 +32,7 @@ const externalsHandlerFactory = (
                 url: _path.join(scopeUrl, external.outFileName),
             }
 
-            externals[scope]![external.packageName]![reqVersion] = external.requiredVersion;
+            externals[scope]![external.packageName]![reqVersion] = versionHandler.toRange(external.requiredVersion);
             
             return externals;
         }
@@ -45,8 +45,8 @@ const externalsHandlerFactory = (
         }
 
 
-        if(!storedExternal[reqVersion] || versionHandler.compareVersions(storedExternal[reqVersion], external.requiredVersion) > 0) {
-            storedExternal[reqVersion] = external.requiredVersion;
+        if(!storedExternal[reqVersion]) {
+            storedExternal[reqVersion] = versionHandler.toRange(external.requiredVersion);
         }
         externals[scope]![external.packageName] = storedExternal;
         

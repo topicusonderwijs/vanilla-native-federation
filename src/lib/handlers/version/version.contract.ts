@@ -1,7 +1,7 @@
 type Version = {
     version: string,
-    requiredVersion?: string,
-    strictRequiredVersion?: string,
+    requiredVersion?: [string,string],
+    strictRequiredVersion?: [string,string],
     url: string
 }
 
