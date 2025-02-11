@@ -1,11 +1,22 @@
 import type { LogHandler, LogType } from "../../handlers/logging/log.contract"
 import type { NfCache, StorageEntryCreator } from "../../handlers/storage/storage.contract"
 
-type Config<TCache extends NfCache = NfCache> = {
+type BuilderType = 'vite'|'default';
+
+type StorageConfig<TCache extends NfCache = NfCache> = {
     cache: TCache,
-    storageType: StorageEntryCreator,
-    logger: LogHandler,
-    logLevel: LogType
+    toStorageEntry: StorageEntryCreator,
 }
 
-export { Config }
+type LoggingConfig = {
+    logger: LogHandler,
+    logLevel: LogType,
+}
+
+type BuilderConfig = {
+    builderType: BuilderType
+}
+
+type Config<TCache extends NfCache = NfCache> = StorageConfig<TCache> & LoggingConfig & BuilderConfig
+
+export { Config, StorageConfig, LoggingConfig, BuilderConfig }

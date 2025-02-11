@@ -1,15 +1,18 @@
 import { type LogHandler, type LogType, LogLevel } from "./log.contract";
+import type { LoggingConfig } from "../../utils/config/config.contract";
 
-const logHandlerFactory = (minLevel: LogType, logger: LogHandler): LogHandler => {
+const logHandlerFactory = ({logger, logLevel}: LoggingConfig): LogHandler => {
   const logTypes = Object.keys(LogLevel)
     .filter(key => isNaN(Number(key))) as LogType[];
   
-  return logTypes.reduce((acc, logType) => {    
+
+
+  return logTypes.reduce((acc, logMessageType) => {    
     return {
       ...acc,
-      [logType]: (message: string) => {
-        if (LogLevel[logType] >= LogLevel[minLevel]) {
-          logger[logType](message);
+      [logMessageType]: (message: string) => {
+        if (LogLevel[logMessageType] >= LogLevel[logLevel]) {
+          logger[logMessageType](message);
         }
       }
     };

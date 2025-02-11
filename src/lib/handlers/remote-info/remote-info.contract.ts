@@ -1,13 +1,28 @@
-import type { FederationInfo } from '@softarc/native-federation-runtime';
+import type { ExposesInfo, FederationInfo } from '@softarc/native-federation-runtime';
 
-type RemoteInfoHandler = {
-    addToCache: (remote: Remote, remoteName?: string) => Remote,
-    getFromCache: (remoteEntryUrl?: string, remoteName?: string) => Promise<Remote>,
-    getFromEntry: (remoteEntryUrl: string) => Promise<Remote>
+type RemoteName = string;
+
+type RemoteEntry = string;
+
+type RemoteModule = {
+    moduleName: string, 
+    url: string
 }
 
-type Remote = FederationInfo & {baseUrl: string}
+type RemoteInfo = {
+    remoteName: string
+    scopeUrl: string
+    exposes: RemoteModule[] 
+}
 
-export {Remote, RemoteInfoHandler}
+
+type RemoteInfoHandler = {
+    toStorage: (remote: {name: string; exposes: ExposesInfo[]}, baseUrl: string) => RemoteInfo,
+    fromStorage: ((remoteName: string) => RemoteInfo) & ((remoteName: string, exposedModule: string) => RemoteModule),
+    getFromEntry: (remoteEntryUrl: string) => Promise<FederationInfo>,
+    toScope: (remoteEntry: RemoteEntry) => string
+}
+
+export {RemoteInfo, RemoteModule, RemoteName, RemoteEntry, RemoteInfoHandler}
 
 export type { ExposesInfo, FederationInfo } from '@softarc/native-federation-runtime';

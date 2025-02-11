@@ -1,15 +1,15 @@
-import type { FetchImportMaps } from "./1-fetch-import-maps"
-import type { MergeImportMaps } from "./2-merge-import-maps"
-import type { UpdateDOM } from "./3-update-dom"
+import type { FetchManifest } from "./1-fetch-manifest"
+import type { FetchRemoteEntries } from "./2-fetch-remote-entries"
+import type { CreateImportMap } from "./3-create-import-map"
 import type { ExposeModuleLoader } from "./4-expose-module-loader"
 import type { Handlers } from "../handlers/handlers.contract"
 
 type StepFactory<Tstep> = (h: Handlers) => Tstep
 
 type StepFactories = {
-    fetchImportMaps: StepFactory<FetchImportMaps>,
-    mergeImportMaps: StepFactory<MergeImportMaps>,
-    updateDOM: StepFactory<UpdateDOM>
+    fetchManifest: StepFactory<FetchManifest>,
+    fetchRemoteEntries: StepFactory<FetchRemoteEntries>,
+    createImportMap: StepFactory<CreateImportMap>,
     exposeModuleLoader: StepFactory<ExposeModuleLoader>
 }
 

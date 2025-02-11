@@ -1,3 +1,9 @@
+## 0.8.0 - Improved dependency (external) sharing
+- Support for 'singleton' dependencies.
+- 'vite' dependencies are now optional based on `buildType` in the config (prefixed with `/@id/`).
+- Dependency sharing based on 'requiredVersion' flag
+- [breaking]: changed all storage entries to support version management. 
+
 ## 0.7.0 - Test coverage
 - Added tests to handlers
 - Reworked StorageHandler, it now provides more type-safety.

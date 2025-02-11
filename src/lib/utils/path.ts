@@ -5,8 +5,8 @@ const getDir = (url: string): string => {
 }
 
 const join = (pathA: string, pathB: string): string => {
-    pathA = (pathA.startsWith('/')) ? pathA.slice(1) : pathA;
-    pathB = (pathB.endsWith('/')) ? pathB.slice(0, -1) : pathB;
+    pathA = (pathA.endsWith('/')) ? pathA.slice(0, -1) : pathA;
+    pathB = (pathB.startsWith('/')) ? pathB.slice(1) : pathB;
     return `${pathA}/${pathB}`;
 }
 

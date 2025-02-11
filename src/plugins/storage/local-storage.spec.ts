@@ -1,7 +1,20 @@
 import { localStorageEntry } from './local-storage';
 import { NfCache, nfNamespace } from './../../lib/handlers/storage';
+import { RemoteInfo } from '../../lib/handlers/remote-info';
 
 describe('localStorageEntry', () => {
+
+    const MOCK_REMOTE_INFO = (): RemoteInfo => ({
+        scopeUrl: "http://localhost:3001/",
+        remoteName: "team/mfe1",
+        exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+    });
+
+    const MOCK_REMOTE_INFO_II = (): RemoteInfo => ({
+        scopeUrl: "http://localhost:3002/",
+        remoteName: "team/mfe2",
+        exposes: [{moduleName: "./comp", url: "http://localhost:3002/comp.js"}]
+    });
 
     const mockLocalStorage: any = {
         storage: {} as Record<string, string>,
@@ -19,74 +32,86 @@ describe('localStorageEntry', () => {
             value: mockLocalStorage 
         });
     });
+
     describe('get', () => {
         it('get should return the fallback value', () => {
-            const entry = localStorageEntry('externals', {"rxjs@7.8.1": "http://localhost:3001/rxjs.js"});
-            const expected = entry.get();
+            const entry = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
 
-            expect(expected).toEqual({
-                    "rxjs@7.8.1": "http://localhost:3001/rxjs.js"
-            });
+            const expected = {"team/mfe1": MOCK_REMOTE_INFO()};
+
+            expect(entry.get()).toEqual(expected);
         });
 
         it('not allow any mutations', () => {
-            const entry = localStorageEntry('externals', {"rxjs@7.8.1": "http://localhost:3001/rxjs.js"});
-            const keyA = entry.get();
-            keyA["tslib@2.8.1"] = "http://localhost:3001/tslib.js";
-             
-            const expected = entry.get();
+            const entry = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
 
-            expect(expected).toEqual({
-                "rxjs@7.8.1": "http://localhost:3001/rxjs.js"
-            });
+            const expected = {"team/mfe1": MOCK_REMOTE_INFO()};
+
+            const keyA = entry.get();
+            keyA["team/mfe1"] = MOCK_REMOTE_INFO_II();
+
+            expect(entry.get()).toEqual(expected);
         });
     })
 
     describe('set', () => {
         it('set stores value', () => {
-            const entry = localStorageEntry('externals', {"rxjs@7.8.1": "http://localhost:3001/rxjs.js"});
-            entry.set({"tslib@2.8.1": "http://localhost:3001/tslib.js"});
+            const entry = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
+            const expected = {"team/mfe2": MOCK_REMOTE_INFO_II()};
 
-            expect(entry.get()).toEqual({"tslib@2.8.1": "http://localhost:3001/tslib.js"});
+            entry.set({"team/mfe2": MOCK_REMOTE_INFO_II()});
+
+            expect(entry.get()).toEqual(expected);
         });
 
         it('set stores value in the localStorage', () => {
-            const entry: any = localStorageEntry('externals', {"rxjs@7.8.1": "http://localhost:3001/rxjs.js"});
+            const entry: any = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
             
+            entry.set({"team/mfe2": MOCK_REMOTE_INFO_II()});
+            const actual = mockLocalStorage.storage[nfNamespace+".remotes"]
 
-            entry.set({"tslib@2.8.1": "http://localhost:3001/tslib.js"});
-            const actual = mockLocalStorage.storage[nfNamespace+".externals"]
-
-            expect(actual).toEqual("{\"tslib@2.8.1\":\"http://localhost:3001/tslib.js\"}");
+            expect(actual).toEqual("{\"team/mfe2\":{\"scopeUrl\":\"http://localhost:3002/\",\"remoteName\":\"team/mfe2\",\"exposes\":[{\"moduleName\":\"./comp\",\"url\":\"http://localhost:3002/comp.js\"}]}}");
         });
 
         it('maintains separate values for different keys', () => {
-            const entry1 = localStorageEntry('externals', {"rxjs@7.8.1": "http://localhost:3001/rxjs.js"});
-            const entry2 = localStorageEntry('baseUrlToRemoteNames', { "http://localhost:3001": "team/mfe1" });
+            const entry1 = localStorageEntry('externals', {
+                global:{
+                    "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/rxjs.js"}
+                }
+            });
+            const entry2 = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
             
-            entry1.set({"tslib@2.8.1": "http://localhost:3001/tslib.js"});
-            entry2.set({ "http://localhost:3002": "team/mfe2" });
+            entry1.set({
+                global:{
+                    "tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url: "http://localhost:3001/tslib.js"}
+                }
+            });
+            entry2.set({ "team/mfe2": MOCK_REMOTE_INFO_II() });
             
-            expect(entry1.get()).toEqual({"tslib@2.8.1": "http://localhost:3001/tslib.js"});
-            expect(entry2.get()).toEqual({ "http://localhost:3002": "team/mfe2" });
+            expect(entry1.get()).toEqual({
+                global:{
+                    "tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url: "http://localhost:3001/tslib.js"}
+                }
+            });
+            expect(entry2.get()).toEqual({ "team/mfe2": MOCK_REMOTE_INFO_II() });
         });
 
         it('not allow any mutations', () => {
-            const entry = localStorageEntry('externals', {"rxjs@7.8.1": "http://localhost:3001/rxjs.js"});
-            const newEntry: Record<string, string> = {"tslib@2.8.1": "http://localhost:3001/tslib.js"};
+            const entry = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
+            const newEntry = {"team/mfe2": MOCK_REMOTE_INFO_II()} as any;
             entry.set(newEntry);
 
-            newEntry["MALICOUS_INJECT"] = "http://localhost:3005/script.js";
+            newEntry["MALICOUS_INJECT"] = "BAD_SCRIPT.js";
 
-            expect(entry.get()).toEqual({"tslib@2.8.1": "http://localhost:3001/tslib.js"});
+            expect(entry.get()).toEqual({"team/mfe2": MOCK_REMOTE_INFO_II()});
         });
     });
 
     describe('extended cache', () => {
-        type MOCK_CACHE = NfCache & {extrakey: string}
+        type MOCK_CACHE = NfCache & {extra_key: string}
 
         it('should handle values from a cache that extends the NF cache', () => {
-            const entry = localStorageEntry<MOCK_CACHE>('extrakey', "value1");
+            const entry = localStorageEntry<MOCK_CACHE>('extra_key', "value1");
             expect(entry.get()).toEqual("value1");
 
             entry.set("value2");

@@ -1,218 +1,277 @@
-import { ImportMap, SharedInfo } from "@softarc/native-federation-runtime";
-import { mockSharedInfoHandler } from './../../../mock/handlers.mock';
-import { SharedInfoHandler } from "../shared-info";
-import { ImportMapHandler } from "./import-map.contract";
+import { mockExternalsHandler, mockRemoteInfoHandler } from './../../../mock/handlers.mock';
+import { ExternalsHandler } from "../externals";
+import { ImportMap, ImportMapHandler } from "./import-map.contract";
 import { importMapHandlerFactory } from "./import-map.handler";
-import { Remote } from "../remote-info/remote-info.contract";
+import { RemoteInfo, RemoteInfoHandler } from '../remote-info';
 
 describe('importMapHandler', () => {
-    let sharedInfoHandler: SharedInfoHandler;
+    let remoteInfoHandler: RemoteInfoHandler;
+    let externalsHandler: ExternalsHandler;
     let importMapHandler: ImportMapHandler;
 
-    const REMOTE_MFE1_MOCK: () => Remote = () => 
-        JSON.parse(JSON.stringify({
-            name: 'team/mfe1', 
-            shared: [
-                {
-                    packageName: "rxjs",
-                    outFileName: "rxjs.js",
-                    requiredVersion: "~7.8.0",
-                    singleton: true,
-                    strictVersion: true,
-                    version: "7.8.1",
-                }
-            ] as SharedInfo[], 
-            exposes: [{key: './comp', outFileName: 'comp.js'}], 
-            baseUrl: 'http://localhost:3001'
-        }))
-
     beforeEach(() => {
-        sharedInfoHandler = mockSharedInfoHandler();
-        importMapHandler = importMapHandlerFactory(sharedInfoHandler);
+        remoteInfoHandler = mockRemoteInfoHandler();
+
+        externalsHandler = mockExternalsHandler();
+        importMapHandler = importMapHandlerFactory(externalsHandler, remoteInfoHandler);
     });
 
-    describe('createEmpty', () => {
+    describe('create', () => {
         it('should create an empty importMap', () => {
             const expected = {imports: {}, scopes: {}};
-            const actual = importMapHandler.createEmpty();
+            const actual = importMapHandler.create();
             expect(actual).toEqual(expected);
         });
 
         it('should create a new object every time', () => {
             const expected = {imports: {}, scopes: {}};
 
-            const first = importMapHandler.createEmpty();
+            const first = importMapHandler.create();
             first.imports["team/mfe1/./comp"] = "http://localhost:3001/comp.js";
             first.scopes["http://localhost:3001/"] = {
                 "@angular/animations": "http://localhost:3001/_angular_animations.js"
             }
 
-            const actual = importMapHandler.createEmpty();
+            const actual = importMapHandler.create();
             
             expect(actual).toEqual(expected);
         });
-    });
 
-    describe('merge', () => {
-        it('should merge 2 empty maps', () => {
-            const mapA: ImportMap = {imports: {}, scopes: {}};
-            const mapB: ImportMap = {imports: {}, scopes: {}};
-            const expected = {imports: {}, scopes: {}};
-
-            const actual = importMapHandler.merge([mapA, mapB]);
-
-            expect(actual).toEqual(expected);
-        });
-
-        it('should not remove properties', () => {
-            const mapA: ImportMap = {
-                imports: {"team/mfe1/./comp": "http://localhost:3001/comp.js"}, 
-                scopes: {
-                    "http://localhost:3001/": {
-                        "rxjs": "http://localhost:3001/mfe1/rxjs.js"
-                    },
-                }
-            };
-            const mapB = {imports: {}, scopes: {}};
-
+        it('should create an importMap from the given values', () => {
             const expected = {
-                imports: {"team/mfe1/./comp": "http://localhost:3001/comp.js"}, 
-                scopes: {
-                    "http://localhost:3001/": {
-                        "rxjs": "http://localhost:3001/mfe1/rxjs.js"
-                    },
-                }
-            };
-
-            const actual = importMapHandler.merge([mapA, mapB]);
-
-            expect(actual).toEqual(expected);
-        });
-
-        it('should merge imports and scopes', () => {
-            const mapA: ImportMap = {
-                imports: {"team/mfe1/./comp": "http://localhost:3001/comp.js"}, 
-                scopes: {
-                    "http://localhost:3001/": {
-                        "rxjs": "http://localhost:3001/mfe1/rxjs.js"
-                    },
-                }
-            };
-            const mapB = {
-                imports: {"team/mfe2/./comp": "http://localhost:3002/comp.js"}, 
-                scopes: {
-                    "http://localhost:3002/": {
-                        "rxjs/operators": "http://localhost:3002/mfe1/rxjs.js"
-                    },
-                }
-            };
-
-            const expected = {
-                imports: {
-                    "team/mfe1/./comp": "http://localhost:3001/comp.js",
-                    "team/mfe2/./comp": "http://localhost:3002/comp.js",
-                }, 
-                scopes: {
-                    "http://localhost:3001/": {
-                        "rxjs": "http://localhost:3001/mfe1/rxjs.js"
-                    },
-                    "http://localhost:3002/": {
-                        "rxjs/operators": "http://localhost:3002/mfe1/rxjs.js"
-                    },
-                }
-            };
-
-            const actual = importMapHandler.merge([mapA, mapB]);
-
-            expect(actual).toEqual(expected);
-        });
-
-        it('should merge 3 maps', () => {
-            const mapA: ImportMap = {
-                imports: {"team/mfe1/./comp": "http://localhost:3001/comp.js"}, 
+                imports: {"mfe1": "localhost:3001/remoteEntry.json"},
                 scopes: {
                     "http://localhost:3001/": {
                         "rxjs": "http://localhost:3001/rxjs.js"
-                    },
+                    }
                 }
             };
-            const mapB = {
-                imports: {"team/mfe2/./comp": "http://localhost:3002/comp.js"}, 
-                scopes: {
-                    "http://localhost:3002/": {
-                        "rxjs/operators": "http://localhost:3002/rxjs.js"
-                    },
-                }
-            };
-            const mapC = {
-                imports: {"team/mfe3/./comp": "http://localhost:3003/comp.js"}, 
-                scopes: {
-                    "http://localhost:3003/": {
-                        "tslib": "http://localhost:3003/tslib.js"                    
-                    },
-                }
-            };
-
-            const expected = {
-                imports: {
-                    "team/mfe1/./comp": "http://localhost:3001/comp.js",
-                    "team/mfe2/./comp": "http://localhost:3002/comp.js",
-                    "team/mfe3/./comp": "http://localhost:3003/comp.js",
-                }, 
+            const actual = importMapHandler.create({
+                imports: {"mfe1": "localhost:3001/remoteEntry.json"},
                 scopes: {
                     "http://localhost:3001/": {
                         "rxjs": "http://localhost:3001/rxjs.js"
-                    },
-                    "http://localhost:3002/": {
-                        "rxjs/operators": "http://localhost:3002/rxjs.js"
-                    },
-                    "http://localhost:3003/": {
-                        "tslib": "http://localhost:3003/tslib.js"
-                    },
+                    }
                 }
-            };
-
-            const actual = importMapHandler.merge([mapA, mapB, mapC]);
-
-            expect(actual).toEqual(expected);
-        });
-    });
-
-    describe('toImportMap', () => {
-        it('should return with shared deps', () => {
-            const expected: ImportMap = {
-                imports: {"team/mfe1/./comp": "http://localhost:3001/comp.js"}, 
-                scopes: {
-                    "http://localhost:3001/": {
-                        "rxjs": "http://localhost:3001/rxjs.js"
-                    },
-                }
-            };
-            (sharedInfoHandler.mapSharedDeps as jest.Mock).mockReturnValue({
-                "rxjs": "http://localhost:3001/rxjs.js"
             });
-
-            const actual = importMapHandler.toImportMap(REMOTE_MFE1_MOCK());
             expect(actual).toEqual(expected);
         });
+    });
 
-        it('should return without shared deps', () => {
+    describe('createFromStorage', () => {
+        it('should create an ImportMap from storage based on given remote', () => {
             const expected: ImportMap = {
-                imports: {"team/mfe1/./comp": "http://localhost:3001/comp.js"}, 
+                imports: {
+                    "team/mfe1/./comp": "http://localhost:3001/comp.js",
+                },
                 scopes: {
                     "http://localhost:3001/": {}
                 }
             };
 
-            (sharedInfoHandler.mapSharedDeps as jest.Mock).mockReturnValue({ });
+            // REMOTES
+            (remoteInfoHandler.fromStorage as jest.Mock) = jest.fn((_: string) => ({
+                remoteName: "team/mfe1",
+                scopeUrl: "http://localhost:3001/",
+                exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+            } as RemoteInfo));
 
-            const actual = importMapHandler.toImportMap({
-                name: 'team/mfe1', 
-                shared: [] as SharedInfo[], 
-                exposes: [{key: './comp', outFileName: 'comp.js'}], 
-                baseUrl: 'http://localhost:3001'
-            });
+            // DEPENDENCIES
+            (externalsHandler.fromStorage as jest.Mock) = jest.fn((_: string) => ({}));
+
+            const actual = importMapHandler.fromStorage(["team/mfe1"]);
+
             expect(actual).toEqual(expected);
+        })
+
+        it('should add shared singleton dependencies.', () => {
+            const expected: ImportMap = {
+                imports: {
+                    "team/mfe1/./comp": "http://localhost:3001/comp.js",
+                    "rxjs": "http://localhost:3001/rxjs.js"
+                },
+                scopes: {
+                    "http://localhost:3001/": {}
+                }
+            };
+
+            // REMOTES
+            (remoteInfoHandler.fromStorage as jest.Mock) = jest.fn((_: string) => ({
+                remoteName: "team/mfe1",
+                scopeUrl: "http://localhost:3001/",
+                exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+            } as RemoteInfo));
+
+            // DEPENDENCIES
+            (externalsHandler.fromStorage as jest.Mock) = jest.fn((scope: string) => {
+                if(scope === "global") return {"rxjs": {version: "7.8.1", url: "http://localhost:3001/rxjs.js"}};
+                return {};
+            });
+
+            const actual = importMapHandler.fromStorage(["team/mfe1"]);
+
+            expect(actual).toEqual(expected);
+        })
+
+        it('should add scoped dependencies.', () => {
+            const expected: ImportMap = {
+                imports: {
+                    "team/mfe1/./comp": "http://localhost:3001/comp.js",
+                },
+                scopes: {
+                    "http://localhost:3001/": {
+                        "rxjs": "http://localhost:3001/rxjs.js"
+                    }
+                }
+            };
+
+            // REMOTES
+            (remoteInfoHandler.fromStorage as jest.Mock) = jest.fn((_: string) => ({
+                remoteName: "team/mfe1",
+                scopeUrl: "http://localhost:3001/",
+                exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+            } as RemoteInfo));
+
+            // DEPENDENCIES
+            (externalsHandler.fromStorage as jest.Mock) = jest.fn((scope: string) => {
+                if(scope === "http://localhost:3001/") return {"rxjs": {version: "7.8.1", url: "http://localhost:3001/rxjs.js"}}
+                return {};
+            });
+
+            const actual = importMapHandler.fromStorage(["team/mfe1"]);
+
+            expect(actual).toEqual(expected);
+        })
+
+        it('should handle multiple remotes with dependencies.', () => {
+            const expected: ImportMap = {
+                imports: {
+                    "team/mfe1/./comp": "http://localhost:3001/comp.js",
+                    "team/mfe2/./comp": "http://localhost:3002/comp.js",
+                    "rxjs": "http://localhost:3001/rxjs.js"
+                },
+                scopes: {
+                    "http://localhost:3001/": { 
+                        "tslib": "http://localhost:3001/tslib.js"
+                    },
+                    "http://localhost:3002/": {
+                        "tslib": "http://localhost:3002/tslib.js"
+                    }
+                }
+            };
+
+            // REMOTES
+            (remoteInfoHandler.fromStorage as jest.Mock) = jest.fn((remote: string) => {
+                if(remote === "team/mfe1") return {
+                    remoteName: "team/mfe1",
+                    scopeUrl: "http://localhost:3001/",
+                    exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+                }
+                if(remote === "team/mfe2") return {
+                    remoteName: "team/mfe2",
+                    scopeUrl: "http://localhost:3002/",
+                    exposes: [{moduleName: "./comp", url: "http://localhost:3002/comp.js"}]
+                }
+                return {}
+            });
+
+            // DEPENDENCIES
+            (externalsHandler.fromStorage as jest.Mock) = jest.fn((scope: string) => {
+                if(scope === "global") return {"rxjs": {version: "7.8.1", url: "http://localhost:3001/rxjs.js"}};
+                if(scope === "http://localhost:3001/") return {"tslib": {version: "7.8.1", url: "http://localhost:3001/tslib.js"}}
+                if(scope === "http://localhost:3002/") return {"tslib": {version: "7.8.1", url: "http://localhost:3002/tslib.js"}}
+
+                return {};
+            });
+
+            const actual = importMapHandler.fromStorage(["team/mfe1", "team/mfe2"]);
+
+            expect(actual).toEqual(expected);
+        })
+    });
+
+    describe('addToDOM', () => {
+        let originalDocument: Document;
+    
+        beforeEach(() => {
+            originalDocument = document.cloneNode(true) as Document;
+            document.head.innerHTML = '';
+        });
+    
+        afterEach(() => {
+            document.head.innerHTML = originalDocument.head.innerHTML;
+        });
+    
+        it('should append a script element to document head', () => {
+            const testMap: ImportMap = {
+                imports: {
+                    "rxjs@7.8.1": "http://localhost:4200/rxjs.js",
+                },
+                scopes: {}
+            };
+    
+            importMapHandler.addToDOM(testMap);
+    
+            const scriptElement = document.head.querySelector('script');
+            expect(scriptElement).not.toBeNull();
+            expect(scriptElement?.type).toBe('importmap-shim');
+        });
+    
+        it('should set correct innerHTML with stringified import map', () => {
+            const testMap: ImportMap = {
+                imports: {
+                    "rxjs@7.8.1": "http://localhost:4200/rxjs.js",
+                    "tslib@2.8.1": "http://localhost:4200/tslib.js"  
+                },
+                scopes: {}
+            };
+    
+            importMapHandler.addToDOM(testMap);
+    
+            const scriptElement = document.head.querySelector('script');
+            const parsedContent = JSON.parse(scriptElement?.innerHTML || '{}');
+            
+            expect(parsedContent).toEqual(testMap);
+        });
+    
+        it('should return the original import map', () => {
+            const testMap: ImportMap = {
+                imports: {
+                    "rxjs@7.8.1": "http://localhost:4200/rxjs.js"
+                },
+                scopes: {}
+            };
+    
+            const result = importMapHandler.addToDOM(testMap);;
+            expect(result).toBe(testMap);
+        });
+    
+        it('should handle an empty import map', () => {
+            const emptyMap: ImportMap = { imports: {}, scopes: {} };
+            
+            importMapHandler.addToDOM(emptyMap);
+
+            const scriptElement = document.head.querySelector('script');
+            const parsedContent = JSON.parse(scriptElement?.innerHTML || '{}');
+            
+            expect(parsedContent).toEqual(emptyMap);
+        });
+    
+        it('should preserve existing head content', () => {
+            const existingMeta = document.createElement('meta');
+            existingMeta.setAttribute('name', 'description');
+            document.head.appendChild(existingMeta);
+    
+            const testMap: ImportMap = {
+                imports: { "rxjs@7.8.1": "http://localhost:4200/rxjs.js" },
+                scopes: {}
+            };
+    
+            importMapHandler.addToDOM(testMap);
+    
+            expect(document.head.querySelector('meta[name="description"]')).not.toBeNull();
+            expect(document.head.querySelectorAll('script').length).toBe(1);
         });
     });
+
 });
