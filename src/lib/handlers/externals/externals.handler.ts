@@ -22,7 +22,7 @@ const externalsHandlerFactory = (
 
     const appendToDependencyScope = (scopeUrl: string) => (external: SharedInfo) => (externals: NfCache["externals"]) => {
         const scope = (external.singleton) ? "global" : scopeUrl;
-        const reqVersion = (external.strictVersion) ? 'requiredVersion' : 'strictRequiredVersion';
+        const reqVersion = (external.strictVersion) ? 'strictRequiredVersion' : 'requiredVersion';
 
         externals[scope] ??= {};
 
@@ -38,15 +38,17 @@ const externalsHandlerFactory = (
         }
         
         const storedExternal:Version = externals[scope]![external.packageName]!;
-        if(versionHandler.compareVersions(external.version!, storedExternal.version) > 0) {
+
+        if(versionHandler.compareVersions(storedExternal.version, external.version!) < 0) {
             storedExternal.version = external.version!;
             storedExternal.url = _path.join(scopeUrl, external.outFileName);
         }
 
-        if(!storedExternal[reqVersion] || versionHandler.compareVersions(external.requiredVersion, storedExternal[reqVersion]) < 0) {
+
+        if(!storedExternal[reqVersion] || versionHandler.compareVersions(storedExternal[reqVersion], external.requiredVersion) > 0) {
             storedExternal[reqVersion] = external.requiredVersion;
         }
-
+        externals[scope]![external.packageName] = storedExternal;
         
         return externals;
     }

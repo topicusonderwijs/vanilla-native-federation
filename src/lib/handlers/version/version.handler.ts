@@ -20,7 +20,7 @@ const versionHandlerFactory = (): VersionHandler => {
     const compareVersions = (v1: string, v2: string): number => {
         try{
             const v1Parts = toParts(stripVersionRange(v1));
-            const v2Parts = toParts(v2.replace(/^[~^>=]+/, ''));
+            const v2Parts = toParts(stripVersionRange(v2));
     
             // Check numeric part (1.1.0)
             for (let i = 0; i < 3; i++) {
@@ -30,7 +30,7 @@ const versionHandlerFactory = (): VersionHandler => {
                 if (Number(v1Parts[i]) > Number(v2Parts[i])) return 1;
                 if (Number(v1Parts[i]) < Number(v2Parts[i])) return -1;
             }
-    
+
             // Check flags like 1.1.0-patch
             let vDiff = 0, idx=3;
             while(vDiff === 0) {

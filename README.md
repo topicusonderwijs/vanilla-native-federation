@@ -184,7 +184,8 @@ For debugging, the library contains a simple logger that can give a more detaile
 **loader.js**
 
 ```
-import { initFederation, consoleLogger, noopLogger } from 'vanilla-native-federation';
+import { initFederation, noopLogger } from 'vanilla-native-federation';
+import { consoleLogger } from 'vanilla-native-federation/plugins/logging';
 
 (() => {
   initFederation("http://localhost:3000", {

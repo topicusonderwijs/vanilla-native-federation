@@ -1,4 +1,4 @@
-import type { LogHandler } from "./log.contract"
+import type { LogHandler } from "./../../lib/handlers/logging";
 
 const consoleLogger: LogHandler = ({
     debug: (msg: string) => console.log(`[DEBUG]: ${msg}`),
