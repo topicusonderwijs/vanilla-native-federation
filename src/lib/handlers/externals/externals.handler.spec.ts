@@ -110,7 +110,10 @@ describe('externalsHandler', () => {
                 if(version === "~2.8.0") return ["2.8.0","2.9.0"];
                 throw new Error(`Provided range '${version}' is not mocked`);
             })
+            versionHandler.getSmallestVersionRange = jest.fn((): [string,string] => {
 
+                return ["7.8.0","7.9.0"];
+            })
         })
 
         it('should add externals of RemoteInfo to global scope', () => {
@@ -167,6 +170,43 @@ describe('externalsHandler', () => {
             let [storageEntry2, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
             actual = addExternalsFn(actual);
             expect(actual).toEqual(expected);
+            expect(storageEntry2).toBe("externals");
+        });  
+
+        it('should update requiredVersion if version is smaller than current', () => {
+            const SCOPE = MOCK_SCOPE(); 
+            const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: false});
+
+            let actual = {
+                global: {"rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }},
+                [SCOPE]: { }
+            } as CacheGlobalExternals & CacheScopedExternals
+
+            versionHandler.compareVersions = jest.fn((v1, v2) => {
+                if (v1 === '7.8.1' && v2 === '7.8.1') return 0;
+                return 0;
+            });
+
+            
+
+            externalsHandler.toStorage(sharedInfo, SCOPE);
+
+            // 1) REMOVE OLD DEPS FROM SCOPE IN STORAGE
+            let [storageEntry1, clearScopeFn] = (storageHandler.update as any).mock.calls[0];
+            actual = clearScopeFn(actual);
+            expect(storageEntry1).toBe("externals");
+            expect(actual).toEqual({
+                global: {"rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }},
+                [SCOPE]: { }
+            });
+
+            // 2) ADD DEPS TO GLOBAL AND SCOPE
+            let [storageEntry2, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
+            actual = addExternalsFn(actual);
+            expect(actual).toEqual({
+                global: {"rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }},
+                [SCOPE]: { }
+            });
             expect(storageEntry2).toBe("externals");
         });  
         

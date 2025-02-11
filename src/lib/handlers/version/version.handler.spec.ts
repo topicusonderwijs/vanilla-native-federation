@@ -118,24 +118,24 @@ describe('versionHandler', () => {
         })
     });
 
-    describe('stripVersionRange', () => {
+    describe('toVersion', () => {
         it('should not alter SEMVER versions', () => {
-            const actual =versionHandler.stripVersionRange("1.2.3");
+            const actual =versionHandler.toVersion("1.2.3");
             expect(actual).toBe("1.2.3");
         });
         it('should remove ~ and ^', () => {
-            expect( versionHandler.stripVersionRange("^1.2.3") ).toBe("1.2.3");
-            expect( versionHandler.stripVersionRange("~1.2.3") ).toBe("1.2.3");
+            expect( versionHandler.toVersion("^1.2.3") ).toBe("1.2.3");
+            expect( versionHandler.toVersion("~1.2.3") ).toBe("1.2.3");
         });
         it('should remove >= and > and < and <=', () => {
-            expect( versionHandler.stripVersionRange(">1.2.3") ).toBe("1.2.3");
-            expect( versionHandler.stripVersionRange(">=1.2.3") ).toBe("1.2.3");
-            expect( versionHandler.stripVersionRange("<=1.2.3") ).toBe("1.2.3");
-            expect( versionHandler.stripVersionRange("<1.2.3") ).toBe("1.2.3");
+            expect( versionHandler.toVersion(">1.2.3") ).toBe("1.2.3");
+            expect( versionHandler.toVersion(">=1.2.3") ).toBe("1.2.3");
+            expect( versionHandler.toVersion("<=1.2.3") ).toBe("1.2.3");
+            expect( versionHandler.toVersion("<1.2.3") ).toBe("1.2.3");
         });
         it('should take the latest version from a range', () => {
-            expect( versionHandler.stripVersionRange(">=1.2.3 <1.2.5") ).toBe("1.2.5");
-            expect( versionHandler.stripVersionRange(">1.8.8 <=2.5.3") ).toBe("2.5.3");
+            expect( versionHandler.toVersion(">=1.2.3 <1.2.5") ).toBe("1.2.5");
+            expect( versionHandler.toVersion(">1.8.8 <=2.5.3") ).toBe("2.5.3");
         })
     });
 
@@ -181,7 +181,20 @@ describe('versionHandler', () => {
             expect( () => versionHandler.toRange("1.1.1 1.5.0") ).toThrow("Could not convert '1.1.1 1.5.0' to a version range.");
             expect( () => versionHandler.toRange("123") ).toThrow("Could not convert '123' to a version range.");
             expect( () => versionHandler.toRange("abc") ).toThrow("Could not convert 'abc' to a version range.");
-
         });
     });
+
+    describe('getSmallestVersionRange', () => {
+        it('should return the smallest version', () => {
+            expect( versionHandler.getSmallestVersionRange(["2.2.2","2.2.6"], ["2.2.2","2.2.6"]) ).toEqual(["2.2.2", "2.2.6"]);
+            expect( versionHandler.getSmallestVersionRange(["2.2.3","2.2.5"], ["2.2.2","2.2.6"]) ).toEqual(["2.2.3", "2.2.5"]);
+            expect( versionHandler.getSmallestVersionRange(["2.2.2","2.2.6"], ["2.2.3","2.2.5"]) ).toEqual(["2.2.3", "2.2.5"]);
+            expect( versionHandler.getSmallestVersionRange(["2.2.2","2.2.6"], ["2.2.3","2.2.5"]) ).toEqual(["2.2.3", "2.2.5"]);
+            expect( versionHandler.getSmallestVersionRange(["1.0.0","3.0.0"], ["1.0.0","2.0.999"]) ).toEqual(["1.0.0", "2.0.999"]);
+        })
+
+        it('should return the newest version if the current version is undefined', () => {
+            expect( versionHandler.getSmallestVersionRange(["2.2.2","2.2.6"], undefined) ).toEqual(["2.2.2", "2.2.6"]);
+        })
+    })
 });

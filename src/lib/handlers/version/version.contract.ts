@@ -10,7 +10,8 @@ type VersionHandler = {
     getLatestVersion: (v1: Version, v2?: Version) => Version
     isCompatible: (version: string, requiredVersion: [string, string]) => boolean,
     toRange: (version: string) => [string,string],
-    stripVersionRange: (version: string) => string
+    toVersion: (requiredVersion: string) => string,
+    getSmallestVersionRange: (newRange: [string,string], currentRange?: [string,string]) => [string,string]
 }
 
 export {VersionHandler, Version}

@@ -15,7 +15,7 @@ const versionHandlerFactory = (): VersionHandler => {
         return [Number(parts[1]), Number(parts[2]), Number(parts[3]), !!parts[4] ? `-${parts[4]}` : ""]
     }
 
-    const stripVersionRange = (version:string) => (version.split(' ').pop() ?? version).replace(/^[~^>=<]+/, '');
+    const toVersion = (requiredVersion:string) => (requiredVersion.split(' ').pop() ?? requiredVersion).replace(/^[~^>=<]+/, '');
 
     const getNextVersion = (version: string) => {
         const [major, minor, patch] = toParts(version);
@@ -24,8 +24,8 @@ const versionHandlerFactory = (): VersionHandler => {
 
     const compareVersions = (v1: string, v2: string): number => {
         try{
-            const v1Parts = toParts(stripVersionRange(v1));
-            const v2Parts = toParts(stripVersionRange(v2));
+            const v1Parts = toParts(toVersion(v1));
+            const v2Parts = toParts(toVersion(v2));
     
             // Check numeric part (1.1.0)
             for (let i = 0; i < 3; i++) {
@@ -72,7 +72,6 @@ const versionHandlerFactory = (): VersionHandler => {
             const versionRange: [string,string] = [minVersion, maxVersion];
 
             if(minOperator === ">") versionRange[0] = getNextVersion(minVersion);
-
             if(maxOperator === "<=") versionRange[1] = getNextVersion(maxVersion);
             
             return versionRange;
@@ -101,7 +100,14 @@ const versionHandlerFactory = (): VersionHandler => {
         return currentVersion;
     }
 
-    return {compareVersions, toRange, getLatestVersion, isCompatible, stripVersionRange};
+    const getSmallestVersionRange = (newRange: [string,string], currentRange?: [string,string]): [string,string] => {
+        if(!currentRange) return newRange;
+        const min = compareVersions(currentRange[0], newRange[0]) > 0 ? currentRange[0] : newRange[0];
+        const max = compareVersions(currentRange[1], newRange[1]) < 0 ? currentRange[1] : newRange[1];
+        return [min,max];
+    }
+
+    return {compareVersions, toRange, getLatestVersion, isCompatible, toVersion, getSmallestVersionRange};
 }
 
 export { versionHandlerFactory}
