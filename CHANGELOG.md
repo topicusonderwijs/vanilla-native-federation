@@ -2,7 +2,8 @@
 - Support for 'singleton' dependencies.
 - 'vite' dependencies are now optional based on `buildType` in the config (prefixed with `/@id/`).
 - Dependency sharing based on 'requiredVersion' flag
-- [breaking]: changed all storage entries to support version management. 
+- [breaking]: changed all storage entries to support dependency version management.
+- [breaking]: Reorganized overridable steps into load-manifest, load-remoteEntries, build-importmap and load-remote-module. 
 - Moved logging to separate plugin.
 - Removed `fesm2022` option from package.json.
 - Re-added `fesm` build to plugins. 
