@@ -63,6 +63,28 @@ describe('remoteInfoHandler', () => {
             expect(mutationFn(cache.remotes)).toEqual(expected.remotes);
         });
 
+        it('should handle remoteEntry.json path', () => {
+            const cache = {
+                remotes: {},
+            } 
+            const expected = {
+                remotes: { 
+                    "team/mfe1": {
+                        scopeUrl: "http://localhost:3001/",
+                        remoteName: "team/mfe1",
+                        exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+                    } 
+                }
+            }
+
+            remoteInfoHandler.toStorage(MOCK_FEDERATION_INFO(), "http://localhost:3001/remoteEntry.json");
+
+            const [entry, mutationFn] = (storageHandler.update as any).mock.calls[0];
+
+            expect(entry).toBe("remotes");
+            expect(mutationFn(cache.remotes)).toEqual(expected.remotes);
+        });
+
         it('should append a remote to cache', () => {
             const cache = {
                 remotes: {

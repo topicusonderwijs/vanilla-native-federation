@@ -48,14 +48,14 @@ const remoteInfoHandlerFactory = <TCache extends NfCache>(
         return remoteModule;
     }
 
-    function toStorage(remote: {name: string; exposes: ExposesInfo[]}, baseUrl: string): RemoteInfo {
+    function toStorage(remote: {name: string; exposes: ExposesInfo[]}, remoteEntry: string): RemoteInfo {
         const remoteInfo: RemoteInfo = {
             remoteName: remote.name,
-            scopeUrl: toScope(baseUrl),
+            scopeUrl: toScope(remoteEntry),
             exposes: Object.values(remote.exposes ?? [])
                         .map(m => ({
                             moduleName: m.key,
-                            url: _path.join(baseUrl, m.outFileName) 
+                            url: _path.join(toScope(remoteEntry), m.outFileName) 
                         }))    
         };
 
