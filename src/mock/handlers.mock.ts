@@ -33,7 +33,8 @@ const mockVersionHandler = (): VersionHandler => ({
     compareVersions: jest.fn<number, [string, string]>(),
     getLatestVersion: jest.fn(),
     isCompatible: jest.fn(),
-    stripVersionRange: jest.fn()
+    stripVersionRange: jest.fn(),
+    toRange: jest.fn()
 });
 
 export {

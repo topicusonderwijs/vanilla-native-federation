@@ -9,13 +9,18 @@ const versionHandlerFactory = (): VersionHandler => {
         return SEMVER_REGEX.test(version);
     }
 
-    const toParts = (version:string): [number,number,number,string|undefined] => {
+    const toParts = (version:string): [number,number,number,string] => {
         if(!isSemver(version)) throw new NFError(`Invalid version '${version}'.`);
         const parts = [...version.matchAll(/^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?/g)][0]!;
-        return [Number(parts[1]), Number(parts[2]), Number(parts[3]), parts[4]?.toString()]
+        return [Number(parts[1]), Number(parts[2]), Number(parts[3]), !!parts[4] ? `-${parts[4]}` : ""]
     }
 
     const stripVersionRange = (version:string) => (version.split(' ').pop() ?? version).replace(/^[~^>=<]+/, '');
+
+    const getNextVersion = (version: string) => {
+        const [major, minor, patch] = toParts(version);
+        return `${major}.${minor}.${patch+1}`;
+    }
 
     const compareVersions = (v1: string, v2: string): number => {
         try{
@@ -47,21 +52,44 @@ const versionHandlerFactory = (): VersionHandler => {
         }
     };
 
-    const isCompatible = (version: string, requiredVersion: string): boolean => {
-        const [major,minor,patch,_] = toParts(version);
-        
-
+    const toRange = (requiredVersion: string): [string,string] => {
         if(requiredVersion.startsWith("^")) {
-            const [reqMajor,reqMinor,reqPatch] = toParts(requiredVersion.slice(1));
-            return (major === reqMajor && (minor > reqMinor || (minor === reqMinor && patch >= reqPatch)))
+            const [major,minor,patch,flag] = toParts(requiredVersion.slice(1));
+            return [`${major}.${minor}.${patch}${flag}`, `${major+1}.0.0`]
         }
 
         if(requiredVersion.startsWith("~")) {
-            const [reqMajor,reqMinor,reqPatch] = toParts(requiredVersion.slice(1));
-            return (major === reqMajor && minor === reqMinor && patch >= reqPatch);
+            const [major,minor,patch,flag] = toParts(requiredVersion.slice(1));
+            return [`${major}.${minor}.${patch}${flag}`, `${major}.${minor+1}.0`]
         }
 
-        return version.localeCompare(requiredVersion) === 0;
+        const matchVersionRange = requiredVersion.match(`^(>=|>)([^\\s]+)\\s+(<=|<)([^\\s]+)$`);
+        if (matchVersionRange) {
+            const [_, minOperator, minVersion, maxOperator, maxVersion] = matchVersionRange;
+            if(!minVersion || !isSemver(minVersion)) throw new NFError(`Invalid min version '${requiredVersion}'`);
+            if(!maxVersion || !isSemver(maxVersion)) throw new NFError(`Invalid max version '${requiredVersion}'`);
+
+            const versionRange: [string,string] = [minVersion, maxVersion];
+
+            if(minOperator === ">") versionRange[0] = getNextVersion(minVersion);
+
+            if(maxOperator === "<=") versionRange[1] = getNextVersion(maxVersion);
+            
+            return versionRange;
+        }
+
+        if(isSemver(requiredVersion)) {
+            return [requiredVersion, getNextVersion(requiredVersion)];
+        }
+
+        throw new NFError(`Could not convert '${requiredVersion}' to a version range.`);
+    }
+
+
+    const isCompatible = (version: string, [minVersion, maxVersion]: [string,string]): boolean => {
+        const isAboveOrEqualToMin = compareVersions(version, minVersion) >= 0;    
+        const isBelowMax = compareVersions(version, maxVersion) < 0;    
+        return isAboveOrEqualToMin && isBelowMax;
     }
 
     const getLatestVersion = (newVersion: Version, currentVersion?: Version) => {
@@ -73,7 +101,7 @@ const versionHandlerFactory = (): VersionHandler => {
         return currentVersion;
     }
 
-    return {compareVersions, getLatestVersion, isCompatible, stripVersionRange};
+    return {compareVersions, toRange, getLatestVersion, isCompatible, stripVersionRange};
 }
 
 export { versionHandlerFactory}
