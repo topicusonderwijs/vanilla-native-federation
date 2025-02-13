@@ -280,7 +280,7 @@ import { sessionStorageEntry } from 'vanilla-native-federation/plugins/storage';
   const manifest = {
     "remote1": "http://localhost:3001/remoteEntry.json"
   }
-  initFederation(manifest, {storageType: sessionStorageEntry})
+  initFederation(manifest, {toStorageEntry: sessionStorageEntry})
     .then(({load, importMap}) => {
       console.log("importMap: ", importMap);
       window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));

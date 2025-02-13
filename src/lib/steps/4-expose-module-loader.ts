@@ -1,5 +1,6 @@
 import type { Handlers } from "../handlers/handlers.contract";
 import type { RemoteEntry, RemoteName } from "../handlers/remote-info/remote-info.contract";
+import { usesImportMapShim } from "../utils/importmap-shim";
 import * as _path from "../utils/path";
 
 type LoadRemoteModule = (remoteName: string, exposedModule: string) => Promise<unknown>
@@ -16,7 +17,7 @@ const exposeModuleLoader = (
 ): ExposeModuleLoader => {
 
     function _importModule(url: string) {
-        return typeof importShim !== 'undefined'
+        return usesImportMapShim()
           ? importShim<unknown>(url)
           : import(url);
     }

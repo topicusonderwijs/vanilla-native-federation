@@ -22,8 +22,8 @@ const fetchRemoteEntries = (
 
         const fetchRemoteEntries = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<RemoteInfo|false> => {
             if(remoteInfoHandler.inStorage(remoteName)) {
-                logHandler.debug(`Found remote '${remoteEntry}' in storage, omitting fetch.`);
-                return Promise.resolve(remoteInfoHandler.fromStorage(remoteEntry));
+                logHandler.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
+                return Promise.resolve(remoteInfoHandler.fromStorage(remoteName));
             }
             return remoteInfoHandler.fetchRemoteEntry(remoteEntry)
                 .then(tap(federationInfo => {
