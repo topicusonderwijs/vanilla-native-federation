@@ -19,7 +19,7 @@ const remoteInfoHandlerFactory = <TCache extends NfCache>(
                 })
         }
 
-    const getFromEntry = (remoteEntryUrl: RemoteEntry)
+    const fetchRemoteEntry = (remoteEntryUrl: RemoteEntry)
         : Promise<FederationInfo> => {
             if(!remoteEntryUrl || typeof remoteEntryUrl !== "string") 
                 return Promise.reject(new NFError(`Module not registered, provide a valid remoteEntryUrl.`));
@@ -48,6 +48,10 @@ const remoteInfoHandlerFactory = <TCache extends NfCache>(
         return remoteModule;
     }
 
+    function inStorage(remoteName: string): boolean {
+        return !!storageHandler.fetch("remotes")?.[remoteName]
+    }
+
     function toStorage(remote: {name: string; exposes: ExposesInfo[]}, remoteEntry: string): RemoteInfo {
 
 
@@ -66,7 +70,7 @@ const remoteInfoHandlerFactory = <TCache extends NfCache>(
         return remoteInfo;
     }
 
-    return {toStorage, fromStorage, getFromEntry, toScope};
+    return {toStorage, inStorage, fromStorage, fetchRemoteEntry, toScope};
 }
 
 export {remoteInfoHandlerFactory, RemoteInfoHandler};
