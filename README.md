@@ -36,7 +36,33 @@ Right now the library is dependent on [es-module-shims](https://www.npmjs.com/pa
 
 ## 2 &nbsp; Usage:
 
-Below you can find some examples of how to use the native-federation loader. The simplest implmentation is to use the initFederation function to load all remote entries. 
+Below you can find some examples of how to use the native-federation loader. The simplest implmentation is to use the initFederation function to load all remote entries. Where `team-mfe1` is your custom micro frontend ESM. 
+
+```
+<html>
+    <head>
+        <title>Shell</title>
+    </head>
+    <body>
+        <team-mfe1></team-mfe1>
+
+        <script type="esms-options">{ "shimMode": true }</script> 
+        <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+            
+        <script type="module-shim">
+            import {initFederation} from 'https://esm.run/vanilla-native-federation';
+
+            console.log("test");
+            initFederation({
+                "team-mfe1": "http://localhost:3001/remoteEntry.json",
+            }).then(({load}) => load("team-mfe1", "./comp"));
+        </script>
+    </body>
+</html>
+```
+
+However, the recommended way is to create your own customized variant of the orchestrator. This allows you to override certain steps or append plugins like custom loggers. This example will make use of ESBuild:
+
 
 ```
 import { initFederation } from 'vanilla-native-federation';
