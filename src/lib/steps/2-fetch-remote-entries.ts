@@ -1,43 +1,45 @@
-import type { FederationInfo, RemoteEntry, RemoteName } from "../handlers";
+import type { FederationInfo, RemoteEntry, RemoteInfo, RemoteName } from "../handlers";
 import type { Handlers } from "../handlers/handlers.contract";
-import { NFError } from "../native-federation.error";
 import { tap } from "../utils/tap";
 
 type FetchRemoteEntries = (remotesOrManifestUrl: Record<RemoteName, RemoteEntry>) => Promise<Record<RemoteName, RemoteEntry>>
 
 const fetchRemoteEntries = (
-    { remoteInfoHandler, externalsHandler, logHandler }: Handlers
+    { remoteInfoHandler, externalsHandler, logHandler}: Handlers
 ): FetchRemoteEntries => 
     (manifest: Record<RemoteName, RemoteEntry> = {}) => {
     
-        const addRemoteEntryToStorage = (remoteEntry: string) => (remote: FederationInfo) => {
-            try{
-                externalsHandler.checkForIncompatibleSingletons(remote.shared);
-
-                const remoteInfo = remoteInfoHandler.toStorage(remote, remoteEntry);
-                externalsHandler.toStorage(remote.shared, remoteInfo.scopeUrl);
-            }catch(e:unknown ) {
-                const message = (e instanceof Error) ? e.message : String(e);
-                logHandler.error(`Failed to load remote '${remote.name}': ` + message);
-            }
-            
+        const checkSharedExternalsCompatibility = (remote: FederationInfo): FederationInfo => {
+            externalsHandler.checkForIncompatibleSingletons(remote.shared);
             return remote;
         }
 
+        const addRemoteEntryToStorage = (remoteEntry: string) => (remote: FederationInfo): RemoteInfo => {
+            const remoteInfo = remoteInfoHandler.toStorage(remote, remoteEntry);
+            externalsHandler.toStorage(remote.shared, remoteInfo.scopeUrl);
+            return remoteInfo;
+        }
 
-        const fetchRemoteEntries = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<FederationInfo> => {
-            return remoteInfoHandler.getFromEntry(remoteEntry)
-                .then(tap(m => {
-                    logHandler.debug(`Initialized remoteEntry: ${JSON.stringify({name: m.name, exposes: m.exposes})}`);
-                    if(!!remoteName && m.name !== remoteName) {
-                        logHandler.warn(`Fetched remote '${m.name}' does not match requested '${remoteName}'`);
+        const fetchRemoteEntries = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<RemoteInfo|false> => {
+            if(remoteInfoHandler.inStorage(remoteName)) {
+                logHandler.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
+                return Promise.resolve(remoteInfoHandler.fromStorage(remoteName));
+            }
+            return remoteInfoHandler.fetchRemoteEntry(remoteEntry)
+                .then(tap(federationInfo => {
+                    logHandler.debug(`Initialized remoteEntry: ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);
+                    if(!!remoteName && federationInfo.name !== remoteName) {
+                        logHandler.warn(`Fetched remote '${federationInfo.name}' does not match requested '${remoteName}'`);
                     }
                 }))
-                .catch(_ => {
-                    logHandler.warn(`Error loading remoteEntry for ${remoteName} at '${remoteEntry}', skipping module`);
-                    throw new NFError(`Error loading remoteEntry for ${remoteName} at '${remoteEntry}'`)
-                })
+                .then(checkSharedExternalsCompatibility)
                 .then(addRemoteEntryToStorage(remoteEntry))
+                .catch(e => {
+                    const message = (e instanceof Error) ? e.message : String(e);
+                    logHandler.error(`Failed to initialize remote '${remoteName}'.`);
+                    logHandler.debug(`Remote '${remoteName}' init failed: ` + message);
+                    return false;
+                })
         }
 
         return Promise.resolve(Object.entries(manifest))

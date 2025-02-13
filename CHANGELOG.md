@@ -1,3 +1,7 @@
+## 0.8.2 - Added remote caching check
+- During initialization, if a remote is already initialized or found in storage, it will be skipped. 
+- ImportMapShim is now optional.
+
 ## 0.8.1 - Shared version compatibility check
 - Added version resolving compatibility check (error if strict, warning otherwise).
 - If an dependency incompatibility error occurs, the remote module will not be loaded/initialized. 

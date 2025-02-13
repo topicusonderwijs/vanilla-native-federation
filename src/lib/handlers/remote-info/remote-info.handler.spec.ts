@@ -119,7 +119,7 @@ describe('remoteInfoHandler', () => {
         });
     });
 
-    describe('getFromEntry', () => {
+    describe('fetchRemoteEntry', () => {
 
         it('Should fetch the remote from the remoteEntryUrl', async () => {
             const expected = { ...MOCK_FEDERATION_INFO(), shared: MOCK_SHARED_INFO() };
@@ -135,7 +135,7 @@ describe('remoteInfoHandler', () => {
                 )
             );
 
-            const actual = await remoteInfoHandler.getFromEntry("http://localhost:3001/remoteEntry.json");
+            const actual = await remoteInfoHandler.fetchRemoteEntry("http://localhost:3001/remoteEntry.json");
         
             expect(actual).toEqual(expected);
         });    
@@ -149,21 +149,21 @@ describe('remoteInfoHandler', () => {
                 })
             );
 
-            const actual = remoteInfoHandler.getFromEntry("http://localhost:3001/remoteEntry.json");
+            const actual = remoteInfoHandler.fetchRemoteEntry("http://localhost:3001/remoteEntry.json");
 
             expect(actual).rejects.toThrow(NFError);
             expect(actual).rejects.toThrow(`Fetching remote from 'http://localhost:3001/remoteEntry.json' failed: 404 - Entry does not exist`);
         });    
 
         it('Should throw error if no remoteEntryUrl', async () => {
-            const actual = () => remoteInfoHandler.getFromEntry(undefined as any);
+            const actual = () => remoteInfoHandler.fetchRemoteEntry(undefined as any);
             
             expect(actual()).rejects.toThrow(NFError);
             expect(actual()).rejects.toThrow(`Module not registered, provide a valid remoteEntryUrl.`);
         });
     });
 
-    describe('getFromCache', () => {
+    describe('fromStorage', () => {
         let cache: { remotes: Record<string, RemoteInfo> }
 
         beforeEach(() => {

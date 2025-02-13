@@ -26,7 +26,8 @@ const mockExternalsHandler = (): ExternalsHandler => ({
 const mockRemoteInfoHandler = (): RemoteInfoHandler => ({
     toStorage: jest.fn(),
     fromStorage: jest.fn(),
-    getFromEntry: jest.fn(),
+    fetchRemoteEntry: jest.fn(),
+    inStorage: jest.fn(),
     toScope: jest.fn()
 });
 
