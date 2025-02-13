@@ -214,7 +214,7 @@ describe('importMapHandler', () => {
     
             const scriptElement = document.head.querySelector('script');
             expect(scriptElement).not.toBeNull();
-            expect(scriptElement?.type).toBe('importmap-shim');
+            expect(scriptElement?.type).toBe('importmap');
         });
     
         it('should set correct innerHTML with stringified import map', () => {
