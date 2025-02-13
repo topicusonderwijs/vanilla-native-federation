@@ -20,6 +20,7 @@ const mockStorageHandler = <TCache extends NfCache>(): StorageHandler<TCache> =>
 const mockExternalsHandler = (): ExternalsHandler => ({
     toStorage: jest.fn(),
     fromStorage: jest.fn(),
+    checkForIncompatibleSingletons: jest.fn()
 });
 
 const mockRemoteInfoHandler = (): RemoteInfoHandler => ({

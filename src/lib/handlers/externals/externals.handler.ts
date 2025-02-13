@@ -1,6 +1,8 @@
 import type { ExternalsHandler, SharedInfo } from "./externals.contract";
+import { NFError } from "../../native-federation.error";
 import type { BuilderConfig } from "../../utils/config/config.contract";
 import * as _path from "../../utils/path";
+import type { LogHandler } from "../logging";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
 import type { Version, VersionHandler } from "../version/version.contract";
 
@@ -14,7 +16,9 @@ import type { Version, VersionHandler } from "../version/version.contract";
 const externalsHandlerFactory = (
     {builderType}: BuilderConfig,
     storageHandler: StorageHandler<NfCache>,
-    versionHandler: VersionHandler
+    logHandler: LogHandler,
+    versionHandler: VersionHandler,
+
 ): ExternalsHandler => {
 
     const filterByBuilderType = (dep: SharedInfo) => 
@@ -63,6 +67,37 @@ const externalsHandlerFactory = (
         return storageHandler.fetch('externals')[scope] ?? {};
     } 
 
+    function checkForIncompatibleSingletons(externals: SharedInfo[]): void {
+        const globalExternals = storageHandler.fetch('externals')["global"];
+
+        const sharedExternals = externals
+            .filter(filterByBuilderType)
+            .filter(e => e.singleton && globalExternals[e.packageName]);
+
+        for (const newExternal of sharedExternals) {
+            const currentExternal = globalExternals[newExternal.packageName]!;
+
+            if (currentExternal.strictRequiredVersion &&  
+                !versionHandler.isCompatible(newExternal.version!, currentExternal.strictRequiredVersion)) {
+                throw new NFError(`[${newExternal.packageName}] Version '${newExternal.version}' is not compatible to version range '${currentExternal.strictRequiredVersion.join(" - ")}'`);
+            }
+
+            if (currentExternal.requiredVersion && 
+                !versionHandler.isCompatible(newExternal.version!, currentExternal.requiredVersion)) {
+                logHandler.warn(`[${newExternal.packageName}] Version '${newExternal.version}' is not compatible to version range '${currentExternal.requiredVersion.join(" - ")}'`);
+            }
+
+            const newVersionRange = versionHandler.toRange(newExternal.requiredVersion);
+            if (!versionHandler.isCompatible(currentExternal.version!, newVersionRange)) {
+                const err = `[${newExternal.packageName}] Stored version '${currentExternal.version}' is not compatible to version range '${newVersionRange.join(" - ")}'`;
+                if(newExternal.strictVersion) throw new NFError(err);
+
+
+                logHandler.warn(err);
+            }
+        }
+    }
+
     function toStorage(externals: SharedInfo[], scopeUrl: string) {
         clearDependencyScope(scopeUrl);
 
@@ -74,9 +109,7 @@ const externalsHandlerFactory = (
         return externals;
     }
 
-
-
-    return {fromStorage, toStorage};
+    return {fromStorage, toStorage, checkForIncompatibleSingletons};
 }
 
 export {externalsHandlerFactory};

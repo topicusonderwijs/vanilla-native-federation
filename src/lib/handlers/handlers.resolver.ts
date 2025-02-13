@@ -17,7 +17,7 @@ const resolveHandlers = <TCache extends NfCache>(
 
     // Core
     const versionHandler = versionHandlerFactory();
-    const externalsHandler = externalsHandlerFactory(config, storageHandler, versionHandler);
+    const externalsHandler = externalsHandlerFactory(config, storageHandler, logHandler, versionHandler);
     const remoteInfoHandler = remoteInfoHandlerFactory(storageHandler);
 
     const importMapHandler = importMapHandlerFactory(externalsHandler, remoteInfoHandler);

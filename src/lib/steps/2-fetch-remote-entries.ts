@@ -11,10 +11,19 @@ const fetchRemoteEntries = (
     (manifest: Record<RemoteName, RemoteEntry> = {}) => {
     
         const addRemoteEntryToStorage = (remoteEntry: string) => (remote: FederationInfo) => {
-            const remoteInfo = remoteInfoHandler.toStorage(remote, remoteEntry);
-            externalsHandler.toStorage(remote.shared, remoteInfo.scopeUrl);
+            try{
+                externalsHandler.checkForIncompatibleSingletons(remote.shared);
+
+                const remoteInfo = remoteInfoHandler.toStorage(remote, remoteEntry);
+                externalsHandler.toStorage(remote.shared, remoteInfo.scopeUrl);
+            }catch(e:unknown ) {
+                const message = (e instanceof Error) ? e.message : String(e);
+                logHandler.error(`Failed to load remote '${remote.name}': ` + message);
+            }
+            
             return remote;
         }
+
 
         const fetchRemoteEntries = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<FederationInfo> => {
             return remoteInfoHandler.getFromEntry(remoteEntry)

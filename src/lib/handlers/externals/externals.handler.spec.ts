@@ -1,8 +1,9 @@
 import { externalsHandlerFactory } from './externals.handler';
 import { ExternalsHandler, SharedInfo } from './externals.contract';
-import { mockStorageHandler, mockVersionHandler } from '../../../mock/handlers.mock';
+import { mockLogHandler, mockStorageHandler, mockVersionHandler } from '../../../mock/handlers.mock';
 import { NfCache, StorageHandler } from '../storage/storage.contract';
 import { Version, VersionHandler } from '../version/version.contract';
+import { LogHandler } from '../logging';
 
 /**
  * SharedInfo = meta info regarding a shared dependency.
@@ -13,6 +14,7 @@ import { Version, VersionHandler } from '../version/version.contract';
 describe('externalsHandler', () => {
     let storageHandler: StorageHandler<NfCache>;
     let versionHandler: VersionHandler;
+    let logHandler: LogHandler;
     let externalsHandler: ExternalsHandler;
 
     type CacheGlobalExternals = {global: Record<string, Version>};
@@ -34,9 +36,11 @@ describe('externalsHandler', () => {
     beforeEach(() => {
         storageHandler = mockStorageHandler();
         versionHandler = mockVersionHandler();
+        logHandler = mockLogHandler();
         externalsHandler = externalsHandlerFactory(
             {builderType: "default"},
             storageHandler,
+            logHandler,
             versionHandler
         );
     });
@@ -353,4 +357,64 @@ describe('externalsHandler', () => {
             });
         });
     });
+
+    describe('checkForIncompatibleSingletons', () => {
+        beforeEach(() => {
+            (versionHandler.toRange as jest.Mock) = jest.fn(() => ["7.8.0","7.9.0"]);
+        });
+
+        it('should do nothing if all versions are compatible', () => {
+            (storageHandler.fetch as jest.Mock) = jest.fn((): {global: Record<string, Version>} => ({
+                global: {
+                    "rxjs": {version: "7.8.2", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/NEW-PACKAGE.js" }
+                }
+            }));
+            (versionHandler.isCompatible as jest.Mock) = jest.fn(() => true);
+
+            externalsHandler.checkForIncompatibleSingletons(MOCK_SHARED_INFO({singleton: true, strictVersion: false}))
+            expect(logHandler.warn).not.toHaveBeenCalled();
+        })
+
+        it('to send warning if new singleton is outside of range', () => {
+            (storageHandler.fetch as jest.Mock) = jest.fn((): {global: Record<string, Version>} => ({
+                global: {
+                    "rxjs": {version: "7.6.2", requiredVersion: ["7.6.0","7.7.0"], url: "http://localhost:3001/NEW-PACKAGE.js" }
+                }
+            }));
+            (versionHandler.isCompatible as jest.Mock) = jest.fn(() => false);
+
+            externalsHandler.checkForIncompatibleSingletons(MOCK_SHARED_INFO({singleton: true, strictVersion: false}));
+
+            expect((logHandler.warn as jest.Mock).mock.calls).toEqual([
+                ["[rxjs] Version '7.8.1' is not compatible to version range '7.6.0 - 7.7.0'"],
+                ["[rxjs] Stored version '7.6.2' is not compatible to version range '7.8.0 - 7.9.0'"]
+            ]);
+        });
+
+        it('to send an error if new singleton is outside of range', () => {
+            (storageHandler.fetch as jest.Mock) = jest.fn((): {global: Record<string, Version>} => ({
+                global: {
+                    "rxjs": {version: "7.6.2", strictRequiredVersion: ["7.6.0","7.7.0"], url: "http://localhost:3001/NEW-PACKAGE.js" }
+                }
+            }));
+            (versionHandler.isCompatible as jest.Mock) = jest.fn(() => false);
+
+            const actual = () => externalsHandler.checkForIncompatibleSingletons(MOCK_SHARED_INFO({singleton: true, strictVersion: false}));
+
+            expect(actual).toThrow("[rxjs] Version '7.8.1' is not compatible to version range '7.6.0 - 7.7.0'");
+        });
+
+        it('to send the current stored version is outside of new singleton range', () => {
+            (storageHandler.fetch as jest.Mock) = jest.fn((): {global: Record<string, Version>} => ({
+                global: {
+                    "rxjs": {version: "8.1.2", requiredVersion: ["7.1.0","8.2.0"], url: "http://localhost:3001/NEW-PACKAGE.js" }
+                }
+            }));
+            (versionHandler.isCompatible as jest.Mock) = jest.fn(() => false);
+
+            const actual = () => externalsHandler.checkForIncompatibleSingletons(MOCK_SHARED_INFO({singleton: true, strictVersion: true}));
+
+            expect(actual).toThrow("[rxjs] Stored version '8.1.2' is not compatible to version range '7.8.0 - 7.9.0'");
+        });
+    })
 });
