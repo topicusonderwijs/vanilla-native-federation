@@ -49,6 +49,8 @@ const remoteInfoHandlerFactory = <TCache extends NfCache>(
     }
 
     function toStorage(remote: {name: string; exposes: ExposesInfo[]}, remoteEntry: string): RemoteInfo {
+
+
         const remoteInfo: RemoteInfo = {
             remoteName: remote.name,
             scopeUrl: toScope(remoteEntry),

@@ -1,3 +1,7 @@
+## 0.8.1 - Shared version compatibility check
+- Added version resolving compatibility check (error if strict, warning otherwise).
+- If an dependency incompatibility error occurs, the remote module will not be loaded/initialized. 
+
 ## 0.8.0 - Improved dependency (external) sharing
 - Support for 'singleton' dependencies.
 - 'vite' dependencies are now optional based on `buildType` in the config (prefixed with `/@id/`).
