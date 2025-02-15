@@ -50,7 +50,7 @@ Below you can find some examples of how to use the native-federation loader. The
                 window.loadRemoteModule("team/mfe1", "./comp");
             }, {once: true});
         </script>
-        <script src="https://cdn.jsdelivr.net/npm/vanilla-native-federation@0.8.3/fesm2022/vanilla-native-federation-quickstart.mjs"></script>
+        <script src="https://unpkg.com/vanilla-native-federation@0.8.4/fesm2022/vanilla-native-federation-quickstart.mjs"></script>
     </head>
     <body>
         <!-- Name of your custom element -->
