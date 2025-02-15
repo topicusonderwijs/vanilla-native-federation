@@ -1,5 +1,5 @@
 {
-  "version": "0.8.3",
+  "version": "0.8.4",
   "name": "vanilla-native-federation",
   "author": "aukevanoost",
   "keywords": [
@@ -32,11 +32,9 @@
     "json5": "^2.2.3",
     "serve": "^14.2.4",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "systemjs": "^6.15.1",
+    "eslint-plugin-prettier": "^5.2.3"
   },
-  "sideEffects": false,
-  "dependencies": {
-    "eslint-plugin-prettier": "^5.2.3",
-    "systemjs": "^6.15.1"
-  }
+  "sideEffects": false
 }

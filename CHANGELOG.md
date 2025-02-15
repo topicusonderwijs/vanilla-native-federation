@@ -1,3 +1,6 @@
+## 0.8.4 - Moved dependencies to devDependencies
+- Moved SystemJS and eslint-plugin-prettier to devDependencies.
+
 ## 0.8.3 - Support for custom module loaders
 - Dependency updates
 - Added support for custom module loaders like SystemJS.

@@ -27,8 +27,6 @@ Right now, it is recommended to use the [es-module-shims](https://www.npmjs.com/
 
 ```
 <script async src="https://ga.jspm.io/npm:es-module-shims@2.0.9/dist/es-module-shims.js"></script>
-
-<script src="./my-esm-module.js"></script>
 ```
 
 **Important:** The examples assume that the fetched remote modules bootstrap a [custom element](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements). The `load()` method in this vanilla-native-federation library returns a promise of the contents of the remote JavaScript module returned. It is also possible to write a different (custom) handler for the returned module. 
