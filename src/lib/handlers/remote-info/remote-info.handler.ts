@@ -1,7 +1,6 @@
 import type { ExposesInfo, FederationInfo, RemoteEntry, RemoteInfo, RemoteInfoHandler } from "./remote-info.contract";
 import { NFError } from "../../native-federation.error";
 import * as _path from "../../utils/path";
-import type { RemoteModule } from "../remote-module/remote-module.contract";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
 
 const remoteInfoHandlerFactory = (

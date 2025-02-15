@@ -1,39 +1,13 @@
-import { ExposesInfo, SharedInfo } from "@softarc/native-federation-runtime";
 import { NfCache, StorageHandler } from "../storage";
 import { RemoteModuleHandler } from "./remote-module.contract";
 import { remoteModuleHandlerFactory } from './remote-module.handler';
 import { mockStorageHandler } from "../../../mock/handlers.mock";
 import { NFError } from "../../native-federation.error";
+import { RemoteInfo } from "../remote-info";
 
 describe('remoteInfoHandler', () => {
     let storageHandler: StorageHandler<NfCache>;
     let remoteModuleHandler: RemoteModuleHandler;
-
-    const MOCK_SHARED_INFO = (): SharedInfo[] => 
-        [
-            {
-                packageName: "rxjs",
-                outFileName: "rxjs.js",
-                requiredVersion: "~7.8.0",
-                singleton: true,
-                strictVersion: true,
-                version: "7.8.1",
-            }
-        ] as SharedInfo[]
-
-   const MOCK_FEDERATION_INFO = (): {name: string, exposes: ExposesInfo[]} => 
-        JSON.parse(JSON.stringify({
-            name: 'team/mfe1', 
-            exposes: [{key: './comp', outFileName: 'comp.js'}]
-        }))
-
-
-
-    const MOCK_FEDERATION_INFO_II = (): {name: string, exposes: ExposesInfo[]} => 
-            JSON.parse(JSON.stringify({
-                name: 'team/mfe2', 
-                exposes: [{key: './comp', outFileName: 'comp.js'}]
-            }))
 
     beforeEach(() => {
         storageHandler = mockStorageHandler();
@@ -48,6 +22,23 @@ describe('remoteInfoHandler', () => {
     });
 
     describe('fromStorage', () => {
+        let cache: { remotes: Record<string, RemoteInfo> }
+
+        beforeEach(() => {
+            cache = { 
+                remotes: { 
+                    "team/mfe1": {
+                        scopeUrl: "http://localhost:3001/",
+                        remoteName: "team/mfe1",
+                        exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
+                    }
+                },
+            };
+            (storageHandler.fetch as jest.Mock).mockImplementation(
+                () => cache["remotes"] as Record<string, RemoteInfo>
+            );
+        })
+
         it('should fetch the remote module from storage', () => {
             const expected = {moduleName: "./comp", url: "http://localhost:3001/comp.js"};
         

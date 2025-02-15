@@ -4,7 +4,7 @@ declare function importShim<T>(url: string): T;
 
 const useImportMapShim = (builderType: BuilderType = 'default'): ModuleLoaderConfig => ({
     builderType,
-    importMapType: "importmap-shim",
+    importMapType: "importmap",
     loadModuleFn: (url) => importShim(url)
 })
 

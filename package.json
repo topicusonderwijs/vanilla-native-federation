@@ -22,6 +22,7 @@
     "@types/node": "^22.13.1",
     "@typescript-eslint/eslint-plugin": "^8.24.0",
     "@typescript-eslint/parser": "^8.24.0",
+    "es-module-shims": "^2.0.9",
     "esbuild": "^0.25.0",
     "eslint": "^9.20.1",
     "eslint-import-resolver-typescript": "^3.8.0",
