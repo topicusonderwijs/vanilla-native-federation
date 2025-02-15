@@ -8,7 +8,7 @@ declare global {
     }
   }
 
-const useSystemJS = (builderType: BuilderType): ModuleLoaderConfig => ({
+const useSystemJS = (builderType: BuilderType = 'default'): ModuleLoaderConfig => ({
     builderType,
     importMapType: "systemjs-importmap",
     loadModuleFn: (url) => window.System.import(url)

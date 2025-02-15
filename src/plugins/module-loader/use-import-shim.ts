@@ -1,8 +1,8 @@
-import type { ModuleLoaderConfig } from "../../lib/utils/config/config.contract"
+import type { BuilderType, ModuleLoaderConfig } from "../../lib/utils/config/config.contract"
 
 declare function importShim<T>(url: string): T;
 
-const useImportMapShim = (builderType: 'default'|'vite'): ModuleLoaderConfig => ({
+const useImportMapShim = (builderType: BuilderType = 'default'): ModuleLoaderConfig => ({
     builderType,
     importMapType: "importmap-shim",
     loadModuleFn: (url) => importShim(url)
