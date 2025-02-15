@@ -13,7 +13,15 @@ describe('importMapHandler', () => {
         remoteInfoHandler = mockRemoteInfoHandler();
 
         externalsHandler = mockExternalsHandler();
-        importMapHandler = importMapHandlerFactory(externalsHandler, remoteInfoHandler);
+        importMapHandler = importMapHandlerFactory(
+            {
+                builderType: "default",
+                loadModuleFn: jest.fn(),
+                importMapType: "importmap"
+            },
+            externalsHandler, 
+            remoteInfoHandler
+        );
     });
 
     describe('create', () => {

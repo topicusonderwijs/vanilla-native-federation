@@ -192,27 +192,6 @@ describe('remoteInfoHandler', () => {
         
             expect(actual).toEqual(expected);
         });  
-        it('should fetch the remote module from storage', () => {
-            const expected = {moduleName: "./comp", url: "http://localhost:3001/comp.js"};
-
-            const actual = remoteInfoHandler.fromStorage("team/mfe1", "./comp");
-        
-            expect(actual).toEqual(expected);
-        }); 
-
-        it('should reject if remoteName is not in storage', async () => {
-            const actual = () => remoteInfoHandler.fromStorage("team/UNKNOWN-MFE", "./comp");
-        
-            expect(actual).toThrow(NFError);
-            await expect(actual).toThrow("Remote 'team/UNKNOWN-MFE' not found in storage.");
-        });  
-
-        it('should reject if exposedModule is not in storage', async () => {
-            const actual = () => remoteInfoHandler.fromStorage("team/mfe1", "./UNKNOWN-COMP");
-        
-            expect(actual).toThrow(NFError);
-            expect(actual).toThrow("Exposed module './UNKNOWN-COMP' from remote 'team/mfe1' not found in storage.");
-        });  
     })
 
     describe('toScope', () => {

@@ -1,6 +1,6 @@
 import type { ExternalsHandler, SharedInfo } from "./externals.contract";
 import { NFError } from "../../native-federation.error";
-import type { BuilderConfig } from "../../utils/config/config.contract";
+import type { ModuleLoaderConfig } from "../../utils/config/config.contract";
 import * as _path from "../../utils/path";
 import type { LogHandler } from "../logging";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
@@ -14,7 +14,7 @@ import type { Version, VersionHandler } from "../version/version.contract";
  * @returns 
  */
 const externalsHandlerFactory = (
-    {builderType}: BuilderConfig,
+    {builderType}: ModuleLoaderConfig,
     storageHandler: StorageHandler<NfCache>,
     logHandler: LogHandler,
     versionHandler: VersionHandler,

@@ -1,6 +1,5 @@
 import type { Handlers } from "../handlers/handlers.contract";
 import type { RemoteEntry, RemoteName } from "../handlers/remote-info/remote-info.contract";
-import { usesImportMapShim } from "../utils/importmap-shim";
 import * as _path from "../utils/path";
 
 type LoadRemoteModule = (remoteName: string, exposedModule: string) => Promise<unknown>
@@ -10,25 +9,25 @@ type ExposeModuleLoader = (manifest: Record<RemoteName, RemoteEntry>) => Promise
     manifest: Record<RemoteName, RemoteEntry>
 }>
 
-declare function importShim<T>(url: string): T;
-
 const exposeModuleLoader = (
-    {logHandler, remoteInfoHandler }: Handlers
+    { logHandler, remoteModuleHandler}: Handlers
 ): ExposeModuleLoader => {
-
-    function _importModule(url: string) {
-        return usesImportMapShim()
-          ? importShim<unknown>(url)
-          : import(url);
-    }
-
     function load(
         remoteName: string, exposedModule: string
     ): Promise<unknown> {
-        const remoteModule = remoteInfoHandler.fromStorage(remoteName, exposedModule);
-        logHandler.debug(`Loading module ${JSON.stringify(remoteModule)}`)
+        try{
+            const remoteModule = remoteModuleHandler.fromStorage(remoteName, exposedModule);
+            logHandler.debug(`Loading initialized module '${JSON.stringify(remoteModule)}'`);
+            return Promise.resolve(remoteModuleHandler.importModule(remoteModule.url));
+        }catch(e) {
+            let errMsg = `Failed to load remote ${remoteName} module ${exposedModule}`;
+            if (e instanceof Error) errMsg = e.message;
+            if (typeof e === "string") errMsg = e;
+            logHandler.error("Module load failed: " + errMsg);
 
-        return Promise.resolve(_importModule(remoteModule.url));
+            return Promise.reject(`Could not import remote module`);
+        }
+ 
     }
 
     return (manifest: Record<RemoteName, RemoteEntry>) => Promise.resolve({ manifest, load });

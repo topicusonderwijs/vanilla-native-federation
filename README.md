@@ -23,13 +23,12 @@ This library is under [MIT License](./LICENSE.md) and is inspired on [@softarc/n
 
 ## 1 &nbsp; Dependencies:
 
-Right now the library is dependent on [es-module-shims](https://www.npmjs.com/package/es-module-shims) to resolve all dependency urls and for browser support. The shim can be added in the HTML page: 
+Right now, it is recommended to use the [es-module-shims](https://www.npmjs.com/package/es-module-shims) library to provide fallback functionality for old browsers regarding import maps. The shim can be added in the HTML page: 
 
 ```
-<script type="esms-options">{ "shimMode": true }</script>
-<script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+<script async src="https://ga.jspm.io/npm:es-module-shims@2.0.9/dist/es-module-shims.js"></script>
 
-<script type="module-shim" src="./my-esm-module.js"></script>
+<script src="./my-esm-module.js"></script>
 ```
 
 **Important:** The examples assume that the fetched remote modules bootstrap a [custom element](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements). The `load()` method in this vanilla-native-federation library returns a promise of the contents of the remote JavaScript module returned. It is also possible to write a different (custom) handler for the returned module. 
@@ -42,21 +41,22 @@ Below you can find some examples of how to use the native-federation loader. The
 <html>
     <head>
         <title>Shell</title>
+        <script type="application/json" id="manifest">
+            {
+                "team/mfe1": "http://localhost:3000/remoteEntry.json",
+            }
+        </script>
+        <script>
+            <!-- event will be fired if native-federation initialization is done -->
+            window.addEventListener('mfe-loader-available', (e) => {
+                window.loadRemoteModule("team/mfe1", "./comp");
+            }, {once: true});
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/vanilla-native-federation@0.8.3/fesm2022/vanilla-native-federation-quickstart.mjs"></script>
     </head>
     <body>
+        <!-- Name of your custom element -->
         <team-mfe1></team-mfe1>
-
-        <script type="esms-options">{ "shimMode": true }</script> 
-        <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
-            
-        <script type="module-shim">
-            import {initFederation} from 'https://esm.run/vanilla-native-federation';
-
-            console.log("test");
-            initFederation({
-                "team-mfe1": "http://localhost:3001/remoteEntry.json",
-            }).then(({load}) => load("team-mfe1", "./comp"));
-        </script>
     </body>
 </html>
 ```
@@ -64,23 +64,33 @@ Below you can find some examples of how to use the native-federation loader. The
 However, the recommended way is to create your own customized variant of the orchestrator. This allows you to override certain steps or append plugins like custom loggers. This example will make use of ESBuild:
 
 ```
-import { initFederation } from 'vanilla-native-federation';
+import 'es-module-shims';
 
-(() => {
-    const manifest = {
-      "remote1": "http://localhost:3001/remoteEntry.json",
-      "remote2": "http://localhost:3002/remoteEntry.json",
-    }
-    initFederation(manifest)
-      .then(({load, importMap}) => Promise.all([
-        load('remote1', './Component'),
-        load('remote2', './Component'),
-      ]))
-      .catch(console.error);
-})();
+import { initFederation } from 'vanilla-native-federation';
+import { consoleLogger } from 'vanilla-native-federation/plugins/logging';
+import { sessionStorageEntry } from 'vanilla-native-federation/plugins/storage';
+import { useImportMapShim } from 'vanilla-native-federation/plugins/module-loader';
+
+(async () => {
+  const manifest = {
+    "remote1": "http://localhost:3001/remoteEntry.json",
+    "remote2": "http://localhost:3002/remoteEntry.json",
+  }
+  initFederation(manifest, {
+    logger: consoleLogger, 
+    logLevel: "debug", 
+    toStorageEntry: sessionStorageEntry,
+    ...useImportMapShim("default"),
+  })
+    .then(({load, manifest}) => Promise.all([
+      load('remote1', './comp'),
+      load('remote2', './comp'),
+    ]))
+    .catch(console.error);
+  })();
 ```
 
-The `initFederation` will return the importMap object that was appended to the HTML page together with a `load()` callback, this function can load remote modules using the imported dependencies from the importMap. The `load()` callback returns a `Promise<unknown>` that represents the remote module that was retrieved.
+The `initFederation` will return the importMap object that was appended to the HTML page together with a `load()` callback, this function can load remote modules using the imported dependencies from the importMap. The `load()` callback returns a `Promise<unknown>` that represents the remote module that was retrieved. The load fn cannot be used before initialization, hence it is provided after the init Promise is resolved. It is however entirely possible to link this callback to the global Window object.
 
 Below are the types of the exposed functions: 
 
@@ -161,16 +171,17 @@ Custom events can help streamline the import process, this way you can have a ge
 **loader.js**
 ```
 import { initFederation } from 'vanilla-native-federation';
+import { useImportMapShim } from 'vanilla-native-federation/plugins/module-loader';
 
-(() => {
-  const manifest = {
-    "remote1": "http://localhost:3001/remoteEntry.json"
-  }
-  initFederation(manifest)
-    .then(({load, importMap}) => {
-      console.log("importMap: ", importMap);
-      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
-    })
+(async () => {
+    const jsonScript = document.getElementById('manifest');
+    
+    await initFederation(
+      JSON.parse(jsonScript.textContent), 
+      { ...useImportMapShim() }
+    ).then(({load}) => {
+        window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    });
 })();
 ```
 
@@ -182,10 +193,8 @@ Modules can be loaded by awaiting the `mfe-loader-available` event that will exp
     <!-- webcomponent exposed by remote1 -->
     <app-mfe-one></app-mfe-one>
 
-    <script type="esms-options">{ "shimMode": true }</script>
-    <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+    <script async src="https://ga.jspm.io/npm:es-module-shims@2.0.9/dist/es-module-shims.js"></script>
 
-    <script type="module-shim" src="loader.js"></script>
 
     <script>
       window.addEventListener('mfe-loader-available', (e) => {
@@ -194,6 +203,8 @@ Modules can be loaded by awaiting the `mfe-loader-available` event that will exp
         ]).catch(console.error);
       }, {once: true});
     </script>  
+    <!-- your-orchestrator-implementation -->
+    <script src="./loader.js"></script> 
   </body>
 ```
 
@@ -212,8 +223,8 @@ import { consoleLogger } from 'vanilla-native-federation/plugins/logging';
     logLevel: 'debug',     // 'debug'|'warn'|'error' -> default: 'error'
     logger: consoleLogger  // default: noopLogger
   })
-    .then(({load, importMap}) => {
-      console.log("importMap: ", importMap);
+    .then(({load, manifest}) => {
+      console.log("manifest: ", manifest);
       window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
     })
 })();
@@ -246,8 +257,7 @@ Remotes can now be defined in the new method and the loading is abstracted away 
     <app-mfe-one></app-mfe-one>
     <app-mfe-two></app-mfe-two>
 
-    <script type="esms-options">{ "shimMode": true }</script>
-    <script src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+    <script src="https://ga.jspm.io/npm:es-module-shims@2.10.1/dist/es-module-shims.js"></script>
 
     <script type="module-shim">
       import { initMicroFrontends } from "./loader.js";
@@ -281,8 +291,28 @@ import { sessionStorageEntry } from 'vanilla-native-federation/plugins/storage';
     "remote1": "http://localhost:3001/remoteEntry.json"
   }
   initFederation(manifest, {toStorageEntry: sessionStorageEntry})
+    .then(({load, manifest}) => {
+      console.log("manifest: ", manifest);
+      window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    })
+})();
+```
+
+## 5.2 &nbsp; Custom module loaders:
+
+It is also possible to use custom module loaders like the es-module-shims package used in previous examples or the SystemJS module loader. 
+
+```
+import { initFederation } from 'vanilla-native-federation';
+import { useSystemJS } from 'vanilla-native-federation/plugins/module-loader';
+
+(() => {
+  const manifest = {
+    "remote1": "http://localhost:3001/remoteEntry.json"
+  }
+  initFederation(manifest, { ...useSystemJS() })
     .then(({load, importMap}) => {
-      console.log("importMap: ", importMap);
+      console.log("manifest: ", manifest);
       window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
     })
 })();

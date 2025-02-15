@@ -4,6 +4,7 @@ import type { Handlers } from "./handlers.contract";
 import { importMapHandlerFactory } from "./import-map/import-map.handler";
 import { logHandlerFactory } from "./logging/log.handler";
 import { remoteInfoHandlerFactory } from "./remote-info/remote-info.handler";
+import { remoteModuleHandlerFactory } from "./remote-module/remote-module.handler";
 import type { NfCache } from "./storage/storage.contract";
 import { storageHandlerFactory } from "./storage/storage.handler";
 import { versionHandlerFactory } from "./version/version.handler";
@@ -19,14 +20,16 @@ const resolveHandlers = <TCache extends NfCache>(
     const versionHandler = versionHandlerFactory();
     const externalsHandler = externalsHandlerFactory(config, storageHandler, logHandler, versionHandler);
     const remoteInfoHandler = remoteInfoHandlerFactory(storageHandler);
+    const remoteModuleHandler = remoteModuleHandlerFactory(config, storageHandler);
 
-    const importMapHandler = importMapHandlerFactory(externalsHandler, remoteInfoHandler);
+    const importMapHandler = importMapHandlerFactory(config, externalsHandler, remoteInfoHandler);
 
     return {
         storageHandler,
         logHandler,
         externalsHandler,
         remoteInfoHandler,
+        remoteModuleHandler,
         importMapHandler
     }
 }

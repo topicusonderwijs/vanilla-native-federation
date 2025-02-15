@@ -1,10 +1,10 @@
-import type { ExposesInfo, FederationInfo, RemoteEntry, RemoteInfo, RemoteInfoHandler, RemoteModule } from "./remote-info.contract";
+import type { ExposesInfo, FederationInfo, RemoteEntry, RemoteInfo, RemoteInfoHandler } from "./remote-info.contract";
 import { NFError } from "../../native-federation.error";
 import * as _path from "../../utils/path";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
 
-const remoteInfoHandlerFactory = <TCache extends NfCache>(
-    storageHandler: StorageHandler<TCache>, 
+const remoteInfoHandlerFactory = (
+    storageHandler: StorageHandler<NfCache>, 
 ): RemoteInfoHandler => {
 
     const fetchRemoteEntryJson = (entryUrl: RemoteEntry)
@@ -34,18 +34,11 @@ const remoteInfoHandlerFactory = <TCache extends NfCache>(
             : baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
     }
 
-    function fromStorage(remoteName: string): RemoteInfo;
-    function fromStorage(remoteName: string, exposedModule: string): RemoteModule;
-    function fromStorage(remoteName: string, exposedModule?: string): RemoteInfo | RemoteModule {
+    function fromStorage(remoteName: string): RemoteInfo {
         const storage = storageHandler.fetch("remotes");
         if(!storage[remoteName]) throw new NFError(`Remote '${remoteName}' not found in storage.`);
 
-        if (!exposedModule) return storage[remoteName];
-    
-        const remoteModule = storage[remoteName].exposes.find(m => m.moduleName === exposedModule);
-        if(!remoteModule) throw new NFError(`Exposed module '${exposedModule}' from remote '${remoteName}' not found in storage.`);
-    
-        return remoteModule;
+        return storage[remoteName];
     }
 
     function inStorage(remoteName: string): boolean {
