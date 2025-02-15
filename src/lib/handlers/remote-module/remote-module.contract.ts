@@ -5,6 +5,7 @@ type RemoteModule = {
 
 type RemoteModuleHandler = {
     importModule: (url: string) => unknown,
+    fromStorage: (remoteName: string, remoteModuleName: string) => RemoteModule
 }
 
 export {RemoteModuleHandler, RemoteModule }

@@ -10,15 +10,24 @@ type ExposeModuleLoader = (manifest: Record<RemoteName, RemoteEntry>) => Promise
 }>
 
 const exposeModuleLoader = (
-    { logHandler, remoteInfoHandler, remoteModuleHandler}: Handlers
+    { logHandler, remoteModuleHandler}: Handlers
 ): ExposeModuleLoader => {
     function load(
         remoteName: string, exposedModule: string
     ): Promise<unknown> {
-        const remoteModule = remoteInfoHandler.fromStorage(remoteName, exposedModule);
-        logHandler.debug(`Loading module ${JSON.stringify(remoteModule)}`)
+        try{
+            const remoteModule = remoteModuleHandler.fromStorage(remoteName, exposedModule);
+            logHandler.debug(`Loading initialized module '${JSON.stringify(remoteModule)}'`);
+            return Promise.resolve(remoteModuleHandler.importModule(remoteModule.url));
+        }catch(e) {
+            let errMsg = `Failed to load remote ${remoteName} module ${exposedModule}`;
+            if (e instanceof Error) errMsg = e.message;
+            if (typeof e === "string") errMsg = e;
+            logHandler.error("Module load failed: " + errMsg);
 
-        return Promise.resolve(remoteModuleHandler.importModule(remoteModule.url));
+            return Promise.reject(`Could not import remote module`);
+        }
+ 
     }
 
     return (manifest: Record<RemoteName, RemoteEntry>) => Promise.resolve({ manifest, load });

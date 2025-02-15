@@ -1,3 +1,7 @@
+## 0.8.3 - Support for custom module loaders
+- Dependency updates
+- Added support for custom module loaders like SystemJS
+
 ## 0.8.2 - Added remote caching check
 - During initialization, if a remote is already initialized or found in storage, it will be skipped. 
 - ImportMapShim is now optional.
