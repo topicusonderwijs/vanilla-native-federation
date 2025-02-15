@@ -1,10 +1,11 @@
 import type { ImportMap, ImportMapHandler, Imports, Scopes } from "./import-map.contract";
-import { usesImportMapShim } from "../../utils/importmap-shim";
+import type { ModuleLoaderConfig } from "../../utils/config/config.contract";
 import * as _path from "../../utils/path";
 import type { ExternalsHandler } from "../externals/externals.contract";
 import type { RemoteInfo, RemoteInfoHandler, RemoteName } from "../remote-info";
 
 const importMapHandlerFactory = (
+    {importMapType}: ModuleLoaderConfig,
     externalsHandler: ExternalsHandler,
     remoteInfoHandler: RemoteInfoHandler
 ): ImportMapHandler => {
@@ -35,9 +36,13 @@ const importMapHandlerFactory = (
 
 
     function addToDOM(importMap: ImportMap) {
+        document.head
+            .querySelectorAll(`script[type="${importMapType}"]`)
+            .forEach(importMap => importMap.remove());
+
         document.head.appendChild(
             Object.assign(document.createElement('script'), {
-                type: usesImportMapShim() ? 'importmap-shim' : 'importmap',
+                type: importMapType,
                 innerHTML: JSON.stringify(importMap),
             })
         );

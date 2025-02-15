@@ -7,9 +7,13 @@ const defaultConfig = <TCache extends NfCache>(o: Partial<Config<TCache>>): Conf
     return {
         cache: (o.cache ?? createCache()) as TCache,
         toStorageEntry: o.toStorageEntry ?? globalThisStorageEntry,
+        
         logger: o.logger ?? noopLogger,
         logLevel: o.logLevel ?? "error",
-        builderType: o.builderType ?? "default"
+
+        builderType: o.builderType ?? "default",
+        importMapType: o.importMapType ?? "importmap",
+        loadModuleFn: o.loadModuleFn ?? (url => import(url))
     }
 }
 

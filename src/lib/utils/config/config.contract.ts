@@ -1,7 +1,6 @@
 import type { LogHandler, LogType } from "../../handlers/logging/log.contract"
 import type { NfCache, StorageEntryCreator } from "../../handlers/storage/storage.contract"
 
-type BuilderType = 'vite'|'default';
 
 type StorageConfig<TCache extends NfCache = NfCache> = {
     cache: TCache,
@@ -13,10 +12,14 @@ type LoggingConfig = {
     logLevel: LogType,
 }
 
-type BuilderConfig = {
-    builderType: BuilderType
+type BuilderType = 'vite'|'default';
+
+type ModuleLoaderConfig = {
+    builderType: BuilderType,
+    importMapType: string,
+    loadModuleFn: (url: string) => unknown
 }
 
-type Config<TCache extends NfCache = NfCache> = StorageConfig<TCache> & LoggingConfig & BuilderConfig
+type Config<TCache extends NfCache = NfCache> = StorageConfig<TCache> & LoggingConfig & ModuleLoaderConfig
 
-export { Config, StorageConfig, LoggingConfig, BuilderConfig }
+export { Config, StorageConfig, LoggingConfig, BuilderType, ModuleLoaderConfig }
