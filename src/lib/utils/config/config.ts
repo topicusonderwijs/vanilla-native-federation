@@ -10,7 +10,7 @@ const defaultConfig = <TCache extends NfCache>(o: Partial<Config<TCache>>): Conf
         
         logger: o.logger ?? noopLogger,
         logLevel: o.logLevel ?? "error",
-
+        hostRemoteEntry: o.hostRemoteEntry ?? false,
         importMapType: o.importMapType ?? "importmap",
         loadModuleFn: o.loadModuleFn ?? (url => import(url))
     }

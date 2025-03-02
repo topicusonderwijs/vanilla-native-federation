@@ -12,11 +12,18 @@ type LoggingConfig = {
     logLevel: LogType,
 }
 
+type RemoteEntryConfig = {
+    hostRemoteEntry: false|{
+        url: string,
+        cacheTag?: string
+    }
+}
+
 type ModuleLoaderConfig = {
     importMapType: string,
     loadModuleFn: (url: string) => unknown
 }
 
-type Config<TCache extends NfCache = NfCache> = StorageConfig<TCache> & LoggingConfig & ModuleLoaderConfig
+type Config<TCache extends NfCache = NfCache> = StorageConfig<TCache> & RemoteEntryConfig & LoggingConfig & ModuleLoaderConfig
 
-export { Config, StorageConfig, LoggingConfig, ModuleLoaderConfig }
+export { Config, StorageConfig, RemoteEntryConfig, LoggingConfig, ModuleLoaderConfig }

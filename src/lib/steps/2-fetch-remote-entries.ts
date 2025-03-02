@@ -7,7 +7,7 @@ type FetchRemoteEntries = (remotesOrManifestUrl: Record<RemoteName, RemoteEntry>
 const fetchRemoteEntries = (
     { remoteInfoHandler, externalsHandler, logHandler}: Handlers
 ): FetchRemoteEntries => 
-    (manifest: Record<RemoteName, RemoteEntry> = {}) => {
+    async (manifest: Record<RemoteName, RemoteEntry> = {}) => {
     
         const checkSharedExternalsCompatibility = (remote: FederationInfo): FederationInfo => {
             externalsHandler.checkForIncompatibleSingletons(remote.shared);
@@ -20,7 +20,14 @@ const fetchRemoteEntries = (
             return remoteInfo;
         }
 
-        const fetchRemoteEntries = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<RemoteInfo|false> => {
+        const addHostRemoteEntry = (remotes: [RemoteName,RemoteEntry][]): [RemoteName, RemoteEntry][] => {
+            const url = remoteInfoHandler.getHostRemoteEntryUrl();
+            if(!url) return remotes;
+
+            return [...remotes, ["__NF-HOST__", url]];
+        } 
+
+        const fetchRemoteEntry = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<RemoteInfo|false> => {
             if(remoteInfoHandler.inStorage(remoteName)) {
                 logHandler.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
                 return Promise.resolve(remoteInfoHandler.fromStorage(remoteName));
@@ -43,7 +50,8 @@ const fetchRemoteEntries = (
         }
 
         return Promise.resolve(Object.entries(manifest))
-            .then(r => Promise.all(r.map(fetchRemoteEntries)))
+            .then(addHostRemoteEntry)
+            .then(r => Promise.all(r.map(fetchRemoteEntry)))
             .then(_ => manifest)
     }
 

@@ -2,9 +2,11 @@ import type { ExposesInfo, FederationInfo, RemoteEntry, RemoteInfo, RemoteInfoHa
 import { NFError } from "../../native-federation.error";
 import * as _path from "../../utils/path";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
+import type { RemoteEntryConfig } from "../../utils/config/config.contract";
 
 const remoteInfoHandlerFactory = (
-    storageHandler: StorageHandler<NfCache>, 
+    { hostRemoteEntry }: RemoteEntryConfig,
+    storageHandler: StorageHandler<NfCache> 
 ): RemoteInfoHandler => {
 
     const fetchRemoteEntryJson = async (entryUrl: RemoteEntry)
@@ -26,6 +28,16 @@ const remoteInfoHandlerFactory = (
 
             return fetchRemoteEntryJson(remoteEntryUrl);
         }
+
+
+    function getHostRemoteEntryUrl(): string|undefined {
+        if(!hostRemoteEntry) return undefined;
+
+        let url = hostRemoteEntry?.url ?? "./remoteEntry.json";
+        if(!!hostRemoteEntry?.cacheTag) url += `?t=${hostRemoteEntry.cacheTag}`;
+
+        return url;
+    } 
 
     function toScope(baseUrl: string): string {
         if (baseUrl === "global") return baseUrl;
@@ -63,7 +75,7 @@ const remoteInfoHandlerFactory = (
         return remoteInfo;
     }
 
-    return {toStorage, inStorage, fromStorage, fetchRemoteEntry, toScope};
+    return {toStorage, getHostRemoteEntryUrl, inStorage, fromStorage, fetchRemoteEntry, toScope};
 }
 
 export {remoteInfoHandlerFactory, RemoteInfoHandler};
