@@ -24,7 +24,7 @@ const fetchRemoteEntries = (
             const url = remoteInfoHandler.getHostRemoteEntryUrl();
             if(!url) return remotes;
 
-            return [...remotes, ["__NF-HOST__", url]];
+            return [["__NF-HOST__", url], ...remotes];
         } 
 
         const fetchRemoteEntry = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<RemoteInfo|false> => {
