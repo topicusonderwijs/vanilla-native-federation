@@ -12,14 +12,11 @@ type LoggingConfig = {
     logLevel: LogType,
 }
 
-type BuilderType = 'vite'|'default';
-
 type ModuleLoaderConfig = {
-    builderType: BuilderType,
     importMapType: string,
     loadModuleFn: (url: string) => unknown
 }
 
 type Config<TCache extends NfCache = NfCache> = StorageConfig<TCache> & LoggingConfig & ModuleLoaderConfig
 
-export { Config, StorageConfig, LoggingConfig, BuilderType, ModuleLoaderConfig }
+export { Config, StorageConfig, LoggingConfig, ModuleLoaderConfig }

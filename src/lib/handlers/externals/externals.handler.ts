@@ -1,6 +1,5 @@
 import type { ExternalsHandler, SharedInfo } from "./externals.contract";
 import { NFError } from "../../native-federation.error";
-import type { ModuleLoaderConfig } from "../../utils/config/config.contract";
 import * as _path from "../../utils/path";
 import type { LogHandler } from "../logging";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
@@ -14,15 +13,12 @@ import type { Version, VersionHandler } from "../version/version.contract";
  * @returns 
  */
 const externalsHandlerFactory = (
-    {builderType}: ModuleLoaderConfig,
     storageHandler: StorageHandler<NfCache>,
     logHandler: LogHandler,
     versionHandler: VersionHandler,
 
 ): ExternalsHandler => {
 
-    const filterByBuilderType = (dep: SharedInfo) => 
-        (builderType === 'vite') === dep.packageName.startsWith('/@id/');
 
     const appendToDependencyScope = (scopeUrl: string) => (external: SharedInfo) => (externals: NfCache["externals"]) => {
         const scope = (external.singleton) ? "global" : scopeUrl;
@@ -71,7 +67,6 @@ const externalsHandlerFactory = (
         const globalExternals = storageHandler.fetch('externals')["global"];
 
         const sharedExternals = externals
-            .filter(filterByBuilderType)
             .filter(e => e.singleton && globalExternals[e.packageName]);
 
         for (const newExternal of sharedExternals) {
@@ -102,7 +97,6 @@ const externalsHandlerFactory = (
         clearDependencyScope(scopeUrl);
 
         externals
-            .filter(filterByBuilderType)
             .map(appendToDependencyScope(scopeUrl))
             .forEach(updateFn => storageHandler.update("externals", updateFn));
 

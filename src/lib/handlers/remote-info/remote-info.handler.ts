@@ -7,7 +7,7 @@ const remoteInfoHandlerFactory = (
     storageHandler: StorageHandler<NfCache>, 
 ): RemoteInfoHandler => {
 
-    const fetchRemoteEntryJson = (entryUrl: RemoteEntry)
+    const fetchRemoteEntryJson = async (entryUrl: RemoteEntry)
         : Promise<FederationInfo> => {
             return fetch(entryUrl)
                 .then(r => {

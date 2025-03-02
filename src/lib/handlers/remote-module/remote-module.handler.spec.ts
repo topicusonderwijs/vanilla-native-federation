@@ -13,7 +13,6 @@ describe('remoteInfoHandler', () => {
         storageHandler = mockStorageHandler();
         remoteModuleHandler = remoteModuleHandlerFactory(
             {
-                builderType: "default",
                 loadModuleFn: jest.fn(),
                 importMapType: "importmap"
             },
