@@ -5,14 +5,14 @@ import * as _path from "../utils/path";
 type LoadRemoteModule = (remoteName: string, exposedModule: string) => Promise<unknown>
 
 type ExposeModuleLoader = (manifest: Record<RemoteName, RemoteEntry>) => Promise<{
-    load: LoadRemoteModule, 
+    loadRemoteModule: LoadRemoteModule, 
     manifest: Record<RemoteName, RemoteEntry>
 }>
 
 const exposeModuleLoader = (
     { logHandler, remoteModuleHandler}: Handlers
 ): ExposeModuleLoader => {
-    function load(
+    function loadRemoteModule(
         remoteName: string, exposedModule: string
     ): Promise<unknown> {
         try{
@@ -30,7 +30,7 @@ const exposeModuleLoader = (
  
     }
 
-    return (manifest: Record<RemoteName, RemoteEntry>) => Promise.resolve({ manifest, load });
+    return (manifest: Record<RemoteName, RemoteEntry>) => Promise.resolve({ manifest, loadRemoteModule });
 }
 
 export {ExposeModuleLoader, exposeModuleLoader, LoadRemoteModule}
