@@ -1,5 +1,5 @@
-import type { LogHandler, LogType } from "../../handlers/logging/log.contract"
-import type { NfCache, StorageEntryCreator } from "../../handlers/storage/storage.contract"
+import type { LogHandler, LogType } from "../handlers/logging/log.contract"
+import type { NfCache, StorageEntryCreator } from "../handlers/storage/storage.contract"
 
 
 type StorageConfig<TCache extends NfCache = NfCache> = {

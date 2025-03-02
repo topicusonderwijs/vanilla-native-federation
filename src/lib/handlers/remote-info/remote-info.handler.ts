@@ -2,7 +2,7 @@ import type { ExposesInfo, FederationInfo, RemoteEntry, RemoteInfo, RemoteInfoHa
 import { NFError } from "../../native-federation.error";
 import * as _path from "../../utils/path";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
-import type { RemoteEntryConfig } from "../../utils/config/config.contract";
+import type { RemoteEntryConfig } from "../../config/config.contract";
 
 const remoteInfoHandlerFactory = (
     { hostRemoteEntry }: RemoteEntryConfig,

@@ -4,7 +4,7 @@ import { mockStorageHandler } from './../../../mock/handlers.mock';
 import { remoteInfoHandlerFactory } from './remote-info.handler';
 import { ExposesInfo, SharedInfo } from "@softarc/native-federation-runtime";
 import { NFError } from "../../native-federation.error";
-import { RemoteEntryConfig } from '../../utils/config/config.contract';
+import { RemoteEntryConfig } from '../../config/config.contract';
 
 describe('remoteInfoHandler', () => {
     let storageHandler: StorageHandler<NfCache>;

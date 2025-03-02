@@ -1,4 +1,4 @@
-import type { ModuleLoaderConfig } from "../../lib/utils/config/config.contract"
+import type { ModuleLoaderConfig } from "../../lib/config/config.contract"
 
 declare function importShim<T>(url: string): T;
 

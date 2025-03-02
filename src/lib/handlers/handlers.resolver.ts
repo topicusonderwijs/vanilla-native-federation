@@ -1,4 +1,4 @@
-import type { Config } from "../utils";
+import type { Config } from "../config";
 import { externalsHandlerFactory } from "./externals/externals.handler";
 import type { Handlers } from "./handlers.contract";
 import { importMapHandlerFactory } from "./import-map/import-map.handler";

@@ -5,7 +5,7 @@ import { exposeModuleLoader } from "./4-expose-module-loader";
 import type { StepFactories } from "./steps.contract";
 import { resolveHandlers } from "../handlers/handlers.resolver";
 import type { NfCache } from "../handlers/storage/storage.contract";
-import type { Config } from "../utils/config/config.contract";
+import type { Config } from "../config/config.contract";
 
 const resolver = <TCache extends NfCache>(
     config: Config<TCache>,

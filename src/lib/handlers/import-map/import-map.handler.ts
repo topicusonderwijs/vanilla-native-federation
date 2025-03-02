@@ -1,5 +1,5 @@
 import type { ImportMap, ImportMapHandler, Imports, Scopes } from "./import-map.contract";
-import type { ModuleLoaderConfig } from "../../utils/config/config.contract";
+import type { ModuleLoaderConfig } from "../../config/config.contract";
 import * as _path from "../../utils/path";
 import type { ExternalsHandler } from "../externals/externals.contract";
 import type { RemoteInfo, RemoteInfoHandler, RemoteName } from "../remote-info";
