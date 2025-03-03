@@ -1,7 +1,7 @@
 
-const NF_HOST_REMOTE_ENTRY = "__NF-HOST__";
+const NF_HOST_REMOTE_ENTRY = "__NF_HOST__";
 
-const NF_STORAGE_ENTRY = "__NATIVE-FEDERATION__";
+const NF_STORAGE_ENTRY = "__NATIVE_FEDERATION__";
 
 const NF_REMOTE_ENTRY_FILENAME = "remoteEntry.json";
 
