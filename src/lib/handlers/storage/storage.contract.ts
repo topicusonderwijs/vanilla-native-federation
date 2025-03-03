@@ -1,8 +1,6 @@
 import type { RemoteInfo } from '../remote-info';
 import type { Version } from '../version/version.contract';
 
-const nfNamespace = "__NATIVE_FEDERATION__";
-
 /**
  * Records instead of Map
  */
@@ -40,4 +38,4 @@ const createCache: () => NfCache = () => ({
     remotes: {}
 })
 
-export {nfNamespace, StorageEntry, StorageEntryKey, StorageOf, NfCache, StorageEntryCreator, StorageHandler, createCache}
+export {StorageEntry, StorageEntryKey, StorageOf, NfCache, StorageEntryCreator, StorageHandler, createCache}

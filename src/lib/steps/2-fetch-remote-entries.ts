@@ -1,6 +1,7 @@
 import type { FederationInfo, RemoteEntry, RemoteInfo, RemoteName } from "../handlers";
 import type { Handlers } from "../handlers/handlers.contract";
 import { tap } from "../utils/tap";
+import {NF_HOST_REMOTE_ENTRY} from "../config/namespace.contract";
 
 type FetchRemoteEntries = (remotesOrManifestUrl: Record<RemoteName, RemoteEntry>) => Promise<Record<RemoteName, RemoteEntry>>
 
@@ -31,7 +32,7 @@ const fetchRemoteEntries = (
             const url = remoteInfoHandler.getHostRemoteEntryUrl();
             if(!url) return remotes;
 
-            return [["__NF-HOST__", url], ...remotes];
+            return [[NF_HOST_REMOTE_ENTRY, url], ...remotes];
         } 
 
         const fetchRemoteEntry = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<RemoteInfo|false> => {

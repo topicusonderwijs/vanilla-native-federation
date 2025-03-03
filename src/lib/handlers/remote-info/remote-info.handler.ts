@@ -3,6 +3,7 @@ import { NFError } from "../../native-federation.error";
 import * as _path from "../../utils/path";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
 import type { RemoteEntryConfig } from "../../config/config.contract";
+import {NF_REMOTE_ENTRY_FILENAME} from "../../config/namespace.contract";
 
 const remoteInfoHandlerFactory = (
     { hostRemoteEntry }: RemoteEntryConfig,
@@ -39,7 +40,7 @@ const remoteInfoHandlerFactory = (
     function getHostRemoteEntryUrl(): string|undefined {
         if(!hostRemoteEntry) return undefined;
 
-        let url = hostRemoteEntry?.url ?? "./remoteEntry.json";
+        let url = hostRemoteEntry?.url ?? `./${NF_REMOTE_ENTRY_FILENAME}`;
         if(!!hostRemoteEntry?.cacheTag) url += `?t=${hostRemoteEntry.cacheTag}`;
 
         return url;
@@ -47,7 +48,7 @@ const remoteInfoHandlerFactory = (
 
     function toScope(baseUrl: string): string {
         if (baseUrl === "global") return baseUrl;
-        return baseUrl.endsWith("remoteEntry.json") 
+        return baseUrl.endsWith(NF_REMOTE_ENTRY_FILENAME) 
             ? baseUrl.slice(0, -16) 
             : baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
     }
