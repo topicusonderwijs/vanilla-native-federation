@@ -9,31 +9,21 @@ const fetchRemoteEntries = (
     { remoteInfoHandler, externalsHandler, logHandler}: Handlers
 ): FetchRemoteEntries => 
     async (manifest: Record<RemoteName, RemoteEntry> = {}) => {
-    
         const checkSharedExternalsCompatibility = (remote: FederationInfo): FederationInfo => {
             externalsHandler.checkForIncompatibleSingletons(remote.shared);
             return remote;
         }
 
         const addRemoteEntryToStorage = (remoteEntry: string) => (remote: FederationInfo): RemoteInfo|false => {
-            const scope = remoteInfoHandler.toScope(remoteEntry);
-            externalsHandler.toStorage(remote.shared, scope);
+            const remoteInfo = remoteInfoHandler.toStorage(remote, remoteEntry);
+            externalsHandler.toStorage(remote.shared, remoteInfo.scopeUrl);
 
-            if(!remote.name || remote.exposes.length < 1){
-                logHandler.debug(`RemoteEntry '${remoteEntry}' does not expose any modules or has no name. Skipping exposed module initialization`)
-                return false;
+            if(remote.exposes.length < 1){
+                logHandler.debug(`RemoteEntry '${remote.name}' does not expose any modules.`)
             }
 
-            const remoteInfo = remoteInfoHandler.toStorage(remote, remoteEntry);
             return remoteInfo;
         }
-
-        const addHostRemoteEntry = (remotes: [RemoteName,RemoteEntry][]): [RemoteName, RemoteEntry][] => {
-            const url = remoteInfoHandler.getHostRemoteEntryUrl();
-            if(!url) return remotes;
-
-            return [[NF_HOST_REMOTE_ENTRY, url], ...remotes];
-        } 
 
         const fetchRemoteEntry = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<RemoteInfo|false> => {
             if(remoteInfoHandler.inStorage(remoteName)) {
@@ -43,8 +33,13 @@ const fetchRemoteEntries = (
             return remoteInfoHandler.fetchRemoteEntry(remoteEntry)
                 .then(tap(federationInfo => {
                     logHandler.debug(`fetched '${remoteEntry}': ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);
-                    if(!!remoteName && federationInfo.exposes.length > 0 && federationInfo.name !== remoteName) {
-                        logHandler.warn(`Fetched remote '${federationInfo.name}' does not match requested '${remoteName}'`);
+                    
+                    if(federationInfo.name !== remoteName) {
+                        if(remoteName === NF_HOST_REMOTE_ENTRY) {
+                            federationInfo.name = remoteName;
+                        } else {
+                            logHandler.warn(`Fetched remote '${federationInfo.name}' does not match requested '${remoteName}'.`);
+                        }
                     }
                 }))
                 .then(checkSharedExternalsCompatibility)
@@ -58,7 +53,6 @@ const fetchRemoteEntries = (
         }
 
         return Promise.resolve(Object.entries(manifest))
-            .then(addHostRemoteEntry)
             .then(r => Promise.all(r.map(fetchRemoteEntry)))
             .then(_ => manifest)
     }
