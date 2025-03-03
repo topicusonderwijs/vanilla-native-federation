@@ -14,9 +14,16 @@ const fetchRemoteEntries = (
             return remote;
         }
 
-        const addRemoteEntryToStorage = (remoteEntry: string) => (remote: FederationInfo): RemoteInfo => {
+        const addRemoteEntryToStorage = (remoteEntry: string) => (remote: FederationInfo): RemoteInfo|false => {
+            const scope = remoteInfoHandler.toScope(remoteEntry);
+            externalsHandler.toStorage(remote.shared, scope);
+
+            if(!remote.name || remote.exposes.length < 1){
+                logHandler.debug(`RemoteEntry '${remoteEntry}' does not expose any modules or has no name. Skipping exposed module initialization`)
+                return false;
+            }
+
             const remoteInfo = remoteInfoHandler.toStorage(remote, remoteEntry);
-            externalsHandler.toStorage(remote.shared, remoteInfo.scopeUrl);
             return remoteInfo;
         }
 
@@ -34,8 +41,8 @@ const fetchRemoteEntries = (
             }
             return remoteInfoHandler.fetchRemoteEntry(remoteEntry)
                 .then(tap(federationInfo => {
-                    logHandler.debug(`Initialized remoteEntry: ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);
-                    if(!!remoteName && federationInfo.name !== remoteName) {
+                    logHandler.debug(`fetched '${remoteEntry}': ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);
+                    if(!!remoteName && federationInfo.exposes.length > 0 && federationInfo.name !== remoteName) {
                         logHandler.warn(`Fetched remote '${federationInfo.name}' does not match requested '${remoteName}'`);
                     }
                 }))

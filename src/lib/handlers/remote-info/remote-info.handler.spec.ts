@@ -141,7 +141,26 @@ describe('remoteInfoHandler', () => {
             const actual = await remoteInfoHandler.fetchRemoteEntry("http://localhost:3001/remoteEntry.json");
         
             expect(actual).toEqual(expected);
-        });    
+        }); 
+
+        it('Should initialize missing properties', async () => {
+
+            const expected = { shared: [], exposes: [] };
+
+            (global.fetch as any) = jest.fn(() =>
+                Promise.resolve({
+                    status: 200,
+                    ok: true,
+                    json: () => {
+                        return Promise.resolve({})
+                    }}
+                )
+            );
+
+            const actual = await remoteInfoHandler.fetchRemoteEntry("http://localhost:3001/remoteEntry.json");
+        
+            expect(actual).toEqual(expected);
+        });
 
         it('Should throw error if fetch failed', async () => {
             (global.fetch as any) = jest.fn(() =>

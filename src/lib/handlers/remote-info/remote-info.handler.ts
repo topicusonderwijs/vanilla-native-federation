@@ -14,8 +14,14 @@ const remoteInfoHandlerFactory = (
             return fetch(entryUrl)
                 .then(r => {
                     if (!r.ok) return Promise.reject(new NFError(`${r.status} - ${r.statusText}`));
-                    return r.json() as unknown as FederationInfo;
+                    return r.json() as Promise<FederationInfo>;
                 })
+                .then(federationInfo => {
+                    if(!federationInfo.exposes) federationInfo.exposes = [];
+                    if(!federationInfo.shared) federationInfo.shared = [];
+                    return federationInfo;
+                })
+
                 .catch(e => {
                     return Promise.reject(new NFError(`Fetching remote from '${entryUrl}' failed: ${e.message}`));
                 })
