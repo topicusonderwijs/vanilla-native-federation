@@ -7,28 +7,42 @@ type FetchRemoteEntries = (remotesOrManifestUrl: Record<RemoteName, RemoteEntry>
 const fetchRemoteEntries = (
     { remoteInfoHandler, externalsHandler, logHandler}: Handlers
 ): FetchRemoteEntries => 
-    (manifest: Record<RemoteName, RemoteEntry> = {}) => {
+    async (manifest: Record<RemoteName, RemoteEntry> = {}) => {
     
         const checkSharedExternalsCompatibility = (remote: FederationInfo): FederationInfo => {
             externalsHandler.checkForIncompatibleSingletons(remote.shared);
             return remote;
         }
 
-        const addRemoteEntryToStorage = (remoteEntry: string) => (remote: FederationInfo): RemoteInfo => {
+        const addRemoteEntryToStorage = (remoteEntry: string) => (remote: FederationInfo): RemoteInfo|false => {
+            const scope = remoteInfoHandler.toScope(remoteEntry);
+            externalsHandler.toStorage(remote.shared, scope);
+
+            if(!remote.name || remote.exposes.length < 1){
+                logHandler.debug(`RemoteEntry '${remoteEntry}' does not expose any modules or has no name. Skipping exposed module initialization`)
+                return false;
+            }
+
             const remoteInfo = remoteInfoHandler.toStorage(remote, remoteEntry);
-            externalsHandler.toStorage(remote.shared, remoteInfo.scopeUrl);
             return remoteInfo;
         }
 
-        const fetchRemoteEntries = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<RemoteInfo|false> => {
+        const addHostRemoteEntry = (remotes: [RemoteName,RemoteEntry][]): [RemoteName, RemoteEntry][] => {
+            const url = remoteInfoHandler.getHostRemoteEntryUrl();
+            if(!url) return remotes;
+
+            return [["__NF-HOST__", url], ...remotes];
+        } 
+
+        const fetchRemoteEntry = ([remoteName, remoteEntry]: [RemoteName,RemoteEntry]): Promise<RemoteInfo|false> => {
             if(remoteInfoHandler.inStorage(remoteName)) {
                 logHandler.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
                 return Promise.resolve(remoteInfoHandler.fromStorage(remoteName));
             }
             return remoteInfoHandler.fetchRemoteEntry(remoteEntry)
                 .then(tap(federationInfo => {
-                    logHandler.debug(`Initialized remoteEntry: ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);
-                    if(!!remoteName && federationInfo.name !== remoteName) {
+                    logHandler.debug(`fetched '${remoteEntry}': ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);
+                    if(!!remoteName && federationInfo.exposes.length > 0 && federationInfo.name !== remoteName) {
                         logHandler.warn(`Fetched remote '${federationInfo.name}' does not match requested '${remoteName}'`);
                     }
                 }))
@@ -43,7 +57,8 @@ const fetchRemoteEntries = (
         }
 
         return Promise.resolve(Object.entries(manifest))
-            .then(r => Promise.all(r.map(fetchRemoteEntries)))
+            .then(addHostRemoteEntry)
+            .then(r => Promise.all(r.map(fetchRemoteEntry)))
             .then(_ => manifest)
     }
 

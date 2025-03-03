@@ -1,6 +1,6 @@
 import type { RemoteModule, RemoteModuleHandler } from "./remote-module.contract";
 import { NFError } from "../../native-federation.error";
-import type { ModuleLoaderConfig } from "../../utils/config/config.contract";
+import type { ModuleLoaderConfig } from "../../config/config.contract";
 import type { NfCache, StorageHandler } from "../storage";
 
 const remoteModuleHandlerFactory = (

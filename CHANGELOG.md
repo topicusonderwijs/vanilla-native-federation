@@ -1,3 +1,8 @@
+## 0.9.0 - Added support for host remoteEntry.json
+- Added config for including a host remoteEntry.json.
+- [breaking] Changed `load()` to `loadRemoteModule()` to be consistent with native-federation-runtime.
+- moved config object to root lib folder. 
+
 ## 0.8.4 - Moved dependencies to devDependencies
 - Moved SystemJS and eslint-plugin-prettier to devDependencies.
 
@@ -13,8 +18,7 @@
 
 ## 0.8.1 - Shared version compatibility check
 - Added version resolving compatibility check (error if strict, warning otherwise).
-- If an dependency incompatibility error occurs, the remote module will not be loaded/initialized. 
-
+- If an dependency incompatibility error occurs, the remote module will not be loaded/initialized. . i
 ## 0.8.0 - Improved dependency (external) sharing
 - Support for 'singleton' dependencies.
 - 'vite' dependencies are now optional based on `buildType` in the config (prefixed with `/@id/`).

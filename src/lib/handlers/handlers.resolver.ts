@@ -1,4 +1,4 @@
-import type { Config } from "../utils";
+import type { Config } from "../config";
 import { externalsHandlerFactory } from "./externals/externals.handler";
 import type { Handlers } from "./handlers.contract";
 import { importMapHandlerFactory } from "./import-map/import-map.handler";
@@ -18,8 +18,8 @@ const resolveHandlers = <TCache extends NfCache>(
 
     // Core
     const versionHandler = versionHandlerFactory();
-    const externalsHandler = externalsHandlerFactory(config, storageHandler, logHandler, versionHandler);
-    const remoteInfoHandler = remoteInfoHandlerFactory(storageHandler);
+    const externalsHandler = externalsHandlerFactory(storageHandler, logHandler, versionHandler);
+    const remoteInfoHandler = remoteInfoHandlerFactory(config, storageHandler);
     const remoteModuleHandler = remoteModuleHandlerFactory(config, storageHandler);
 
     const importMapHandler = importMapHandlerFactory(config, externalsHandler, remoteInfoHandler);

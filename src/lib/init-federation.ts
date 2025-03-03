@@ -1,7 +1,7 @@
 import type { StepFactories } from "./steps/steps.contract";
 import { resolver } from "./steps/steps.resolver";
-import { defaultConfig } from "./utils/config/config";
-import type { Config } from "./utils/config/config.contract";
+import { defaultConfig } from "./config/config";
+import type { Config } from "./config/config.contract";
 
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string> = {},

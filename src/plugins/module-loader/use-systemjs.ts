@@ -1,4 +1,4 @@
-import type { BuilderType, ModuleLoaderConfig } from "../../lib/utils/config/config.contract"
+import type { ModuleLoaderConfig } from "../../lib/config/config.contract"
 
 declare global {
     interface Window {
@@ -8,8 +8,7 @@ declare global {
     }
   }
 
-const useSystemJS = (builderType: BuilderType = 'default'): ModuleLoaderConfig => ({
-    builderType,
+const useSystemJS = (): ModuleLoaderConfig => ({
     importMapType: "systemjs-importmap",
     loadModuleFn: (url) => window.System.import(url)
 })

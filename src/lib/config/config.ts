@@ -1,7 +1,7 @@
 import type { Config } from "./config.contract"
-import { noopLogger } from "../../handlers/logging/noop.logger"
-import { globalThisStorageEntry } from "../../handlers/storage/global-this-storage"
-import { createCache, type NfCache } from "../../handlers/storage/storage.contract"
+import { noopLogger } from "../handlers/logging/noop.logger"
+import { globalThisStorageEntry } from "../handlers/storage/global-this-storage"
+import { createCache, type NfCache } from "../handlers/storage/storage.contract"
 
 const defaultConfig = <TCache extends NfCache>(o: Partial<Config<TCache>>): Config<TCache> => {
     return {
@@ -10,8 +10,7 @@ const defaultConfig = <TCache extends NfCache>(o: Partial<Config<TCache>>): Conf
         
         logger: o.logger ?? noopLogger,
         logLevel: o.logLevel ?? "error",
-
-        builderType: o.builderType ?? "default",
+        hostRemoteEntry: o.hostRemoteEntry ?? false,
         importMapType: o.importMapType ?? "importmap",
         loadModuleFn: o.loadModuleFn ?? (url => import(url))
     }

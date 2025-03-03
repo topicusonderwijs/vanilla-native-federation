@@ -21,10 +21,10 @@ import { useImportMapShim } from '../module-loader';
     await initFederation(JSON.parse(jsonScript.textContent), {
         logger: consoleLogger, 
         logLevel: "debug", 
-        ...useImportMapShim("default"),
+        ...useImportMapShim(),
         importMapType: 'importmap'
-    }).then(({load}) => {
-        (window as any).loadRemoteModule = load
-        window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {load}}));
+    }).then(({loadRemoteModule}) => {
+        (window as any).loadRemoteModule = loadRemoteModule
+        window.dispatchEvent(new CustomEvent("mfe-loader-available", {detail: {loadRemoteModule}}));
     });
 })();

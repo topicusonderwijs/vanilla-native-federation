@@ -15,6 +15,7 @@ type RemoteInfo = {
 type RemoteInfoHandler = {
     toStorage: (remote: {name: string; exposes: ExposesInfo[]}, baseUrl: string) => RemoteInfo,
     inStorage: (remoteName: string) => boolean,
+    getHostRemoteEntryUrl: () => string|undefined,
     fromStorage: (remoteName: string) => RemoteInfo,
     fetchRemoteEntry: (remoteEntryUrl: string) => Promise<FederationInfo>,
     toScope: (remoteEntry: RemoteEntry) => string
