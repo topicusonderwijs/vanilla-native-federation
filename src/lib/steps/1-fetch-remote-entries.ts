@@ -1,14 +1,27 @@
 import type { FederationInfo, RemoteEntry, RemoteInfo, RemoteName } from "../handlers";
 import type { Handlers } from "../handlers/handlers.contract";
-import { tap } from "../utils/tap";
 
-type FetchRemoteEntries = (remotesOrManifestUrl: Record<RemoteName, RemoteEntry>) => Promise<Record<RemoteName, RemoteEntry>>
+type FetchRemoteEntries = (remotesOrManifestUrl: string|Record<RemoteName, RemoteEntry>) => Promise<Record<RemoteName, RemoteEntry>>
 
 const fetchRemoteEntries = (
     { remoteInfoHandler, externalsHandler, logHandler}: Handlers
 ): FetchRemoteEntries => 
-    (manifest: Record<RemoteName, RemoteEntry> = {}) => {
+    async (remotesOrManifestUrl: string | Record<RemoteName, RemoteEntry> = {}) => {
     
+        const fetchManifest = (): Promise<Record<RemoteName, RemoteEntry>> => {
+            return (typeof remotesOrManifestUrl === 'string')
+                ? fetch(remotesOrManifestUrl).then(r => r.json())
+                : Promise.resolve(remotesOrManifestUrl)
+        }
+    
+        const notifyRemoteEntryFetched = (remoteName: RemoteName) => (federationInfo: FederationInfo) => {
+            logHandler.debug(`Fetched remoteEntry: ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);
+            if(!!remoteName && federationInfo.name !== remoteName) {
+                logHandler.warn(`Fetched remote '${federationInfo.name}' does not match requested '${remoteName}'`);
+            }
+            return federationInfo;
+        }
+
         const checkSharedExternalsCompatibility = (remote: FederationInfo): FederationInfo => {
             externalsHandler.checkForIncompatibleSingletons(remote.shared);
             return remote;
@@ -26,12 +39,7 @@ const fetchRemoteEntries = (
                 return Promise.resolve(remoteInfoHandler.fromStorage(remoteName));
             }
             return remoteInfoHandler.fetchRemoteEntry(remoteEntry)
-                .then(tap(federationInfo => {
-                    logHandler.debug(`Initialized remoteEntry: ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);
-                    if(!!remoteName && federationInfo.name !== remoteName) {
-                        logHandler.warn(`Fetched remote '${federationInfo.name}' does not match requested '${remoteName}'`);
-                    }
-                }))
+                .then(notifyRemoteEntryFetched(remoteName))
                 .then(checkSharedExternalsCompatibility)
                 .then(addRemoteEntryToStorage(remoteEntry))
                 .catch(e => {
@@ -42,9 +50,9 @@ const fetchRemoteEntries = (
                 })
         }
 
-        return Promise.resolve(Object.entries(manifest))
-            .then(r => Promise.all(r.map(fetchRemoteEntries)))
-            .then(_ => manifest)
+        return fetchManifest().then(
+            m => Promise.all(Object.entries(m).map(fetchRemoteEntries)).then(_ => m)
+        )
     }
 
 export {FetchRemoteEntries, fetchRemoteEntries}

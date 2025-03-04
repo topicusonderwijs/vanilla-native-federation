@@ -1,3 +1,6 @@
+## 0.9.0 - Merged step 1 and 2 into 1 single step
+- Merged steps to allow for custom micro frontend discovery manifest implementations. 
+
 ## 0.8.4 - Moved dependencies to devDependencies
 - Moved SystemJS and eslint-plugin-prettier to devDependencies.
 
