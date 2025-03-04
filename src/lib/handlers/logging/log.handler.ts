@@ -1,5 +1,5 @@
 import { type LogHandler, type LogType, LogLevel } from "./log.contract";
-import type { LoggingConfig } from "../../utils/config/config.contract";
+import type { LoggingConfig } from "../../config/config.contract";
 
 const logHandlerFactory = ({logger, logLevel}: LoggingConfig): LogHandler => {
   const logTypes = Object.keys(LogLevel)

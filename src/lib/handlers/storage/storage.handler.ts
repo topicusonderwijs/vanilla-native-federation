@@ -1,5 +1,5 @@
 import type { StorageHandler, StorageEntry, NfCache, StorageOf } from "./storage.contract";
-import type { StorageConfig } from "../../utils/config/config.contract";
+import type { StorageConfig } from "../../config/config.contract";
 
 const storageHandlerFactory = <TCache extends NfCache>(
     {cache, toStorageEntry}: StorageConfig<TCache>

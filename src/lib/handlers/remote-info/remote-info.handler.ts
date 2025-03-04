@@ -2,18 +2,27 @@ import type { ExposesInfo, FederationInfo, RemoteEntry, RemoteInfo, RemoteInfoHa
 import { NFError } from "../../native-federation.error";
 import * as _path from "../../utils/path";
 import type { NfCache, StorageHandler } from "../storage/storage.contract";
+import type { RemoteEntryConfig } from "../../config/config.contract";
+import {NF_REMOTE_ENTRY_FILENAME} from "../../config/namespace.contract";
 
 const remoteInfoHandlerFactory = (
-    storageHandler: StorageHandler<NfCache>, 
+    { hostRemoteEntry }: RemoteEntryConfig,
+    storageHandler: StorageHandler<NfCache> 
 ): RemoteInfoHandler => {
 
-    const fetchRemoteEntryJson = (entryUrl: RemoteEntry)
+    const fetchRemoteEntryJson = async (entryUrl: RemoteEntry)
         : Promise<FederationInfo> => {
             return fetch(entryUrl)
                 .then(r => {
                     if (!r.ok) return Promise.reject(new NFError(`${r.status} - ${r.statusText}`));
-                    return r.json() as unknown as FederationInfo;
+                    return r.json() as Promise<FederationInfo>;
                 })
+                .then(federationInfo => {
+                    if(!federationInfo.exposes) federationInfo.exposes = [];
+                    if(!federationInfo.shared) federationInfo.shared = [];
+                    return federationInfo;
+                })
+
                 .catch(e => {
                     return Promise.reject(new NFError(`Fetching remote from '${entryUrl}' failed: ${e.message}`));
                 })
@@ -27,9 +36,19 @@ const remoteInfoHandlerFactory = (
             return fetchRemoteEntryJson(remoteEntryUrl);
         }
 
+
+    function getHostRemoteEntryUrl(): string|undefined {
+        if(!hostRemoteEntry) return undefined;
+
+        let url = hostRemoteEntry?.url ?? `./${NF_REMOTE_ENTRY_FILENAME}`;
+        if(!!hostRemoteEntry?.cacheTag) url += `?t=${hostRemoteEntry.cacheTag}`;
+
+        return url;
+    } 
+
     function toScope(baseUrl: string): string {
         if (baseUrl === "global") return baseUrl;
-        return baseUrl.endsWith("remoteEntry.json") 
+        return baseUrl.endsWith(NF_REMOTE_ENTRY_FILENAME) 
             ? baseUrl.slice(0, -16) 
             : baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
     }
@@ -63,7 +82,7 @@ const remoteInfoHandlerFactory = (
         return remoteInfo;
     }
 
-    return {toStorage, inStorage, fromStorage, fetchRemoteEntry, toScope};
+    return {toStorage, getHostRemoteEntryUrl, inStorage, fromStorage, fetchRemoteEntry, toScope};
 }
 
 export {remoteInfoHandlerFactory, RemoteInfoHandler};

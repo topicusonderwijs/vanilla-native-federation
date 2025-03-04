@@ -1,6 +1,7 @@
 import { localStorageEntry } from './local-storage';
-import { NfCache, nfNamespace } from './../../lib/handlers/storage';
+import { NfCache } from './../../lib/handlers/storage';
 import { RemoteInfo } from '../../lib/handlers/remote-info';
+import { NF_STORAGE_ENTRY } from '../../lib/config/namespace.contract';
 
 describe('localStorageEntry', () => {
 
@@ -68,7 +69,7 @@ describe('localStorageEntry', () => {
             const entry: any = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
             
             entry.set({"team/mfe2": MOCK_REMOTE_INFO_II()});
-            const actual = mockLocalStorage.storage[nfNamespace+".remotes"]
+            const actual = mockLocalStorage.storage[NF_STORAGE_ENTRY+".remotes"]
 
             expect(actual).toEqual("{\"team/mfe2\":{\"scopeUrl\":\"http://localhost:3002/\",\"remoteName\":\"team/mfe2\",\"exposes\":[{\"moduleName\":\"./comp\",\"url\":\"http://localhost:3002/comp.js\"}]}}");
         });

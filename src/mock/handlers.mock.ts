@@ -27,6 +27,7 @@ const mockRemoteInfoHandler = (): RemoteInfoHandler => ({
     toStorage: jest.fn(),
     fromStorage: jest.fn(),
     fetchRemoteEntry: jest.fn(),
+    getHostRemoteEntryUrl: jest.fn(),
     inStorage: jest.fn(),
     toScope: jest.fn()
 });

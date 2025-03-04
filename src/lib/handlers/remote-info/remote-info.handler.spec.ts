@@ -4,6 +4,7 @@ import { mockStorageHandler } from './../../../mock/handlers.mock';
 import { remoteInfoHandlerFactory } from './remote-info.handler';
 import { ExposesInfo, SharedInfo } from "@softarc/native-federation-runtime";
 import { NFError } from "../../native-federation.error";
+import { RemoteEntryConfig } from '../../config/config.contract';
 
 describe('remoteInfoHandler', () => {
     let storageHandler: StorageHandler<NfCache>;
@@ -35,9 +36,11 @@ describe('remoteInfoHandler', () => {
                 exposes: [{key: './comp', outFileName: 'comp.js'}]
             }))
 
+
     beforeEach(() => {
         storageHandler = mockStorageHandler();
-        remoteInfoHandler = remoteInfoHandlerFactory(storageHandler);
+        const mockConfig: RemoteEntryConfig = {hostRemoteEntry: false};
+        remoteInfoHandler = remoteInfoHandlerFactory(mockConfig, storageHandler);
     });
 
     describe('toStorage', () => {
@@ -138,7 +141,26 @@ describe('remoteInfoHandler', () => {
             const actual = await remoteInfoHandler.fetchRemoteEntry("http://localhost:3001/remoteEntry.json");
         
             expect(actual).toEqual(expected);
-        });    
+        }); 
+
+        it('Should initialize missing properties', async () => {
+
+            const expected = { shared: [], exposes: [] };
+
+            (global.fetch as any) = jest.fn(() =>
+                Promise.resolve({
+                    status: 200,
+                    ok: true,
+                    json: () => {
+                        return Promise.resolve({})
+                    }}
+                )
+            );
+
+            const actual = await remoteInfoHandler.fetchRemoteEntry("http://localhost:3001/remoteEntry.json");
+        
+            expect(actual).toEqual(expected);
+        });
 
         it('Should throw error if fetch failed', async () => {
             (global.fetch as any) = jest.fn(() =>
@@ -162,6 +184,30 @@ describe('remoteInfoHandler', () => {
             expect(actual()).rejects.toThrow(`Module not registered, provide a valid remoteEntryUrl.`);
         });
     });
+
+    describe('getHostRemoteEntryUrl', () => {
+        let mockConfig: RemoteEntryConfig = {hostRemoteEntry: false};
+
+        it('should return undefined if the config has a host remoteEntry.json disabled', () => {
+            mockConfig.hostRemoteEntry = false;
+            remoteInfoHandler = remoteInfoHandlerFactory(mockConfig, storageHandler);
+
+            expect(remoteInfoHandler.getHostRemoteEntryUrl()).toBeUndefined();
+        });
+
+        it('should return the host remoteEntry url if the config has a host remoteEntry.json enabled', () => {
+            mockConfig.hostRemoteEntry = {url: "./custom/remoteEntry.json"};
+            remoteInfoHandler = remoteInfoHandlerFactory(mockConfig, storageHandler);
+
+            expect(remoteInfoHandler.getHostRemoteEntryUrl()).toBe("./custom/remoteEntry.json");
+        });
+
+        it('should return the host remoteEntry url with cacheTag if', () => {
+            mockConfig.hostRemoteEntry = {url: "./custom/remoteEntry.json", cacheTag: "123abc"};
+            remoteInfoHandler = remoteInfoHandlerFactory(mockConfig, storageHandler);
+            expect(remoteInfoHandler.getHostRemoteEntryUrl()).toBe("./custom/remoteEntry.json?t=123abc");
+        });
+    })
 
     describe('fromStorage', () => {
         let cache: { remotes: Record<string, RemoteInfo> }

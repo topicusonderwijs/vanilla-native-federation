@@ -38,11 +38,6 @@ describe('externalsHandler', () => {
         versionHandler = mockVersionHandler();
         logHandler = mockLogHandler();
         externalsHandler = externalsHandlerFactory(
-            {
-                builderType: "default",
-                loadModuleFn: jest.fn(),
-                importMapType: "importmap"
-            },
             storageHandler,
             logHandler,
             versionHandler

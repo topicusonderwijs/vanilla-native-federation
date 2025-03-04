@@ -1,6 +1,7 @@
 import { RemoteInfo } from '../remote-info';
 import { globalThisStorageEntry } from './global-this-storage';
-import { NfCache, nfNamespace } from './storage.contract';
+import { NfCache } from './storage.contract';
+import { NF_STORAGE_ENTRY } from "../../config/namespace.contract";
 
 describe('globalThisStorageEntry', () => {
 
@@ -17,13 +18,13 @@ describe('globalThisStorageEntry', () => {
     });
 
     beforeEach(() => {
-        delete (globalThis as any)[nfNamespace];
+        delete (globalThis as any)[NF_STORAGE_ENTRY];
     });
 
     it('creates namespace if it does not exist', () => {
         globalThisStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
 
-        expect((globalThis as any)[nfNamespace]).toEqual({
+        expect((globalThis as any)[NF_STORAGE_ENTRY]).toEqual({
             "remotes": {"team/mfe1": MOCK_REMOTE_INFO()}
         });
     });

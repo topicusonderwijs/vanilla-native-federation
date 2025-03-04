@@ -15,7 +15,6 @@ describe('importMapHandler', () => {
         externalsHandler = mockExternalsHandler();
         importMapHandler = importMapHandlerFactory(
             {
-                builderType: "default",
                 loadModuleFn: jest.fn(),
                 importMapType: "importmap"
             },
