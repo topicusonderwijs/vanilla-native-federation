@@ -20,11 +20,11 @@ describe('externalsHandler', () => {
     type CacheGlobalExternals = {global: Record<string, Version>};
     type CacheScopedExternals = Record<string, Record<string, Version>>;
 
-    const MOCK_SHARED_INFO = ({singleton, strictVersion}: {singleton: boolean, strictVersion: boolean}) => ([
+    const MOCK_SHARED_INFO = ({singleton, strictVersion, requiredVersion}: {singleton: boolean, strictVersion: boolean, requiredVersion?: string}) => ([
         {
             packageName: "rxjs",
             outFileName: "rxjs.js",
-            requiredVersion: "~7.8.0",
+            requiredVersion: requiredVersion ?? "^7.8.0",
             singleton,
             strictVersion,
             version: "7.8.1",
@@ -53,7 +53,7 @@ describe('externalsHandler', () => {
                 externals: {
                     global: {},
                     [SCOPE]: {
-                        "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/cached-rxjs.js"}
+                        "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/cached-rxjs.js"}
                     }
                 } as CacheGlobalExternals & CacheScopedExternals
             };
@@ -63,7 +63,7 @@ describe('externalsHandler', () => {
             const actual = externalsHandler.fromStorage(SCOPE);
 
             expect(actual).toEqual({
-                "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/cached-rxjs.js"}
+                "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/cached-rxjs.js"}
             });
         });
 
@@ -73,7 +73,7 @@ describe('externalsHandler', () => {
             const cache = {
                 externals: {
                     global: {
-                        "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/cached-rxjs.js"}
+                        "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/cached-rxjs.js"}
                     },
                     [SCOPE]: {}
                 } as CacheGlobalExternals & CacheScopedExternals
@@ -84,7 +84,7 @@ describe('externalsHandler', () => {
             const actual = externalsHandler.fromStorage("global");
 
             expect(actual).toEqual({
-                "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/cached-rxjs.js"}
+                "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/cached-rxjs.js"}
             });
         });
 
@@ -108,15 +108,7 @@ describe('externalsHandler', () => {
     describe('toStorage', () => {
 
         beforeEach(() => {
-            versionHandler.toRange = jest.fn((version) => {
-                if(version === "~7.8.0") return ["7.8.0","7.9.0"];
-                if(version === "~2.8.0") return ["2.8.0","2.9.0"];
-                throw new Error(`Provided range '${version}' is not mocked`);
-            })
-            versionHandler.getSmallestVersionRange = jest.fn((): [string,string] => {
-
-                return ["7.8.0","7.9.0"];
-            })
+            versionHandler.getSmallestVersionRange = jest.fn((): string => "^7.8.0");
         })
 
         it('should add externals of RemoteInfo to global scope', () => {
@@ -127,7 +119,7 @@ describe('externalsHandler', () => {
 
             const expected = {
                 global: {
-                    "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }
+                    "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }
                 },
                 [SCOPE]: {}
             }
@@ -157,7 +149,7 @@ describe('externalsHandler', () => {
             const expected = {
                 global: {},
                 [SCOPE]: {
-                    "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }
+                    "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }
                 }
             }
 
@@ -178,36 +170,34 @@ describe('externalsHandler', () => {
 
         it('should update requiredVersion if version is smaller than current', () => {
             const SCOPE = MOCK_SCOPE(); 
-            const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: false});
+            
+            const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: false, requiredVersion: "~7.7.0"});
 
-            let actual = {
-                global: {"rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }},
+            versionHandler.getSmallestVersionRange = jest.fn((): string => "^7.7.0");
+
+            let cache = {
+                global: {"rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }},
                 [SCOPE]: { }
             } as CacheGlobalExternals & CacheScopedExternals
-
-            versionHandler.compareVersions = jest.fn((v1, v2) => {
-                if (v1 === '7.8.1' && v2 === '7.8.1') return 0;
-                return 0;
-            });
-
             
+            versionHandler.compareVersions = jest.fn((_v1, _v2) => 0);
 
             externalsHandler.toStorage(sharedInfo, SCOPE);
 
             // 1) REMOVE OLD DEPS FROM SCOPE IN STORAGE
             let [storageEntry1, clearScopeFn] = (storageHandler.update as any).mock.calls[0];
-            actual = clearScopeFn(actual);
+            const actualAfterScopeClear = clearScopeFn(cache);
             expect(storageEntry1).toBe("externals");
-            expect(actual).toEqual({
-                global: {"rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }},
+            expect(actualAfterScopeClear).toEqual({
+                global: {"rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }},
                 [SCOPE]: { }
             });
 
             // 2) ADD DEPS TO GLOBAL AND SCOPE
             let [storageEntry2, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
-            actual = addExternalsFn(actual);
-            expect(actual).toEqual({
-                global: {"rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }},
+            const actualAfterGlobalUpdate = addExternalsFn(cache);
+            expect(actualAfterGlobalUpdate).toEqual({
+                global: {"rxjs": {version: "7.8.1", requiredVersion: "^7.7.0", url: "http://localhost:3001/rxjs.js" }},
                 [SCOPE]: { }
             });
             expect(storageEntry2).toBe("externals");
@@ -220,7 +210,7 @@ describe('externalsHandler', () => {
             const cache = {
                 externals: {
                     global: {
-                        "rxjs/operators": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs_operators.js"}
+                        "rxjs/operators": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs_operators.js"}
                     }
                 } as CacheGlobalExternals & CacheScopedExternals
             }
@@ -233,8 +223,8 @@ describe('externalsHandler', () => {
             expect(key).toBe("externals");
             expect(actual).toEqual({
                 global: {
-                    "rxjs/operators": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs_operators.js"},
-                    "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }
+                    "rxjs/operators": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs_operators.js"},
+                    "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }
                 }
             });
         });
@@ -246,7 +236,7 @@ describe('externalsHandler', () => {
             const cache = {
                 externals: {
                     global: {
-                        "rxjs/operators": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs_operators.js"}
+                        "rxjs/operators": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs_operators.js"}
                     }
                 } as CacheGlobalExternals & CacheScopedExternals
             }
@@ -259,8 +249,8 @@ describe('externalsHandler', () => {
             expect(key).toBe("externals");
             expect(actual).toEqual({
                 global: {
-                    "rxjs/operators": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs_operators.js"},
-                    "rxjs": {version: "7.8.1", strictRequiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }
+                    "rxjs/operators": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs_operators.js"},
+                    "rxjs": {version: "7.8.1", strictRequiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }
                 }
             });
         });
@@ -272,7 +262,7 @@ describe('externalsHandler', () => {
             const cache = {
                 externals: {
                     global: {
-                        "rxjs": {version: "7.8.0", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/OLD-PACKAGE.js"}
+                        "rxjs": {version: "7.8.0", requiredVersion: "^7.8.0", url: "http://localhost:3001/OLD-PACKAGE.js"}
                     }
                 } as CacheGlobalExternals & CacheScopedExternals
             }
@@ -291,7 +281,7 @@ describe('externalsHandler', () => {
             expect(key).toBe("externals");
             expect(actual).toEqual({
                 global: {
-                    "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js" }
+                    "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }
                 }
             });
         });
@@ -303,14 +293,14 @@ describe('externalsHandler', () => {
             const cache = {
                 externals: {
                     global: {
-                        "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/OLD-PACKAGE.js"}
+                        "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/OLD-PACKAGE.js"}
                     }
                 } as CacheGlobalExternals & CacheScopedExternals
             }
 
             const expected = {
                 global: {
-                    "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/OLD-PACKAGE.js" }
+                    "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/OLD-PACKAGE.js" }
                 }
             };
 
@@ -332,7 +322,7 @@ describe('externalsHandler', () => {
             const cache = {
                 externals: {
                     global: {
-                        "rxjs": {version: "7.8.2", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/NEW-PACKAGE.js"}
+                        "rxjs": {version: "7.8.2", requiredVersion: "^7.8.0", url: "http://localhost:3001/NEW-PACKAGE.js"}
                     }
                 } as CacheGlobalExternals & CacheScopedExternals
             }
@@ -351,7 +341,7 @@ describe('externalsHandler', () => {
             expect(key).toBe("externals");
             expect(actual).toEqual({
                 global: {
-                    "rxjs": {version: "7.8.2", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/NEW-PACKAGE.js" }
+                    "rxjs": {version: "7.8.2", requiredVersion: "^7.8.0", url: "http://localhost:3001/NEW-PACKAGE.js" }
                 }
             });
         });
@@ -359,13 +349,13 @@ describe('externalsHandler', () => {
 
     describe('checkForIncompatibleSingletons', () => {
         beforeEach(() => {
-            (versionHandler.toRange as jest.Mock) = jest.fn(() => ["7.8.0","7.9.0"]);
+            versionHandler.isValid = jest.fn(() => true);
         });
 
         it('should do nothing if all versions are compatible', () => {
             (storageHandler.fetch as jest.Mock) = jest.fn((): {global: Record<string, Version>} => ({
                 global: {
-                    "rxjs": {version: "7.8.2", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/NEW-PACKAGE.js" }
+                    "rxjs": {version: "7.8.2", requiredVersion: "^7.8.0", url: "http://localhost:3001/NEW-PACKAGE.js" }
                 }
             }));
             (versionHandler.isCompatible as jest.Mock) = jest.fn(() => true);
@@ -377,7 +367,7 @@ describe('externalsHandler', () => {
         it('to send warning if new singleton is outside of range', () => {
             (storageHandler.fetch as jest.Mock) = jest.fn((): {global: Record<string, Version>} => ({
                 global: {
-                    "rxjs": {version: "7.6.2", requiredVersion: ["7.6.0","7.7.0"], url: "http://localhost:3001/NEW-PACKAGE.js" }
+                    "rxjs": {version: "7.6.2", requiredVersion: "~7.6.0", url: "http://localhost:3001/NEW-PACKAGE.js" }
                 }
             }));
             (versionHandler.isCompatible as jest.Mock) = jest.fn(() => false);
@@ -385,35 +375,35 @@ describe('externalsHandler', () => {
             externalsHandler.checkForIncompatibleSingletons(MOCK_SHARED_INFO({singleton: true, strictVersion: false}));
 
             expect((logHandler.warn as jest.Mock).mock.calls).toEqual([
-                ["[rxjs] Version '7.8.1' is not compatible to version range '7.6.0 - 7.7.0'"],
-                ["[rxjs] Stored version '7.6.2' is not compatible to version range '7.8.0 - 7.9.0'"]
+                ["[rxjs] Shared version '7.8.1' is not compatible to version range '~7.6.0'"],
+                ["[rxjs] Stored shared version '7.6.2' is not compatible to version range '^7.8.0'"]
             ]);
         });
 
         it('to send an error if new singleton is outside of range', () => {
             (storageHandler.fetch as jest.Mock) = jest.fn((): {global: Record<string, Version>} => ({
                 global: {
-                    "rxjs": {version: "7.6.2", strictRequiredVersion: ["7.6.0","7.7.0"], url: "http://localhost:3001/NEW-PACKAGE.js" }
+                    "rxjs": {version: "7.6.2", strictRequiredVersion: "^7.6.0", url: "http://localhost:3001/NEW-PACKAGE.js" }
                 }
             }));
             (versionHandler.isCompatible as jest.Mock) = jest.fn(() => false);
 
             const actual = () => externalsHandler.checkForIncompatibleSingletons(MOCK_SHARED_INFO({singleton: true, strictVersion: false}));
 
-            expect(actual).toThrow("[rxjs] Version '7.8.1' is not compatible to version range '7.6.0 - 7.7.0'");
+            expect(actual).toThrow("[rxjs] Shared version '7.8.1' is not compatible to version range '^7.6.0'");
         });
 
         it('to send the current stored version is outside of new singleton range', () => {
             (storageHandler.fetch as jest.Mock) = jest.fn((): {global: Record<string, Version>} => ({
                 global: {
-                    "rxjs": {version: "8.1.2", requiredVersion: ["7.1.0","8.2.0"], url: "http://localhost:3001/NEW-PACKAGE.js" }
+                    "rxjs": {version: "8.1.2", requiredVersion: ">07.1.0 <8.2.0", url: "http://localhost:3001/NEW-PACKAGE.js" }
                 }
             }));
             (versionHandler.isCompatible as jest.Mock) = jest.fn(() => false);
 
             const actual = () => externalsHandler.checkForIncompatibleSingletons(MOCK_SHARED_INFO({singleton: true, strictVersion: true}));
 
-            expect(actual).toThrow("[rxjs] Stored version '8.1.2' is not compatible to version range '7.8.0 - 7.9.0'");
+            expect(actual).toThrow("[rxjs] Stored shared version '8.1.2' is not compatible to version range '^7.8.0'");
         });
     })
 });

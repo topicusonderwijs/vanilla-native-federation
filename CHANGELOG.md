@@ -1,3 +1,7 @@
+## 0.11.0 - Integrated more robust Semver library
+- Integraded Semver library for version management.
+- Exposed Step interfaces for easy overrides.
+
 ## 0.10.0 - Merged step 1 and 2 into 1 single step
 - Merged steps to allow for custom micro frontend discovery manifest implementations. 
 

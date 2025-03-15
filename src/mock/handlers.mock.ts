@@ -33,12 +33,11 @@ const mockRemoteInfoHandler = (): RemoteInfoHandler => ({
 });
 
 const mockVersionHandler = (): VersionHandler => ({
+    isValid: jest.fn(),
     compareVersions: jest.fn<number, [string, string]>(),
     getLatestVersion: jest.fn(),
     isCompatible: jest.fn(),
-    getSmallestVersionRange: jest.fn(),
-    toVersion: jest.fn(),
-    toRange: jest.fn()
+    getSmallestVersionRange: jest.fn()
 });
 
 export {
