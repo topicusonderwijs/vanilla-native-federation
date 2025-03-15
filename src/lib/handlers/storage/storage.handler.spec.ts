@@ -30,7 +30,7 @@ describe('storageHandler', () => {
     beforeEach(() => {
         storage = {
             externals: {
-                global: {"rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js"} }
+                global: {"rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/rxjs.js"} }
             },
             remotes: { "team/mfe1": MOCK_REMOTE_INFO() },
         };
@@ -40,7 +40,7 @@ describe('storageHandler', () => {
     describe('entry', () => {
         it('should get the initial values', () => {            
             expect(storageHandler.entry("externals").get()).toEqual(
-                {global: {"rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url:"http://localhost:3001/rxjs.js"}}}
+                {global: {"rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url:"http://localhost:3001/rxjs.js"}}}
             );
             expect(storageHandler.entry("remotes").get()).toEqual(
                 { "team/mfe1": MOCK_REMOTE_INFO() }
@@ -51,7 +51,7 @@ describe('storageHandler', () => {
     describe('fetch', () => {
         it('should get the value', () => {
             expect(storageHandler.fetch("externals")).toEqual(
-                {global: {"rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url:"http://localhost:3001/rxjs.js"}}}
+                {global: {"rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url:"http://localhost:3001/rxjs.js"}}}
             );
             expect(storageHandler.fetch("remotes")).toEqual(
                 { "team/mfe1": MOCK_REMOTE_INFO() }
@@ -65,7 +65,7 @@ describe('storageHandler', () => {
                 global: {
                     "tslib": {
                         version: "2.8.1", 
-                        requiredVersion: ["2.8.0","2.9.0"], 
+                        requiredVersion: "~2.8.0", 
                         url:"http://localhost:3001/tslib.js"
                     } as Version
                 }
@@ -90,11 +90,11 @@ describe('storageHandler', () => {
 
         it('should update multiple entries', () => {
             storageHandler
-                .update("externals", _ => ({global: {"tslib": {version: "2.8.1", requiredVersion: ["2.8.0","2.9.0"], url:"http://localhost:3001/tslib.js"}}}))
+                .update("externals", _ => ({global: {"tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url:"http://localhost:3001/tslib.js"}}}))
                 .update("remotes", _ => ({"team/mfe2": MOCK_REMOTE_INFO_II()}))
             
             const actual1 = storageHandler.fetch("externals");
-            expect(actual1).toEqual({global: {"tslib": {version: "2.8.1", requiredVersion: ["2.8.0","2.9.0"], url:"http://localhost:3001/tslib.js"}}});
+            expect(actual1).toEqual({global: {"tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url:"http://localhost:3001/tslib.js"}}});
 
             const actual2 = storageHandler.fetch("remotes");
             expect(actual2).toEqual({"team/mfe2": MOCK_REMOTE_INFO_II()});
@@ -103,15 +103,15 @@ describe('storageHandler', () => {
         it('should be able to manipulate the current entry value', () => {
             storageHandler
                 .update("externals", v => {
-                    v["global"]["tslib"] = {version: "2.8.1", requiredVersion: ["2.8.0","2.9.0"], url:"http://localhost:3001/tslib.js"};
+                    v["global"]["tslib"] = {version: "2.8.1", requiredVersion: "~2.8.0", url:"http://localhost:3001/tslib.js"};
                     return v;
                 })
             
             const actual = storageHandler.fetch("externals");
             expect(actual).toEqual({
                 global: {
-                "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url:"http://localhost:3001/rxjs.js"},
-                "tslib": {version: "2.8.1", requiredVersion: ["2.8.0","2.9.0"], url:"http://localhost:3001/tslib.js"}
+                "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url:"http://localhost:3001/rxjs.js"},
+                "tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url:"http://localhost:3001/tslib.js"}
                 }
 
             });
@@ -122,7 +122,7 @@ describe('storageHandler', () => {
         it('should get the storage object', () => {
             const actual: StorageOf<NfCache> = storageHandler.get();
 
-            expect(actual["externals"].get()).toEqual({global: {"rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url:"http://localhost:3001/rxjs.js"}}});
+            expect(actual["externals"].get()).toEqual({global: {"rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url:"http://localhost:3001/rxjs.js"}}});
             expect(actual["remotes"].get()).toEqual({"team/mfe1": MOCK_REMOTE_INFO()});
         });
     });

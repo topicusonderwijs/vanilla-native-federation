@@ -21,6 +21,11 @@ const externalsHandlerFactory = (
 
 
     const appendToDependencyScope = (scopeUrl: string) => (external: SharedInfo) => (externals: NfCache["externals"]) => {
+
+        if (!external.version || !versionHandler.isValid(external.version)) {
+            logHandler.warn(`[${scopeUrl}][${external.packageName}] Version '${external.version}' is not a valid version.`);
+        }
+
         const scope = (external.singleton) ? "global" : scopeUrl;
         const reqVersion = (external.strictVersion) ? 'strictRequiredVersion' : 'requiredVersion';
 
@@ -30,7 +35,7 @@ const externalsHandlerFactory = (
             externals[scope]![external.packageName] = {
                 version: external.version!,
                 url: _path.join(scopeUrl, external.outFileName),
-                [reqVersion]: versionHandler.toRange(external.requiredVersion)
+                [reqVersion]: external.requiredVersion
             }
             
             return externals;
@@ -44,12 +49,10 @@ const externalsHandlerFactory = (
         }
 
         storedExternal[reqVersion] = versionHandler.getSmallestVersionRange(
-            versionHandler.toRange(external.requiredVersion), 
+            external.requiredVersion, 
             storedExternal[reqVersion]
         );
 
-        if(!storedExternal[reqVersion]) {
-        }
         externals[scope]![external.packageName] = storedExternal;
         
         return externals;
@@ -72,19 +75,21 @@ const externalsHandlerFactory = (
         for (const newExternal of sharedExternals) {
             const currentExternal = globalExternals[newExternal.packageName]!;
 
+            if (!newExternal.version || !versionHandler.isValid(newExternal.version)) {
+                throw new NFError(`[${newExternal.packageName}] Shared version '${newExternal.version}' is not a valid version.`);
+            }
             if (currentExternal.strictRequiredVersion &&  
                 !versionHandler.isCompatible(newExternal.version!, currentExternal.strictRequiredVersion)) {
-                throw new NFError(`[${newExternal.packageName}] Version '${newExternal.version}' is not compatible to version range '${currentExternal.strictRequiredVersion.join(" - ")}'`);
+                throw new NFError(`[${newExternal.packageName}] Shared version '${newExternal.version}' is not compatible to version range '${currentExternal.strictRequiredVersion}'`);
             }
 
             if (currentExternal.requiredVersion && 
                 !versionHandler.isCompatible(newExternal.version!, currentExternal.requiredVersion)) {
-                logHandler.warn(`[${newExternal.packageName}] Version '${newExternal.version}' is not compatible to version range '${currentExternal.requiredVersion.join(" - ")}'`);
+                logHandler.warn(`[${newExternal.packageName}] Shared version '${newExternal.version}' is not compatible to version range '${currentExternal.requiredVersion}'`);
             }
 
-            const newVersionRange = versionHandler.toRange(newExternal.requiredVersion);
-            if (!versionHandler.isCompatible(currentExternal.version!, newVersionRange)) {
-                const err = `[${newExternal.packageName}] Stored version '${currentExternal.version}' is not compatible to version range '${newVersionRange.join(" - ")}'`;
+            if (!versionHandler.isCompatible(currentExternal.version!, newExternal.requiredVersion)) {
+                const err = `[${newExternal.packageName}] Stored shared version '${currentExternal.version}' is not compatible to version range '${newExternal.requiredVersion}'`;
                 if(newExternal.strictVersion) throw new NFError(err);
 
 

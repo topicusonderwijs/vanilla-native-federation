@@ -17,11 +17,12 @@ const fetchRemoteEntries = (
         
 
         const fetchManifest = (): Promise<Record<RemoteName, RemoteEntry>> => {
-            return (typeof remotesOrManifestUrl === 'string')
-                ? remotesOrManifestUrl.endsWith(NF_REMOTE_ENTRY_FILENAME)
-                    ? Promise.resolve(appendHostRemoteEntry({}, remotesOrManifestUrl))
-                    : fetch(remotesOrManifestUrl).then(r => r.json())
-                : Promise.resolve(remotesOrManifestUrl)
+            if (typeof remotesOrManifestUrl !== 'string') 
+                return Promise.resolve(remotesOrManifestUrl);
+
+            return remotesOrManifestUrl.endsWith(NF_REMOTE_ENTRY_FILENAME)
+                ? Promise.resolve(appendHostRemoteEntry({}, remotesOrManifestUrl))
+                : fetch(remotesOrManifestUrl).then(r => r.json())
         }
     
         const notifyRemoteEntryFetched = (remoteEntry: RemoteEntry, remoteName: RemoteName) => (federationInfo: FederationInfo) => {
