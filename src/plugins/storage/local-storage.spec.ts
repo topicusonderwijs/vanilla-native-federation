@@ -77,21 +77,21 @@ describe('localStorageEntry', () => {
         it('maintains separate values for different keys', () => {
             const entry1 = localStorageEntry('externals', {
                 global:{
-                    "rxjs": {version: "7.8.1", requiredVersion: ["7.8.0","7.9.0"], url: "http://localhost:3001/rxjs.js"}
+                    "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/rxjs.js"}
                 }
             });
             const entry2 = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
             
             entry1.set({
                 global:{
-                    "tslib": {version: "2.8.1", requiredVersion: ["2.8.0","2.9.0"], url: "http://localhost:3001/tslib.js"}
+                    "tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url: "http://localhost:3001/tslib.js"}
                 }
             });
             entry2.set({ "team/mfe2": MOCK_REMOTE_INFO_II() });
             
             expect(entry1.get()).toEqual({
                 global:{
-                    "tslib": {version: "2.8.1", requiredVersion: ["2.8.0","2.9.0"], url: "http://localhost:3001/tslib.js"}
+                    "tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url: "http://localhost:3001/tslib.js"}
                 }
             });
             expect(entry2.get()).toEqual({ "team/mfe2": MOCK_REMOTE_INFO_II() });
