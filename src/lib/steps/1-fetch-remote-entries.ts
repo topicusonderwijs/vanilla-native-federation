@@ -65,8 +65,7 @@ const fetchRemoteEntries = (
                 .then(addRemoteEntryToStorage(remoteEntry))
                 .catch(e => {
                     const message = (e instanceof Error) ? e.message : String(e);
-                    logHandler.error(`Failed to initialize remote '${remoteName}'.`);
-                    logHandler.debug(`Remote '${remoteName}' init failed: ` + message);
+                    logHandler.warn(`Failed to init remote '${remoteName}': ${message}.`);
                     return false;
                 })
         }

@@ -22,7 +22,7 @@ describe('remoteInfoHandler', () => {
             }
         ] as SharedInfo[]
 
-   const MOCK_FEDERATION_INFO = (): {name: string, exposes: ExposesInfo[]} => 
+    const MOCK_FEDERATION_INFO = (): {name: string, exposes: ExposesInfo[]} => 
         JSON.parse(JSON.stringify({
             name: 'team/mfe1', 
             exposes: [{key: './comp', outFileName: 'comp.js'}]
@@ -31,10 +31,10 @@ describe('remoteInfoHandler', () => {
 
 
     const MOCK_FEDERATION_INFO_II = (): {name: string, exposes: ExposesInfo[]} => 
-            JSON.parse(JSON.stringify({
-                name: 'team/mfe2', 
-                exposes: [{key: './comp', outFileName: 'comp.js'}]
-            }))
+        JSON.parse(JSON.stringify({
+            name: 'team/mfe2', 
+            exposes: [{key: './comp', outFileName: 'comp.js'}]
+        }))
 
 
     beforeEach(() => {
