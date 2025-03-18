@@ -80,7 +80,7 @@ const externalsHandlerFactory = (
             }
             if (currentExternal.strictRequiredVersion &&  
                 !versionHandler.isCompatible(newExternal.version!, currentExternal.strictRequiredVersion)) {
-                throw new NFError(`[${newExternal.packageName}] Shared version '${newExternal.version}' is not compatible to version range '${currentExternal.strictRequiredVersion}'`);
+                throw new NFError(`[${newExternal.packageName}] Shared (strict) version '${newExternal.version}' is not compatible to version range '${currentExternal.strictRequiredVersion}'`);
             }
 
             if (currentExternal.requiredVersion && 
