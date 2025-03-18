@@ -404,7 +404,7 @@ describe('externalsHandler', () => {
             ]);
         });
 
-        it('to send an error if new singleton is outside of range', () => {
+        it('to send an error if new (strict) singleton is outside of range', () => {
             (storageHandler.fetch as jest.Mock) = jest.fn((): {global: Record<string, Version>} => ({
                 global: {
                     "rxjs": {version: "7.6.2", strictRequiredVersion: "^7.6.0", url: "http://localhost:3001/NEW-PACKAGE.js" }
@@ -414,7 +414,7 @@ describe('externalsHandler', () => {
 
             const actual = () => externalsHandler.checkForIncompatibleSingletons(MOCK_SHARED_INFO({singleton: true, strictVersion: false}));
 
-            expect(actual).toThrow("[rxjs] Shared version '7.8.1' is not compatible to version range '^7.6.0'");
+            expect(actual).toThrow("[rxjs] Shared (strict) version '7.8.1' is not compatible to version range '^7.6.0'");
         });
 
         it('to send the current stored version is outside of new singleton range', () => {

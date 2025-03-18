@@ -22,7 +22,7 @@ const resolveHandlers = <TCache extends NfCache>(
     const remoteInfoHandler = remoteInfoHandlerFactory(config, storageHandler);
     const remoteModuleHandler = remoteModuleHandlerFactory(config, storageHandler);
 
-    const importMapHandler = importMapHandlerFactory(config, externalsHandler, remoteInfoHandler);
+    const importMapHandler = importMapHandlerFactory(config, logHandler, externalsHandler, remoteInfoHandler);
 
     return {
         storageHandler,

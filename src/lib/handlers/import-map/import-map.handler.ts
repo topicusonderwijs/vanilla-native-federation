@@ -3,9 +3,11 @@ import type { ModuleLoaderConfig } from "../../config/config.contract";
 import * as _path from "../../utils/path";
 import type { ExternalsHandler } from "../externals/externals.contract";
 import type { RemoteInfo, RemoteInfoHandler, RemoteName } from "../remote-info";
+import type { LogHandler } from "../logging";
 
 const importMapHandlerFactory = (
     {importMapType}: ModuleLoaderConfig,
+    logHandler: LogHandler,
     externalsHandler: ExternalsHandler,
     remoteInfoHandler: RemoteInfoHandler
 ): ImportMapHandler => {
@@ -57,6 +59,12 @@ const importMapHandlerFactory = (
 
         return remotes.reduce(
             (importMap: ImportMap, remoteName: string) => {
+                
+                if(!remoteInfoHandler.inStorage(remoteName)) {
+                    logHandler.warn(`Failed to init remote '${remoteName}': not found in storage.`);
+                    return importMap;
+                }
+                
                 const remoteInfo: RemoteInfo = remoteInfoHandler.fromStorage(remoteName);
                 importMap = appendExposedModules(importMap, remoteInfo);
                 importMap = appendScopedExternals(importMap, remoteInfo);
