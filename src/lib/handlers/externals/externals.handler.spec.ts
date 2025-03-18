@@ -111,11 +111,38 @@ describe('externalsHandler', () => {
             versionHandler.getSmallestVersionRange = jest.fn((): string => "^7.8.0");
         })
 
+        it('should remove previously stored dependencies from scope', () => {
+            const SCOPE = MOCK_SCOPE(); 
+            const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: false});
+
+            const cacheBefore = {
+                global: {},
+                [SCOPE]: {
+                    "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }
+                }
+            } as CacheGlobalExternals & CacheScopedExternals
+
+            const expected = {
+                global: {},
+                [SCOPE]: {}
+            }
+
+            externalsHandler.toStorage(sharedInfo, SCOPE);
+            let [clearScopeEntry,clearScopeFn] = (storageHandler.update as any).mock.calls[0];
+            const actual = clearScopeFn(cacheBefore);
+            
+            expect(clearScopeEntry).toBe("externals");
+            expect(actual).toEqual(expected);
+        });  
+        
         it('should add externals of RemoteInfo to global scope', () => {
             const SCOPE = MOCK_SCOPE(); 
             const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: false});
 
-            let actual = {global: {}} as CacheGlobalExternals & CacheScopedExternals
+            let cacheBefore = {
+                global: {},
+                [SCOPE]: {}
+            } as CacheGlobalExternals & CacheScopedExternals
 
             const expected = {
                 global: {
@@ -124,27 +151,23 @@ describe('externalsHandler', () => {
                 [SCOPE]: {}
             }
 
-
             externalsHandler.toStorage(sharedInfo, SCOPE);
 
-            // 1) REMOVE OLD DEPS FROM SCOPE IN STORAGE
-            let [storageEntry1, clearScopeFn] = (storageHandler.update as any).mock.calls[0];
-            actual = clearScopeFn(actual);
-            expect(storageEntry1).toBe("externals");
-            expect(actual).toEqual({global: {}, [SCOPE]: {}});
-
-            // 2) ADD DEPS TO GLOBAL AND REMOTE SCOPE
-            let [storageEntry2, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
-            actual = addExternalsFn(actual);
+            // 'Add dependency to scope' call
+            const [addExternalsEntry, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
+            const actual = addExternalsFn(cacheBefore);
+            
             expect(actual).toEqual(expected);
-            expect(storageEntry2).toBe("externals");
+            expect(addExternalsEntry).toBe("externals");
         });  
 
         it('should add externals of RemoteInfo to scoped storage', () => {
             const SCOPE = MOCK_SCOPE(); 
             const sharedInfo = MOCK_SHARED_INFO({singleton: false, strictVersion: false});
 
-            let actual = {global: {}} as CacheGlobalExternals & CacheScopedExternals
+            let cacheBefore = {
+                global: {}
+            } as CacheGlobalExternals & CacheScopedExternals
 
             const expected = {
                 global: {},
@@ -155,17 +178,12 @@ describe('externalsHandler', () => {
 
             externalsHandler.toStorage(sharedInfo, SCOPE);
 
-            // 1) REMOVE OLD DEPS FROM SCOPE IN STORAGE
-            let [storageEntry1, clearScopeFn] = (storageHandler.update as any).mock.calls[0];
-            actual = clearScopeFn(actual);
-            expect(storageEntry1).toBe("externals");
-            expect(actual).toEqual({global: {}, [SCOPE]: {}});
-
-            // 2) ADD DEPS TO GLOBAL AND SCOPE
-            let [storageEntry2, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
-            actual = addExternalsFn(actual);
+            // 'Add dependency to scope' call
+            let [addExternalsEntry, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
+            const actual = addExternalsFn(cacheBefore);
+            
             expect(actual).toEqual(expected);
-            expect(storageEntry2).toBe("externals");
+            expect(addExternalsEntry).toBe("externals");
         });  
 
         it('should update requiredVersion if version is smaller than current', () => {
@@ -174,86 +192,92 @@ describe('externalsHandler', () => {
             const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: false, requiredVersion: "~7.7.0"});
 
             versionHandler.getSmallestVersionRange = jest.fn((): string => "^7.7.0");
-
-            let cache = {
+            
+            const cacheBefore = {
                 global: {"rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }},
                 [SCOPE]: { }
-            } as CacheGlobalExternals & CacheScopedExternals
-            
+            } as CacheGlobalExternals & CacheScopedExternals; 
+
+            const expected = {
+                global: {"rxjs": {version: "7.8.1", requiredVersion: "^7.7.0", url: "http://localhost:3001/rxjs.js" }},
+                [SCOPE]: { }
+            }; 
+
             versionHandler.compareVersions = jest.fn((_v1, _v2) => 0);
 
             externalsHandler.toStorage(sharedInfo, SCOPE);
 
-            // 1) REMOVE OLD DEPS FROM SCOPE IN STORAGE
-            let [storageEntry1, clearScopeFn] = (storageHandler.update as any).mock.calls[0];
-            const actualAfterScopeClear = clearScopeFn(cache);
-            expect(storageEntry1).toBe("externals");
-            expect(actualAfterScopeClear).toEqual({
-                global: {"rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }},
-                [SCOPE]: { }
-            });
-
-            // 2) ADD DEPS TO GLOBAL AND SCOPE
-            let [storageEntry2, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
-            const actualAfterGlobalUpdate = addExternalsFn(cache);
-            expect(actualAfterGlobalUpdate).toEqual({
-                global: {"rxjs": {version: "7.8.1", requiredVersion: "^7.7.0", url: "http://localhost:3001/rxjs.js" }},
-                [SCOPE]: { }
-            });
-            expect(storageEntry2).toBe("externals");
+            // 'Add dependency to scope' call
+            let [addExternalsEntry, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
+            const actual = addExternalsFn(cacheBefore);
+            
+            expect(actual).toEqual(expected);
+            expect(addExternalsEntry).toBe("externals");
         });  
         
-        it('should append new externals to cache', () => {
+        it('should append a dependency to the global scope', () => {
             const SCOPE = MOCK_SCOPE(); 
-            const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: false});
+            
+            const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: false });
 
-            const cache = {
-                externals: {
-                    global: {
-                        "rxjs/operators": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs_operators.js"}
-                    }
-                } as CacheGlobalExternals & CacheScopedExternals
-            }
+            const cacheBefore = {
+                global: {
+                    "rxjs/operators": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs_operators.js"}
+                },
+                [SCOPE]: { }
+            } as CacheGlobalExternals & CacheScopedExternals; 
 
-            externalsHandler.toStorage(sharedInfo, SCOPE);
-
-            const [key, mutation] = (storageHandler.update as any).mock.calls[1];
-            const actual = mutation(cache.externals);
-
-            expect(key).toBe("externals");
-            expect(actual).toEqual({
+            const expected = {
                 global: {
                     "rxjs/operators": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs_operators.js"},
                     "rxjs": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }
-                }
-            });
-        });
+                },
+                [SCOPE]: { }
+            }; 
 
-        it('should append new strict externals to cache', () => {
-            const SCOPE = MOCK_SCOPE(); 
-            const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: true});
-
-            const cache = {
-                externals: {
-                    global: {
-                        "rxjs/operators": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs_operators.js"}
-                    }
-                } as CacheGlobalExternals & CacheScopedExternals
-            }
+            versionHandler.compareVersions = jest.fn((_v1, _v2) => 0);
 
             externalsHandler.toStorage(sharedInfo, SCOPE);
 
-            const [key, mutation] = (storageHandler.update as any).mock.calls[1];
-            const actual = mutation(cache.externals);
+            // 'Add dependency to scope' call
+            let [addExternalsEntry, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
+            const actual = addExternalsFn(cacheBefore);
+            
+            expect(actual).toEqual(expected);
+            expect(addExternalsEntry).toBe("externals");
+        });  
 
-            expect(key).toBe("externals");
-            expect(actual).toEqual({
+        it('should append a strict dependency to the global scope', () => {
+            const SCOPE = MOCK_SCOPE(); 
+            
+            const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: true});
+
+            const cacheBefore = {
+                global: {
+                    "rxjs/operators": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs_operators.js"}
+                },
+                [SCOPE]: { }
+            } as CacheGlobalExternals & CacheScopedExternals; 
+
+            const expected = {
                 global: {
                     "rxjs/operators": {version: "7.8.1", requiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs_operators.js"},
                     "rxjs": {version: "7.8.1", strictRequiredVersion: "^7.8.0", url: "http://localhost:3001/rxjs.js" }
-                }
-            });
-        });
+                },
+                [SCOPE]: { }
+            }; 
+
+            versionHandler.compareVersions = jest.fn((_v1, _v2) => 0);
+
+            externalsHandler.toStorage(sharedInfo, SCOPE);
+
+            // 'Add dependency to scope' call
+            let [addExternalsEntry, addExternalsFn] = (storageHandler.update as any).mock.calls[1];
+            const actual = addExternalsFn(cacheBefore);
+            
+            expect(actual).toEqual(expected);
+            expect(addExternalsEntry).toBe("externals");
+        });  
 
         it('should override if the version is newer', () => {
             const SCOPE = MOCK_SCOPE(); 
@@ -380,7 +404,7 @@ describe('externalsHandler', () => {
             ]);
         });
 
-        it('to send an error if new singleton is outside of range', () => {
+        it('to send an error if new (strict) singleton is outside of range', () => {
             (storageHandler.fetch as jest.Mock) = jest.fn((): {global: Record<string, Version>} => ({
                 global: {
                     "rxjs": {version: "7.6.2", strictRequiredVersion: "^7.6.0", url: "http://localhost:3001/NEW-PACKAGE.js" }
@@ -390,7 +414,7 @@ describe('externalsHandler', () => {
 
             const actual = () => externalsHandler.checkForIncompatibleSingletons(MOCK_SHARED_INFO({singleton: true, strictVersion: false}));
 
-            expect(actual).toThrow("[rxjs] Shared version '7.8.1' is not compatible to version range '^7.6.0'");
+            expect(actual).toThrow("[rxjs] Shared (strict) version '7.8.1' is not compatible to version range '^7.6.0'");
         });
 
         it('to send the current stored version is outside of new singleton range', () => {

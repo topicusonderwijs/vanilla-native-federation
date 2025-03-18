@@ -10,11 +10,14 @@ type ExposeModuleLoader = (manifest: Record<RemoteName, RemoteEntry>) => Promise
 }>
 
 const exposeModuleLoader = (
-    { logHandler, remoteModuleHandler}: Handlers
+    { logHandler, remoteModuleHandler, remoteInfoHandler }: Handlers
 ): ExposeModuleLoader => {
     function loadRemoteModule(
         remoteName: string, exposedModule: string
     ): Promise<unknown> {
+        if(!remoteInfoHandler.inStorage(remoteName)) {
+            return Promise.reject(new Error(`Remote '${remoteName}' is not initialized.`))
+        }
         try{
             const remoteModule = remoteModuleHandler.fromStorage(remoteName, exposedModule);
             logHandler.debug(`Loading initialized module '${JSON.stringify(remoteModule)}'`);

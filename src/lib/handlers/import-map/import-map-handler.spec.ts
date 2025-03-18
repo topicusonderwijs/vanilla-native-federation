@@ -1,23 +1,27 @@
-import { mockExternalsHandler, mockRemoteInfoHandler } from './../../../mock/handlers.mock';
+import { mockExternalsHandler, mockRemoteInfoHandler, mockLogHandler } from './../../../mock/handlers.mock';
 import { ExternalsHandler } from "../externals";
 import { ImportMap, ImportMapHandler } from "./import-map.contract";
 import { importMapHandlerFactory } from "./import-map.handler";
 import { RemoteInfo, RemoteInfoHandler } from '../remote-info';
+import { LogHandler } from '../logging';
 
 describe('importMapHandler', () => {
     let remoteInfoHandler: RemoteInfoHandler;
     let externalsHandler: ExternalsHandler;
     let importMapHandler: ImportMapHandler;
+    let logHandler: LogHandler;
 
     beforeEach(() => {
         remoteInfoHandler = mockRemoteInfoHandler();
-
         externalsHandler = mockExternalsHandler();
+        logHandler = mockLogHandler();
+
         importMapHandler = importMapHandlerFactory(
             {
                 loadModuleFn: jest.fn(),
                 importMapType: "importmap"
             },
+            logHandler,
             externalsHandler, 
             remoteInfoHandler
         );
@@ -66,6 +70,10 @@ describe('importMapHandler', () => {
     });
 
     describe('createFromStorage', () => {
+        beforeEach(() => {
+            remoteInfoHandler.inStorage = jest.fn(() => true);
+        });
+
         it('should create an ImportMap from storage based on given remote', () => {
             const expected: ImportMap = {
                 imports: {
@@ -89,7 +97,7 @@ describe('importMapHandler', () => {
             const actual = importMapHandler.fromStorage(["team/mfe1"]);
 
             expect(actual).toEqual(expected);
-        })
+        });
 
         it('should add shared singleton dependencies.', () => {
             const expected: ImportMap = {
@@ -195,6 +203,24 @@ describe('importMapHandler', () => {
 
             expect(actual).toEqual(expected);
         })
+
+
+        it('should skip a remote if not defined in storage.', () => {
+            const expected: ImportMap = {
+                imports: {},
+                scopes: {}
+            };
+
+            // REMOTES
+            remoteInfoHandler.inStorage = jest.fn(() => false);
+
+            // Global object
+            (externalsHandler.fromStorage as jest.Mock) = jest.fn((_: string) => ({}));
+            
+            const actual = importMapHandler.fromStorage(["team/mfe1"]);
+
+            expect(actual).toEqual(expected);
+        });
     });
 
     describe('addToDOM', () => {

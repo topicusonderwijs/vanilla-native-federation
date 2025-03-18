@@ -1,3 +1,7 @@
+## 0.11.1 - Bugfix: Init failed if one remoteEntry was skipped in step 1 (metadata verification step)
+- [fix] Init will now only log an error and a warning if a module could not be initialized instead of throwing an error during init.
+- [test] Cleaned the test in externals handler.
+
 ## 0.11.0 - Integrated more robust Semver library
 - Integraded Semver library for version management.
 - Exposed Step interfaces for easy overrides.

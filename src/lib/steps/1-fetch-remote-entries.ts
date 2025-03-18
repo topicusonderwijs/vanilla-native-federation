@@ -15,7 +15,6 @@ const fetchRemoteEntries = (
                 ...manifest 
             })
         
-
         const fetchManifest = (): Promise<Record<RemoteName, RemoteEntry>> => {
             if (typeof remotesOrManifestUrl !== 'string') 
                 return Promise.resolve(remotesOrManifestUrl);
@@ -65,8 +64,7 @@ const fetchRemoteEntries = (
                 .then(addRemoteEntryToStorage(remoteEntry))
                 .catch(e => {
                     const message = (e instanceof Error) ? e.message : String(e);
-                    logHandler.error(`Failed to initialize remote '${remoteName}'.`);
-                    logHandler.debug(`Remote '${remoteName}' init failed: ` + message);
+                    logHandler.error(`Error while verifying remoteEntry.json of '${remoteName}': ${message}.`);
                     return false;
                 })
         }
