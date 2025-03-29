@@ -3,6 +3,7 @@ import { externalsHandlerFactory } from "./externals/externals.handler";
 import type { Handlers } from "./handlers.contract";
 import { importMapHandlerFactory } from "./import-map/import-map.handler";
 import { logHandlerFactory } from "./logging/log.handler";
+import { manifestHandlerFactory } from "./manifest/manifest.handler";
 import { remoteInfoHandlerFactory } from "./remote-info/remote-info.handler";
 import { remoteModuleHandlerFactory } from "./remote-module/remote-module.handler";
 import type { NfCache } from "./storage/storage.contract";
@@ -18,10 +19,11 @@ const resolveHandlers = <TCache extends NfCache>(
 
     // Core
     const versionHandler = versionHandlerFactory();
+    const manifestHandler = manifestHandlerFactory();
     const externalsHandler = externalsHandlerFactory(storageHandler, logHandler, versionHandler);
     const remoteInfoHandler = remoteInfoHandlerFactory(config, storageHandler);
     const remoteModuleHandler = remoteModuleHandlerFactory(config, storageHandler); 
-
+    
     const importMapHandler = importMapHandlerFactory(config, logHandler, externalsHandler, remoteInfoHandler);
 
     return {
@@ -30,7 +32,8 @@ const resolveHandlers = <TCache extends NfCache>(
         externalsHandler,
         remoteInfoHandler,
         remoteModuleHandler,
-        importMapHandler
+        importMapHandler,
+        manifestHandler
     }
 }
 

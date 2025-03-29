@@ -1,11 +1,11 @@
 import type { FederationInfo, RemoteEntry, RemoteInfo, RemoteName } from "../core";
 import type { Handlers } from "../core/handlers.contract";
-import {NF_HOST_REMOTE_ENTRY, NF_REMOTE_ENTRY_FILENAME} from "../config/namespace.contract";
+import {NF_HOST_REMOTE_ENTRY } from "../config/namespace.contract";
 
 type FetchRemoteEntries = (remotesOrManifestUrl: string|Record<RemoteName, RemoteEntry>) => Promise<Record<RemoteName, RemoteEntry>>
 
 const fetchRemoteEntries = (
-    { remoteInfoHandler, externalsHandler, logHandler}: Handlers
+    { remoteInfoHandler, externalsHandler, logHandler, manifestHandler }: Handlers
 ): FetchRemoteEntries => 
     async (remotesOrManifestUrl: string | Record<RemoteName, RemoteEntry> = {}) => {
    
@@ -14,15 +14,6 @@ const fetchRemoteEntries = (
                 [NF_HOST_REMOTE_ENTRY]: hostRemoteEntryUrl, 
                 ...manifest 
             })
-        
-        const fetchManifest = (): Promise<Record<RemoteName, RemoteEntry>> => {
-            if (typeof remotesOrManifestUrl !== 'string') 
-                return Promise.resolve(remotesOrManifestUrl);
-
-            return remotesOrManifestUrl.endsWith(NF_REMOTE_ENTRY_FILENAME)
-                ? Promise.resolve(appendHostRemoteEntry({}, remotesOrManifestUrl))
-                : fetch(remotesOrManifestUrl).then(r => r.json())
-        }
     
         const notifyRemoteEntryFetched = (remoteEntry: RemoteEntry, remoteName: RemoteName) => (federationInfo: FederationInfo) => {
             logHandler.debug(`fetched '${remoteEntry}': ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);
@@ -77,7 +68,7 @@ const fetchRemoteEntries = (
             }
             return manifest;
         };
-        return fetchManifest()
+        return manifestHandler.fetchIfUrl(remotesOrManifestUrl)
             .then(appendHostRemoteEntryIfInConfig)
             .then(
                 m => Promise.all(Object.entries(m).map(fetchRemoteEntry)).then(_ => m)

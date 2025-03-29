@@ -111,10 +111,9 @@ describe('externalsHandler', () => {
             versionHandler.getSmallestVersionRange = jest.fn((): string => "^7.8.0");
         })
 
-        it.only('should remove previously stored dependencies from scope', () => {
+        it('should remove previously stored dependencies from scope', () => {
             const SCOPE = MOCK_SCOPE(); 
             const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: false});
-
             const cacheBefore = {
                 global: {},
                 [SCOPE]: {
@@ -122,15 +121,15 @@ describe('externalsHandler', () => {
                 }
             } as CacheGlobalExternals & CacheScopedExternals
 
+            externalsHandler.toStorage(sharedInfo, SCOPE);
+            let [clearScopeEntry,clearScopeFn] = (storageHandler.update as any).mock.calls[0];
+            const actual = clearScopeFn(cacheBefore);
+            
             const expected = {
                 global: {},
                 [SCOPE]: {}
             }
 
-            externalsHandler.toStorage(sharedInfo, SCOPE);
-            let [clearScopeEntry,clearScopeFn] = (storageHandler.update as any).mock.calls[0];
-            const actual = clearScopeFn(cacheBefore);
-            
             expect(clearScopeEntry).toBe("externals");
             expect(actual).toEqual(expected);
         });  
