@@ -1,7 +1,7 @@
 import type { Config } from "./config.contract"
-import { noopLogger } from "../handlers/logging/noop.logger"
-import { globalThisStorageEntry } from "../handlers/storage/global-this-storage"
-import { createCache, type NfCache } from "../handlers/storage/storage.contract"
+import { noopLogger } from "../core/logging/noop.logger"
+import { globalThisStorageEntry } from "../core/storage/global-this-storage"
+import { createCache, type NfCache } from "../core/storage/storage.contract"
 
 const defaultConfig = <TCache extends NfCache>(o: Partial<Config<TCache>>): Config<TCache> => {
     return {

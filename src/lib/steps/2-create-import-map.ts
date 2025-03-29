@@ -1,5 +1,5 @@
-import type { Handlers } from "../handlers/handlers.contract";
-import type { RemoteEntry, RemoteName } from "../handlers/remote-info/remote-info.contract";
+import type { Handlers } from "../core/handlers.contract";
+import type { RemoteEntry, RemoteName } from "../core/remote-info/remote-info.contract";
 
 type CreateImportMap = (manifest: Record<RemoteName, RemoteEntry>) => Promise<Record<RemoteName, RemoteEntry>>;
 

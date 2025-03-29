@@ -1,4 +1,4 @@
-import { mockExternalsHandler, mockRemoteInfoHandler, mockLogHandler } from './../../../mock/handlers.mock';
+import { mockExternalsHandler, mockRemoteInfoHandler, mockLogHandler } from '../../../mock/handlers.mock';
 import { ExternalsHandler } from "../externals";
 import { ImportMap, ImportMapHandler } from "./import-map.contract";
 import { importMapHandlerFactory } from "./import-map.handler";

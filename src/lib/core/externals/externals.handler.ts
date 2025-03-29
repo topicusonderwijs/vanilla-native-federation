@@ -19,13 +19,10 @@ const externalsHandlerFactory = (
 
 ): ExternalsHandler => {
 
-
     const appendToDependencyScope = (scopeUrl: string) => (external: SharedInfo) => (externals: NfCache["externals"]) => {
-
         if (!external.version || !versionHandler.isValid(external.version)) {
             logHandler.warn(`[${scopeUrl}][${external.packageName}] Version '${external.version}' is not a valid version.`);
         }
-
         const scope = (external.singleton) ? "global" : scopeUrl;
         const reqVersion = (external.strictVersion) ? 'strictRequiredVersion' : 'requiredVersion';
 
@@ -99,6 +96,7 @@ const externalsHandlerFactory = (
     }
 
     function toStorage(externals: SharedInfo[], scopeUrl: string) {
+        checkForIncompatibleSingletons(externals);
         clearDependencyScope(scopeUrl);
 
         externals

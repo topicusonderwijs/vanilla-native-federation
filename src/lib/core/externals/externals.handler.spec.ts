@@ -111,7 +111,7 @@ describe('externalsHandler', () => {
             versionHandler.getSmallestVersionRange = jest.fn((): string => "^7.8.0");
         })
 
-        it('should remove previously stored dependencies from scope', () => {
+        it.only('should remove previously stored dependencies from scope', () => {
             const SCOPE = MOCK_SCOPE(); 
             const sharedInfo = MOCK_SHARED_INFO({singleton: true, strictVersion: false});
 

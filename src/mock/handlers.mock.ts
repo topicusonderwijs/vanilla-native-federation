@@ -1,8 +1,8 @@
-import { LogHandler } from "../lib/handlers/logging/log.contract";
-import { ExternalsHandler } from "../lib/handlers/externals";
-import { NfCache, StorageHandler } from "../lib/handlers/storage/storage.contract";
-import { VersionHandler } from "../lib/handlers/version/version.contract";
-import { RemoteInfoHandler } from "../lib/handlers/remote-info";
+import { LogHandler } from "../lib/core/logging/log.contract";
+import { ExternalsHandler } from "../lib/core/externals";
+import { NfCache, StorageHandler } from "../lib/core/storage/storage.contract";
+import { VersionHandler } from "../lib/core/version/version.contract";
+import { RemoteInfoHandler } from "../lib/core/remote-info";
 
 const mockLogHandler = (): LogHandler => ({
     debug: jest.fn(() => {}),

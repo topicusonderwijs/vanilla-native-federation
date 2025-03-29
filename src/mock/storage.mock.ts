@@ -1,4 +1,4 @@
-import type { NfCache, StorageEntry, StorageEntryCreator } from './../lib/handlers/storage/storage.contract';
+import type { NfCache, StorageEntry, StorageEntryCreator } from './../lib/core/storage/storage.contract';
 
 
 const mockStorageEntry: StorageEntryCreator = <TCache extends NfCache, K extends keyof TCache = keyof TCache>

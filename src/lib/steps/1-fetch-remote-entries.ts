@@ -1,5 +1,5 @@
-import type { FederationInfo, RemoteEntry, RemoteInfo, RemoteName } from "../handlers";
-import type { Handlers } from "../handlers/handlers.contract";
+import type { FederationInfo, RemoteEntry, RemoteInfo, RemoteName } from "../core";
+import type { Handlers } from "../core/handlers.contract";
 import {NF_HOST_REMOTE_ENTRY, NF_REMOTE_ENTRY_FILENAME} from "../config/namespace.contract";
 
 type FetchRemoteEntries = (remotesOrManifestUrl: string|Record<RemoteName, RemoteEntry>) => Promise<Record<RemoteName, RemoteEntry>>

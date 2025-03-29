@@ -1,4 +1,4 @@
-import { type StorageEntryCreator, type NfCache, type StorageEntry } from "./../../lib/handlers/storage/storage.contract";
+import { type StorageEntryCreator, type NfCache, type StorageEntry } from "./../../lib/core/storage/storage.contract";
 import {NF_STORAGE_ENTRY} from "../../lib/config/namespace.contract";
 
 const localStorageEntry: StorageEntryCreator = <TCache extends NfCache, K extends keyof TCache>(key: K, initialValue: TCache[K]) => {

@@ -1,4 +1,4 @@
-import type { LogHandler } from "./../../lib/handlers/logging";
+import type { LogHandler } from "./../../lib/core/logging";
 
 const consoleLogger: LogHandler = ({
     /* eslint no-console: "off", curly: "error" */

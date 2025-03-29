@@ -1,6 +1,6 @@
 import { localStorageEntry } from './local-storage';
-import { NfCache } from './../../lib/handlers/storage';
-import { RemoteInfo } from '../../lib/handlers/remote-info';
+import { NfCache } from './../../lib/core/storage';
+import { RemoteInfo } from '../../lib/core/remote-info';
 import { NF_STORAGE_ENTRY } from '../../lib/config/namespace.contract';
 
 describe('localStorageEntry', () => {

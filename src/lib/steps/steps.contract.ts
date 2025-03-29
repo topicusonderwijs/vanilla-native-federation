@@ -1,7 +1,7 @@
 import type { FetchRemoteEntries } from "./1-fetch-remote-entries"
 import type { CreateImportMap } from "./2-create-import-map"
 import type { ExposeModuleLoader } from "./3-expose-module-loader"
-import type { Handlers } from "../handlers/handlers.contract"
+import type { Handlers } from "../core/handlers.contract"
 
 type StepFactory<Tstep> = (h: Handlers) => Tstep
 
