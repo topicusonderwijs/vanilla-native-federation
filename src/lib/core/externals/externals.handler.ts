@@ -96,6 +96,7 @@ const externalsHandlerFactory = (
     }
 
     function toStorage(externals: SharedInfo[], scopeUrl: string) {
+        // checkForIncompatibleSingletons(externals);
         clearDependencyScope(scopeUrl);
 
         externals
