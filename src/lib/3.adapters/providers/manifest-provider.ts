@@ -1,0 +1,18 @@
+import type { Manifest } from "../../1.domain";
+import type { ForProvidingManifest } from "../../2.app/driving-ports/for-providing-manifest.port";
+
+const manifestProvider = (): ForProvidingManifest => {
+
+    function provide(remotesOrManifestUrl: string|Manifest)
+        : Promise<Manifest> {
+            return (typeof remotesOrManifestUrl === 'string')
+                ? fetch(remotesOrManifestUrl).then(r => r.json())
+                : Promise.resolve(remotesOrManifestUrl)
+        }
+
+    return {
+        provide
+    }
+}
+
+export { manifestProvider }

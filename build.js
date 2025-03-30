@@ -13,14 +13,6 @@ const commonConfig = {
   metafile: true,
 };
 
-async function getPlugins() {
-  const pluginsDir = path.join('src', 'plugins');
-  const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
-  return entries
-    .filter(entry => entry.isDirectory())
-    .map(dir => dir.name);
-}
-
 async function getSourceFiles(dir) {
   const getAllFiles = async (dir) => {
     const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -41,13 +33,11 @@ async function getSourceFiles(dir) {
 }
 
 async function generateBuilds() {
-  const plugins = await getPlugins();
   
-  // CORE FESM and ESM build
   const builds = {
     esm2022: {
       ...commonConfig,
-      entryPoints: await Promise.all([getSourceFiles('src/lib'), getSourceFiles('src/plugins')]).then(dirs => dirs.flat()),
+      entryPoints: await Promise.all([getSourceFiles('src/lib')]).then(dirs => dirs.flat()),
       outdir: 'dist/esm2022',
       bundle: false,
       outExtension: { '.js': '.mjs' },
@@ -62,23 +52,10 @@ async function generateBuilds() {
     },
   };
 
-  // FESM build per plugin
-  for (const plugin of plugins) {
-    builds[`fesm2022_${plugin}`] = {
-      ...commonConfig,
-      entryPoints: [`src/plugins/${plugin}/index.ts`],
-      outfile: `dist/fesm2022/vanilla-native-federation-${plugin}.mjs`,
-      bundle: true,
-      sourcemap: true,
-    };
-  }
-
   return builds;
 }
 
-async function generatePackageExports() {
-  const plugins = await getPlugins();
-  
+async function generatePackageExports() {  
   const exports = {
     "./package.json": { default: "./package.json" },
     ".": {
@@ -87,15 +64,6 @@ async function generatePackageExports() {
       default: "./fesm2022/vanilla-native-federation.mjs",
     },
   };
-
-  // Add exports for each plugin
-  for (const plugin of plugins) {
-    exports[`./plugins/${plugin}`] = {
-      types: `./plugins/${plugin}/index.d.ts`,
-      esm: `./esm2022/vanilla-native-federation-${plugin}.mjs`,
-      default: `./fesm2022/vanilla-native-federation-${plugin}.mjs`,
-    };
-  }
 
   return {
     exports,
@@ -152,8 +120,6 @@ async function setupDist() {
   await fs.mkdir('dist/fesm2022', { recursive: true });
   await fs.mkdir('dist/esm2022', { recursive: true });
   console.log('✓ Created new dist folders');
-
-
 }
 
 async function build() {
