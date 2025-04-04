@@ -5,14 +5,14 @@ import type { ForLogging } from "./driving-ports/for-logging.port";
 import type { ForProvidingManifest } from "./driving-ports/for-providing-manifest.port";
 import type { ForProvidingRemoteEntry } from "./driving-ports/for-providing-remote-entry.port";
 import type { ForStoringRemoteInfo } from "./driving-ports/for-storing-remote-info";
-import type { ForGettingRemotesFederationInfo } from "./driver-ports/for-getting-remotes-federation-info";
+import type { ForGettingRemoteEntries } from "./driver-ports/for-getting-remote-entries.port";
 
-const createRemotesFederationInfo = (
+const createGetRemotesFederationInfo = (
     manifestProvider: ForProvidingManifest,
     remoteEntryProvider: ForProvidingRemoteEntry,
     remoteInfoRepository: ForStoringRemoteInfo,
     logger: ForLogging
-): ForGettingRemotesFederationInfo => { 
+): ForGettingRemoteEntries => { 
 
     function fetchRemoteEntries(manifest: Manifest)
         : Promise<(FederationInfo|false)[]> {
@@ -60,4 +60,4 @@ const createRemotesFederationInfo = (
                 .then(removeSkippedRemotes)
 }
 
-export { createRemotesFederationInfo }
+export { createGetRemotesFederationInfo }
