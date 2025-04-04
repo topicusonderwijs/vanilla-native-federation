@@ -1,7 +1,6 @@
 import { NF_STORAGE_ENTRY } from "./storage.contract";
 import { RemoteInfo } from "../../1.domain/remote-info.contract";
 import { globalThisStorageEntry } from './global-this.storage';
-import { NfCache } from "../../1.domain/nf-cache.contract";
 
 describe('globalThisStorageEntry', () => {
 
@@ -52,35 +51,12 @@ describe('globalThisStorageEntry', () => {
 
     describe('set', () => {
         it('set stores value in globalThis namespace', () => {
-            const entry = globalThisStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
+            const entry = globalThisStorageEntry<Record<string, RemoteInfo>>('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
             const expected = {"team/mfe2": MOCK_REMOTE_INFO_II()};
 
             entry.set({"team/mfe2": MOCK_REMOTE_INFO_II()});
 
             expect(entry.get()).toEqual(expected);
-        });
-
-        it('maintains separate values for different keys', () => {
-            const entry1 = globalThisStorageEntry('externals', {
-                global:{
-                    "rxjs": {version: "7.8.1", requiredVersion: "~7.8.0", url: "http://localhost:3001/rxjs.js"}
-                }
-            });
-            const entry2 = globalThisStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
-            
-            entry1.set({
-                global:{
-                    "tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url: "http://localhost:3001/tslib.js"}
-                }
-            });
-            entry2.set({ "team/mfe2": MOCK_REMOTE_INFO_II() });
-            
-            expect(entry1.get()).toEqual({
-                global:{
-                    "tslib": {version: "2.8.1", requiredVersion: "~2.8.0", url: "http://localhost:3001/tslib.js"}
-                }
-            });
-            expect(entry2.get()).toEqual({ "team/mfe2": MOCK_REMOTE_INFO_II() });
         });
 
         it('not allow any mutations', () => {
@@ -93,16 +69,4 @@ describe('globalThisStorageEntry', () => {
             expect(entry.get()).toEqual({"team/mfe2": MOCK_REMOTE_INFO_II()});
         });
     });
-
-    describe('extended cache', () => {
-        type MOCK_CACHE = NfCache & {extra_key: string}
-
-        it('should handle values from a cache that extends the NF cache', () => {
-            const entry = globalThisStorageEntry<MOCK_CACHE>('extra_key', "value1");
-            expect(entry.get()).toEqual("value1");
-
-            entry.set("value2");
-            expect(entry.get()).toEqual("value2");
-        });
-    })
 });

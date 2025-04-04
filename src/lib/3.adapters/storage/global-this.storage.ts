@@ -1,21 +1,20 @@
-import type { NfCache } from "lib/1.domain";
 import { cloneEntry } from "./clone-entry";
 import { type StorageEntryCreator, type StorageEntry, NF_STORAGE_ENTRY } from "./storage.contract";
 
-const globalThisStorageEntry: StorageEntryCreator = <TCache extends NfCache, K extends keyof TCache = keyof TCache>
-    (key: K, initialValue: TCache[K]) => {
+const globalThisStorageEntry: StorageEntryCreator = <TValue>
+    (key: string, initialValue: TValue) => {
         if (!(globalThis as unknown as {[NF_STORAGE_ENTRY]: unknown})[NF_STORAGE_ENTRY]) {
             (globalThis as unknown as {[NF_STORAGE_ENTRY]: unknown})[NF_STORAGE_ENTRY] = {};
         }
         
-        const namespace = (globalThis as unknown as {[NF_STORAGE_ENTRY]: Pick<TCache, K>})[NF_STORAGE_ENTRY];
+        const namespace = (globalThis as unknown as {[NF_STORAGE_ENTRY]: {[P in typeof key]: TValue}})[NF_STORAGE_ENTRY];
         if(!namespace[key]) namespace[key] = initialValue;
         
-        const entry: StorageEntry<TCache[K]> = {
-            get(): TCache[K] {
+        const entry: StorageEntry<TValue> = {
+            get(): TValue {
                 return cloneEntry(key, namespace[key])!;
             },
-            set(value: TCache[K]): StorageEntry<TCache[K]> {
+            set(value: TValue): StorageEntry<TValue> {
                 namespace[key] = cloneEntry(key, value);
                 return entry;
             }
