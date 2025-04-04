@@ -7,10 +7,10 @@ import type { ForProvidingRemoteEntry } from "./driving-ports/for-providing-remo
 import type { ForStoringRemoteInfo } from "./driving-ports/for-storing-remote-info";
 import type { ForGettingRemotesFederationInfo } from "./driver-ports/for-getting-remotes-federation-info";
 
-const getRemoteEntries = (
+const createRemotesFederationInfo = (
     manifestProvider: ForProvidingManifest,
     remoteEntryProvider: ForProvidingRemoteEntry,
-    remoteInfoStorage: ForStoringRemoteInfo,
+    remoteInfoRepository: ForStoringRemoteInfo,
     logger: ForLogging
 ): ForGettingRemotesFederationInfo => { 
 
@@ -21,7 +21,7 @@ const getRemoteEntries = (
 
     function fetchRemoteEntry([remoteName, remoteEntry]: [RemoteName, RemoteEntryUrl])
         : Promise<FederationInfo|false> {
-            if(remoteInfoStorage.contains(remoteName)) {
+            if(remoteInfoRepository.contains(remoteName)) {
                 logger.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
                 return Promise.resolve(false);
             }
@@ -60,4 +60,4 @@ const getRemoteEntries = (
                 .then(removeSkippedRemotes)
 }
 
-export { getRemoteEntries }
+export { createRemotesFederationInfo }
