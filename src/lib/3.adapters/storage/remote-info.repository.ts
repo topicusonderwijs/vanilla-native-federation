@@ -1,7 +1,6 @@
-import { RemoteInfo } from "lib/1.domain";
-import type { StorageEntry } from "./storage.contract";
-import type { StorageConfig } from "./storage.contract";
-import { ForStoringRemoteInfo } from "lib/2.app/driving-ports/for-storing-remote-info";
+import type { RemoteInfo } from "lib/1.domain";
+import type { StorageEntry, StorageConfig } from "./storage.contract";
+import type { ForStoringRemoteInfo } from "lib/2.app/driving-ports/for-storing-remote-info";
 
 const createRemoteInfoRepository = (
     {toStorageEntry}: StorageConfig

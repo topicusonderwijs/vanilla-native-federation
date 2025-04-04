@@ -1,4 +1,4 @@
-import { NfCache } from 'lib/1.domain';
+import type { NfCache } from 'lib/1.domain';
 
 type StorageEntry<TValue> = {
     set: (value: TValue) => StorageEntry<TValue>;

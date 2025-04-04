@@ -1,4 +1,4 @@
-import { NfCache } from "lib/1.domain";
+import type { NfCache } from "lib/1.domain";
 import { cloneEntry } from "./clone-entry";
 import { type StorageEntryCreator, type StorageEntry, NF_STORAGE_ENTRY } from "./storage.contract";
 
