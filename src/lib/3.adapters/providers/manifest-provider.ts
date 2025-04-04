@@ -1,7 +1,7 @@
 import type { Manifest } from "../../1.domain";
 import type { ForProvidingManifest } from "../../2.app/driving-ports/for-providing-manifest.port";
 
-const manifestProvider = (): ForProvidingManifest => {
+const createManifestProvider = (): ForProvidingManifest => {
 
     function provide(remotesOrManifestUrl: string|Manifest)
         : Promise<Manifest> {
@@ -15,4 +15,4 @@ const manifestProvider = (): ForProvidingManifest => {
     }
 }
 
-export { manifestProvider }
+export { createManifestProvider }

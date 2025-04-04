@@ -1,5 +1,5 @@
-import type { FederationInfo } from "@softarc/native-federation-runtime";
-import type { Manifest, RemoteEntry } from "../1.domain/manifest.contract";
+import type { FederationInfo } from "../1.domain/remote-entry.contract";
+import type { Manifest, RemoteEntryUrl } from "../1.domain/manifest.contract";
 import type { RemoteName } from "../1.domain/remote-info.contract";
 import type { ForLogging } from "./driving-ports/for-logging.port";
 import type { ForProvidingManifest } from "./driving-ports/for-providing-manifest.port";
@@ -19,7 +19,7 @@ const getRemoteEntries = (
             return Promise.all(Object.entries(manifest).map(fetchRemoteEntry))
         }
 
-    function fetchRemoteEntry([remoteName, remoteEntry]: [RemoteName, RemoteEntry])
+    function fetchRemoteEntry([remoteName, remoteEntry]: [RemoteName, RemoteEntryUrl])
         : Promise<FederationInfo|false> {
             if(remoteInfoStorage.contains(remoteName)) {
                 logger.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
@@ -33,7 +33,7 @@ const getRemoteEntries = (
                 });
         }
 
-    function notifyRemoteEntryFetched(remoteEntry: RemoteEntry, remoteName: RemoteName) 
+    function notifyRemoteEntryFetched(remoteEntry: RemoteEntryUrl, remoteName: RemoteName) 
         : (federationInfo: FederationInfo) => FederationInfo {
             return (federationInfo: FederationInfo): FederationInfo => {
                 logger.debug(`fetched '${remoteEntry}': ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);

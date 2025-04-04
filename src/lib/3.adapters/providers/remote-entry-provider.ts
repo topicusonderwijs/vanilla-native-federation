@@ -2,7 +2,7 @@ import type { FederationInfo } from "@softarc/native-federation-runtime";
 import type { ForProvidingRemoteEntry } from "../../2.app/driving-ports/for-providing-remote-entry.port";
 import { NFError } from "../../native-federation.error";
 
-const remoteEntryProvider = (): ForProvidingRemoteEntry => {
+const createRemoteEntryProvider = (): ForProvidingRemoteEntry => {
 
     async function provide(remoteEntryUrl: string)
         : Promise<FederationInfo> {
@@ -26,4 +26,4 @@ const remoteEntryProvider = (): ForProvidingRemoteEntry => {
     }
 }
 
-export { remoteEntryProvider }
+export { createRemoteEntryProvider }

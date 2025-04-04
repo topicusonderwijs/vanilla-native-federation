@@ -10,5 +10,5 @@ export type Version = {
 
 export type SharedVersion = Version & {
     strictVersion: boolean
-    type: 'skip'|'scope'|'share',
+    action: 'skip'|'scope'|'share',
 }

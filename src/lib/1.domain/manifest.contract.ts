@@ -1,5 +1,5 @@
 import type { RemoteName } from "./remote-info.contract";
 
-export type RemoteEntry = string;
+export type RemoteEntryUrl = string;
 
-export type Manifest = Record<RemoteName, RemoteEntry>
+export type Manifest = Record<RemoteName, RemoteEntryUrl>
