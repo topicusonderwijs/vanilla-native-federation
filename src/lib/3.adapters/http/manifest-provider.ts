@@ -1,5 +1,5 @@
-import type { Manifest } from "../../1.domain";
-import type { ForProvidingManifest } from "../../2.app/driving-ports/for-providing-manifest.port";
+import type { Manifest } from "lib/1.domain";
+import type { ForProvidingManifest } from "lib/2.app/driving-ports/for-providing-manifest.port";
 
 const createManifestProvider = (): ForProvidingManifest => {
 

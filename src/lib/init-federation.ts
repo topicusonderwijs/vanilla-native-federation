@@ -1,6 +1,6 @@
-import type { LoggingConfig } from "./3.adapters/logging/logging.contract";
-import type { StorageConfig } from "./3.adapters/storage/storage.contract";
-import { createForGettingRemoteEntries } from "./4.factories/for-getting-remote-entries.factory";
+import type { LoggingConfig } from "lib/3.adapters/logging/logging.contract";
+import type { StorageConfig } from "lib/3.adapters/storage/storage.contract";
+import { createForGettingRemoteEntries } from "lib/3.adapters/_factories/for-getting-remote-entries.factory";
 
 
 const initFederation = (

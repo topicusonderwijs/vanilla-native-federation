@@ -1,5 +1,5 @@
 import type { StorageEntryKey } from "./storage.contract";
-import { NFError } from "../../native-federation.error";
+import { NFError } from "lib/native-federation.error";
 
 type CloneEntry = <T>(name: StorageEntryKey, raw:T) => T;
 

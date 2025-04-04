@@ -1,6 +1,6 @@
-import type { FederationInfo } from "@softarc/native-federation-runtime";
-import type { ForProvidingRemoteEntry } from "../../2.app/driving-ports/for-providing-remote-entry.port";
-import { NFError } from "../../native-federation.error";
+import type { FederationInfo } from "lib/1.domain/remote-entry.contract";
+import type { ForProvidingRemoteEntry } from "lib/2.app/driving-ports/for-providing-remote-entry.port";
+import { NFError } from "lib/native-federation.error";
 
 const createRemoteEntryProvider = (): ForProvidingRemoteEntry => {
 

@@ -1,5 +1,5 @@
 import { type LogType, LogLevel, type LoggingConfig } from "./logging.contract";
-import type { ForLogging } from "../../2.app/driving-ports/for-logging.port";
+import type { ForLogging } from "lib/2.app/driving-ports/for-logging.port";
 
 const createLogger = ({logger, logLevel}: LoggingConfig): ForLogging => {
   const logTypes = Object.keys(LogLevel)
