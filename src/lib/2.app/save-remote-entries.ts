@@ -4,9 +4,11 @@ import type { ForStoringRemoteInfo } from "./driving-ports/for-storing-remote-in
 import type { ForSavingRemoteEntries } from "./driver-ports/for-saving-remote-entries.port";
 import type { RemoteEntry, RemoteInfo } from "lib/1.domain";
 import type { ForResolvingPaths } from "./driving-ports/for-resolving-paths.port";
+import type { ForStoringExternals } from "./driving-ports/for-storing-externals.port";
 
 const createGetRemotesFederationInfo = (
     remoteInfoRepository: ForStoringRemoteInfo,
+    _r: ForStoringExternals,
     pathResolver: ForResolvingPaths,
     _: ForLogging
 ): ForSavingRemoteEntries => { 
