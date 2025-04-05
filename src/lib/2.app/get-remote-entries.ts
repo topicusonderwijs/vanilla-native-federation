@@ -1,6 +1,6 @@
-import type { FederationInfo } from "../1.domain/remote-entry.contract";
-import type { Manifest, RemoteEntryUrl } from "../1.domain/manifest.contract";
-import type { RemoteName } from "../1.domain/remote-info.contract";
+import type { RemoteEntry } from "lib/1.domain/remote-entry/remote-entry.contract";
+import type { Manifest, RemoteEntryUrl } from "lib/1.domain/remote-entry/manifest.contract";
+import type { RemoteName } from "lib/1.domain/remote/remote-info.contract";
 import type { ForLogging } from "./driving-ports/for-logging.port";
 import type { ForProvidingManifest } from "./driving-ports/for-providing-manifest.port";
 import type { ForProvidingRemoteEntry } from "./driving-ports/for-providing-remote-entry.port";
@@ -15,46 +15,46 @@ const createGetRemotesFederationInfo = (
 ): ForGettingRemoteEntries => { 
 
     function fetchRemoteEntries(manifest: Manifest)
-        : Promise<(FederationInfo|false)[]> {
+        : Promise<(RemoteEntry|false)[]> {
             return Promise.all(Object.entries(manifest).map(fetchRemoteEntry))
         }
 
-    function fetchRemoteEntry([remoteName, remoteEntry]: [RemoteName, RemoteEntryUrl])
-        : Promise<FederationInfo|false> {
+    function fetchRemoteEntry([remoteName, remoteEntryUrl]: [RemoteName, RemoteEntryUrl])
+        : Promise<RemoteEntry|false> {
             if(remoteInfoRepository.contains(remoteName)) {
                 logger.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
                 return Promise.resolve(false);
             }
-            return remoteEntryProvider.provide(remoteEntry)
-                .then(notifyRemoteEntryFetched(remoteEntry, remoteName))
+            return remoteEntryProvider.provide(remoteEntryUrl)
+                .then(notifyRemoteEntryFetched(remoteEntryUrl, remoteName))
                 .catch(e => {
                     logger.error(`Failed to fetch remote '${remoteName}'.`, e);
                     return false;
                 });
         }
 
-    function notifyRemoteEntryFetched(remoteEntry: RemoteEntryUrl, remoteName: RemoteName) 
-        : (federationInfo: FederationInfo) => FederationInfo {
-            return (federationInfo: FederationInfo): FederationInfo => {
-                logger.debug(`fetched '${remoteEntry}': ${JSON.stringify({name: federationInfo.name, exposes: federationInfo.exposes})}`);
+    function notifyRemoteEntryFetched(remoteEntryUrl: RemoteEntryUrl, remoteName: RemoteName) 
+        : (remoteEntry: RemoteEntry) => RemoteEntry {
+            return (remoteEntry) => {
+                logger.debug(`fetched '${remoteEntryUrl}': ${JSON.stringify({name: remoteEntry.name, exposes: remoteEntry.exposes})}`);
 
-                if(federationInfo.name !== remoteName) {
-                    logger.warn(`Fetched remote '${federationInfo.name}' does not match requested '${remoteName}'.`);
+                if(remoteEntry.name !== remoteName) {
+                    logger.warn(`Fetched remote '${remoteEntry.name}' does not match requested '${remoteName}'.`);
                 }
                 
-                return federationInfo;
+                return remoteEntry;
             };
         }
 
 
-    function removeSkippedRemotes(federationInfos: (FederationInfo|false)[])
-        : FederationInfo[] {
-            return federationInfos.filter((f): f is FederationInfo => !!f);
+    function removeSkippedRemotes(federationInfos: (RemoteEntry|false)[])
+        : RemoteEntry[] {
+            return federationInfos.filter((f): f is RemoteEntry => !!f);
         }
        
         
     return async (remotesOrManifestUrl: string | Manifest = {})
-        : Promise<FederationInfo[]> => 
+        : Promise<RemoteEntry[]> => 
             manifestProvider.provide(remotesOrManifestUrl)
                 .then(fetchRemoteEntries)
                 .then(removeSkippedRemotes)

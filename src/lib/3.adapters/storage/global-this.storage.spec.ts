@@ -1,5 +1,5 @@
 import { NF_STORAGE_ENTRY } from "./storage.contract";
-import { RemoteInfo } from "../../1.domain/remote-info.contract";
+import { RemoteInfo } from "../../1.domain/remote/remote-info.contract";
 import { globalThisStorageEntry } from './global-this.storage';
 
 describe('globalThisStorageEntry', () => {

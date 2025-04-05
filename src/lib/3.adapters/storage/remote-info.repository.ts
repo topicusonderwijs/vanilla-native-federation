@@ -9,10 +9,18 @@ const createRemoteInfoRepository = (
 
     function contains(key: string)
         : boolean {
-            return !!STORAGE.get()[key];
+            return !!(STORAGE.get() ?? {})[key];
         };
 
-    return {contains};
+    function addOrUpdate(remote: RemoteInfo)
+        : void {
+            STORAGE.set({
+                ...STORAGE.get() ?? {},
+                [remote.remoteName]: remote
+            })
+            
+        }
+    return {contains, addOrUpdate};
 }
 
 export {createRemoteInfoRepository};

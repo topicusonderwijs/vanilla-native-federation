@@ -1,6 +1,6 @@
-import type { FederationInfo } from "../../1.domain/remote-entry.contract";
+import type { RemoteEntry } from "lib/1.domain/remote-entry/remote-entry.contract";
 
 export type ForProvidingRemoteEntry = {
-    provide: (remoteEntryUrl: string) => Promise<FederationInfo>
+    provide: (remoteEntryUrl: string) => Promise<RemoteEntry>
 }
 

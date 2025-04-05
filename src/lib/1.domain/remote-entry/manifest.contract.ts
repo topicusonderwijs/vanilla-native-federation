@@ -1,4 +1,4 @@
-import type { RemoteName } from "./remote-info.contract";
+import type { RemoteName } from "../remote/remote-info.contract";
 
 export type RemoteEntryUrl = string;
 
