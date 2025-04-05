@@ -1,15 +1,21 @@
-import type { RemoteInfo } from "lib/1.domain";
+import type { RemoteInfo, RemoteName } from "lib/1.domain";
 import type { StorageEntry, StorageConfig } from "./storage.contract";
-import type { ForStoringRemoteInfo } from "lib/2.app/driving-ports/for-storing-remote-info";
+import type { ForStoringRemoteInfo } from "lib/2.app/driving-ports/for-storing-remote-info.port";
+import { Optional } from "../../utils/optional";
 
 const createRemoteInfoRepository = (
     {toStorageEntry}: StorageConfig
 ): ForStoringRemoteInfo => {
     const STORAGE: StorageEntry<Record<string, RemoteInfo>> = toStorageEntry("remotes", {});
 
-    function contains(key: string)
+    function get(name: RemoteName)
+        : RemoteInfo|undefined {
+            return (STORAGE.get() ?? {})[name];
+        };
+
+    function contains(name: RemoteName)
         : boolean {
-            return !!(STORAGE.get() ?? {})[key];
+            return !!get(name);
         };
 
     function addOrUpdate(remote: RemoteInfo)
@@ -20,7 +26,14 @@ const createRemoteInfoRepository = (
             })
             
         }
-    return {contains, addOrUpdate};
+
+    function tryGet(name: RemoteName) 
+        : Optional<RemoteInfo> {
+            return Optional.of(get(name))
+        }
+
+
+    return {contains, addOrUpdate, tryGet};
 }
 
 export {createRemoteInfoRepository};

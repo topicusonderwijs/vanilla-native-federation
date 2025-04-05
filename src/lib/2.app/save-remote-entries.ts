@@ -1,6 +1,6 @@
 
 import type { ForLogging } from "./driving-ports/for-logging.port";
-import type { ForStoringRemoteInfo } from "./driving-ports/for-storing-remote-info";
+import type { ForStoringRemoteInfo } from "./driving-ports/for-storing-remote-info.port";
 import type { ForSavingRemoteEntries } from "./driver-ports/for-saving-remote-entries.port";
 import type { RemoteEntry, RemoteInfo } from "lib/1.domain";
 import type { ForResolvingPaths } from "./driving-ports/for-resolving-paths.port";

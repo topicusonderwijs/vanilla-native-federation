@@ -4,7 +4,7 @@ import type { RemoteName } from "lib/1.domain/remote/remote-info.contract";
 import type { ForLogging } from "./driving-ports/for-logging.port";
 import type { ForProvidingManifest } from "./driving-ports/for-providing-manifest.port";
 import type { ForProvidingRemoteEntry } from "./driving-ports/for-providing-remote-entry.port";
-import type { ForStoringRemoteInfo } from "./driving-ports/for-storing-remote-info";
+import type { ForStoringRemoteInfo } from "./driving-ports/for-storing-remote-info.port";
 import type { ForGettingRemoteEntries } from "./driver-ports/for-getting-remote-entries.port";
 
 const createGetRemotesFederationInfo = (
