@@ -1,4 +1,4 @@
-import type { Externals, ExternalsScope } from "lib/1.domain/externals/externals.contract";
+import type { Externals, ExternalsScope, SharedExternals } from "lib/1.domain/externals/externals.contract";
 import type { StorageEntry, StorageConfig } from "./storage.contract";
 import { Optional } from "../../utils/optional";
 import type { ForStoringExternals } from "lib/2.app/driving-ports/for-storing-externals.port";
@@ -11,10 +11,10 @@ const createExternalsRepository = (
         "scoped": {}
     });
 
-    // function getShared(dep: string)
-    //     : SharedVersion[]|undefined {
-    //         return (STORAGE.get()?.["shared"] ?? {})[dep];
-    //     };
+    function getShared()
+        : SharedExternals {
+            return (STORAGE.get()?.["shared"] ?? {});
+        };
 
     function getScope(scope: string)
         : ExternalsScope|undefined {
@@ -27,7 +27,7 @@ const createExternalsRepository = (
         }
 
 
-    return {tryGetScope};
+    return {tryGetScope, getShared};
 }
 
 export {createExternalsRepository};

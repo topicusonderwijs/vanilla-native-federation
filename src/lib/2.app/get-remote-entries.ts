@@ -14,9 +14,20 @@ const createGetRemotesFederationInfo = (
     logger: ForLogging
 ): ForGettingRemoteEntries => { 
 
-    function fetchRemoteEntries(manifest: Manifest)
-        : Promise<(RemoteEntry|false)[]> {
-            return Promise.all(Object.entries(manifest).map(fetchRemoteEntry))
+
+    function fetchRemoteEntries(hostRemoteEntryUrl?: string)
+        : (manifest: Manifest) => Promise<(RemoteEntry|false)[]> {  
+                return async manifest => {
+                    const host = (hostRemoteEntryUrl)  
+                        ? await fetchRemoteEntry(["__HOST__", hostRemoteEntryUrl])
+                        : false;
+
+                    const remotes = await Promise.all(
+                        Object.entries(manifest).map(fetchRemoteEntry)
+                    );
+                    
+                    return [host, ...remotes];
+                };
         }
 
     function fetchRemoteEntry([remoteName, remoteEntryUrl]: [RemoteName, RemoteEntryUrl])
@@ -53,10 +64,10 @@ const createGetRemotesFederationInfo = (
         }
        
         
-    return async (remotesOrManifestUrl: string | Manifest = {})
+    return async (remotesOrManifestUrl: string | Manifest = {}, hostRemoteEntryUrl?: string)
         : Promise<RemoteEntry[]> => 
             manifestProvider.provide(remotesOrManifestUrl)
-                .then(fetchRemoteEntries)
+                .then(fetchRemoteEntries(hostRemoteEntryUrl))
                 .then(removeSkippedRemotes)
 }
 
