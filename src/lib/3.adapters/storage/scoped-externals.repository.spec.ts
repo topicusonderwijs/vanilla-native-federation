@@ -1,27 +1,19 @@
 import type { ExternalsScope } from '../../1.domain/externals/externals.contract';
-import { createExternalsRepository } from './externals.repository';
+import { createScopedExternalsRepository } from './scoped-externals.repository';
 import { Optional } from '../../utils/optional';
 import type { Version } from '../../1.domain/externals/version.contract';
 import type { StorageEntry, StorageConfig } from './storage.contract';
-import type { ForStoringExternals } from '../../2.app/driving-ports/for-storing-externals.port';
+import type { ForStoringScopedExternals } from '../../2.app/driving-ports/for-storing-scoped-externals.port';
 
-describe('createExternalsRepository', () => {
+describe('createScopedExternalsRepository', () => {
     let mockStorageConfig: StorageConfig;
     let mockStorage: any;
-    let externalsRepository: ForStoringExternals;
+    let externalsRepository: ForStoringScopedExternals;
 
     const MOCK_VERSION  = (): Version => ({
         version: "7.8.1", 
         url: "http://localhost:3001/shared-dep-A.js"
     });
-
-    // const MOCK_SHARED_VERSION  = (): SharedVersion => ({
-    //     version: "1.2.3", 
-    //     requiredVersion: "~1.2.1", 
-    //     strictVersion: true,
-    //     action: "share",
-    //     url: "http://localhost:3001/shared-dep-B.js"
-    // });
 
     beforeEach(() => {
         mockStorage = {};
@@ -44,23 +36,20 @@ describe('createExternalsRepository', () => {
             )
         };
 
-        externalsRepository = createExternalsRepository(mockStorageConfig);
+        externalsRepository = createScopedExternalsRepository(mockStorageConfig);
     });
 
     describe('initialization', () => {
         it('should initialize the entry with the first value', () => {
             expect(mockStorageConfig.toStorageEntry).toHaveBeenCalled();
-            expect(mockStorage["externals"]).toEqual({
-                "shared": {},
-                "scoped": {}
-            });
+            expect(mockStorage["scoped-externals"]).toEqual({ });
 
         });
     })
 
     describe('tryGetScope', () => {
         it('should return the scope', () => {
-            mockStorage["externals"]["scoped"]["scope"] = {"dep-a": MOCK_VERSION()};
+            mockStorage["scoped-externals"]["scope"] = {"dep-a": MOCK_VERSION()};
 
             const actual: Optional<ExternalsScope> = externalsRepository.tryGetScope("scope");
 
@@ -76,7 +65,7 @@ describe('createExternalsRepository', () => {
         });
 
         it('should return empty optional if only other scopes exist', () => {
-            mockStorage["externals"]["scoped"]["scope-a"]  = {"dep-a": MOCK_VERSION()};
+            mockStorage["scoped-externals"]["scope-a"]  = {"dep-a": MOCK_VERSION()};
 
             const actual: Optional<ExternalsScope> = externalsRepository.tryGetScope("scope-b");
 

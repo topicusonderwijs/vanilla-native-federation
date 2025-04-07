@@ -7,23 +7,31 @@ The externals are shared dependencies over the initialized remotes. They are use
 
 ```mermaid
 classDiagram
-    Externals *-- Version
-    Version <|-- SharedVersion
+    SharedExternals *-- SharedVersion
+    ScopedExternals *-- ExternalsScope
+    ExternalsScope *-- Version
 
-    class Externals {
-        global: Record<`string, SharedVersion[]>,
-        scoped: Record<`string, Record<'string, Version>>
+    class SharedExternals {
+        Map<`string, SharedVersion[]>
     }
+    class SharedVersion{
+        version: string
+        url: string
+        requiredVersion: string
+        strictVersion: boolean
+        action: 'skip'|'scope'|'share'
+    }  
+    class ScopedExternals {
+        Map<`string, ExternalsScope[]>
+    } 
+    class ExternalsScope {
+        Map<`string, Version>
+    } 
     class Version{
         version: string
         url: string
     }
-    class SharedVersion{
-        requiredVersion: string
-        strictVersion: boolean
-        action: 'skip'|'scope'|'share'
-    }   
-a
+
 
 ```
 
@@ -31,7 +39,7 @@ a
 
 ```json
 {
-    "shared": {
+    "shared-externals": {
         "depA": [
             {
                 "version":"1.1.2", 
@@ -49,7 +57,7 @@ a
             }
         ]
     },
-    "scoped": {
+    "scoped-externals": {
         "http://custom.url/scope": {
             "depB": {
                 "version":"2.0.1", 

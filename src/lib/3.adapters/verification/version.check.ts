@@ -1,8 +1,8 @@
-import type { ForVersionVerification } from "lib/2.app/driving-ports/for-version-verification";
+import type { ForCheckingVersion } from "lib/2.app/driving-ports/for-checking-version.port";
 import semverValid from "semver/functions/valid";
 import semverSatisfies from "semver/functions/satisfies";
 
-const createVersionVerifier = (): ForVersionVerification => {
+const createVersionCheck = (): ForCheckingVersion => {
 
     const isValidSemver = (version: string) => semverValid(version) !== null
 
@@ -11,4 +11,4 @@ const createVersionVerifier = (): ForVersionVerification => {
     return { isValidSemver, isCompatible };
 }
 
-export { createVersionVerifier}
+export { createVersionCheck}
