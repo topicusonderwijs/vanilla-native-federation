@@ -17,6 +17,10 @@ const globalThisStorageEntry: StorageEntryCreator = <TValue>
             set(value: TValue): StorageEntry<TValue> {
                 namespace[key] = cloneEntry(key, value);
                 return entry;
+            },
+            mutate(updateFn: (val: TValue) => TValue): void {
+                const newVal = updateFn(namespace[key]!);
+                namespace[key] = cloneEntry(key, newVal);
             }
         };
 

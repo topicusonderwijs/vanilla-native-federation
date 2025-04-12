@@ -257,4 +257,23 @@ describe('versionCheck', () => {
         });
     });
 
+    describe('compare', () => {
+        it('should return 1 when A is larger than B', () => {
+            expect(versionCheck.compare("1.1.1","1.1.0")).toBe(1);
+            expect(versionCheck.compare("1.1.1","1.0.1")).toBe(1);
+            expect(versionCheck.compare("1.1.1","0.1.1")).toBe(1);
+        });
+        it('should return 0 when both versions are equal', () => {
+            expect(versionCheck.compare("1.1.1","1.1.1")).toBe(0);
+            expect(versionCheck.compare("1.1.1","1.1.1")).toBe(0);
+            expect(versionCheck.compare("1.1.1","1.1.1")).toBe(0);
+        });
+        it('should return -1 when A is smaller than B', () => {
+            expect(versionCheck.compare("1.1.1","1.1.2")).toBe(-1);
+            expect(versionCheck.compare("1.1.1","1.2.1")).toBe(-1);
+            expect(versionCheck.compare("1.1.1","2.1.1")).toBe(-1);
+
+        })
+    });
+
 });

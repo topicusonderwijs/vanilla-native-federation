@@ -2,15 +2,16 @@
 import type { ForLogging } from "./driving-ports/for-logging.port";
 import type { ForStoringRemoteInfo } from "./driving-ports/for-storing-remote-info.port";
 import type { ForSavingRemoteEntries } from "./driver-ports/for-saving-remote-entries.port";
-import type { RemoteEntry, RemoteInfo} from "lib/1.domain";
+import type { RemoteEntry, RemoteInfo, SharedInfo, SharedVersion, Version } from "lib/1.domain";
 import type { ForResolvingPaths } from "./driving-ports/for-resolving-paths.port";
 import type { ForStoringSharedExternals } from "./driving-ports/for-storing-shared-externals.port";
-import { NFError } from "lib/native-federation.error";
 import type { ForCheckingVersion } from "./driving-ports/for-checking-version.port";
+import type { ForStoringScopedExternals } from "./driving-ports/for-storing-scoped-externals.port";
 
 const createGetRemotesFederationInfo = (
     remoteInfoRepository: ForStoringRemoteInfo,
     sharedExternalsRepository: ForStoringSharedExternals,
+    scopedExternalsRepository: ForStoringScopedExternals,
     pathResolver: ForResolvingPaths,
     versionCheck: ForCheckingVersion,
     logger: ForLogging
@@ -34,44 +35,57 @@ const createGetRemotesFederationInfo = (
             return remoteInfo;
         }
 
-    function checkSharedExternalsCompatibility(remote: RemoteEntry) 
-        : RemoteEntry {
-            const cache = sharedExternalsRepository.getAll();
+    function addSharedExternal(scope: string, sharedInfo: SharedInfo) {
+        const cached: SharedVersion[] = sharedExternalsRepository
+            .tryGetVersions(sharedInfo.packageName)
+            .orElse([]);
 
-            const sharedExternals = remote.shared.filter(e => e.singleton && cache[e.packageName]);
+        cached.push({
+            version: sharedInfo.version!,
+            url: pathResolver.join(scope, sharedInfo.outFileName),
+            requiredVersion: sharedInfo.requiredVersion,
+            strictVersion: sharedInfo.strictVersion,
+            action: 'skip'
+        });
 
-            for (const newExternal of sharedExternals) {
-                if (!newExternal.version || !versionCheck.isValidSemver(newExternal.version)) {
-                    throw new NFError(`[${newExternal.packageName}] Shared version '${newExternal.version}' is not a valid version.`);
-                }
+        sharedExternalsRepository.addOrUpdate(
+            sharedInfo.packageName, 
+            cached.sort((a,b) => versionCheck.compare(b.version, a.version))
+        );
+    }
 
-                for (const cachedExternal of cache[newExternal.packageName]!) {
-                    if (!versionCheck.isCompatible(newExternal.version!, cachedExternal.requiredVersion)) {
-                        if (cachedExternal.strictVersion) 
-                            throw new NFError(`[${newExternal.packageName}] Shared (strict) version '${newExternal.version}' is not compatible to version range '${cachedExternal.requiredVersion}'`);
-
-                        logger.warn(`[${newExternal.packageName}] Shared version '${newExternal.version}' is not compatible to version range '${cachedExternal.requiredVersion}'`);
-                    }
-
-                    if (!versionCheck.isCompatible(cachedExternal.version!, newExternal.requiredVersion)) {
-                        if (newExternal.strictVersion) 
-                            throw new NFError(`[${newExternal.packageName}] Shared (strict) version '${cachedExternal.version}' is not compatible to version range '${newExternal.requiredVersion}'`);
-
-                        logger.warn(`[${newExternal.packageName}] Shared version '${cachedExternal.version}' is not compatible to version range '${newExternal.requiredVersion}'`);
-                    }
-                }
-
-
-            }
-
-            return remote;
+    function addScopedExternal(scope: string, sharedInfo: SharedInfo) {
+        const version:Version  = {
+            version: sharedInfo.version!,
+            url: pathResolver.join(scope, sharedInfo.outFileName)
         }
+        scopedExternalsRepository.addExternal(
+            scope, 
+            sharedInfo.packageName, 
+            version
+        );
+    }
+
+    function addExternalsToStorage(remoteEntry: RemoteEntry) {
+        const scopeUrl =  pathResolver.getScope(remoteEntry.url);
+
+        remoteEntry.shared.forEach(external => {
+            if (!external.version || !versionCheck.isValidSemver(external.version)) {
+                logger.warn(`[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping.`);
+                return;
+            }
+            if(external.singleton) {
+                addSharedExternal(scopeUrl, external);
+            } else {}
+                addScopedExternal(scopeUrl, external);
+        })
+    }
 
     return e => {
         e.forEach(remoteEntry => {
-            checkSharedExternalsCompatibility(remoteEntry)
             addRemoteInfoToStorage(remoteEntry);
-        })
+            addExternalsToStorage(remoteEntry);
+        });
         return Promise.resolve(e);
     };
 }

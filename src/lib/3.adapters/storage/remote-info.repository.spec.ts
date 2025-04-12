@@ -35,6 +35,10 @@ describe('createRemoteInfoRepository', () => {
                         set: jest.fn((value) => {
                             mockStorage[key] = value;
                             return mockStorageEntry;
+                        }),
+                        mutate: jest.fn((valueFn) => {
+                            mockStorage[key] = valueFn(mockStorage[key]);
+                            return mockStorageEntry;
                         })
                     } as StorageEntry<any>;
 
