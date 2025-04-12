@@ -32,6 +32,10 @@ const createSharedExternalsRepository = (
         },
         tryGetVersions: function (external: string) {
             return Optional.of(get(external));
+        },
+        set: function (externals: SharedExternals) {
+            STORAGE.set(externals);
+            return this;
         }
     };
 }

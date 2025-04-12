@@ -5,5 +5,6 @@ export type ForStoringSharedExternals = {
     tryGetVersions: (external: string) => Optional<SharedVersion[]>,
     getAll: () => SharedExternals,
     contains: (external: string) => boolean,
-    addOrUpdate: (external: string, versions: SharedVersion[]) => ForStoringSharedExternals
+    addOrUpdate: (external: string, versions: SharedVersion[]) => ForStoringSharedExternals,
+    set: (externals: SharedExternals) => ForStoringSharedExternals
 }

@@ -113,4 +113,94 @@ describe('createSharedExternalsRepository', () => {
         });
     });
 
+    describe('set', () => {
+        it('should set the whole entry', () => {
+            externalsRepository.set({"dep-a": [MOCK_VERSION()]});
+            expect(mockStorage["shared-externals"]).toEqual({"dep-a": [MOCK_VERSION()]});
+        });
+        it('should clear the whole entry', () => {
+            mockStorage["shared-externals"] = {"dep-a": [MOCK_VERSION()]};
+            externalsRepository.set({});
+            expect(mockStorage["shared-externals"]).toEqual({});
+        });
+        it('should replace the whole entry', () => {
+            mockStorage["shared-externals"] = {"dep-a": [MOCK_VERSION()]};
+            externalsRepository.set({"dep-b": []});
+            expect(mockStorage["shared-externals"]).toEqual({"dep-b": []});
+        });
+    });
+
+    describe('addOrUpdate', () => {
+        it('should add a new external to empty storage', () => {
+            const mockVersion = MOCK_VERSION();
+            
+            externalsRepository.addOrUpdate("dep-a", [mockVersion]);
+            
+            expect(mockStorage["shared-externals"]).toEqual({
+                "dep-a": [mockVersion]
+            });
+        });
+    
+        it('should replace versions for an existing external', () => {
+            const existingVersion = MOCK_VERSION();
+            const newVersion = { ...MOCK_VERSION(), version: "2.0.0" };
+            
+            mockStorage["shared-externals"] = {"dep-a": [existingVersion]};
+            
+            externalsRepository.addOrUpdate("dep-a", [newVersion]);
+            
+            expect(mockStorage["shared-externals"]).toEqual({
+                "dep-a": [newVersion]
+            });
+        });
+    
+        it('should keep other externals when adding a new one', () => {
+            const versionA = MOCK_VERSION();
+            const versionB = { ...MOCK_VERSION(), version: "4.5.6" };
+            
+            mockStorage["shared-externals"] = {"dep-a": [versionA]};
+            
+            externalsRepository.addOrUpdate("dep-b", [versionB]);
+            
+            expect(mockStorage["shared-externals"]).toEqual({
+                "dep-a": [versionA],
+                "dep-b": [versionB]
+            });
+        });
+    
+        it('should keep other externals when updating an existing one', () => {
+            const versionA = MOCK_VERSION();
+            const versionB = { ...MOCK_VERSION(), version: "4.5.6" };
+            const newVersionA = { ...MOCK_VERSION(), version: "2.0.0" };
+            
+            mockStorage["shared-externals"] = {
+                "dep-a": [versionA],
+                "dep-b": [versionB]
+            };
+            
+            externalsRepository.addOrUpdate("dep-a", [newVersionA]);
+            
+            expect(mockStorage["shared-externals"]).toEqual({
+                "dep-a": [newVersionA],
+                "dep-b": [versionB]
+            });
+        });
+    
+        it('should add multiple versions for the same external', () => {
+            const version1 = MOCK_VERSION();
+            const version2 = { ...MOCK_VERSION(), version: "2.0.0" };
+            
+            externalsRepository.addOrUpdate("dep-a", [version1, version2]);
+            
+            expect(mockStorage["shared-externals"]).toEqual({
+                "dep-a": [version1, version2]
+            });
+        });
+    
+        it('should return the repository instance for chaining', () => {
+            const result = externalsRepository.addOrUpdate("dep-a", [MOCK_VERSION()]);
+            
+            expect(result).toBe(externalsRepository);
+        });
+    });
 });

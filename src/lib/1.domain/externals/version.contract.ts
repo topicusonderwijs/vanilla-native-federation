@@ -7,8 +7,12 @@ export type Version = {
     url: string
 }
 
+export type SharedVersionAction = 'skip'|'scope'|'share';
+
 export type SharedVersion = Version & {
     requiredVersion: string,
     strictVersion: boolean,
-    action: 'skip'|'scope'|'share'
+    action: SharedVersionAction,
+    cached?: boolean,
+    host?: boolean
 }

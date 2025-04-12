@@ -32,59 +32,70 @@ const createSaveRemoteEntries = (
             } as RemoteInfo)
         }
 
-    function addSharedExternal(scope: string, sharedInfo: SharedInfo) {
-        const cached: SharedVersion[] = sharedExternalsRepository
-            .tryGetVersions(sharedInfo.packageName)
-            .orElse([]);
+        function addExternalsToStorage(remoteEntry: RemoteEntry) 
+            : void {
+                const scopeUrl =  pathResolver.getScope(remoteEntry.url);
 
-        cached.push({
-            version: sharedInfo.version!,
-            url: pathResolver.join(scope, sharedInfo.outFileName),
-            requiredVersion: sharedInfo.requiredVersion,
-            strictVersion: sharedInfo.strictVersion,
-            action: 'skip'
-        } as SharedVersion);
+                remoteEntry.shared.forEach(external => {
+                    if (!external.version || !versionCheck.isValidSemver(external.version)) {
+                        logger.warn(`[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping.`);
+                        return;
+                    }
+                    if(external.singleton) {
+                        addSharedExternal(scopeUrl, external, remoteEntry.host);
+                    } else {
+                        addScopedExternal(scopeUrl, external);
+                    }      
+                });
+            }
+    
 
-        sharedExternalsRepository.addOrUpdate(
-            sharedInfo.packageName, 
-            cached.sort((a,b) => versionCheck.compare(b.version, a.version))
-        );
-    }
+    function addSharedExternal(scope: string, sharedInfo: SharedInfo, host?: boolean) 
+        : void {
+            const cached: SharedVersion[] = sharedExternalsRepository
+                .tryGetVersions(sharedInfo.packageName)
+                .orElse([]);
 
-    function addScopedExternal(scope: string, sharedInfo: SharedInfo) {
-        scopedExternalsRepository.addExternal(
-            scope, 
-            sharedInfo.packageName, 
-            {
-                version: sharedInfo.version!,
-                url: pathResolver.join(scope, sharedInfo.outFileName)
-            } as Version
-        );
-    }
-
-    function addExternalsToStorage(remoteEntry: RemoteEntry) {
-        const scopeUrl =  pathResolver.getScope(remoteEntry.url);
-
-        remoteEntry.shared.forEach(external => {
-            if (!external.version || !versionCheck.isValidSemver(external.version)) {
-                logger.warn(`[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping.`);
+            if(cached.find(e => e.version === sharedInfo.version)) {
+                logger.debug(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping.`);
                 return;
             }
-            if(external.singleton) {
-                addSharedExternal(scopeUrl, external);
-            } else {
-                addScopedExternal(scopeUrl, external);
-            }      
-        });
-    }
 
+            cached.push({
+                version: sharedInfo.version!,
+                url: pathResolver.join(scope, sharedInfo.outFileName),
+                requiredVersion: sharedInfo.requiredVersion,
+                strictVersion: sharedInfo.strictVersion,
+                host,               
+                action: 'skip'
+            } as SharedVersion);
+
+            sharedExternalsRepository.addOrUpdate(
+                sharedInfo.packageName, 
+                cached.sort((a,b) => versionCheck.compare(b.version, a.version))
+            );
+        }
+
+    function addScopedExternal(scope: string, sharedInfo: SharedInfo) 
+        : void {
+            scopedExternalsRepository.addExternal(
+                scope, 
+                sharedInfo.packageName, 
+                {
+                    version: sharedInfo.version!,
+                    url: pathResolver.join(scope, sharedInfo.outFileName)
+                } as Version
+            );
+        }
+
+        
     return remoteEntries => {
         remoteEntries.forEach(remoteEntry => {
             addRemoteInfoToStorage(remoteEntry);
             addExternalsToStorage(remoteEntry);
         });
 
-        return Promise.resolve(remoteEntries);
+        return Promise.resolve();
     };
 }
 

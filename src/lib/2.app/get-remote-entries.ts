@@ -18,7 +18,7 @@ const createGetRemotesFederationInfo = (
         : (manifest: Manifest) => Promise<(RemoteEntry|false)[]> {  
             return async manifest => {
                 const host = (hostRemoteEntryUrl)  
-                    ? await fetchRemoteEntry(["__HOST__", hostRemoteEntryUrl])
+                    ? await fetchRemoteEntry(["__HOST__", hostRemoteEntryUrl]).then(markHostRemoteEntry)
                     : false;
 
                 const remotes = await Promise.all(
@@ -42,6 +42,11 @@ const createGetRemotesFederationInfo = (
                     return false;
                 });
         }
+
+    function markHostRemoteEntry(remoteEntry: false|RemoteEntry) {
+        if (!!remoteEntry) remoteEntry.host = true;
+        return remoteEntry;
+    }
 
     function notifyRemoteEntryFetched([remoteName, remoteEntryUrl]: [RemoteName, RemoteEntryUrl]) 
         : (remoteEntry: RemoteEntry) => RemoteEntry {
