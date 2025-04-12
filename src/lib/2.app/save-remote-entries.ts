@@ -8,7 +8,7 @@ import type { ForStoringSharedExternals } from "./driving-ports/for-storing-shar
 import type { ForCheckingVersion } from "./driving-ports/for-checking-version.port";
 import type { ForStoringScopedExternals } from "./driving-ports/for-storing-scoped-externals.port";
 
-const createGetRemotesFederationInfo = (
+const createSaveRemoteEntries = (
     remoteInfoRepository: ForStoringRemoteInfo,
     sharedExternalsRepository: ForStoringSharedExternals,
     scopedExternalsRepository: ForStoringScopedExternals,
@@ -17,22 +17,19 @@ const createGetRemotesFederationInfo = (
     logger: ForLogging
 ): ForSavingRemoteEntries => { 
 
-    function addRemoteInfoToStorage(remoteEntry: RemoteEntry)
-        : RemoteInfo {
-            const scopeUrl =  pathResolver.getScope(remoteEntry.url);
+    function addRemoteInfoToStorage({name, url, exposes}: RemoteEntry)
+        : void {
+            const scopeUrl =  pathResolver.getScope(url);
 
-            const remoteInfo: RemoteInfo = {
-                remoteName: remoteEntry.name,
+            remoteInfoRepository.addOrUpdate({
+                remoteName: name,
                 scopeUrl,
-                exposes: Object.values(remoteEntry.exposes ?? [])
+                exposes: Object.values(exposes ?? [])
                     .map(m => ({
                         moduleName: m.key,
                         url: pathResolver.join(scopeUrl, m.outFileName) 
                     }))
-            };
-
-            remoteInfoRepository.addOrUpdate(remoteInfo)
-            return remoteInfo;
+            } as RemoteInfo)
         }
 
     function addSharedExternal(scope: string, sharedInfo: SharedInfo) {
@@ -46,7 +43,7 @@ const createGetRemotesFederationInfo = (
             requiredVersion: sharedInfo.requiredVersion,
             strictVersion: sharedInfo.strictVersion,
             action: 'skip'
-        });
+        } as SharedVersion);
 
         sharedExternalsRepository.addOrUpdate(
             sharedInfo.packageName, 
@@ -55,14 +52,13 @@ const createGetRemotesFederationInfo = (
     }
 
     function addScopedExternal(scope: string, sharedInfo: SharedInfo) {
-        const version:Version  = {
-            version: sharedInfo.version!,
-            url: pathResolver.join(scope, sharedInfo.outFileName)
-        }
         scopedExternalsRepository.addExternal(
             scope, 
             sharedInfo.packageName, 
-            version
+            {
+                version: sharedInfo.version!,
+                url: pathResolver.join(scope, sharedInfo.outFileName)
+            } as Version
         );
     }
 
@@ -76,18 +72,20 @@ const createGetRemotesFederationInfo = (
             }
             if(external.singleton) {
                 addSharedExternal(scopeUrl, external);
-            } else {}
+            } else {
                 addScopedExternal(scopeUrl, external);
-        })
+            }      
+        });
     }
 
-    return e => {
-        e.forEach(remoteEntry => {
+    return remoteEntries => {
+        remoteEntries.forEach(remoteEntry => {
             addRemoteInfoToStorage(remoteEntry);
             addExternalsToStorage(remoteEntry);
         });
-        return Promise.resolve(e);
+
+        return Promise.resolve(remoteEntries);
     };
 }
 
-export { createGetRemotesFederationInfo };
+export { createSaveRemoteEntries };

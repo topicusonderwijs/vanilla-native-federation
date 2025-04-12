@@ -14,20 +14,19 @@ const createGetRemotesFederationInfo = (
     logger: ForLogging
 ): ForGettingRemoteEntries => { 
 
-
     function fetchRemoteEntries(hostRemoteEntryUrl?: string)
         : (manifest: Manifest) => Promise<(RemoteEntry|false)[]> {  
-                return async manifest => {
-                    const host = (hostRemoteEntryUrl)  
-                        ? await fetchRemoteEntry(["__HOST__", hostRemoteEntryUrl])
-                        : false;
+            return async manifest => {
+                const host = (hostRemoteEntryUrl)  
+                    ? await fetchRemoteEntry(["__HOST__", hostRemoteEntryUrl])
+                    : false;
 
-                    const remotes = await Promise.all(
-                        Object.entries(manifest).map(fetchRemoteEntry)
-                    );
-                    
-                    return [host, ...remotes];
-                };
+                const remotes = await Promise.all(
+                    Object.entries(manifest).map(fetchRemoteEntry)
+                );
+                
+                return [host, ...remotes];
+            };
         }
 
     function fetchRemoteEntry([remoteName, remoteEntryUrl]: [RemoteName, RemoteEntryUrl])
@@ -37,17 +36,17 @@ const createGetRemotesFederationInfo = (
                 return Promise.resolve(false);
             }
             return remoteEntryProvider.provide(remoteEntryUrl)
-                .then(notifyRemoteEntryFetched(remoteEntryUrl, remoteName))
+                .then(notifyRemoteEntryFetched([remoteName, remoteEntryUrl]))
                 .catch(e => {
                     logger.error(`Failed to fetch remote '${remoteName}'.`, e);
                     return false;
                 });
         }
 
-    function notifyRemoteEntryFetched(remoteEntryUrl: RemoteEntryUrl, remoteName: RemoteName) 
+    function notifyRemoteEntryFetched([remoteName, remoteEntryUrl]: [RemoteName, RemoteEntryUrl]) 
         : (remoteEntry: RemoteEntry) => RemoteEntry {
             return (remoteEntry) => {
-                logger.debug(`fetched '${remoteEntryUrl}': ${JSON.stringify({name: remoteEntry.name, exposes: remoteEntry.exposes})}`);
+                logger.debug(`fetched '${remoteEntry.name}' from '${remoteEntryUrl}', exposing: ${JSON.stringify(remoteEntry.exposes)}`);
 
                 if(remoteEntry.name !== remoteName) {
                     logger.warn(`Fetched remote '${remoteEntry.name}' does not match requested '${remoteName}'.`);
@@ -57,10 +56,9 @@ const createGetRemotesFederationInfo = (
             };
         }
 
-
     function removeSkippedRemotes(federationInfos: (RemoteEntry|false)[])
         : RemoteEntry[] {
-            return federationInfos.filter((f): f is RemoteEntry => !!f);
+            return federationInfos.filter(info => !!info);
         }
        
         
