@@ -1,4 +1,4 @@
-import type { ExternalsScope, ScopedExternals } from "lib/1.domain/externals/externals.contract";
+import type { ScopedExternals } from "lib/1.domain/externals/externals.contract";
 import type { StorageEntry, StorageConfig } from "./storage.contract";
 import { Optional } from "../../utils/optional";
 import type { ForStoringScopedExternals } from "lib/2.app/driving-ports/for-storing-scoped-externals.port";
@@ -8,32 +8,31 @@ const createScopedExternalsRepository = (
     {toStorageEntry}: StorageConfig
 ): ForStoringScopedExternals => {
     const STORAGE: StorageEntry<ScopedExternals> = toStorageEntry("scoped-externals", {  });
-
-    function getScope(scope: string): ExternalsScope|undefined {
-        return (STORAGE.get() ?? {})[scope];
-    };
-
-    function addExternalToScope(scope: string, external: string, version: Version): void {
-        STORAGE.mutate(val => ({
-            ...val, 
-            [scope]: { ...(val[scope] ?? {}), [external]: version }
-        }));
-    }   
+    
+    const _cache: ScopedExternals = STORAGE.get();
 
     return {
         clearScope: function (scope: string) {
-            STORAGE.mutate(val => ({...val, [scope]: {}}));
+            _cache[scope] = {};
             return this;
         },
         contains: function (scope: string, name: string) {
-            return !!getScope(scope)?.[name];
+            return !!_cache[scope]?.[name];
         },
         addExternal: function (scope: string, external: string, version: Version) {
-            addExternalToScope(scope, external, version);
+            if(!_cache[scope]) _cache[scope] = {};
+            _cache[scope][external] = version;
             return this;
         },
-        tryGetScope: function (name: string) {
-            return Optional.of(getScope(name));
+        tryGetScope: function (scope: string) {
+            return Optional.of(_cache[scope]);
+        },
+        getAll: function () {
+            return _cache;
+        },
+        commit: function () {
+            STORAGE.set(_cache);
+            return this;
         }
     }
 }

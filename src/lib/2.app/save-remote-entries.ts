@@ -1,27 +1,17 @@
 
-import type { ForLogging } from "./driving-ports/for-logging.port";
-import type { ForStoringRemoteInfo } from "./driving-ports/for-storing-remote-info.port";
 import type { ForSavingRemoteEntries } from "./driver-ports/for-saving-remote-entries.port";
 import type { RemoteEntry, RemoteInfo, SharedInfo, SharedVersion, Version } from "lib/1.domain";
-import type { ForResolvingPaths } from "./driving-ports/for-resolving-paths.port";
-import type { ForStoringSharedExternals } from "./driving-ports/for-storing-shared-externals.port";
-import type { ForCheckingVersion } from "./driving-ports/for-checking-version.port";
-import type { ForStoringScopedExternals } from "./driving-ports/for-storing-scoped-externals.port";
+import type { DrivingContract } from "./driving-ports/driving.contract";
 
 const createSaveRemoteEntries = (
-    remoteInfoRepository: ForStoringRemoteInfo,
-    sharedExternalsRepository: ForStoringSharedExternals,
-    scopedExternalsRepository: ForStoringScopedExternals,
-    pathResolver: ForResolvingPaths,
-    versionCheck: ForCheckingVersion,
-    logger: ForLogging
+    { remoteInfoRepo, sharedExternalsRepo, scopedExternalsRepo, pathResolver, versionCheck, logger }: DrivingContract
 ): ForSavingRemoteEntries => { 
 
     function addRemoteInfoToStorage({name, url, exposes}: RemoteEntry)
         : void {
             const scopeUrl =  pathResolver.getScope(url);
 
-            remoteInfoRepository.addOrUpdate({
+            remoteInfoRepo.addOrUpdate({
                 remoteName: name,
                 scopeUrl,
                 exposes: Object.values(exposes ?? [])
@@ -52,7 +42,7 @@ const createSaveRemoteEntries = (
 
     function addSharedExternal(scope: string, sharedInfo: SharedInfo, host?: boolean) 
         : void {
-            const cached: SharedVersion[] = sharedExternalsRepository
+            const cached: SharedVersion[] = sharedExternalsRepo
                 .tryGetVersions(sharedInfo.packageName)
                 .orElse([]);
 
@@ -70,7 +60,7 @@ const createSaveRemoteEntries = (
                 action: 'skip'
             } as SharedVersion);
 
-            sharedExternalsRepository.addOrUpdate(
+            sharedExternalsRepo.addOrUpdate(
                 sharedInfo.packageName, 
                 cached.sort((a,b) => versionCheck.compare(b.version, a.version))
             );
@@ -78,7 +68,7 @@ const createSaveRemoteEntries = (
 
     function addScopedExternal(scope: string, sharedInfo: SharedInfo) 
         : void {
-            scopedExternalsRepository.addExternal(
+            scopedExternalsRepo.addExternal(
                 scope, 
                 sharedInfo.packageName, 
                 {

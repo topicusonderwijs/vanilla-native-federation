@@ -1,15 +1,19 @@
 import type { LoggingConfig } from "lib/3.adapters/logging/logging.contract";
 import type { StorageConfig } from "lib/3.adapters/storage/storage.contract";
-import { createForGettingRemoteEntries } from "lib/3.adapters/_factories/for-getting-remote-entries.factory";
+import { createDriving } from "./4.di/driving.factory";
+import { createDrivers } from "./4.di/drivers.factory";
 
 
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string>,
     config: LoggingConfig & StorageConfig
 ) => {   
-    const getRemoteEntries = createForGettingRemoteEntries(config);
+    const driving = createDriving(config);
+    const app = createDrivers(driving);
 
-    return getRemoteEntries(remotesOrManifestUrl);
+    return app.getRemoteEntries(remotesOrManifestUrl)
+        .then(app.saveRemoteEntries)
+        .then(app.determineSharedExternals)
 }
 
 export { initFederation };

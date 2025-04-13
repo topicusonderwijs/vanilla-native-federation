@@ -9,3 +9,5 @@ export type RemoteInfo = {
     scopeUrl: RemoteScope,
     exposes: RemoteModule[] 
 }
+
+export type Remotes = Record<string, RemoteInfo>;

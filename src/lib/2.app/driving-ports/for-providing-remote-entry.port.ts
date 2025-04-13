@@ -1,6 +1,7 @@
 import type { RemoteEntry } from "lib/1.domain/remote-entry/remote-entry.contract";
 
 export type ForProvidingRemoteEntry = {
-    provide: (remoteEntryUrl: string) => Promise<RemoteEntry>
+    provideHost: () => Promise<RemoteEntry|false>,
+    provideRemote: (remoteEntryUrl: string) => Promise<RemoteEntry|false>,
 }
 

@@ -8,33 +8,29 @@ const createSharedExternalsRepository = (
     {toStorageEntry}: StorageConfig
 ): ForStoringSharedExternals => {
     const STORAGE: StorageEntry<SharedExternals> = toStorageEntry("shared-externals", {});
-
-    function get(external: string): SharedVersion[]|undefined {
-        return (STORAGE.get() ?? {})[external];
-    };
-
-    const addOrUpdateExternal = (external: string, version: SharedVersion[]) => (cache: SharedExternals) => {
-        cache[external] = version;
-        return cache;
-    }
+    let _cache: SharedExternals = STORAGE.get();
 
     return {
         getAll: function () {
-            return STORAGE.get();
+            return {..._cache};
         }, 
         contains: function (external: string) {
-            const versions = get(external);
+            const versions = _cache[external];
             return !!versions && versions.length > 0;
         },
         addOrUpdate: function (external: string, versions: SharedVersion[]) {
-            STORAGE.mutate(addOrUpdateExternal(external,versions));
+            _cache[external] = versions;
             return this;
         },
         tryGetVersions: function (external: string) {
-            return Optional.of(get(external));
+            return Optional.of(_cache[external]);
         },
         set: function (externals: SharedExternals) {
-            STORAGE.set(externals);
+            _cache = {...externals};
+            return this;
+        },
+        commit: function () {
+            STORAGE.set(_cache);
             return this;
         }
     };

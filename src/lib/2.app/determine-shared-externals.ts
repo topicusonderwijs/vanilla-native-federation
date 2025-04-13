@@ -1,14 +1,10 @@
-import type { ForStoringSharedExternals } from "./driving-ports/for-storing-shared-externals.port";
 import type { ForDeterminingSharedExternals } from "./driver-ports/for-determining-shared-externals.port";
 import type { SharedVersion } from "lib/1.domain";
-import type { ForCheckingVersion } from "./driving-ports/for-checking-version.port";
 import { NFError } from "lib/native-federation.error";
-import type { ForLogging } from "./driving-ports/for-logging.port";
+import type { DrivingContract } from "./driving-ports/driving.contract";
 
 const createDetermineSharedExternals = (
-    sharedExternalsRepository: ForStoringSharedExternals,
-    versionCheck: ForCheckingVersion,
-    logger: ForLogging
+    {versionCheck, logger, sharedExternalsRepo}: DrivingContract
 ): ForDeterminingSharedExternals => { 
     
     function determineVersionAction([external, versions]: [string, SharedVersion[]]) {
@@ -48,9 +44,9 @@ const createDetermineSharedExternals = (
     }
 
     return () => {
-        const sharedExternals = sharedExternalsRepository.getAll();
+        const sharedExternals = sharedExternalsRepo.getAll();
         Object.entries(sharedExternals).forEach(determineVersionAction);
-        sharedExternalsRepository.set(sharedExternals);
+        sharedExternalsRepo.set(sharedExternals);
         return Promise.resolve();
     };
 }

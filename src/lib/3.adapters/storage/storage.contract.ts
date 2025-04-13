@@ -1,7 +1,6 @@
 type StorageEntry<TValue> = {
     set: (value: TValue) => StorageEntry<TValue>;
     get: () => TValue;
-    mutate: (mutateFn: (val: TValue) => TValue) => void;
 };
 
 type StorageEntryKey = number|symbol|string;

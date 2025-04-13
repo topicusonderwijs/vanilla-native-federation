@@ -90,16 +90,30 @@ describe('createRemoteInfoRepository', () => {
     });
 
     describe('addOrUpdate', () => {
-        it('should add if not in list', () => {
+
+        it('should not alter storage if not committed', () => {
+            mockStorage["remotes"] = {};
+
             remoteInfoRepository.addOrUpdate(MOCK_REMOTE_INFO());
 
-            expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
+            expect(mockStorage["remotes"]).toEqual({});
+        });
+
+        it('should update changes on commit', () => {
+            mockStorage["remotes"] = {};
+
+            remoteInfoRepository.addOrUpdate(MOCK_REMOTE_INFO());
+            expect(mockStorage["remotes"]).toEqual({});
+
+            remoteInfoRepository.commit();
+            expect(mockStorage["remotes"]).toEqual({"team/mfe1": MOCK_REMOTE_INFO()});
         });
 
         it('should update if not in list', () => {
             mockStorage["remotes"]["team/mfe1"] = "MOCK_REMOTE_INFO";
 
             remoteInfoRepository.addOrUpdate(MOCK_REMOTE_INFO());
+            remoteInfoRepository.commit();
 
             expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
         });
@@ -108,6 +122,7 @@ describe('createRemoteInfoRepository', () => {
             mockStorage["remotes"] = undefined;
 
             remoteInfoRepository.addOrUpdate(MOCK_REMOTE_INFO());
+            remoteInfoRepository.commit();
 
             expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
         });
@@ -116,6 +131,7 @@ describe('createRemoteInfoRepository', () => {
             mockStorage["remotes"]["team/mfe2"] = MOCK_REMOTE_INFO_II();
 
             remoteInfoRepository.addOrUpdate(MOCK_REMOTE_INFO());
+            remoteInfoRepository.commit();
 
             expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
             expect(mockStorage["remotes"]["team/mfe2"]).toEqual(MOCK_REMOTE_INFO_II());

@@ -1,0 +1,1 @@
+export {ImportMap, Scopes, Imports} from "@softarc/native-federation-runtime";
