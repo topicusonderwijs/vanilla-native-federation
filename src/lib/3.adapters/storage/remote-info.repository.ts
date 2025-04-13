@@ -15,6 +15,7 @@ const createRemoteInfoRepository = (
         }, 
         addOrUpdate: function (remote: RemoteInfo) {
             _cache[remote.remoteName] = remote;
+            return this;
         }, 
         tryGet: function (name: RemoteName) {
             return Optional.of(_cache[name])

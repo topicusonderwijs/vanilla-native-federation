@@ -1,14 +1,9 @@
 import { RemoteInfo } from '../../1.domain/remote/remote-info.contract';
 import { createRemoteInfoRepository } from './remote-info.repository';
 import { Optional } from '../../utils/optional';
-
-import type { StorageEntry, StorageConfig } from './storage.contract';
-import type { ForStoringRemoteInfo } from '../../2.app/driving-ports/for-storing-remote-info.port';
+import { mockStorageEntry } from '../_mocks/storage/storage-entry.mock';
 
 describe('createRemoteInfoRepository', () => {
-    let mockStorageConfig: StorageConfig;
-    let mockStorage: any;
-    let remoteInfoRepository: ForStoringRemoteInfo;
 
     const MOCK_REMOTE_INFO = (): RemoteInfo => ({
         scopeUrl: "http://localhost:3001/",
@@ -22,68 +17,55 @@ describe('createRemoteInfoRepository', () => {
         exposes: [{ moduleName: "./comp", url: "http://localhost:3002/comp.js" }]
     });
 
-    beforeEach(() => {
-        mockStorage = {};
-
-        mockStorageConfig = {
-            toStorageEntry: jest.fn(
-                <TValue> (key: string, initialValue: TValue) => {
-                    mockStorage[key] = initialValue;
-
-                    const mockStorageEntry = {
-                        get: jest.fn(() => mockStorage[key]),
-                        set: jest.fn((value) => {
-                            mockStorage[key] = value;
-                            return mockStorageEntry;
-                        }),
-                        mutate: jest.fn((valueFn) => {
-                            mockStorage[key] = valueFn(mockStorage[key]);
-                            return mockStorageEntry;
-                        })
-                    } as StorageEntry<any>;
-
-                    return mockStorageEntry;
-                }
-            )
-        };
-
-        remoteInfoRepository = createRemoteInfoRepository(mockStorageConfig);
+    const setupWithCache = ((storage: any) => {
+        const mockStorage = {"remotes": storage};
+        const mockStorageConfig = mockStorageEntry(mockStorage);
+        const remoteInfoRepo = createRemoteInfoRepository(mockStorageConfig);
+        return {mockStorage, remoteInfoRepo};
     });
+
 
     describe('initialization', () => {
         it('should initialize the entry with the first value', () => {
-            expect(mockStorageConfig.toStorageEntry).toHaveBeenCalledWith('remotes', {});
+            const {mockStorage} = setupWithCache(undefined);
             expect(mockStorage["remotes"]).toEqual({});
         });
-    })
+    });
+
 
     describe('contains', () => {
         it('should return false when empty', () => {
-            const result = remoteInfoRepository.contains('team/mfe1');
+            const {remoteInfoRepo} = setupWithCache({});
+
+            const result = remoteInfoRepo.contains('team/mfe1');
 
             expect(result).toBe(false);
         });
 
         it('should return true when exists', () => {
-            mockStorage["remotes"]["team/mfe1"] = MOCK_REMOTE_INFO();
+            const {remoteInfoRepo} = setupWithCache({
+                "team/mfe1": MOCK_REMOTE_INFO()
+            });
 
-            const result = remoteInfoRepository.contains('team/mfe1');
+            const result = remoteInfoRepo.contains('team/mfe1');
 
             expect(result).toBe(true);
         });
 
         it('should return false when entry doesnt exist', () => {
-            mockStorage["remotes"]["team/mfe1"] = MOCK_REMOTE_INFO();
+            const {remoteInfoRepo} = setupWithCache({
+                "team/mfe1": MOCK_REMOTE_INFO()
+            });
 
-            const result = remoteInfoRepository.contains('team/mfe2');
+            const result = remoteInfoRepo.contains('team/mfe2');
 
             expect(result).toBe(false);
         });
 
         it('should return false when entry is lost', () => {
-            mockStorage = {};
+            const {remoteInfoRepo} = setupWithCache({});
 
-            const result = remoteInfoRepository.contains('team/mfe2');
+            const result = remoteInfoRepo.contains('team/mfe2');
 
             expect(result).toBe(false);
         });
@@ -92,73 +74,78 @@ describe('createRemoteInfoRepository', () => {
     describe('addOrUpdate', () => {
 
         it('should not alter storage if not committed', () => {
-            mockStorage["remotes"] = {};
+            const {remoteInfoRepo, mockStorage} = setupWithCache({});
 
-            remoteInfoRepository.addOrUpdate(MOCK_REMOTE_INFO());
+            remoteInfoRepo.addOrUpdate(MOCK_REMOTE_INFO());
 
             expect(mockStorage["remotes"]).toEqual({});
         });
 
-        it('should update changes on commit', () => {
-            mockStorage["remotes"] = {};
+        it('should update changes after commit', () => {
+            const {remoteInfoRepo, mockStorage} = setupWithCache({});
 
-            remoteInfoRepository.addOrUpdate(MOCK_REMOTE_INFO());
+            remoteInfoRepo.addOrUpdate(MOCK_REMOTE_INFO());
             expect(mockStorage["remotes"]).toEqual({});
 
-            remoteInfoRepository.commit();
+            remoteInfoRepo.commit();
             expect(mockStorage["remotes"]).toEqual({"team/mfe1": MOCK_REMOTE_INFO()});
         });
 
         it('should update if not in list', () => {
-            mockStorage["remotes"]["team/mfe1"] = "MOCK_REMOTE_INFO";
+            const {remoteInfoRepo, mockStorage} = setupWithCache({"team/mfe1": "MOCK_REMOTE_INFO"});
 
-            remoteInfoRepository.addOrUpdate(MOCK_REMOTE_INFO());
-            remoteInfoRepository.commit();
 
-            expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
-        });
-
-        it('should create object if undefined', () => {
-            mockStorage["remotes"] = undefined;
-
-            remoteInfoRepository.addOrUpdate(MOCK_REMOTE_INFO());
-            remoteInfoRepository.commit();
+            remoteInfoRepo.addOrUpdate(MOCK_REMOTE_INFO());
+            remoteInfoRepo.commit();
 
             expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
         });
 
         it('should not affect other entries', () => {
-            mockStorage["remotes"]["team/mfe2"] = MOCK_REMOTE_INFO_II();
+            const {remoteInfoRepo, mockStorage} = setupWithCache({
+                "team/mfe1": MOCK_REMOTE_INFO()
+            });
 
-            remoteInfoRepository.addOrUpdate(MOCK_REMOTE_INFO());
-            remoteInfoRepository.commit();
+            remoteInfoRepo.addOrUpdate(MOCK_REMOTE_INFO_II());
+            remoteInfoRepo.commit();
 
             expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
             expect(mockStorage["remotes"]["team/mfe2"]).toEqual(MOCK_REMOTE_INFO_II());
+        });
+
+        it('should return the repository instance for chaining', () => {
+            const {remoteInfoRepo} = setupWithCache({});
+            const result = remoteInfoRepo.addOrUpdate(MOCK_REMOTE_INFO());
+            expect(result).toBe(remoteInfoRepo);
         });
     });
 
     describe('tryGet', () => {
         it('should return the remote', () => {
-            mockStorage["remotes"]["team/mfe1"] = MOCK_REMOTE_INFO();
+            const {remoteInfoRepo} = setupWithCache({
+                "team/mfe1": MOCK_REMOTE_INFO()
+            });
 
-            const actual: Optional<RemoteInfo> = remoteInfoRepository.tryGet("team/mfe1");
+            const actual: Optional<RemoteInfo> = remoteInfoRepo.tryGet("team/mfe1");
 
             expect(actual.isPresent()).toBe(true);
             expect(actual.get()).toEqual(MOCK_REMOTE_INFO());
         });
 
         it('should return empty optional if remote doesnt exist', () => {
-            const actual: Optional<RemoteInfo> = remoteInfoRepository.tryGet("team/mfe1");
+            const {remoteInfoRepo} = setupWithCache({});
+            const actual: Optional<RemoteInfo> = remoteInfoRepo.tryGet("team/mfe1");
 
             expect(actual.isPresent()).toBe(false);
             expect(actual.get()).toEqual(undefined);
         });
 
         it('should return empty optional if only other remotes exist', () => {
-            mockStorage["remotes"]["team/mfe1"] = MOCK_REMOTE_INFO();
+            const {remoteInfoRepo} = setupWithCache({
+                "team/mfe1": MOCK_REMOTE_INFO()
+            });
 
-            const actual: Optional<RemoteInfo> = remoteInfoRepository.tryGet("team/mfe2");
+            const actual: Optional<RemoteInfo> = remoteInfoRepo.tryGet("team/mfe2");
 
             expect(actual.isPresent()).toBe(false);
             expect(actual.get()).toEqual(undefined);

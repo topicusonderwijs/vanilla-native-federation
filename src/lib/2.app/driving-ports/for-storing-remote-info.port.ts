@@ -4,7 +4,7 @@ import type { Optional } from "lib/utils/optional";
 export type ForStoringRemoteInfo = {
     contains: (remoteName: RemoteName) => boolean,
     tryGet: (remoteName: RemoteName) => Optional<RemoteInfo>
-    addOrUpdate: (remote: RemoteInfo) => void,
+    addOrUpdate: (remote: RemoteInfo) => ForStoringRemoteInfo,
     getAll: () => Remotes, 
     commit: () => ForStoringRemoteInfo
 }

@@ -3,7 +3,6 @@ import type { StorageConfig } from "lib/3.adapters/storage/storage.contract";
 import { createDriving } from "./4.di/driving.factory";
 import { createDrivers } from "./4.di/drivers.factory";
 
-
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string>,
     config: LoggingConfig & StorageConfig
