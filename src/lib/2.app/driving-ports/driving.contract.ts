@@ -1,4 +1,5 @@
 import type { ForCheckingVersion } from "./for-checking-version.port"
+import type { ForBrowserTasks } from "./for-browser-tasks"
 import type { ForProvidingManifest } from "./for-providing-manifest.port"
 import type { ForProvidingRemoteEntry } from "./for-providing-remote-entry.port"
 import type { ForStoringRemoteInfo } from "./for-storing-remote-info.port"
@@ -11,5 +12,6 @@ export type DrivingContract = {
     remoteEntryProvider: ForProvidingRemoteEntry,
     remoteInfoRepo: ForStoringRemoteInfo,
     scopedExternalsRepo: ForStoringScopedExternals,
-    sharedExternalsRepo: ForStoringSharedExternals
+    sharedExternalsRepo: ForStoringSharedExternals,
+    browser: ForBrowserTasks
 }

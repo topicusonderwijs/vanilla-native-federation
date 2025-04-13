@@ -1,5 +1,6 @@
 import type { DrivingContract } from "lib/2.app/driving-ports/driving.contract";
 import type { HandlersContract } from "lib/2.app/handlers/handlers.contract";
+import { createBrowser } from "lib/3.adapters/browser/browser";
 import { createVersionCheck } from "lib/3.adapters/checks/version.check";
 import { createManifestProvider } from "lib/3.adapters/http/manifest-provider";
 import { createRemoteEntryProvider } from "lib/3.adapters/http/remote-entry-provider";
@@ -16,5 +17,7 @@ export const createDriving = (handlers: HandlersContract): DrivingContract => ({
 
     remoteInfoRepo: createRemoteInfoRepository(handlers),
     scopedExternalsRepo: createScopedExternalsRepository(handlers),
-    sharedExternalsRepo: createSharedExternalsRepository(handlers)
+    sharedExternalsRepo: createSharedExternalsRepository(handlers),
+    
+    browser: createBrowser(handlers)
 })
