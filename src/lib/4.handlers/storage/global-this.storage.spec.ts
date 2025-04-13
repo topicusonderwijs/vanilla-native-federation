@@ -1,4 +1,4 @@
-import { NF_STORAGE_ENTRY } from "./storage.contract";
+import { NF_STORAGE_ENTRY } from "../../2.app/handlers/storage.contract";
 import { RemoteInfo } from "../../1.domain/remote/remote-info.contract";
 import { globalThisStorageEntry } from './global-this.storage';
 

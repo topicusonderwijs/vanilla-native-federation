@@ -1,6 +1,6 @@
-import type { ForResolvingPaths } from "lib/2.app/driving-ports/for-resolving-paths.port";
+import type { PathHandler } from "lib/2.app/handlers/path.contract";
 
-const createPathResolver = (): ForResolvingPaths => {
+const createPathHandler = (): PathHandler => {
 
     function join(pathA: string, pathB: string)
         : string {
@@ -28,4 +28,4 @@ const createPathResolver = (): ForResolvingPaths => {
     }
 }
 
-export { createPathResolver }
+export { createPathHandler }

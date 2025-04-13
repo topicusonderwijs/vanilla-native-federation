@@ -1,7 +1,7 @@
-import { type LogType, LogLevel, type LoggingConfig } from "./logging.contract";
-import type { ForLogging } from "lib/2.app/driving-ports/for-logging.port";
+import type { LogHandler } from "lib/2.app/handlers/log.contract";
+import { type LogType, LogLevel, type LoggingConfig } from "../../2.app/handlers/log.contract";
 
-const createLogger = ({logger, logLevel}: LoggingConfig): ForLogging => {
+const createLogHandler = ({logger, logLevel}: LoggingConfig): LogHandler => {
   const logTypes = Object.keys(LogLevel)
     .filter(key => isNaN(Number(key))) as LogType[];
 
@@ -14,7 +14,7 @@ const createLogger = ({logger, logLevel}: LoggingConfig): ForLogging => {
         }
       }
     };
-  }, {} as ForLogging);
+  }, {} as LogHandler);
 };
 
-export { createLogger };
+export { createLogHandler };

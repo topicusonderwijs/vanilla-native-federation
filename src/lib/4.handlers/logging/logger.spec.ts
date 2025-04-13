@@ -1,9 +1,9 @@
-import { ForLogging } from "../../2.app/driving-ports/for-logging.port";
-import { createLogger } from "./logger";
 import { noopLogger } from "./noop.logger";
+import { LogHandler } from "../../2.app/handlers/log.contract";
+import { createLogHandler } from "./log.handler";
 
 describe('importMapHandler', () => {
-    let logHandler: ForLogging;
+    let logHandler: LogHandler;
 
     beforeEach(() => {
         noopLogger.debug = jest.fn();
@@ -13,7 +13,7 @@ describe('importMapHandler', () => {
 
     describe('ERROR level', () => {
         beforeEach(() => {
-            logHandler = createLogger({logLevel: "error", logger: noopLogger});
+            logHandler = createLogHandler({logLevel: "error", logger: noopLogger});
         });
 
         it("should correctly call ERROR messages", () => {
@@ -34,7 +34,7 @@ describe('importMapHandler', () => {
 
     describe('WARN level', () => {
         beforeEach(() => {
-            logHandler = createLogger({logLevel: "warn", logger: noopLogger});
+            logHandler = createLogHandler({logLevel: "warn", logger: noopLogger});
         });
 
         it("should correctly call ERROR messages", () => {
@@ -55,7 +55,7 @@ describe('importMapHandler', () => {
 
     describe('DEBUG level', () => {
         beforeEach(() => {
-            logHandler = createLogger({logLevel: "debug", logger: noopLogger});
+            logHandler = createLogHandler({logLevel: "debug", logger: noopLogger});
         });
 
         it("should correctly call ERROR messages", () => {

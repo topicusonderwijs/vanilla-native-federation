@@ -16,7 +16,9 @@ module.exports = {
       tsconfig: 'tsconfig.json',
     }]
   },
-
+  moduleNameMapper: {
+    // "^lib/(.*)$": ["<rootDir>/lib/$1"],
+  },
   setupFiles: [],
 
   collectCoverage: true,

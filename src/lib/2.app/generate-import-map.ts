@@ -4,7 +4,6 @@ const createGenerateImportMap = (
 
 ): ForGeneratingImportMap => { 
     
-
     return () => {
         return Promise.resolve({imports: {}, scopes: {}});
     };

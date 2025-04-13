@@ -1,12 +1,12 @@
 import type { RemoteInfo, RemoteName, Remotes } from "lib/1.domain";
-import type { StorageEntry, StorageConfig } from "./storage.contract";
+import type { StorageEntry, StorageEntryHandler } from "../../2.app/handlers/storage.contract";
 import type { ForStoringRemoteInfo } from "lib/2.app/driving-ports/for-storing-remote-info.port";
 import { Optional } from "../../utils/optional";
 
 const createRemoteInfoRepository = (
-    {toStorageEntry}: StorageConfig
+    handle: {storage: StorageEntryHandler},
 ): ForStoringRemoteInfo => {
-    const STORAGE: StorageEntry<Remotes> = toStorageEntry("remotes", {});
+    const STORAGE: StorageEntry<Remotes> = handle.storage("remotes", {});
     const _cache: Remotes = STORAGE.get();
 
     return {

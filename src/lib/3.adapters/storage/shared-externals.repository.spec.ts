@@ -1,8 +1,8 @@
 import { createSharedExternalsRepository } from './shared-externals.repository';
-import { mockStorageEntry } from '../_mocks/storage/storage-entry.mock';
 import { SharedExternals } from '../../1.domain/externals/externals.contract';
 import { SharedVersion } from '../../1.domain/externals/version.contract';
 import { Optional } from '../../utils/optional';
+import { createStorageHandlerMock } from '../../6.mocks/handlers/storage.mock';
 
 describe('createSharedExternalsRepository', () => {
 
@@ -16,8 +16,8 @@ describe('createSharedExternalsRepository', () => {
 
     const setupWithCache = ((storage: any) => {
         const mockStorage = {"shared-externals": storage};
-        const mockStorageConfig = mockStorageEntry(mockStorage);
-        const externalsRepo = createSharedExternalsRepository(mockStorageConfig);
+        const mockStorageEntry = createStorageHandlerMock(mockStorage);
+        const externalsRepo = createSharedExternalsRepository({storage: mockStorageEntry});
         return {mockStorage, externalsRepo};
     });
 

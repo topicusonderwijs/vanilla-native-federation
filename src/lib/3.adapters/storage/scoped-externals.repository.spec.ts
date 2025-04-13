@@ -2,14 +2,14 @@ import type { ExternalsScope } from '../../1.domain/externals/externals.contract
 import { createScopedExternalsRepository } from './scoped-externals.repository';
 import { Optional } from '../../utils/optional';
 import type { Version } from '../../1.domain/externals/version.contract';
-import { mockStorageEntry } from "../_mocks/storage/storage-entry.mock";
+import { createStorageHandlerMock } from '../../6.mocks/handlers/storage.mock';
 
 describe('createScopedExternalsRepository', () => {
 
     const setupWithCache = ((storage: any) => {
         const mockStorage = {"scoped-externals": storage};
-        const mockStorageConfig = mockStorageEntry(mockStorage);
-        const externalsRepo = createScopedExternalsRepository(mockStorageConfig);
+        const mockStorageEntry = createStorageHandlerMock(mockStorage);
+        const externalsRepo = createScopedExternalsRepository({storage: mockStorageEntry});
         return {mockStorage, externalsRepo};
     });
 

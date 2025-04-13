@@ -1,4 +1,4 @@
-import { ForStoringRemoteInfo } from "../../../2.app/driving-ports/for-storing-remote-info.port";
+import { ForStoringRemoteInfo } from "../../2.app/driving-ports/for-storing-remote-info.port";
 
 export const createMockRemoteInfoStorage = ()
     : jest.Mocked<ForStoringRemoteInfo> => ({

@@ -1,7 +1,7 @@
 import { cloneEntry } from "./clone-entry";
-import { type StorageEntryCreator, type StorageEntry, NF_STORAGE_ENTRY } from "./storage.contract";
+import { type StorageEntryHandler, type StorageEntry, NF_STORAGE_ENTRY } from "../../2.app/handlers/storage.contract";
 
-const globalThisStorageEntry: StorageEntryCreator = <TValue>
+const globalThisStorageEntry: StorageEntryHandler = <TValue>
     (key: string, initialValue: TValue) => {
         if (!(globalThis as unknown as {[NF_STORAGE_ENTRY]: unknown})[NF_STORAGE_ENTRY]) {
             (globalThis as unknown as {[NF_STORAGE_ENTRY]: unknown})[NF_STORAGE_ENTRY] = {};

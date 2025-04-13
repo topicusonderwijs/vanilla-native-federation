@@ -2,9 +2,11 @@ import type { ForDeterminingSharedExternals } from "./driver-ports/for-determini
 import type { SharedVersion } from "lib/1.domain";
 import { NFError } from "lib/native-federation.error";
 import type { DrivingContract } from "./driving-ports/driving.contract";
+import type { LogHandler } from "./handlers/log.contract";
 
 const createDetermineSharedExternals = (
-    {versionCheck, logger, sharedExternalsRepo}: DrivingContract
+    handle: {log: LogHandler},
+    {versionCheck, sharedExternalsRepo}: DrivingContract
 ): ForDeterminingSharedExternals => { 
     
     function determineVersionAction([external, versions]: [string, SharedVersion[]]) {
@@ -37,7 +39,7 @@ const createDetermineSharedExternals = (
                 return;
             }
 
-            logger.warn(`[${external}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`);
+            handle.log.warn(`[${external}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`);
             v.action = (v.strictVersion) ? 'scope' : 'skip';
         });
         sharedVersion.action = 'share';

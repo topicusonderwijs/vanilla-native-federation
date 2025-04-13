@@ -1,13 +1,13 @@
 import type { ScopedExternals } from "lib/1.domain/externals/externals.contract";
-import type { StorageEntry, StorageConfig } from "./storage.contract";
+import type { StorageEntry, StorageEntryHandler } from "../../2.app/handlers/storage.contract";
 import { Optional } from "../../utils/optional";
 import type { ForStoringScopedExternals } from "lib/2.app/driving-ports/for-storing-scoped-externals.port";
 import type { Version } from "lib/1.domain";
 
 const createScopedExternalsRepository = (
-    {toStorageEntry}: StorageConfig
+    handle: {storage: StorageEntryHandler},
 ): ForStoringScopedExternals => {
-    const STORAGE: StorageEntry<ScopedExternals> = toStorageEntry("scoped-externals", {  });
+    const STORAGE: StorageEntry<ScopedExternals> = handle.storage("scoped-externals", {  });
     
     const _cache: ScopedExternals = STORAGE.get();
 

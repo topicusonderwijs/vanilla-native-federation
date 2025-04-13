@@ -1,7 +1,7 @@
 import { RemoteInfo } from '../../1.domain/remote/remote-info.contract';
 import { createRemoteInfoRepository } from './remote-info.repository';
 import { Optional } from '../../utils/optional';
-import { mockStorageEntry } from '../_mocks/storage/storage-entry.mock';
+import { createStorageHandlerMock } from '../../6.mocks/handlers/storage.mock';
 
 describe('createRemoteInfoRepository', () => {
 
@@ -19,8 +19,8 @@ describe('createRemoteInfoRepository', () => {
 
     const setupWithCache = ((storage: any) => {
         const mockStorage = {"remotes": storage};
-        const mockStorageConfig = mockStorageEntry(mockStorage);
-        const remoteInfoRepo = createRemoteInfoRepository(mockStorageConfig);
+        const mockStorageEntry = createStorageHandlerMock(mockStorage);
+        const remoteInfoRepo = createRemoteInfoRepository({storage: mockStorageEntry});
         return {mockStorage, remoteInfoRepo};
     });
 
