@@ -9,8 +9,8 @@ const initFederation = (
     config: LoggingConfig & StorageConfig
 ) => {  
     const handlers = createHandlers(config);
-    const driving = createDriving(handlers);
-    const app = createDrivers(handlers, driving);
+    const adapters = createDriving(handlers);
+    const app = createDrivers(handlers, adapters);
 
     return app.getRemoteEntries(remotesOrManifestUrl)
         .then(app.saveRemoteEntries)
