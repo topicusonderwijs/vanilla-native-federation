@@ -1,4 +1,4 @@
-import { ImportMapConfig } from "lib/2.app"
+import type { ImportMapConfig } from "lib/2.app"
 
 declare function importShim<T>(url: string): T;
 
