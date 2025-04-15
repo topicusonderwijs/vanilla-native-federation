@@ -13,6 +13,6 @@ export type SharedVersion = Version & {
     requiredVersion: string,
     strictVersion: boolean,
     action: SharedVersionAction,
-    cached?: boolean,
-    host?: boolean
+    cached: boolean,
+    host: boolean
 }

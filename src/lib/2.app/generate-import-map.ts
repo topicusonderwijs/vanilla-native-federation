@@ -37,23 +37,23 @@ const createGenerateImportMap = (
     function addSharedExternals(importMap: Required<ImportMap>) {
         const sharedExternals = sharedExternalsRepo.getAll();
 
-        Object.entries(sharedExternals).forEach(([external, versions]) => {
-            versions.forEach(v => {
+        Object.entries(sharedExternals).forEach(([externalName, external]) => {
+            external.versions.forEach(v => {
                 switch(v.action) {
                     case "skip": return;
                     case "share": 
-                        importMap.imports[external] = v.url;
+                        importMap.imports[externalName] = v.url;
                         break;
                     case "scope":
                         const scope = _path.getScope(v.url);
                         if(!importMap.scopes[scope]) importMap.scopes[scope] = {};
-                        importMap.scopes[scope][external] = v.url;
+                        importMap.scopes[scope][externalName] = v.url;
                         break;
                 }
                 v.cached = true;
             });
 
-            sharedExternalsRepo.addOrUpdate(external, versions);
+            sharedExternalsRepo.addOrUpdate(externalName, external);
         });
 
         return importMap;

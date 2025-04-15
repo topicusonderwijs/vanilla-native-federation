@@ -59,13 +59,14 @@ const createSaveRemoteEntries = (
                 url: _path.join(scope, sharedInfo.outFileName),
                 requiredVersion: sharedInfo.requiredVersion,
                 strictVersion: sharedInfo.strictVersion,
-                host,               
+                host: !!host,
+                cached: false,               
                 action: 'skip'
             } as SharedVersion);
 
             sharedExternalsRepo.addOrUpdate(
                 sharedInfo.packageName, 
-                cached.sort((a,b) => versionCheck.compare(b.version, a.version))
+                { dirty: true, versions: cached.sort((a,b) => versionCheck.compare(b.version, a.version)) }
             );
         }
 

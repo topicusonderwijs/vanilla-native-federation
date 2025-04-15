@@ -4,6 +4,11 @@ export type ExternalName = string;
 
 export type ScopedExternals = Record<string, ExternalsScope>
 
-export type SharedExternals = Record<string, SharedVersion[]>
+export type SharedExternal = {
+    dirty: boolean,
+    versions: SharedVersion[]
+}
+
+export type SharedExternals = Record<string, SharedExternal>
 
 export type ExternalsScope = Record<string, Version>

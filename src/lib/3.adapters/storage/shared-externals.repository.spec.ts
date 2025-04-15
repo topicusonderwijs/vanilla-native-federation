@@ -1,8 +1,8 @@
 import { createSharedExternalsRepository } from './shared-externals.repository';
 import { SharedExternals } from '../../1.domain/externals/externals.contract';
 import { SharedVersion } from '../../1.domain/externals/version.contract';
-import { Optional } from '../../utils/optional';
 import { createStorageHandlerMock } from '../../6.mocks/handlers/storage.mock';
+import { Optional } from '../../utils/optional';
 
 describe('createSharedExternalsRepository', () => {
 
@@ -11,7 +11,9 @@ describe('createSharedExternalsRepository', () => {
         requiredVersion: "~1.2.1", 
         strictVersion: true,
         action: "share",
-        url: "http://localhost:3001/shared-dep-B.js"
+        url: "http://localhost:3001/shared-dep-B.js",
+        host:false,
+        cached: false
     });
 
     const setupWithCache = ((storage: any) => {
@@ -38,17 +40,17 @@ describe('createSharedExternalsRepository', () => {
         });
 
         it('should return all shared deps', () => {
-            const {externalsRepo} = setupWithCache({"dep-a": [MOCK_VERSION()]});
+            const {externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
 
             const actual: SharedExternals = externalsRepo.getAll();
 
-            expect(actual).toEqual({"dep-a": [MOCK_VERSION()]});
+            expect(actual).toEqual({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
         });
     });
 
     describe('tryGetVersions', () => {
         it('should return the versions', () => {
-            const {externalsRepo} = setupWithCache({"dep-a": [MOCK_VERSION()]});
+            const {externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
 
             const actual: Optional<SharedVersion[]> = externalsRepo.tryGetVersions("dep-a");
 
@@ -66,7 +68,7 @@ describe('createSharedExternalsRepository', () => {
         });
 
         it('should return empty optional if only other scopes exist', () => {
-            const {externalsRepo} = setupWithCache({"dep-a": [MOCK_VERSION()]});
+            const {externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
 
             const actual: Optional<SharedVersion[]> = externalsRepo.tryGetVersions("dep-b");
 
@@ -82,12 +84,12 @@ describe('createSharedExternalsRepository', () => {
         });
 
         it('should return false if not in shared list', () => {
-            const {externalsRepo} = setupWithCache({"dep-a": [MOCK_VERSION()]});
+            const {externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
             expect(externalsRepo.contains("dep-b")).toBe(false);
         });
 
         it('should return true if in shared list', () => {
-            const {externalsRepo} = setupWithCache({"dep-a": [MOCK_VERSION()]});
+            const {externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
             expect(externalsRepo.contains("dep-a")).toBe(true);
         });
     });
@@ -95,27 +97,27 @@ describe('createSharedExternalsRepository', () => {
     describe('set', () => {
         it('should not set the whole entry if no commit', () => {
             const {mockStorage, externalsRepo} = setupWithCache({});
-            externalsRepo.set({"dep-a": [MOCK_VERSION()]});
+            externalsRepo.set({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
             expect(mockStorage["shared-externals"]).toEqual({});
         });
         it('should set the whole entry after commit', () => {
             const {mockStorage, externalsRepo} = setupWithCache({});
-            externalsRepo.set({"dep-a": [MOCK_VERSION()]});
+            externalsRepo.set({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
             expect(mockStorage["shared-externals"]).toEqual({});
             externalsRepo.commit();
-            expect(mockStorage["shared-externals"]).toEqual({"dep-a": [MOCK_VERSION()]});
+            expect(mockStorage["shared-externals"]).toEqual({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
         });
         it('should clear the whole entry', () => {
-            const {mockStorage, externalsRepo} = setupWithCache({"dep-a": [MOCK_VERSION()]});
+            const {mockStorage, externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
             externalsRepo.set({});
             externalsRepo.commit();
             expect(mockStorage["shared-externals"]).toEqual({});
         });
         it('should replace the whole entry', () => {
-            const {mockStorage, externalsRepo} = setupWithCache({"dep-a": [MOCK_VERSION()]});
-            externalsRepo.set({"dep-b": []});
+            const {mockStorage, externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
+            externalsRepo.set({"dep-b": { dirty: false, versions: [] }});
             externalsRepo.commit();
-            expect(mockStorage["shared-externals"]).toEqual({"dep-b": []});
+            expect(mockStorage["shared-externals"]).toEqual({"dep-b": { dirty: false, versions: [] }});
         });
     });
 
@@ -123,7 +125,7 @@ describe('createSharedExternalsRepository', () => {
         it('should not add or update if no commit', () => {
             const {mockStorage, externalsRepo} = setupWithCache({});
             
-            externalsRepo.addOrUpdate("dep-a", [MOCK_VERSION()]);
+            externalsRepo.addOrUpdate("dep-a", { dirty: false, versions: [MOCK_VERSION()] });
 
             expect(mockStorage["shared-externals"]).toEqual({});
         });
@@ -131,39 +133,53 @@ describe('createSharedExternalsRepository', () => {
         it('should add a new external to empty storage after commit', () => {
             const {mockStorage, externalsRepo} = setupWithCache({});
             
-            externalsRepo.addOrUpdate("dep-a", [MOCK_VERSION()]);
+            externalsRepo.addOrUpdate("dep-a", { dirty: false, versions: [MOCK_VERSION()] });
             expect(mockStorage["shared-externals"]).toEqual({});
 
             externalsRepo.commit();
             expect(mockStorage["shared-externals"]).toEqual({
-                "dep-a": [MOCK_VERSION()]
+                "dep-a": { dirty: false, versions: [MOCK_VERSION()] }
+            });
+        });
+
+        it('should add a new dirty external to the storage', () => {
+            const {mockStorage, externalsRepo} = setupWithCache({});
+            
+            externalsRepo.addOrUpdate("dep-a", { dirty: true, versions: [MOCK_VERSION()] });
+            expect(mockStorage["shared-externals"]).toEqual({});
+
+            externalsRepo.commit();
+            expect(mockStorage["shared-externals"]).toEqual({
+                "dep-a": { dirty: true, versions: [MOCK_VERSION()] }
             });
         });
     
         it('should replace versions for an existing external', () => {
-            const {mockStorage, externalsRepo} = setupWithCache({"dep-a": [MOCK_VERSION()]});
+            const {mockStorage, externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
 
             const newVersion = { ...MOCK_VERSION(), version: "2.0.0" };
                         
-            externalsRepo.addOrUpdate("dep-a", [newVersion]);
+            externalsRepo.addOrUpdate("dep-a", { dirty: false, versions: [newVersion]});
+
             externalsRepo.commit();
 
             expect(mockStorage["shared-externals"]).toEqual({
-                "dep-a": [newVersion]
+                "dep-a": { dirty: false, versions: [newVersion]}
             });
         });
     
         it('should keep other externals when adding a new one', () => {
-            const {mockStorage, externalsRepo} = setupWithCache({"dep-a": [MOCK_VERSION()]});
+            const {mockStorage, externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION()] }});
 
             const versionB = { ...MOCK_VERSION(), version: "4.5.6" };
                         
-            externalsRepo.addOrUpdate("dep-b", [versionB]);
+            externalsRepo.addOrUpdate("dep-b", { dirty: false, versions: [versionB]});
+
             externalsRepo.commit();
 
             expect(mockStorage["shared-externals"]).toEqual({
-                "dep-a": [MOCK_VERSION()],
-                "dep-b": [versionB]
+                "dep-a": { dirty: false, versions: [MOCK_VERSION()] },
+                "dep-b": { dirty: false, versions: [versionB]}
             });
         });
     
@@ -172,19 +188,19 @@ describe('createSharedExternalsRepository', () => {
             const versionB = { ...MOCK_VERSION(), version: "4.5.6" };
 
             const {mockStorage, externalsRepo} = setupWithCache({
-                "dep-a": [versionA],
-                "dep-b": [versionB]
+                "dep-a": { dirty: false, versions: [versionA]},
+                "dep-b": { dirty: false, versions: [versionB]}
             });
 
 
             const newVersionA = { ...MOCK_VERSION(), version: "2.0.0" };
                         
-            externalsRepo.addOrUpdate("dep-a", [newVersionA]);
+            externalsRepo.addOrUpdate("dep-a", { dirty: false, versions: [newVersionA]});
             externalsRepo.commit();
 
             expect(mockStorage["shared-externals"]).toEqual({
-                "dep-a": [newVersionA],
-                "dep-b": [versionB]
+                "dep-a": { dirty: false, versions: [newVersionA]},
+                "dep-b": { dirty: false, versions: [versionB]}
             });
         });
     
@@ -194,17 +210,20 @@ describe('createSharedExternalsRepository', () => {
 
             const {mockStorage, externalsRepo} = setupWithCache({});
 
-            externalsRepo.addOrUpdate("dep-a", [version1, version2]);
+            externalsRepo.addOrUpdate("dep-a", { dirty: false, versions: [version1, version2]});
             externalsRepo.commit();
 
-            expect(mockStorage["shared-externals"]).toEqual({
-                "dep-a": [version1, version2]
+            expect(mockStorage["shared-externals"]).toEqual({ 
+                "dep-a": {
+                    dirty: false, 
+                    versions: [version1, version2]
+                }
             });
         });
     
         it('should return the repository instance for chaining', () => {
             const {externalsRepo} = setupWithCache({});
-            const result = externalsRepo.addOrUpdate("dep-a", [MOCK_VERSION()]);
+            const result = externalsRepo.addOrUpdate("dep-a", { dirty: false, versions: [MOCK_VERSION()] });
             expect(result).toBe(externalsRepo);
         });
     });

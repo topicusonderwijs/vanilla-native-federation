@@ -1,7 +1,6 @@
-import type { SharedExternals } from "lib/1.domain/externals/externals.contract";
+import type { SharedExternal, SharedExternals } from "lib/1.domain/externals/externals.contract";
 import type { StorageEntry, StorageEntryHandler } from "lib/2.app/config/storage.contract";
 import type { ForStoringSharedExternals } from "lib/2.app/driving-ports/for-storing-shared-externals.port";
-import type { SharedVersion } from "lib/1.domain";
 import { Optional } from "../../utils/optional";
 
 const createSharedExternalsRepository = (
@@ -14,16 +13,16 @@ const createSharedExternalsRepository = (
         getAll: function () {
             return {..._cache};
         }, 
-        contains: function (external: string) {
-            const versions = _cache[external];
-            return !!versions && versions.length > 0;
+        contains: function (externalName: string) {
+            const external = _cache[externalName];
+            return !!external && external.versions.length > 0;
         },
-        addOrUpdate: function (external: string, versions: SharedVersion[]) {
-            _cache[external] = versions;
+        addOrUpdate: function (externalName: string, external: SharedExternal) {
+            _cache[externalName] = external;
             return this;
         },
         tryGetVersions: function (external: string) {
-            return Optional.of(_cache[external]);
+            return Optional.of(_cache[external]?.versions);
         },
         set: function (externals: SharedExternals) {
             _cache = {...externals};
