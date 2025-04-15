@@ -10,13 +10,28 @@ const createDetermineSharedExternals = (
     {versionCheck, sharedExternalsRepo}: DrivingContract
 ): ForDeterminingSharedExternals => { 
     
+
+    /**
+     * External version resolver. 
+     * 
+     * Priority:
+     * 1) Latest external defined in 'host' remoteEntry (if available).
+     * 2) If defined in config, prioritize latest available version.
+     * 3) Find most optimal version, by comparing potential extra downloads per version.
+     * @param param0 
+     * @returns 
+     */
     function determineVersionAction([externalName, external]: [string, SharedExternal]) {
         if (external.versions.length === 1) {
             external.versions[0]!.action = 'share';
+            return;
         }
 
-        // host version gets priority if exists
         let sharedVersion = external.versions.find(v => v.host);
+
+        if(!sharedVersion && config.externalResolver.prioritizeLatest) {
+            sharedVersion = external.versions[0];
+        }
 
         if(!sharedVersion) {
             // find version with least extra downloads, sorted by SEMVER version (O^2 complexity)
@@ -40,7 +55,7 @@ const createDetermineSharedExternals = (
                 return;
             }
 
-            if(config.strictVersionResolving && v.strictVersion) {
+            if(config.externalResolver.strict && v.strictVersion) {
                 throw new NFError(`[${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`);
             }
 

@@ -1,5 +1,8 @@
 
 
 export type ModeConfig = {
-    strictVersionResolving: boolean
+    externalResolver: {
+        strict: boolean,
+        prioritizeLatest?: boolean
+    }
 }
