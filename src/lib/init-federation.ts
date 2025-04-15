@@ -1,17 +1,17 @@
-import type { StorageConfig } from "lib/2.app/handlers/storage.contract";
+import type { StorageConfig } from "lib/2.app/config/storage.contract";
 import { createDriving } from "./5.di/driving.factory";
 import { createDrivers } from "./5.di/drivers.factory";
-import { createHandlers } from "./5.di/handlers.factory";
-import type { LoggingConfig } from "./2.app/handlers/log.contract";
-import type { ImportMapConfig } from "./2.app/handlers/import-map.contract";
+import { createConfigHandlers } from "./5.di/config.factory";
+import type { LoggingConfig } from "./2.app/config/log.contract";
+import type { ImportMapConfig } from "./2.app/config/import-map.contract";
 
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string>,
     config: LoggingConfig & StorageConfig & ImportMapConfig
 ) => {  
-    const handlers = createHandlers(config);
-    const adapters = createDriving(handlers);
-    const app = createDrivers(handlers, adapters);
+    const configHandlers = createConfigHandlers(config);
+    const adapters = createDriving(configHandlers);
+    const app = createDrivers(configHandlers, adapters);
 
     return app.getRemoteEntries(remotesOrManifestUrl)
         .then(app.saveRemoteEntries)

@@ -1,5 +1,5 @@
-import type { LogHandler } from "lib/2.app/handlers/log.contract";
-import { type LogType, LogLevel, type LoggingConfig } from "../../2.app/handlers/log.contract";
+import type { LogHandler } from "lib/2.app/config/log.contract";
+import { type LogType, LogLevel, type LoggingConfig } from "../../2.app/config/log.contract";
 
 const createLogHandler = ({logger, logLevel}: LoggingConfig): LogHandler => {
   const logTypes = Object.keys(LogLevel)

@@ -1,4 +1,4 @@
-import { StorageEntry } from "lib/2.app/handlers/storage.contract";
+import { StorageEntry } from "lib/2.app/config/storage.contract";
 
 export const createStorageHandlerMock = (storageRef: any) => jest.fn(
     <TValue> (key: string, fallback: TValue) => {

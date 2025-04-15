@@ -1,4 +1,4 @@
-import type { LogHandler } from "lib/2.app/handlers/log.contract";
+import type { LogHandler } from "lib/2.app/config/log.contract";
 
 const noopLogger: LogHandler = ({
     debug: () => {},

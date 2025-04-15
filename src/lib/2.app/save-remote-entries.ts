@@ -2,17 +2,17 @@
 import type { ForSavingRemoteEntries } from "./driver-ports/for-saving-remote-entries.port";
 import type { RemoteEntry, RemoteInfo, SharedInfo, SharedVersion, Version } from "lib/1.domain";
 import type { DrivingContract } from "./driving-ports/driving.contract";
-import type { LogHandler } from "./handlers/log.contract";
-import type { PathHandler } from "./handlers/path.contract";
+import type { LogHandler } from "./config/log.contract";
+import * as _path from "lib/utils/path";
 
 const createSaveRemoteEntries = (
-    handle: {log: LogHandler, path: PathHandler},
+    config: {log: LogHandler},
     { remoteInfoRepo, sharedExternalsRepo, scopedExternalsRepo, versionCheck }: DrivingContract
 ): ForSavingRemoteEntries => { 
 
     function addRemoteInfoToStorage({name, url, exposes}: RemoteEntry)
         : void {
-            const scopeUrl =  handle.path.getScope(url);
+            const scopeUrl =  _path.getScope(url);
 
             remoteInfoRepo.addOrUpdate({
                 remoteName: name,
@@ -20,18 +20,18 @@ const createSaveRemoteEntries = (
                 exposes: Object.values(exposes ?? [])
                     .map(m => ({
                         moduleName: m.key,
-                        url: handle.path.join(scopeUrl, m.outFileName) 
+                        url: _path.join(scopeUrl, m.outFileName) 
                     }))
             } as RemoteInfo)
         }
 
         function addExternalsToStorage(remoteEntry: RemoteEntry) 
             : void {
-                const scopeUrl =  handle.path.getScope(remoteEntry.url);
+                const scopeUrl =  _path.getScope(remoteEntry.url);
 
                 remoteEntry.shared.forEach(external => {
                     if (!external.version || !versionCheck.isValidSemver(external.version)) {
-                        handle.log.warn(`[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping.`);
+                        config.log.warn(`[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping.`);
                         return;
                     }
                     if(external.singleton) {
@@ -50,13 +50,13 @@ const createSaveRemoteEntries = (
                 .orElse([]);
 
             if(cached.find(e => e.version === sharedInfo.version)) {
-                handle.log.debug(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping.`);
+                config.log.debug(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping.`);
                 return;
             }
 
             cached.push({
                 version: sharedInfo.version!,
-                url: handle.path.join(scope, sharedInfo.outFileName),
+                url: _path.join(scope, sharedInfo.outFileName),
                 requiredVersion: sharedInfo.requiredVersion,
                 strictVersion: sharedInfo.strictVersion,
                 host,               
@@ -76,7 +76,7 @@ const createSaveRemoteEntries = (
                 sharedInfo.packageName, 
                 {
                     version: sharedInfo.version!,
-                    url: handle.path.join(scope, sharedInfo.outFileName)
+                    url: _path.join(scope, sharedInfo.outFileName)
                 } as Version
             );
         }

@@ -1,5 +1,5 @@
 import type { DrivingContract } from "lib/2.app/driving-ports/driving.contract";
-import type { HandlersContract } from "lib/2.app/handlers/handlers.contract";
+import type { ConfigHandlers } from "lib/2.app/config/config.contract";
 import { createBrowser } from "lib/3.adapters/browser/browser";
 import { createVersionCheck } from "lib/3.adapters/checks/version.check";
 import { createManifestProvider } from "lib/3.adapters/http/manifest-provider";
@@ -8,16 +8,16 @@ import { createRemoteInfoRepository } from "lib/3.adapters/storage/remote-info.r
 import { createScopedExternalsRepository } from "lib/3.adapters/storage/scoped-externals.repository";
 import { createSharedExternalsRepository } from "lib/3.adapters/storage/shared-externals.repository";
 
-export const createDriving = (handlers: HandlersContract): DrivingContract => ({
+export const createDriving = (config: ConfigHandlers): DrivingContract => ({
     versionCheck: createVersionCheck(),
 
     manifestProvider: createManifestProvider(),
 
     remoteEntryProvider: createRemoteEntryProvider(),
 
-    remoteInfoRepo: createRemoteInfoRepository(handlers),
-    scopedExternalsRepo: createScopedExternalsRepository(handlers),
-    sharedExternalsRepo: createSharedExternalsRepository(handlers),
+    remoteInfoRepo: createRemoteInfoRepository(config),
+    scopedExternalsRepo: createScopedExternalsRepository(config),
+    sharedExternalsRepo: createSharedExternalsRepository(config),
     
-    browser: createBrowser(handlers)
+    browser: createBrowser(config)
 })

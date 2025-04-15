@@ -1,6 +1,6 @@
 import { createBrowser } from './browser';
 import { createMockImportMapHandler } from '../../6.mocks/handlers/import-map.handler';
-import { ImportMapHandler } from '../../2.app/handlers/import-map.contract';
+import { ImportMapHandler } from '../../2.app/config/import-map.contract';
 
 describe('createBrowser', () => {
     let mockImportMapHandler: ImportMapHandler;

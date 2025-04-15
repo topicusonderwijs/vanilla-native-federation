@@ -1,10 +1,9 @@
 import type { ForGeneratingImportMap } from "./driver-ports/for-generating-import-map";
 import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { ImportMap, Imports } from "lib/1.domain/import-map/import-map.contract";
-import type { PathHandler } from "./handlers/path.contract";
+import * as _path from "lib/utils/path";
 
 const createGenerateImportMap = (
-    handle: {path: PathHandler},
     {remoteInfoRepo, scopedExternalsRepo, sharedExternalsRepo}: DrivingContract
 ): ForGeneratingImportMap => { 
     
@@ -13,7 +12,7 @@ const createGenerateImportMap = (
 
         Object.values(remotes).forEach((remote) => {
             remote.exposes.forEach((exposed) => {
-                const moduleName = handle.path.join(remote.remoteName, exposed.moduleName);
+                const moduleName = _path.join(remote.remoteName, exposed.moduleName);
                 importMap.imports[moduleName] = exposed.url;
             })
         });
@@ -46,7 +45,7 @@ const createGenerateImportMap = (
                         importMap.imports[external] = v.url;
                         break;
                     case "scope":
-                        const scope = handle.path.getScope(v.url);
+                        const scope = _path.getScope(v.url);
                         if(!importMap.scopes[scope]) importMap.scopes[scope] = {};
                         importMap.scopes[scope][external] = v.url;
                         break;

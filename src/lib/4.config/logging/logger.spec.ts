@@ -1,5 +1,5 @@
 import { noopLogger } from "./noop.logger";
-import { LogHandler } from "../../2.app/handlers/log.contract";
+import { LogHandler } from "../../2.app/config/log.contract";
 import { createLogHandler } from "./log.handler";
 
 describe('importMapHandler', () => {

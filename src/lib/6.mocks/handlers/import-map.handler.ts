@@ -1,4 +1,4 @@
-import type { ImportMapHandler } from "lib/2.app/handlers/import-map.contract";
+import type { ImportMapHandler } from "lib/2.app/config/import-map.contract";
 
 export const createMockImportMapHandler = ()
     : jest.Mocked<ImportMapHandler> => ({
