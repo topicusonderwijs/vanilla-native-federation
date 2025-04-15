@@ -5,10 +5,10 @@ import type { PathHandler } from "./handlers/path.contract";
 
 const createGenerateImportMap = (
     handle: {path: PathHandler},
-    {browser, remoteInfoRepo, scopedExternalsRepo, sharedExternalsRepo}: DrivingContract
+    {remoteInfoRepo, scopedExternalsRepo, sharedExternalsRepo}: DrivingContract
 ): ForGeneratingImportMap => { 
     
-    function addRemoteInfos(importMap: ImportMap) {
+    function addRemoteInfos(importMap: Required<ImportMap>) {
         const remotes = remoteInfoRepo.getAll();
 
         Object.values(remotes).forEach((remote) => {
@@ -21,7 +21,7 @@ const createGenerateImportMap = (
         return importMap;
     }
 
-    function addScopedExternals(importMap: ImportMap) {
+    function addScopedExternals(importMap: Required<ImportMap>) {
         const scopedExternals = scopedExternalsRepo.getAll();
 
         Object.entries(scopedExternals).forEach(([scope, externals]) => {
@@ -35,7 +35,7 @@ const createGenerateImportMap = (
         return importMap;
     }
 
-    function addSharedExternals(importMap: ImportMap) {
+    function addSharedExternals(importMap: Required<ImportMap>) {
         const sharedExternals = sharedExternalsRepo.getAll();
 
         Object.entries(sharedExternals).forEach(([external, versions]) => {
@@ -60,16 +60,11 @@ const createGenerateImportMap = (
         return importMap;
     }
 
-    function addToBrowser(importMap: ImportMap) {
-        browser.setImportMap(importMap);
-        return importMap;
-    }
     return () => {
         return Promise.resolve({imports: {}, scopes: {}})
             .then(addRemoteInfos)
             .then(addScopedExternals)
-            .then(addSharedExternals)
-            .then(addToBrowser);
+            .then(addSharedExternals);
     };
 }
 

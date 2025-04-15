@@ -17,6 +17,8 @@ const initFederation = (
         .then(app.saveRemoteEntries)
         .then(app.determineSharedExternals)
         .then(app.generateImportMap)
+        .then(app.commitChanges)
+
 }
 
 export { initFederation };

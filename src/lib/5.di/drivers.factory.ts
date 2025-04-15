@@ -1,3 +1,4 @@
+import { createCommitChanges } from "lib/2.app/commit-changes";
 import { createDetermineSharedExternals } from "lib/2.app/determine-shared-externals";
 import type { DriversContract } from "lib/2.app/driver-ports/drivers.contract";
 import type { DrivingContract } from "lib/2.app/driving-ports/driving.contract";
@@ -10,5 +11,6 @@ export const createDrivers = (handlers: HandlersContract, adapters: DrivingContr
     getRemoteEntries: createGetRemoteEntries(handlers,adapters),
     saveRemoteEntries: createSaveRemoteEntries(handlers,adapters),
     determineSharedExternals: createDetermineSharedExternals(handlers,adapters),
-    generateImportMap: createGenerateImportMap(handlers,adapters)
+    generateImportMap: createGenerateImportMap(handlers,adapters),
+    commitChanges: createCommitChanges(handlers, adapters)
 });
