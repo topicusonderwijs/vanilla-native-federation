@@ -1,9 +1,10 @@
-import type { LogHandler } from "lib/2.app/config/log.contract"
+import type { LoggingConfig } from "lib/2.app/config/log.contract"
 import type { StorageEntryHandler } from "./storage.contract"
-import type { ImportMapHandler } from "./import-map.contract"
+import type { ImportMapConfig } from "./import-map.contract"
+import type { HostConfig } from "./host.contract"
 
-export type ConfigHandlers = {
-    log: LogHandler,
+export type Config = {
     storage: StorageEntryHandler,
-    importMap: ImportMapHandler
-}
+} & LoggingConfig & ImportMapConfig & HostConfig
+
+export type Options = Partial<Config> 

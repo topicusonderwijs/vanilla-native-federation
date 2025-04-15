@@ -2,11 +2,11 @@
 import type { ForSavingRemoteEntries } from "./driver-ports/for-saving-remote-entries.port";
 import type { RemoteEntry, RemoteInfo, SharedInfo, SharedVersion, Version } from "lib/1.domain";
 import type { DrivingContract } from "./driving-ports/driving.contract";
-import type { LogHandler } from "./config/log.contract";
+import type { LoggingConfig } from "./config/log.contract";
 import * as _path from "lib/utils/path";
 
 const createSaveRemoteEntries = (
-    config: {log: LogHandler},
+    config: LoggingConfig,
     { remoteInfoRepo, sharedExternalsRepo, scopedExternalsRepo, versionCheck }: DrivingContract
 ): ForSavingRemoteEntries => { 
 

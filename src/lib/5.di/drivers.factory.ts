@@ -4,10 +4,10 @@ import type { DriversContract } from "lib/2.app/driver-ports/drivers.contract";
 import type { DrivingContract } from "lib/2.app/driving-ports/driving.contract";
 import { createGenerateImportMap } from "lib/2.app/generate-import-map";
 import { createGetRemoteEntries } from "lib/2.app/get-remote-entries";
-import type { ConfigHandlers } from "lib/2.app/config/config.contract";
+import type { Config } from "lib/2.app/config/config.contract";
 import { createSaveRemoteEntries } from "lib/2.app/save-remote-entries";
 
-export const createDrivers = (config: ConfigHandlers, adapters: DrivingContract): DriversContract => ({
+export const createDrivers = (config: Config, adapters: DrivingContract): DriversContract => ({
     getRemoteEntries: createGetRemoteEntries(config,adapters),
     saveRemoteEntries: createSaveRemoteEntries(config,adapters),
     determineSharedExternals: createDetermineSharedExternals(config,adapters),

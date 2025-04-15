@@ -1,14 +1,15 @@
 
 
-import type { StorageConfig } from "lib/2.app/config/storage.contract";
-import type { ConfigHandlers } from "lib/2.app/config/config.contract";
-import type { LoggingConfig } from "lib/2.app/config/log.contract";
-import { createLogHandler } from "lib/4.config/logging/log.handler";
-import type { ImportMapConfig } from "lib/2.app/config/import-map.contract";
+import type { Config, Options } from "lib/2.app/config/config.contract";
 import { createImportMapConfig } from "lib/4.config/import-map/import-map.config";
+import { createHostConfig } from "lib/4.config/host/host.config";
+import { createLogConfig } from "lib/4.config/logging/log.config";
+import { createStorageConfig } from "lib/4.config/storage/storage.config";
 
-export const createConfigHandlers = (cfg: LoggingConfig & StorageConfig & ImportMapConfig): ConfigHandlers => ({
-    log: createLogHandler(cfg),
-    storage: cfg.storage,
-    importMap: createImportMapConfig(cfg)
+export const createConfigHandlers = (overrides: Options): Config => ({
+    ...createImportMapConfig(overrides),
+    ...createHostConfig(overrides),
+    ...createLogConfig(overrides),
+    ...createStorageConfig(overrides)
+    
 });

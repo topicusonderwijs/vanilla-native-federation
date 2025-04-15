@@ -1,8 +1,9 @@
 import type { RemoteEntry } from "lib/1.domain/remote-entry/remote-entry.contract";
+import type { HostConfig } from "lib/2.app/config/host.contract";
 import type { ForProvidingRemoteEntry } from "lib/2.app/driving-ports/for-providing-remote-entry.port";
 import { NFError } from "lib/native-federation.error";
 
-const createRemoteEntryProvider = (hostRemoteEntryUrl?: string): ForProvidingRemoteEntry => {
+const createRemoteEntryProvider = (config: HostConfig): ForProvidingRemoteEntry => {
 
     const mapToJson = (response: Response) => {
         if (!response.ok) return Promise.reject(new NFError(`${response.status} - ${response.statusText}`));
@@ -32,11 +33,15 @@ const createRemoteEntryProvider = (hostRemoteEntryUrl?: string): ForProvidingRem
                 });
         },
         provideHost: async function () {
-            if (!hostRemoteEntryUrl) return Promise.resolve(false);
+            if (!config.hostRemoteEntry) return Promise.resolve(false);
 
-            return fetch(hostRemoteEntryUrl)
+            const remoteEntryUrl = (config.hostRemoteEntry.cacheTag) 
+                ? `${config.hostRemoteEntry.url}?tag=${config.hostRemoteEntry.cacheTag}`
+                : config.hostRemoteEntry.url;
+
+            return fetch(remoteEntryUrl)
                 .then(mapToJson)
-                .then(fillEmptyFields(hostRemoteEntryUrl))
+                .then(fillEmptyFields(remoteEntryUrl))
                 .then(markHostRemoteEntry)
                 .catch(_ => {
                     return false;

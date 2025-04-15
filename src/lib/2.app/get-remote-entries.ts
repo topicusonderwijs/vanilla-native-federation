@@ -3,10 +3,10 @@ import type { Manifest, RemoteEntryUrl } from "lib/1.domain/remote-entry/manifes
 import type { RemoteName } from "lib/1.domain/remote/remote-info.contract";
 import type { ForGettingRemoteEntries } from "./driver-ports/for-getting-remote-entries.port";
 import type { DrivingContract } from "./driving-ports/driving.contract";
-import type { LogHandler } from "./config/log.contract";
+import type { LoggingConfig } from "./config/log.contract";
 
 const createGetRemoteEntries = (
-    config: {log: LogHandler},
+    config: LoggingConfig,
     {remoteEntryProvider, manifestProvider, remoteInfoRepo}: DrivingContract
 ): ForGettingRemoteEntries => (remotesOrManifestUrl: string | Manifest = {})
     : Promise<RemoteEntry[]> => {

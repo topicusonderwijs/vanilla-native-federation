@@ -13,7 +13,7 @@ describe('importMapHandler', () => {
 
     describe('ERROR level', () => {
         beforeEach(() => {
-            logHandler = createLogHandler({logLevel: "error", logger: noopLogger});
+            logHandler = createLogHandler(noopLogger, "error");
         });
 
         it("should correctly call ERROR messages", () => {
@@ -34,7 +34,7 @@ describe('importMapHandler', () => {
 
     describe('WARN level', () => {
         beforeEach(() => {
-            logHandler = createLogHandler({logLevel: "warn", logger: noopLogger});
+            logHandler = createLogHandler(noopLogger, "warn");
         });
 
         it("should correctly call ERROR messages", () => {
@@ -55,7 +55,7 @@ describe('importMapHandler', () => {
 
     describe('DEBUG level', () => {
         beforeEach(() => {
-            logHandler = createLogHandler({logLevel: "debug", logger: noopLogger});
+            logHandler = createLogHandler(noopLogger, "debug");
         });
 
         it("should correctly call ERROR messages", () => {
