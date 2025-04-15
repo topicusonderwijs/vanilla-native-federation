@@ -1,0 +1,1 @@
+export type LoadRemoteModule = (remoteName: string, exposedModule: string) => Promise<unknown>

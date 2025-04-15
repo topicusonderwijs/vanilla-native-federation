@@ -18,6 +18,9 @@ const createBrowser = (
                 })
             );
             return importMap;
+        },
+        importModule: function (moduleUrl: string){ 
+            return config.loadModuleFn(moduleUrl);
         }
     } 
 }

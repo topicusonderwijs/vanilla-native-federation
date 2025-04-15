@@ -6,11 +6,13 @@ import { createGenerateImportMap } from "lib/2.app/generate-import-map";
 import { createGetRemoteEntries } from "lib/2.app/get-remote-entries";
 import type { Config } from "lib/2.app/config/config.contract";
 import { createSaveRemoteEntries } from "lib/2.app/save-remote-entries";
+import { createExposeModuleLoader } from "lib/2.app/expose-module-loader";
 
 export const createDrivers = (config: Config, adapters: DrivingContract): DriversContract => ({
     getRemoteEntries: createGetRemoteEntries(config,adapters),
     saveRemoteEntries: createSaveRemoteEntries(config,adapters),
     determineSharedExternals: createDetermineSharedExternals(config,adapters),
     generateImportMap: createGenerateImportMap(adapters),
-    commitChanges: createCommitChanges(config, adapters)
+    commitChanges: createCommitChanges(config, adapters),
+    exposeModuleLoader: createExposeModuleLoader(config, adapters)
 });

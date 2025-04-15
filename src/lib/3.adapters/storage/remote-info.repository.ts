@@ -10,16 +10,19 @@ const createRemoteInfoRepository = (
     const _cache: Remotes = STORAGE.get();
 
     return {
-        contains: function (name: RemoteName) {
-            return !!_cache[name];
+        contains: function (remoteName: RemoteName) {
+            return !!_cache[remoteName];
         }, 
         addOrUpdate: function (remote: RemoteInfo) {
             _cache[remote.remoteName] = remote;
             return this;
         }, 
-        tryGet: function (name: RemoteName) {
-            return Optional.of(_cache[name])
+        tryGet: function (remoteName: RemoteName) {
+            return Optional.of(_cache[remoteName])
         }, 
+        tryGetModule: function (remoteName: RemoteName, exposedModule: string) {
+            return Optional.of(_cache[remoteName]?.exposes.find(m => m.moduleName === exposedModule));
+        },
         getAll: function () {
             return _cache;
         },
