@@ -10,9 +10,9 @@ const createGenerateImportMap = (
     function addRemoteInfos(importMap: Required<ImportMap>) {
         const remotes = remoteInfoRepo.getAll();
 
-        Object.values(remotes).forEach((remote) => {
+        Object.entries(remotes).forEach(([remoteName, remote]) => {
             remote.exposes.forEach((exposed) => {
-                const moduleName = _path.join(remote.remoteName, exposed.moduleName);
+                const moduleName = _path.join(remoteName, exposed.moduleName);
                 importMap.imports[moduleName] = exposed.url;
             })
         });

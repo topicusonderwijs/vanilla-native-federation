@@ -6,7 +6,7 @@ export type ForStoringRemoteInfo = {
     contains: (remoteName: RemoteName) => boolean,
     tryGet: (remoteName: RemoteName) => Optional<RemoteInfo>,
     tryGetModule: (remoteName: RemoteName, exposedModule: string) => Optional<RemoteModule>,
-    addOrUpdate: (remote: RemoteInfo) => ForStoringRemoteInfo,
+    addOrUpdate: (remoteName: string, remote: RemoteInfo) => ForStoringRemoteInfo,
     getAll: () => Remotes, 
     commit: () => ForStoringRemoteInfo
 }

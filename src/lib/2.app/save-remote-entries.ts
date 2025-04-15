@@ -14,8 +14,7 @@ const createSaveRemoteEntries = (
         : void {
             const scopeUrl =  _path.getScope(url);
 
-            remoteInfoRepo.addOrUpdate({
-                remoteName: name,
+            remoteInfoRepo.addOrUpdate(name, {
                 scopeUrl,
                 exposes: Object.values(exposes ?? [])
                     .map(m => ({

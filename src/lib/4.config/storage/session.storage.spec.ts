@@ -6,13 +6,11 @@ describe('sessionStorageEntry', () => {
 
     const MOCK_REMOTE_INFO = (): RemoteInfo => ({
         scopeUrl: "http://sessionhost:3001/",
-        remoteName: "team/mfe1",
         exposes: [{moduleName: "./comp", url: "http://sessionhost:3001/comp.js"}]
     });
 
     const MOCK_REMOTE_INFO_II = (): RemoteInfo => ({
         scopeUrl: "http://sessionhost:3002/",
-        remoteName: "team/mfe2",
         exposes: [{moduleName: "./comp", url: "http://sessionhost:3002/comp.js"}]
     });
 

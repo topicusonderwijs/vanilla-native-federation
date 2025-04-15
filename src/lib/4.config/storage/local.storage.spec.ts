@@ -6,13 +6,11 @@ describe('localStorageEntry', () => {
 
     const MOCK_REMOTE_INFO = (): RemoteInfo => ({
         scopeUrl: "http://localhost:3001/",
-        remoteName: "team/mfe1",
         exposes: [{moduleName: "./comp", url: "http://localhost:3001/comp.js"}]
     });
 
     const MOCK_REMOTE_INFO_II = (): RemoteInfo => ({
         scopeUrl: "http://localhost:3002/",
-        remoteName: "team/mfe2",
         exposes: [{moduleName: "./comp", url: "http://localhost:3002/comp.js"}]
     });
 

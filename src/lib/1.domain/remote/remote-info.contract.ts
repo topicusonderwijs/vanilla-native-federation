@@ -5,7 +5,6 @@ export type RemoteName = string;
 export type RemoteScope = string;
 
 export type RemoteInfo = {
-    remoteName: RemoteName,
     scopeUrl: RemoteScope,
     exposes: RemoteModule[] 
 }

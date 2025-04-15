@@ -7,13 +7,11 @@ describe('createRemoteInfoRepository', () => {
 
     const MOCK_REMOTE_INFO = (): RemoteInfo => ({
         scopeUrl: "http://localhost:3001/",
-        remoteName: "team/mfe1",
         exposes: [{ moduleName: "./comp", url: "http://localhost:3001/comp.js" }]
     });
 
     const MOCK_REMOTE_INFO_II = (): RemoteInfo => ({
         scopeUrl: "http://localhost:3002/",
-        remoteName: "team/mfe2",
         exposes: [{ moduleName: "./comp", url: "http://localhost:3002/comp.js" }]
     });
 
@@ -76,7 +74,7 @@ describe('createRemoteInfoRepository', () => {
         it('should not alter storage if not committed', () => {
             const {remoteInfoRepo, mockStorage} = setupWithCache({});
 
-            remoteInfoRepo.addOrUpdate(MOCK_REMOTE_INFO());
+            remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO());
 
             expect(mockStorage["remotes"]).toEqual({});
         });
@@ -84,7 +82,7 @@ describe('createRemoteInfoRepository', () => {
         it('should update changes after commit', () => {
             const {remoteInfoRepo, mockStorage} = setupWithCache({});
 
-            remoteInfoRepo.addOrUpdate(MOCK_REMOTE_INFO());
+            remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO());
             expect(mockStorage["remotes"]).toEqual({});
 
             remoteInfoRepo.commit();
@@ -95,7 +93,7 @@ describe('createRemoteInfoRepository', () => {
             const {remoteInfoRepo, mockStorage} = setupWithCache({"team/mfe1": "MOCK_REMOTE_INFO"});
 
 
-            remoteInfoRepo.addOrUpdate(MOCK_REMOTE_INFO());
+            remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO());
             remoteInfoRepo.commit();
 
             expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
@@ -106,7 +104,7 @@ describe('createRemoteInfoRepository', () => {
                 "team/mfe1": MOCK_REMOTE_INFO()
             });
 
-            remoteInfoRepo.addOrUpdate(MOCK_REMOTE_INFO_II());
+            remoteInfoRepo.addOrUpdate("team/mfe2", MOCK_REMOTE_INFO_II());
             remoteInfoRepo.commit();
 
             expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
@@ -115,7 +113,7 @@ describe('createRemoteInfoRepository', () => {
 
         it('should return the repository instance for chaining', () => {
             const {remoteInfoRepo} = setupWithCache({});
-            const result = remoteInfoRepo.addOrUpdate(MOCK_REMOTE_INFO());
+            const result = remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO());
             expect(result).toBe(remoteInfoRepo);
         });
     });

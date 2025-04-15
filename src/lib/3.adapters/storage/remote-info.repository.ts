@@ -13,8 +13,8 @@ const createRemoteInfoRepository = (
         contains: function (remoteName: RemoteName) {
             return !!_cache[remoteName];
         }, 
-        addOrUpdate: function (remote: RemoteInfo) {
-            _cache[remote.remoteName] = remote;
+        addOrUpdate: function (remoteName: string, remote: RemoteInfo) {
+            _cache[remoteName] = remote;
             return this;
         }, 
         tryGet: function (remoteName: RemoteName) {
