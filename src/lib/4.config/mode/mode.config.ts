@@ -1,6 +1,7 @@
-import type { ModeConfig } from "lib/2.app/config/mode.contract";
+import type { ModeConfig, ModeOptions } from "lib/2.app/config/mode.contract";
 
-export const createModeConfig = (override: Partial<ModeConfig>): ModeConfig => ({
-    externalResolver: {strict: false},
+export const createModeConfig = (override: Partial<ModeOptions>): ModeConfig => ({
+    strict: false,
+    latestSharedExternal: false,
     ...override
 });

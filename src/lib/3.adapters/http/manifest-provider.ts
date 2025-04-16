@@ -13,7 +13,7 @@ const createManifestProvider = (config: LoggingConfig): ForProvidingManifest => 
             return fetch(remotesOrManifestUrl)
                 .then(response => {
                     if (!response.ok){
-                        config.log.error(`Fetching manifest failed: ${response.status} ${response.statusText}`);
+                        config.log.debug(`Fetching manifest failed: ${response.status} ${response.statusText}`);
                         throw new NFError(`Could not fetch manifest.`);
                     }
                     return response.json();

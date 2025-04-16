@@ -6,3 +6,5 @@ export type HostConfig = {
         cacheTag?: string
     }
 }
+
+export type HostOptions = Partial<HostConfig>

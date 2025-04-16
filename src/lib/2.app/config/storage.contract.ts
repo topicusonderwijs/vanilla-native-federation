@@ -13,4 +13,6 @@ type StorageConfig = {
     storage: StorageEntryHandler,
 }
 
-export {StorageEntry, StorageEntryKey, StorageEntryHandler, NF_STORAGE_ENTRY, StorageConfig}
+type StorageOptions = Partial<StorageConfig>
+
+export {StorageEntry, StorageEntryKey, StorageEntryHandler, NF_STORAGE_ENTRY, StorageConfig, StorageOptions}

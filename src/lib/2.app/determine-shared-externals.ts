@@ -29,7 +29,7 @@ const createDetermineSharedExternals = (
 
         let sharedVersion = external.versions.find(v => v.host);
 
-        if(!sharedVersion && config.externalResolver.prioritizeLatest) {
+        if(!sharedVersion && config.latestSharedExternal) {
             sharedVersion = external.versions[0];
         }
 
@@ -55,7 +55,7 @@ const createDetermineSharedExternals = (
                 return;
             }
 
-            if(config.externalResolver.strict && v.strictVersion) {
+            if(config.strict && v.strictVersion) {
                 throw new NFError(`[${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`);
             }
 

@@ -29,7 +29,7 @@ describe('createManifestProvider', () => {
     beforeEach(() => {
         mockFetchAPI({});
         mockLogger = createMockLogHandler();
-        manifestProvider = createManifestProvider({log: mockLogger, logLevel: "debug"});
+        manifestProvider = createManifestProvider({log: mockLogger});
     });
 
     describe('initialization', () => {

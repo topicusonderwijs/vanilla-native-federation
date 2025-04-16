@@ -1,8 +1,8 @@
 
 
 export type ModeConfig = {
-    externalResolver: {
-        strict: boolean,
-        prioritizeLatest?: boolean
-    }
+    strict: boolean,
+    latestSharedExternal: boolean
 }
+
+export type ModeOptions = Partial<ModeConfig>

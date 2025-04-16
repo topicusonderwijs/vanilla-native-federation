@@ -17,6 +17,10 @@ const initFederation = (
         .then(app.generateImportMap)
         .then(app.commitChanges)
         .then(app.exposeModuleLoader)
+        .catch(e => {
+            configHandlers.log.error("Init failed: ", e);
+            return Promise.reject(e);
+        })
 
 }
 

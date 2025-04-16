@@ -1,6 +1,6 @@
-import type { HostConfig } from "lib/2.app/config/host.contract";
+import type { HostConfig, HostOptions } from "lib/2.app/config/host.contract";
 
-export const createHostConfig = (override: Partial<HostConfig>): HostConfig => ({
+export const createHostConfig = (override: Partial<HostOptions>): HostConfig => ({
     hostRemoteEntry: false,
     ...override
 });
