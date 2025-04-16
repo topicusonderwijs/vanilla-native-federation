@@ -1,13 +1,23 @@
 import type { Manifest } from "lib/1.domain";
+import type { LoggingConfig } from "lib/2.app";
 import type { ForProvidingManifest } from "lib/2.app/driving-ports/for-providing-manifest.port";
+import { NFError } from "../../native-federation.error";
 
-const createManifestProvider = (): ForProvidingManifest => {
+const createManifestProvider = (config: LoggingConfig): ForProvidingManifest => {
 
     function provide(remotesOrManifestUrl: string|Manifest)
         : Promise<Manifest> {
-            return (typeof remotesOrManifestUrl === 'string')
-                ? fetch(remotesOrManifestUrl).then(r => r.json())
-                : Promise.resolve(remotesOrManifestUrl)
+            if (typeof remotesOrManifestUrl !== 'string') 
+                return Promise.resolve(remotesOrManifestUrl);
+            
+            return fetch(remotesOrManifestUrl)
+                .then(response => {
+                    if (!response.ok){
+                        config.log.error(`Fetching manifest failed: ${response.status} ${response.statusText}`);
+                        throw new NFError(`Could not fetch manifest.`);
+                    }
+                    return response.json();
+                });
         }
 
     return {

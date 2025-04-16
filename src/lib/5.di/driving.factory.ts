@@ -11,7 +11,7 @@ import { createSharedExternalsRepository } from "lib/3.adapters/storage/shared-e
 export const createDriving = (config: Config): DrivingContract => ({
     versionCheck: createVersionCheck(),
 
-    manifestProvider: createManifestProvider(),
+    manifestProvider: createManifestProvider(config),
 
     remoteEntryProvider: createRemoteEntryProvider(config),
 
