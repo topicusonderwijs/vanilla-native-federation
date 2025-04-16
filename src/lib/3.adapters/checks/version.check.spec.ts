@@ -1,4 +1,4 @@
-import { ForCheckingVersion } from '../../2.app/driving-ports/for-checking-version.port';
+import { ForVersionChecking } from '../../2.app/driving-ports/for-version-checking.port';
 import { createVersionCheck } from './version.check';
 /**
  *   === VERSION RULES ===
@@ -9,7 +9,7 @@ import { createVersionCheck } from './version.check';
  *   requiredVersion = '~1.1.0' || '^1.2.0' || '>=1.0.0 <3.0.0'
  */
 describe('versionCheck', () => {
-    let versionCheck: ForCheckingVersion;
+    let versionCheck: ForVersionChecking;
 
     beforeEach(() => {
         versionCheck = createVersionCheck();

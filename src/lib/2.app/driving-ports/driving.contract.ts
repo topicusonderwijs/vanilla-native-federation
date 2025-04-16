@@ -1,17 +1,17 @@
-import type { ForCheckingVersion } from "./for-checking-version.port"
+import type { ForVersionChecking } from "./for-version-checking.port"
 import type { ForBrowserTasks } from "./for-browser-tasks"
 import type { ForProvidingManifest } from "./for-providing-manifest.port"
-import type { ForProvidingRemoteEntry } from "./for-providing-remote-entry.port"
-import type { ForStoringRemoteInfo } from "./for-storing-remote-info.port"
-import type { ForStoringScopedExternals } from "./for-storing-scoped-externals.port"
-import type { ForStoringSharedExternals } from "./for-storing-shared-externals.port"
+import type { ForProvidingRemoteEntries } from "./for-providing-remote-entries.port"
+import type { ForRemoteInfoStorage } from "./for-remote-info-storage.port"
+import type { ForScopedExternalsStorage } from "./for-scoped-externals-storage.port"
+import type { ForStoringSharedExternalsStorage } from "./for-shared-externals-storage.port"
 
 export type DrivingContract = {
-    versionCheck: ForCheckingVersion,
+    versionCheck: ForVersionChecking,
     manifestProvider: ForProvidingManifest,
-    remoteEntryProvider: ForProvidingRemoteEntry,
-    remoteInfoRepo: ForStoringRemoteInfo,
-    scopedExternalsRepo: ForStoringScopedExternals,
-    sharedExternalsRepo: ForStoringSharedExternals,
+    remoteEntryProvider: ForProvidingRemoteEntries,
+    remoteInfoRepo: ForRemoteInfoStorage,
+    scopedExternalsRepo: ForScopedExternalsStorage,
+    sharedExternalsRepo: ForStoringSharedExternalsStorage,
     browser: ForBrowserTasks
 }

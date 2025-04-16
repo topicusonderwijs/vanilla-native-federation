@@ -1,7 +1,7 @@
-import { ForProvidingRemoteEntry } from "lib/2.app/driving-ports/for-providing-remote-entry.port";
+import { ForProvidingRemoteEntries } from "lib/2.app/driving-ports/for-providing-remote-entries.port";
 
 export const createMockRemoteEntryProvider = ()
-    : jest.Mocked<ForProvidingRemoteEntry> => ({
+    : jest.Mocked<ForProvidingRemoteEntries> => ({
         provideHost: jest.fn(),
         provideRemote: jest.fn()
     })

@@ -1,9 +1,9 @@
 import type { RemoteEntry } from "lib/1.domain/remote-entry/remote-entry.contract";
 import type { HostConfig } from "lib/2.app/config/host.contract";
-import type { ForProvidingRemoteEntry } from "lib/2.app/driving-ports/for-providing-remote-entry.port";
+import type { ForProvidingRemoteEntries } from "lib/2.app/driving-ports/for-providing-remote-entries.port";
 import { NFError } from "lib/native-federation.error";
 
-const createRemoteEntryProvider = (config: HostConfig): ForProvidingRemoteEntry => {
+const createRemoteEntryProvider = (config: HostConfig): ForProvidingRemoteEntries => {
 
     const mapToJson = (response: Response) => {
         if (!response.ok) return Promise.reject(new NFError(`${response.status} - ${response.statusText}`));

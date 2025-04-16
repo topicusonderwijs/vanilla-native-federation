@@ -1,9 +1,9 @@
-import type { ForCheckingVersion } from "lib/2.app/driving-ports/for-checking-version.port";
+import type { ForVersionChecking } from "lib/2.app/driving-ports/for-version-checking.port";
 import semverValid from "semver/functions/valid";
 import semverSatisfies from "semver/functions/satisfies";
 import semverCompare from "semver/functions/compare";
 
-const createVersionCheck = (): ForCheckingVersion => {
+const createVersionCheck = (): ForVersionChecking => {
     return { 
         isValidSemver: function (version: string) {
             return semverValid(version) !== null;

@@ -1,11 +1,11 @@
 import type { SharedExternal, SharedExternals } from "lib/1.domain/externals/externals.contract";
 import type { StorageEntry, StorageEntryHandler } from "lib/2.app/config/storage.contract";
-import type { ForStoringSharedExternals } from "lib/2.app/driving-ports/for-storing-shared-externals.port";
+import type { ForStoringSharedExternalsStorage } from "lib/2.app/driving-ports/for-shared-externals-storage.port";
 import { Optional } from "../../utils/optional";
 
 const createSharedExternalsRepository = (
     config: {storage: StorageEntryHandler},
-): ForStoringSharedExternals => {
+): ForStoringSharedExternalsStorage => {
     const STORAGE: StorageEntry<SharedExternals> = config.storage("shared-externals", {});
     let _cache: SharedExternals = STORAGE.get();
 
