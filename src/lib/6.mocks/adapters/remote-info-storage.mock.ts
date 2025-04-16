@@ -8,4 +8,4 @@ export const createMockRemoteInfoStorage = ()
         tryGetModule: jest.fn(),
         getAll: jest.fn(),
         commit: jest.fn()
-    })
+    });

@@ -7,13 +7,15 @@ The RemoteEntry.json is a remote's metadata file. It is fetched by the native-fe
 
 ```mermaid
 classDiagram
-    FederationInfo *-- ExposesInfo
-    FederationInfo *-- SharedInfo
+    RemoteEntry *-- ExposesInfo
+    RemoteEntry *-- SharedInfo
 
-    class FederationInfo {
+    class RemoteEntry {
         name: string
+        url: string
         exposes: ExposesInfo[]
         shared: SharedInfo[]
+        host: boolean|undefined
     }
     class ExposesInfo{
         key: string

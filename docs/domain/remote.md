@@ -7,13 +7,18 @@ The RemoteInfo is the object that defines the remote combined with its exposed m
 
 ```mermaid
 classDiagram
+    Remotes *-- RemoteInfo
     RemoteInfo *-- RemoteModule
 
+    class Remotes {
+        Map<`string, RemoteInfo>
+    } 
+    
     class RemoteInfo {
-        remoteName: string
         scopeUrl: string
         exposes: RemoteModule[] 
     }
+    
     class RemoteModule{
         moduleName: string
         url: string
