@@ -5,7 +5,7 @@ import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { LoggingConfig } from "./config/log.contract";
 import * as _path from "lib/utils/path";
 
-const createSaveRemoteEntries = (
+const createProcessRemoteEntries = (
     config: LoggingConfig,
     { remoteInfoRepo, sharedExternalsRepo, scopedExternalsRepo, versionCheck }: DrivingContract
 ): ForProcessingRemoteEntries => { 
@@ -92,4 +92,4 @@ const createSaveRemoteEntries = (
     };
 }
 
-export { createSaveRemoteEntries };
+export { createProcessRemoteEntries };

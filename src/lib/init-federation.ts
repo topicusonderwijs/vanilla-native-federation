@@ -12,7 +12,7 @@ const initFederation = (
     const app = createDrivers(configHandlers, adapters);
 
     return app.getRemoteEntries(remotesOrManifestUrl)
-        .then(app.saveRemoteEntries)
+        .then(app.processRemoteEntries)
         .then(app.determineSharedExternals)
         .then(app.generateImportMap)
         .then(app.commitChanges)

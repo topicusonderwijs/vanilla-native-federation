@@ -7,7 +7,7 @@ import type { ForProcessingRemoteEntries } from "./for-processing-remote-entries
 
 export type DriversContract = {
     getRemoteEntries: ForGettingRemoteEntries,
-    saveRemoteEntries: ForProcessingRemoteEntries,
+    processRemoteEntries: ForProcessingRemoteEntries,
     determineSharedExternals: ForDeterminingSharedExternals,
     generateImportMap: ForGeneratingImportMap,
     commitChanges: ForCommittingChanges,
