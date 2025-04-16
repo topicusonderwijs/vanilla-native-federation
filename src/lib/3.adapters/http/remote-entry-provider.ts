@@ -3,7 +3,7 @@ import type { LoggingConfig } from "lib/2.app";
 import type { HostConfig } from "lib/2.app/config/host.contract";
 import type { ModeConfig } from "lib/2.app/config/mode.contract";
 import type { ForProvidingRemoteEntries } from "lib/2.app/driving-ports/for-providing-remote-entries.port";
-import { NFError } from "lib/native-federation.error";
+import { NFError } from "../../native-federation.error";
 
 const createRemoteEntryProvider = (config: HostConfig & ModeConfig & LoggingConfig): ForProvidingRemoteEntries => {
 
