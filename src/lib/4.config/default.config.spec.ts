@@ -62,7 +62,6 @@ describe('DefaultConfig', () => {
             actual.storage("entry", {});
 
             expect(spy).toHaveBeenCalled();
-
         });  
     });
 })

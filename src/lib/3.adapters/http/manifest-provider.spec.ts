@@ -22,7 +22,7 @@ describe('createManifestProvider', () => {
                 ok: false,
                 status: 404,
                 statusText: "Not Found"
-            }as Response);
+            } as Response);
         }) as jest.Mock;
     };
 

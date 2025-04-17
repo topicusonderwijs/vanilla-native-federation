@@ -6,6 +6,6 @@ type RemoteEntry = FederationInfo & {
     host?: boolean,
 }
 
-export { RemoteEntry }
+export { RemoteEntry, FederationInfo }
 
 export { ExposesInfo, SharedInfo } from "@softarc/native-federation-runtime";
