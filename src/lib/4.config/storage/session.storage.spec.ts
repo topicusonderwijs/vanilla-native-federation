@@ -1,18 +1,9 @@
 import { NF_STORAGE_ENTRY } from "../../2.app/config/storage.contract";
 import { RemoteInfo } from "../../1.domain/remote/remote-info.contract";
 import { sessionStorageEntry } from './session.storage';
+import { MOCK_REMOTE_INFO_I, MOCK_REMOTE_INFO_II } from "../../6.mocks/domain/remote-info/remote-info.mock";
 
 describe('sessionStorageEntry', () => {
-
-    const MOCK_REMOTE_INFO = (): RemoteInfo => ({
-        scopeUrl: "http://sessionhost:3001/",
-        exposes: [{moduleName: "./comp", url: "http://sessionhost:3001/comp.js"}]
-    });
-
-    const MOCK_REMOTE_INFO_II = (): RemoteInfo => ({
-        scopeUrl: "http://sessionhost:3002/",
-        exposes: [{moduleName: "./comp", url: "http://sessionhost:3002/comp.js"}]
-    });
 
     const mockSessionStorage: any = {
         storage: {} as Record<string, string>,
@@ -34,24 +25,24 @@ describe('sessionStorageEntry', () => {
     })
 
     it('Don\'t create storage until asked for', () => {
-        sessionStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
+        sessionStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
 
         expect((mockSessionStorage.storage as any)[NF_STORAGE_ENTRY]).toEqual(undefined);
     });
 
     describe('get', () => {
         it('get should return the fallback value', () => {
-            const entry = sessionStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
+            const entry = sessionStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
 
-            const expected = {"team/mfe1": MOCK_REMOTE_INFO()};
+            const expected = {"team/mfe1": MOCK_REMOTE_INFO_I()};
 
             expect(entry.get()).toEqual(expected);
         });
 
         it('not allow any mutations', () => {
-            const entry = sessionStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
+            const entry = sessionStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
 
-            const expected = {"team/mfe1": MOCK_REMOTE_INFO()};
+            const expected = {"team/mfe1": MOCK_REMOTE_INFO_I()};
 
             const keyA = entry.get();
             keyA["team/mfe1"] = MOCK_REMOTE_INFO_II();
@@ -62,7 +53,7 @@ describe('sessionStorageEntry', () => {
 
     describe('set', () => {
         it('set stores value in namespace', () => {
-            const entry = sessionStorageEntry<Record<string, RemoteInfo>>('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
+            const entry = sessionStorageEntry<Record<string, RemoteInfo>>('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
             const expected = {"team/mfe2": MOCK_REMOTE_INFO_II()};
 
             entry.set({"team/mfe2": MOCK_REMOTE_INFO_II()});
@@ -71,7 +62,7 @@ describe('sessionStorageEntry', () => {
         });
 
         it('not allow any mutations', () => {
-            const entry = sessionStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO()});
+            const entry = sessionStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
             const newEntry = {"team/mfe2": MOCK_REMOTE_INFO_II()} as any;
             entry.set(newEntry);
 

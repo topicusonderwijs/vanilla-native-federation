@@ -2,18 +2,9 @@ import { RemoteInfo } from '../../1.domain/remote/remote-info.contract';
 import { createRemoteInfoRepository } from './remote-info.repository';
 import { Optional } from '../../utils/optional';
 import { createStorageHandlerMock } from '../../6.mocks/handlers/storage.mock';
+import { MOCK_REMOTE_INFO_I, MOCK_REMOTE_INFO_II } from "../../6.mocks/domain/remote-info/remote-info.mock";
 
 describe('createRemoteInfoRepository', () => {
-
-    const MOCK_REMOTE_INFO = (): RemoteInfo => ({
-        scopeUrl: "http://localhost:3001/",
-        exposes: [{ moduleName: "./comp", url: "http://localhost:3001/comp.js" }]
-    });
-
-    const MOCK_REMOTE_INFO_II = (): RemoteInfo => ({
-        scopeUrl: "http://localhost:3002/",
-        exposes: [{ moduleName: "./comp", url: "http://localhost:3002/comp.js" }]
-    });
 
     const setupWithCache = ((storage: any) => {
         const mockStorage = {"remotes": storage};
@@ -42,7 +33,7 @@ describe('createRemoteInfoRepository', () => {
 
         it('should return true when exists', () => {
             const {remoteInfoRepo} = setupWithCache({
-                "team/mfe1": MOCK_REMOTE_INFO()
+                "team/mfe1": MOCK_REMOTE_INFO_I()
             });
 
             const result = remoteInfoRepo.contains('team/mfe1');
@@ -52,7 +43,7 @@ describe('createRemoteInfoRepository', () => {
 
         it('should return false when entry doesnt exist', () => {
             const {remoteInfoRepo} = setupWithCache({
-                "team/mfe1": MOCK_REMOTE_INFO()
+                "team/mfe1": MOCK_REMOTE_INFO_I()
             });
 
             const result = remoteInfoRepo.contains('team/mfe2');
@@ -74,7 +65,7 @@ describe('createRemoteInfoRepository', () => {
         it('should not alter storage if not committed', () => {
             const {remoteInfoRepo, mockStorage} = setupWithCache({});
 
-            remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO());
+            remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO_I());
 
             expect(mockStorage["remotes"]).toEqual({});
         });
@@ -82,38 +73,38 @@ describe('createRemoteInfoRepository', () => {
         it('should update changes after commit', () => {
             const {remoteInfoRepo, mockStorage} = setupWithCache({});
 
-            remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO());
+            remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO_I());
             expect(mockStorage["remotes"]).toEqual({});
 
             remoteInfoRepo.commit();
-            expect(mockStorage["remotes"]).toEqual({"team/mfe1": MOCK_REMOTE_INFO()});
+            expect(mockStorage["remotes"]).toEqual({"team/mfe1": MOCK_REMOTE_INFO_I()});
         });
 
         it('should update if not in list', () => {
             const {remoteInfoRepo, mockStorage} = setupWithCache({"team/mfe1": "MOCK_REMOTE_INFO"});
 
 
-            remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO());
+            remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO_I());
             remoteInfoRepo.commit();
 
-            expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
+            expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO_I());
         });
 
         it('should not affect other entries', () => {
             const {remoteInfoRepo, mockStorage} = setupWithCache({
-                "team/mfe1": MOCK_REMOTE_INFO()
+                "team/mfe1": MOCK_REMOTE_INFO_I()
             });
 
             remoteInfoRepo.addOrUpdate("team/mfe2", MOCK_REMOTE_INFO_II());
             remoteInfoRepo.commit();
 
-            expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO());
+            expect(mockStorage["remotes"]["team/mfe1"]).toEqual(MOCK_REMOTE_INFO_I());
             expect(mockStorage["remotes"]["team/mfe2"]).toEqual(MOCK_REMOTE_INFO_II());
         });
 
         it('should return the repository instance for chaining', () => {
             const {remoteInfoRepo} = setupWithCache({});
-            const result = remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO());
+            const result = remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO_I());
             expect(result).toBe(remoteInfoRepo);
         });
     });
@@ -121,13 +112,13 @@ describe('createRemoteInfoRepository', () => {
     describe('tryGet', () => {
         it('should return the remote', () => {
             const {remoteInfoRepo} = setupWithCache({
-                "team/mfe1": MOCK_REMOTE_INFO()
+                "team/mfe1": MOCK_REMOTE_INFO_I()
             });
 
             const actual: Optional<RemoteInfo> = remoteInfoRepo.tryGet("team/mfe1");
 
             expect(actual.isPresent()).toBe(true);
-            expect(actual.get()).toEqual(MOCK_REMOTE_INFO());
+            expect(actual.get()).toEqual(MOCK_REMOTE_INFO_I());
         });
 
         it('should return empty optional if remote doesnt exist', () => {
@@ -140,7 +131,7 @@ describe('createRemoteInfoRepository', () => {
 
         it('should return empty optional if only other remotes exist', () => {
             const {remoteInfoRepo} = setupWithCache({
-                "team/mfe1": MOCK_REMOTE_INFO()
+                "team/mfe1": MOCK_REMOTE_INFO_I()
             });
 
             const actual: Optional<RemoteInfo> = remoteInfoRepo.tryGet("team/mfe2");

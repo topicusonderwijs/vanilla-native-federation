@@ -7,7 +7,7 @@ import { ForProvidingRemoteEntries } from '../../2.app/driving-ports/for-providi
 import { createMockLogHandler } from '../../6.mocks/handlers/log.handler';
 import { NFError } from '../../native-federation.error';
 import { MOCK_FEDERATION_INFO_I } from "../../6.mocks/domain/remote-entry/federation-info.mock";
-import { MOCK_REMOTE_ENTRY_I, MOCK_REMOTE_ENTRY_URL_I, MOCK_HOST_REMOTE_ENTRY_URL, MOCK_HOST_REMOTE_ENTRY } from "../../6.mocks/domain/remote-entry/remote-entry.mock";
+import { MOCK_REMOTE_ENTRY_I, MOCK_REMOTE_ENTRY_SCOPE_I, MOCK_HOST_REMOTE_ENTRY_SCOPE, MOCK_HOST_REMOTE_ENTRY } from "../../6.mocks/domain/remote-entry/remote-entry.mock";
 
 describe('createRemoteEntryProvider', () => {
     let remoteEntryProvider: ForProvidingRemoteEntries;
@@ -37,7 +37,7 @@ describe('createRemoteEntryProvider', () => {
         
         mockConfig = {
             hostRemoteEntry: {
-                url: MOCK_HOST_REMOTE_ENTRY_URL()
+                url: `${MOCK_HOST_REMOTE_ENTRY_SCOPE()}remoteEntry.json`
             },
             strict: false,
             latestSharedExternal: false,
@@ -59,9 +59,9 @@ describe('createRemoteEntryProvider', () => {
 
     describe('provideRemote', () => {
         it('should fetch and return the remote entry', async () => {
-            const result = await remoteEntryProvider.provideRemote(MOCK_REMOTE_ENTRY_URL_I());
+            const result = await remoteEntryProvider.provideRemote(`${MOCK_REMOTE_ENTRY_SCOPE_I()}remoteEntry.json`);
 
-            expect(fetch).toHaveBeenCalledWith(MOCK_REMOTE_ENTRY_URL_I());
+            expect(fetch).toHaveBeenCalledWith(`${MOCK_REMOTE_ENTRY_SCOPE_I()}remoteEntry.json`);
             expect(result).toEqual(MOCK_REMOTE_ENTRY_I());
         });
 
@@ -73,12 +73,12 @@ describe('createRemoteEntryProvider', () => {
             
             mockFetchAPI(mockRemoteEntry, {success: true});
 
-            const result = await remoteEntryProvider.provideRemote(MOCK_REMOTE_ENTRY_URL_I());
+            const result = await remoteEntryProvider.provideRemote(`${MOCK_REMOTE_ENTRY_SCOPE_I()}remoteEntry.json`);
 
             expect(result).toEqual({
                 name: 'test-remote',
                 version: '1.0.0',
-                url: MOCK_REMOTE_ENTRY_URL_I(),
+                url: `${MOCK_REMOTE_ENTRY_SCOPE_I()}remoteEntry.json`,
                 exposes: [],
                 shared: []
             });
@@ -87,9 +87,9 @@ describe('createRemoteEntryProvider', () => {
         it('should handle fetch errors by returning false in non-strict mode', async () => {            
             mockFetchAPI(MOCK_FEDERATION_INFO_I(), {success: false});
 
-            const result = await remoteEntryProvider.provideRemote(MOCK_REMOTE_ENTRY_URL_I());
+            const result = await remoteEntryProvider.provideRemote(`${MOCK_REMOTE_ENTRY_SCOPE_I()}remoteEntry.json`);
 
-            expect(fetch).toHaveBeenCalledWith(MOCK_REMOTE_ENTRY_URL_I());
+            expect(fetch).toHaveBeenCalledWith(`${MOCK_REMOTE_ENTRY_SCOPE_I()}remoteEntry.json`);
             expect(result).toBe(false);
             expect(mockLogger.debug).toHaveBeenCalled();
         });
@@ -119,7 +119,7 @@ describe('createRemoteEntryProvider', () => {
                 } as unknown as Response);
             }) as jest.Mock;
 
-            const result = await remoteEntryProvider.provideRemote(MOCK_REMOTE_ENTRY_URL_I());
+            const result = await remoteEntryProvider.provideRemote(`${MOCK_REMOTE_ENTRY_SCOPE_I()}remoteEntry.json`);
 
             expect(result).toBe(false);
             expect(mockLogger.debug).toHaveBeenCalled();
@@ -138,7 +138,7 @@ describe('createRemoteEntryProvider', () => {
                 } as unknown as Response);
             }) as jest.Mock;
 
-            await expect(remoteEntryProvider.provideRemote(MOCK_REMOTE_ENTRY_URL_I()))
+            await expect(remoteEntryProvider.provideRemote(`${MOCK_REMOTE_ENTRY_SCOPE_I()}remoteEntry.json`))
                 .rejects
                 .toEqual(new NFError('Could not fetch remote metadata'));
                 
@@ -153,11 +153,11 @@ describe('createRemoteEntryProvider', () => {
 
             const result = await remoteEntryProvider.provideHost();
 
-            expect(fetch).toHaveBeenCalledWith(MOCK_HOST_REMOTE_ENTRY_URL());
+            expect(fetch).toHaveBeenCalledWith(`${MOCK_HOST_REMOTE_ENTRY_SCOPE()}remoteEntry.json`);
 
             expect(result).toEqual({
                 ...MOCK_HOST_REMOTE_ENTRY(),
-                url: MOCK_HOST_REMOTE_ENTRY_URL(),
+                url: `${MOCK_HOST_REMOTE_ENTRY_SCOPE()}remoteEntry.json`,
                 exposes: [],
                 host: true
             });
@@ -184,7 +184,7 @@ describe('createRemoteEntryProvider', () => {
             expect(result).toEqual({
                 name: 'host-remote',
                 version: '1.0.0',
-                url: MOCK_HOST_REMOTE_ENTRY_URL(),
+                url: `${MOCK_HOST_REMOTE_ENTRY_SCOPE()}remoteEntry.json`,
                 exposes: [],
                 shared: [],
                 host: true
@@ -224,7 +224,7 @@ describe('createRemoteEntryProvider', () => {
 
             const result = await remoteEntryProvider.provideHost();
 
-            expect(fetch).toHaveBeenCalledWith(MOCK_HOST_REMOTE_ENTRY_URL());
+            expect(fetch).toHaveBeenCalledWith(`${MOCK_HOST_REMOTE_ENTRY_SCOPE()}remoteEntry.json`);
             expect(result).toBe(false);
             expect(mockLogger.debug).toHaveBeenCalled();
         });
@@ -239,7 +239,7 @@ describe('createRemoteEntryProvider', () => {
                 .rejects
                 .toEqual(new NFError('Could not fetch host metadata'));
                 
-            expect(fetch).toHaveBeenCalledWith(MOCK_HOST_REMOTE_ENTRY_URL());
+            expect(fetch).toHaveBeenCalledWith(`${MOCK_HOST_REMOTE_ENTRY_SCOPE()}remoteEntry.json`);
             expect(mockLogger.debug).toHaveBeenCalled();
         });
 
