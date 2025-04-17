@@ -44,7 +44,7 @@ describe('sessionStorageEntry', () => {
 
             const expected = {"team/mfe1": MOCK_REMOTE_INFO_I()};
 
-            const keyA = entry.get();
+            const keyA = entry.get()!;
             keyA["team/mfe1"] = MOCK_REMOTE_INFO_II();
 
             expect(entry.get()).toEqual(expected);

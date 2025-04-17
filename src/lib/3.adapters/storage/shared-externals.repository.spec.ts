@@ -19,13 +19,20 @@ describe('createSharedExternalsRepository', () => {
     const setupWithCache = ((storage: any) => {
         const mockStorage = {"shared-externals": storage};
         const mockStorageEntry = createStorageHandlerMock(mockStorage);
-        const externalsRepo = createSharedExternalsRepository({storage: mockStorageEntry});
+        const externalsRepo = createSharedExternalsRepository({storage: mockStorageEntry, clearCache: false});
         return {mockStorage, externalsRepo};
     });
 
     describe('initialization', () => {
         it('should initialize the entry with the first value', () => {
             const {mockStorage} = setupWithCache(undefined);
+            expect(mockStorage["shared-externals"]).toEqual({});
+        });
+
+        it('should reset cache when in config', () => {
+            const mockStorage = {"shared-externals": {"dep-a": { dirty: false, versions: [MOCK_VERSION()] }}};
+            const mockStorageEntry = createStorageHandlerMock(mockStorage);
+            createSharedExternalsRepository({storage: mockStorageEntry, clearCache: true});
             expect(mockStorage["shared-externals"]).toEqual({});
         });
     })

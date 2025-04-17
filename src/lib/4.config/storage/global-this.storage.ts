@@ -17,6 +17,10 @@ const globalThisStorageEntry: StorageEntryHandler = <TValue>
             set(value: TValue): StorageEntry<TValue> {
                 namespace[key] = cloneEntry(key, value);
                 return entry;
+            },
+            clear(): StorageEntry<TValue> {
+                namespace[key] = cloneEntry(key, initialValue);
+                return this;
             }
         };
 

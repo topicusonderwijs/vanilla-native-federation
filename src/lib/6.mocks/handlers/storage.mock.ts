@@ -10,6 +10,10 @@ export const createStorageHandlerMock = (storageRef: any) => jest.fn(
                 storageRef[key] = value;
                 return mockStorageEntry;
             }),
+            clear: jest.fn(() => {
+                storageRef[key] = fallback;
+                return mockStorageEntry;
+            }),
         } as StorageEntry<any>;
 
         return mockStorageEntry;

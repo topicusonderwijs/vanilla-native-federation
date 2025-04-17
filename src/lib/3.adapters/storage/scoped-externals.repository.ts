@@ -1,15 +1,16 @@
 import type { ScopedExternals } from "lib/1.domain/externals/external.contract";
-import type { StorageEntry, StorageEntryHandler } from "../../2.app/config/storage.contract";
+import type { StorageConfig, StorageEntry } from "../../2.app/config/storage.contract";
 import { Optional } from "../../utils/optional";
 import type { ForScopedExternalsStorage } from "lib/2.app/driving-ports/for-scoped-externals-storage.port";
 import type { Version } from "lib/1.domain";
 
 const createScopedExternalsRepository = (
-    config: {storage: StorageEntryHandler},
+    config: StorageConfig,
 ): ForScopedExternalsStorage => {
     const STORAGE: StorageEntry<ScopedExternals> = config.storage("scoped-externals", {  });
-    
-    const _cache: ScopedExternals = STORAGE.get();
+    if (config.clearCache) STORAGE.clear();
+
+    const _cache: ScopedExternals = STORAGE.get() ?? {};
 
     return {
         clearScope: function (scope: string) {

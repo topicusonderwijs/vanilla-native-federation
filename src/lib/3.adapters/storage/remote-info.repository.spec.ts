@@ -9,14 +9,24 @@ describe('createRemoteInfoRepository', () => {
     const setupWithCache = ((storage: any) => {
         const mockStorage = {"remotes": storage};
         const mockStorageEntry = createStorageHandlerMock(mockStorage);
-        const remoteInfoRepo = createRemoteInfoRepository({storage: mockStorageEntry});
-        return {mockStorage, remoteInfoRepo};
+        const remoteInfoRepo = createRemoteInfoRepository({storage: mockStorageEntry, clearCache: false});
+        return {mockStorage, mockStorageEntry, remoteInfoRepo};
     });
 
 
     describe('initialization', () => {
         it('should initialize the entry with the first value', () => {
             const {mockStorage} = setupWithCache(undefined);
+            expect(mockStorage["remotes"]).toEqual({});
+        });
+
+        it('should reset cache when in config', () => {
+            const mockStorage = {"remotes": {
+                "team/mfe1": MOCK_REMOTE_INFO_I()
+            }};
+            const mockStorageEntry = createStorageHandlerMock(mockStorage);
+            createRemoteInfoRepository({storage: mockStorageEntry, clearCache: true});
+
             expect(mockStorage["remotes"]).toEqual({});
         });
     });

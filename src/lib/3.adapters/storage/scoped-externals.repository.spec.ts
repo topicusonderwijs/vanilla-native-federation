@@ -12,13 +12,22 @@ describe('createScopedExternalsRepository', () => {
     const setupWithCache = ((storage: any) => {
         const mockStorage = {"scoped-externals": storage};
         const mockStorageEntry = createStorageHandlerMock(mockStorage);
-        const externalsRepo = createScopedExternalsRepository({storage: mockStorageEntry});
+        const externalsRepo = createScopedExternalsRepository({storage: mockStorageEntry, clearCache: false});
         return {mockStorage, externalsRepo};
     });
 
     describe('initialization', () => {
         it('should initialize the entry with the first value', () => {
             const {mockStorage} = setupWithCache(undefined);
+            expect(mockStorage["scoped-externals"]).toEqual({});
+        });
+
+        it('should reset cache when in config', () => {
+            const mockStorage = {"scoped-externals": {
+                [MOCK_REMOTE_ENTRY_SCOPE_I_URL()]: MOCK_EXTERNALS_SCOPE()
+            }};
+            const mockStorageEntry = createStorageHandlerMock(mockStorage);
+            createScopedExternalsRepository({storage: mockStorageEntry, clearCache: true});
             expect(mockStorage["scoped-externals"]).toEqual({});
         });
     });
