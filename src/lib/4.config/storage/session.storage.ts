@@ -2,12 +2,13 @@ import { type StorageEntryHandler, type StorageEntry, NF_STORAGE_ENTRY } from ".
 
 const sessionStorageEntry: StorageEntryHandler = <TValue>
     (key: string, initialValue: TValue) => {
-        if (!sessionStorage.getItem(`${NF_STORAGE_ENTRY}.${String(key)}`)) { 
-            sessionStorage.setItem(`${NF_STORAGE_ENTRY}.${String(key)}`, JSON.stringify(initialValue));
+        if (!sessionStorage.getItem(`${NF_STORAGE_ENTRY}.${key}`)) { 
+            sessionStorage.setItem(`${NF_STORAGE_ENTRY}.${key}`, JSON.stringify(initialValue));
         }
+
         const entry: StorageEntry<TValue> = {
             get() {
-                const fromCache = sessionStorage.getItem(`${NF_STORAGE_ENTRY}.${String(key)}`);
+                const fromCache = window.sessionStorage.getItem(`${NF_STORAGE_ENTRY}.${String(key)}`);
                 if (!fromCache) return undefined;
                 return JSON.parse(fromCache);
             },

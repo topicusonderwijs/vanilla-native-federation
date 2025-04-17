@@ -1,33 +1,31 @@
 import { NF_STORAGE_ENTRY } from "../../2.app/config/storage.contract";
-import { RemoteInfo } from "../../1.domain/remote/remote-info.contract";
 import { sessionStorageEntry } from './session.storage';
 import { MOCK_REMOTE_INFO_I, MOCK_REMOTE_INFO_II } from "../../6.mocks/domain/remote-info/remote-info.mock";
+import { RemoteInfo } from "../../1.domain/remote/remote-info.contract";
 
 describe('sessionStorageEntry', () => {
-
-    const mockSessionStorage: any = {
-        storage: {} as Record<string, string>,
-        getItem: jest.fn((key: string) => mockSessionStorage.storage[key] || null),
-        setItem: jest.fn((key: string, value: string) => {
-            mockSessionStorage.storage[key] = value;
-        }),
-    };
-
+    let mockStorage: any;
     beforeEach(() => {
-        mockSessionStorage.storage = {};        
-        Object.defineProperty(window, 'sessionStorage', { 
-            value: mockSessionStorage 
-        });
+        mockStorage = {};
+        Object.defineProperty(window, "sessionStorage", { value: {
+            getItem: jest.fn((key: string) => mockStorage[key] || null),
+            setItem: jest.fn((key: string, value: string) => {
+                mockStorage[key] = value;
+            }),
+        } });
     });
 
     afterEach(() => {
         jest.clearAllMocks();
     })
 
-    it('Don\'t create storage until asked for', () => {
+    it('Create entry with default value on init', () => {
         sessionStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
 
-        expect((mockSessionStorage.storage as any)[NF_STORAGE_ENTRY]).toEqual(undefined);
+        expect(mockStorage[`${NF_STORAGE_ENTRY}.remotes`]).toBeDefined();
+        expect(JSON.parse(mockStorage[`${NF_STORAGE_ENTRY}.remotes`])).toEqual(
+            {"team/mfe1": MOCK_REMOTE_INFO_I()}
+        );
     });
 
     describe('get', () => {
@@ -71,4 +69,19 @@ describe('sessionStorageEntry', () => {
             expect(entry.get()).toEqual({"team/mfe2": MOCK_REMOTE_INFO_II()});
         });
     });
+
+    describe('clear', () => {
+        it('clears the entry back to the initialValue', () => {
+            mockStorage[`${NF_STORAGE_ENTRY}.remotes`] = JSON.stringify({"team/mfe1": MOCK_REMOTE_INFO_I()});
+            
+            const entry = sessionStorageEntry<Record<string, RemoteInfo>>('remotes', {});
+
+            expect(entry.get()).toEqual({"team/mfe1": MOCK_REMOTE_INFO_I()});
+
+            entry.clear();
+
+            expect(entry.get()).toEqual({});
+        });
+    });
+
 });

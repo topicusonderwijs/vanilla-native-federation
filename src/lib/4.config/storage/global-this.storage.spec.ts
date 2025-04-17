@@ -58,4 +58,19 @@ describe('globalThisStorageEntry', () => {
             expect(entry.get()).toEqual({"team/mfe2": MOCK_REMOTE_INFO_II()});
         });
     });
+
+    describe('clear', () => {
+        it('clears the entry back to the initialValue', () => {
+            (globalThis as any)[NF_STORAGE_ENTRY] = {};
+            (globalThis as any)[NF_STORAGE_ENTRY]["remotes"] = {"team/mfe1": MOCK_REMOTE_INFO_I()};
+            
+            const entry = globalThisStorageEntry<Record<string, RemoteInfo>>('remotes', {});
+
+            expect(entry.get()).toEqual({"team/mfe1": MOCK_REMOTE_INFO_I()});
+
+            entry.clear();
+
+            expect(entry.get()).toEqual({});
+        });
+    });
 });
