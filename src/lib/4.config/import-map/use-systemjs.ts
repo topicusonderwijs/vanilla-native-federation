@@ -1,7 +1,7 @@
 import type { ImportMapConfig } from "lib/2.app";
 
 
-export const useSystemJS = (): ImportMapConfig => ({
+export const useSystemJSImportMap = (): ImportMapConfig => ({
     importMapType: "systemjs-importmap",
 
     // @ts-ignore
