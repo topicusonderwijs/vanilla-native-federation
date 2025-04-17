@@ -1,4 +1,4 @@
-export * from './externals/externals.contract';
+export * from './externals/external.contract';
 export * from './externals/version.contract';
 
 export * from './import-map/import-map.contract';

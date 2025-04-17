@@ -1,4 +1,4 @@
-import type { ScopedExternals } from "lib/1.domain/externals/externals.contract";
+import type { ScopedExternals } from "lib/1.domain/externals/external.contract";
 import type { StorageEntry, StorageEntryHandler } from "../../2.app/config/storage.contract";
 import { Optional } from "../../utils/optional";
 import type { ForScopedExternalsStorage } from "lib/2.app/driving-ports/for-scoped-externals-storage.port";

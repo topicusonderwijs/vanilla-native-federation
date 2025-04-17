@@ -1,5 +1,5 @@
 import { createSharedExternalsRepository } from './shared-externals.repository';
-import { SharedExternals } from '../../1.domain/externals/externals.contract';
+import { SharedExternals } from '../../1.domain/externals/external.contract';
 import { SharedVersion } from '../../1.domain/externals/version.contract';
 import { createStorageHandlerMock } from '../../6.mocks/handlers/storage.mock';
 import { Optional } from '../../utils/optional';

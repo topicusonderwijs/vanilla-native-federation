@@ -1,4 +1,4 @@
-import type { SharedExternal, SharedExternals } from "lib/1.domain/externals/externals.contract";
+import type { SharedExternal, SharedExternals } from "lib/1.domain/externals/external.contract";
 import type { StorageEntry, StorageEntryHandler } from "lib/2.app/config/storage.contract";
 import type { ForStoringSharedExternalsStorage } from "lib/2.app/driving-ports/for-shared-externals-storage.port";
 import { Optional } from "../../utils/optional";
