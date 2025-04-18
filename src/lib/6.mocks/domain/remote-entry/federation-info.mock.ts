@@ -75,19 +75,19 @@ export const MOCK_SHARED_INFO_VI = ()
 export const MOCK_EXPOSES_INFO_I = ()
     : ExposesInfo => ({ 
         key: './wc-comp-a', 
-        outFileName: './component-b.js' 
+        outFileName: 'component-a.js' 
     });
 
 export const MOCK_EXPOSES_INFO_II = ()
     : ExposesInfo => ({ 
         key: './wc-comp-b', 
-        outFileName: './component-b.js' 
+        outFileName: 'component-b.js' 
     });
 
 export const MOCK_EXPOSES_INFO_III = ()
     : ExposesInfo => ({ 
         key: './wc-comp-c', 
-        outFileName: './component-c.js' 
+        outFileName: 'component-c.js' 
     });
 
 /**
