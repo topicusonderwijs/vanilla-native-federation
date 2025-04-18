@@ -5,6 +5,13 @@ import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { LoggingConfig } from "./config/log.contract";
 import * as _path from "lib/utils/path";
 
+/**
+ * Extract the externals and remote-infos from the remoteEntry files and merge them into storage. 
+ * 
+ * @param config 
+ * @param adapters 
+ * @returns Promise<void>
+ */
 const createProcessRemoteEntries = (
     config: LoggingConfig,
     { remoteInfoRepo, sharedExternalsRepo, scopedExternalsRepo, versionCheck }: DrivingContract
@@ -21,25 +28,25 @@ const createProcessRemoteEntries = (
                         moduleName: m.key,
                         url: _path.join(scopeUrl, m.outFileName) 
                     }))
-            } as RemoteInfo)
+            } as RemoteInfo);
         }
 
-        function addExternalsToStorage(remoteEntry: RemoteEntry) 
-            : void {
-                const scopeUrl =  _path.getScope(remoteEntry.url);
+    function addExternalsToStorage(remoteEntry: RemoteEntry) 
+        : void {
+            const scopeUrl =  _path.getScope(remoteEntry.url);
 
-                remoteEntry.shared.forEach(external => {
-                    if (!external.version || !versionCheck.isValidSemver(external.version)) {
-                        config.log.warn(`[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping.`);
-                        return;
-                    }
-                    if(external.singleton) {
-                        addSharedExternal(scopeUrl, external, remoteEntry.host);
-                    } else {
-                        addScopedExternal(scopeUrl, external);
-                    }      
-                });
-            }
+            remoteEntry.shared.forEach(external => {
+                if (!external.version || !versionCheck.isValidSemver(external.version)) {
+                    config.log.warn(`[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping.`);
+                    return;
+                }
+                if(external.singleton) {
+                    addSharedExternal(scopeUrl, external, remoteEntry.host);
+                } else {
+                    addScopedExternal(scopeUrl, external);
+                }      
+            });
+        }
     
 
     function addSharedExternal(scope: string, sharedInfo: SharedInfo, host?: boolean) 
@@ -49,7 +56,7 @@ const createProcessRemoteEntries = (
                 .orElse([]);
 
             if(cached.find(e => e.version === sharedInfo.version)) {
-                config.log.debug(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping.`);
+                config.log.warn(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping.`);
                 return;
             }
 
@@ -81,12 +88,23 @@ const createProcessRemoteEntries = (
             );
         }
 
+    function logStorageStatus(status: string)
+        : void {
+            config.log.debug(status, {
+                "remotes": remoteInfoRepo.getAll(),
+                "shared-externals": sharedExternalsRepo.getAll(),
+                "scoped-externals": scopedExternalsRepo.getAll(),
+            })
+        }
         
     return remoteEntries => {
+        if(config.log.level === "debug") logStorageStatus("temp cache state: Initial");
         remoteEntries.forEach(remoteEntry => {
             addRemoteInfoToStorage(remoteEntry);
             addExternalsToStorage(remoteEntry);
         });
+        if(config.log.level === "debug") logStorageStatus("temp cache state: After merging remoteEntries");
+       
 
         return Promise.resolve();
     };

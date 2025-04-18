@@ -5,22 +5,23 @@ import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { LoggingConfig } from "./config/log.contract";
 import type { ModeConfig } from "./config/mode.contract";
 
+
+/**
+ * Step 3: Determine which version is the optimal version to share. 
+ * 
+ * Priority:
+ * 1) Latest external defined in 'host' remoteEntry (if available).
+ * 2) If defined in config, prioritize latest available version.
+ * 3) Find most optimal version, by comparing potential extra downloads per version.
+ * @param config 
+ * @param adapters 
+ * @returns 
+ */
 const createDetermineSharedExternals = (
     config: LoggingConfig & ModeConfig,
     {versionCheck, sharedExternalsRepo}: DrivingContract
 ): ForDeterminingSharedExternals => { 
     
-
-    /**
-     * External version resolver. 
-     * 
-     * Priority:
-     * 1) Latest external defined in 'host' remoteEntry (if available).
-     * 2) If defined in config, prioritize latest available version.
-     * 3) Find most optimal version, by comparing potential extra downloads per version.
-     * @param param0 
-     * @returns 
-     */
     function determineVersionAction([externalName, external]: [string, SharedExternal]) {
         if (external.versions.length === 1) {
             external.versions[0]!.action = 'share';
@@ -47,8 +48,9 @@ const createDetermineSharedExternals = (
             });
         }
 
-        if(!sharedVersion) throw new NFError("Could not determine shared version!");
+        if(!sharedVersion) throw new NFError(`[${externalName}] Could not determine shared version!`);
 
+        // Determine action of other versions based on chosen sharedVersion
         external.versions.forEach(v => {
             if(versionCheck.isCompatible(sharedVersion!.version, v.requiredVersion)) {
                 v.action = "skip";
@@ -62,16 +64,25 @@ const createDetermineSharedExternals = (
             config.log.warn(`[${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`);
             v.action = (v.strictVersion) ? 'scope' : 'skip';
         });
-        sharedVersion.action = 'share';
 
+
+        sharedVersion.action = 'share';
         external.dirty = false;
     }
 
     return () => {
-        const sharedExternals = sharedExternalsRepo.getAll();
-        Object.entries(sharedExternals).filter(([_, e]) => e.dirty).forEach(determineVersionAction);
-        sharedExternalsRepo.set(sharedExternals);
-        return Promise.resolve();
+        try {
+            const sharedExternals = sharedExternalsRepo.getAll();
+            Object.entries(sharedExternals).filter(([_, e]) => e.dirty).forEach(determineVersionAction);
+            sharedExternalsRepo.set(sharedExternals);
+
+            config.log.debug("Processed shared externals", sharedExternalsRepo.getAll());
+            return Promise.resolve();
+        } catch(err: unknown) {
+            config.log.error("Failed to determine shared externals", err);
+            config.log.debug("Currently processed shared externals", sharedExternalsRepo.getAll());
+            throw new NFError("Failed to determine shared externals.");
+        }
     };
 }
 

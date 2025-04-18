@@ -1,8 +1,9 @@
-import type { LogHandler } from "lib/2.app/config/log.contract";
+import type { LogHandler, LogType } from "lib/2.app/config/log.contract";
 
-export const createMockLogHandler = ()
+export const createMockLogHandler = (level: LogType = "debug")
     : jest.Mocked<LogHandler> => ({
         debug: jest.fn(),
         warn: jest.fn(),
-        error: jest.fn()
+        error: jest.fn(),
+        level
     })

@@ -6,10 +6,14 @@ export const LogLevel = {
 
 export type LogType = keyof typeof LogLevel;
 
-export type LogHandler = {
+export type Logger = {
     error: (msg: string, details?: unknown) => void;
     warn: (msg: string, details?: unknown) => void;
     debug: (msg: string, details?: unknown) => void;
+}
+
+export type LogHandler = Logger & {
+    level: LogType
 }
 
 export type LoggingConfig = {
