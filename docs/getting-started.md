@@ -68,8 +68,7 @@ import { initFederation, config } from '../lib/init-federation';
     await initFederation(manifest, {
         logLevel: "error", 
         logger: config.consoleLogger, 
-        ...config.useShimImportMap({shimMode: true}),
-        importMapType: 'importmap'
+        ...config.useShimImportMap({shimMode: true})
     }).then(({loadRemoteModule}) => 
         Promise.all([
             loadRemoteModule('team/mfe1', './comp'),
@@ -78,6 +77,8 @@ import { initFederation, config } from '../lib/init-federation';
     );
 })();
 ```
+
+> More info about the configuration options can be found [here](./config.md).
 
 The `initFederation` will return a `loadRemoteModule(<remote>, <exposed-comp>)` callback, this function can load remote modules using the imported dependencies from the importMap. The `loadRemoteModule` callback returns a `Promise<unknown>` that represents the remote module that was retrieved. The function cannot be used before initialization, hence it is provided after the init Promise is resolved. It is however entirely possible to link this callback to the global Window object.
 
