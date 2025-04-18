@@ -6,4 +6,5 @@
 
 ## Index
 
-1. [Configuring the library](./config.md)
+1. [Exploring the native-federation domain](./domain.md)
+2. [Configuring the vanilla-native-federation library](./config.md)
