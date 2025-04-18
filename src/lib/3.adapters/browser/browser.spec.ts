@@ -3,14 +3,9 @@ import { ImportMapConfig } from '../../2.app/config/import-map.contract';
 import { ForBrowserTasks } from '../../2.app/driving-ports/for-browser-tasks';
 import { MOCK_IMPORT_MAP } from '../../6.mocks/domain/import-map.mock';
 
-/**
- * Setup JSDOM environment for tests
- */
 function setupDomEnvironment() {
-    // Clear any existing import map scripts
     document.head.innerHTML = '';
 
-    // Add a spy to track appendChild calls
     jest.spyOn(document.head, 'appendChild');
 }
 
@@ -20,26 +15,21 @@ describe('createBrowser', () => {
     let mockLoadModuleFn: jest.Mock;
 
     beforeEach(() => {
-        // Setup test environment
         setupDomEnvironment();
 
-        // Setup mock for loadModuleFn
         mockLoadModuleFn = jest.fn().mockImplementation((_) => {
             return Promise.resolve({ default: { name: 'mocked-module' } });
         });
 
-        // Setup mock config
         mockConfig = {
             importMapType: 'importmap',
             loadModuleFn: mockLoadModuleFn
         };
 
-        // Create browser instance
         browser = createBrowser(mockConfig);
     });
 
     afterEach(() => {
-        // Clean up spies
         jest.restoreAllMocks();
     });
 
