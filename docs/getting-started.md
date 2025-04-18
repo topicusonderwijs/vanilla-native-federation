@@ -57,7 +57,7 @@ A custom implementation `orchestrator.js` can be created as followed:
 ```js
 import 'es-module-shims';
 
-import { initFederation, config } from '../lib/init-federation';
+import { initFederation, config } from 'vanilla-native-federation';
 
 (async () => {
     const manifest = {
