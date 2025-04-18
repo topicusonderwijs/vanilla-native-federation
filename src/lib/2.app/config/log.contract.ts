@@ -21,6 +21,6 @@ export type LoggingConfig = {
 }
 
 export type LoggingOptions = {
-    logger?: LogHandler,
+    logger?: Logger,
     logLevel?: LogType,
 }

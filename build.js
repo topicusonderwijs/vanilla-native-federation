@@ -13,6 +13,12 @@ const commonConfig = {
   metafile: true,
 };
 
+async function getQuickstarts() {
+  const pluginsDir = path.join('src', 'quickstart');
+  const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
+  return entries.map(file => file.name);
+}
+
 async function getSourceFiles(dir) {
   const getAllFiles = async (dir) => {
     const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -51,6 +57,18 @@ async function generateBuilds() {
       sourcemap: true,
     },
   };
+
+  for (const quickstart of await getQuickstarts()) {
+    builds[`quickstart_${quickstart}`] = {
+      ...commonConfig,
+      entryPoints: [`src/quickstart/${quickstart}`],
+      outfile: `dist/quickstart/${quickstart.slice(0,-3)}.mjs`,
+      bundle: true,
+      sourcemap: false,
+      minify: true
+    };
+  }
+
 
   return builds;
 }

@@ -10,6 +10,10 @@ This library is under [MIT License](./LICENSE.md) and is inspired on [@softarc/n
 - [Some examples](https://github.com/manfredsteyer/native-federation-core-example)
 
 
-## Docs
+## Documentation
 
-Learn more about the vanilla-native-federation library [here](./docs/sections.md).
+Learn more about the vanilla-native-federation library:
+
+1. [Getting started](./docs/getting-started.md)
+1. [Exploring the native-federation domain](./docs/domain.md)
+2. [Configuring the vanilla-native-federation library](./docs/config.md)

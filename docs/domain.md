@@ -1,3 +1,5 @@
+[< back](./../README.md)
+
 # The native-federation domain
 
 The native-federation domain defines the models and entities being processed and stored by the `vanilla-native-federation` library. As seen in the sequence diagram below, the first step is to fetch the manifest JSON, it is entirely possible to provide a hardcoded manifest object instead. The following step is to fetch the metadata files (remoteEntry.json) which contain the exposed modules and required externals (dependencies) per remote. Finally, the library processes and stores the metadata to be used during the `loadRemoteModule` step. 

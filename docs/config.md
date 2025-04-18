@@ -1,6 +1,5 @@
-[< back](./sections.md)
 
-# Optional configuration
+# native-federation configuration
 
 The `vanilla-native-federation` library supports a multitude of different configuration settings. This allows for applying custom storage or logging options. 
 
