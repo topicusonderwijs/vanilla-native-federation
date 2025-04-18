@@ -1,14 +1,14 @@
 
 # native-federation configuration
 
-The `vanilla-native-federation` library supports a multitude of different configuration settings. This allows for applying custom storage or logging options. 
+The `vanilla-native-federation` library supports a multitude of different configuration settings. The configuration objecs are intended to provide more finegrained control over the behaviour of the `vanilla-native-federation` library. 
 
-## Index
+The configuration is divided into 5 sections
 
-1. [Host](#hostConfig)
-2. [ImportMap](#importMapConfig)
+1. [Host related configuration](#hostConfig)
+2. [ImportMap implementations and polyfilling](#importMapConfig)
 3. [Logging](#loggingConfig)
-4. [Modes](#modeConfig)
+4. [Modes (strictness and external resolving settings)](#modeConfig)
 5. [Storage](#storageConfig)
 
 ## <a id="hostConfig"></a>  1. Host configuration
@@ -132,6 +132,8 @@ export type ModeConfig = {
 | strict | `false` | When enabled, the init function will throw an error if a remoteEntry could not be fetched or a version incompatibility within a shared external occurs.
 | latestSharedExternal | `false` | When enabled, the version resolver will prioritize using the latest version of a shared external over the most optimal version. 
 
+### Example
+
 ```
 import { initFederation, config } from 'vanilla-native-federation';
 
@@ -158,6 +160,8 @@ type StorageConfig = {
 | --- | --- | --- |
 | storage | `globalThisStorageEntry` | Allows the provision of a custom storage implementation. 
 | clearCache | `false` | When enabled, the initFederation function will clear the current cache/storage before initializing the remoteEntries. 
+
+### Example
 
 ```
 import { initFederation, config } from 'vanilla-native-federation';
