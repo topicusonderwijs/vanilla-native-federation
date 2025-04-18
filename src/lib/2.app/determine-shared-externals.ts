@@ -71,16 +71,17 @@ const createDetermineSharedExternals = (
     }
 
     return () => {
+        const sharedExternals = sharedExternalsRepo.getAll();
+
         try {
-            const sharedExternals = sharedExternalsRepo.getAll();
             Object.entries(sharedExternals).filter(([_, e]) => e.dirty).forEach(determineVersionAction);
             sharedExternalsRepo.set(sharedExternals);
 
-            config.log.debug("Processed shared externals", sharedExternalsRepo.getAll());
+            config.log.debug("Processed shared externals", sharedExternals);
             return Promise.resolve();
         } catch(err: unknown) {
             config.log.error("Failed to determine shared externals", err);
-            config.log.debug("Currently processed shared externals", sharedExternalsRepo.getAll());
+            config.log.debug("Currently processed shared externals", sharedExternals);
             throw new NFError("Failed to determine shared externals.");
         }
     };
