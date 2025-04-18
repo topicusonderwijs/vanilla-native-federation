@@ -1,12 +1,9 @@
 import { createManifestProvider } from './manifest-provider';
 import { Manifest } from '../../1.domain/remote-entry/manifest.contract';
-import { LogHandler } from "../../2.app/config/log.contract";
 import { ForProvidingManifest } from "../../2.app/driving-ports/for-providing-manifest.port";
-import { createMockLogHandler } from "../../6.mocks/handlers/log.handler";
 import { NFError } from '../../native-federation.error';
 
 describe('createManifestProvider', () => {
-    let mockLogger: LogHandler;
     let manifestProvider: ForProvidingManifest;
 
     const mockFetchAPI = (response: Manifest) => {
@@ -28,8 +25,7 @@ describe('createManifestProvider', () => {
 
     beforeEach(() => {
         mockFetchAPI({});
-        mockLogger = createMockLogHandler();
-        manifestProvider = createManifestProvider({log: mockLogger});
+        manifestProvider = createManifestProvider();
     });
 
     describe('initialization', () => {
@@ -70,7 +66,23 @@ describe('createManifestProvider', () => {
             
             await expect(manifestProvider.provide(manifestUrl))
                 .rejects
-                .toEqual(new NFError("Could not fetch manifest."));
+                .toEqual(new NFError("Fetch of 'http://bad.service/manifest.json' returned 404 - Not Found"));
+        });
+
+        it('should handle JSON parsing errors for manifest', async () => {            
+            global.fetch = jest.fn(() => {
+                return Promise.resolve({
+                    ok: true,
+                    status: 200,
+                    json: () => Promise.reject(new Error('Invalid JSON'))
+                } as unknown as Response);
+            }) as jest.Mock;
+
+            const manifestUrl = 'http://bad.service/manifest.json';
+            
+            await expect(manifestProvider.provide(manifestUrl))
+                .rejects
+                .toEqual(new NFError("Fetch of 'http://bad.service/manifest.json' returned Invalid JSON"));
         });
     });
 });

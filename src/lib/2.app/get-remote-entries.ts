@@ -5,9 +5,17 @@ import type { ForGettingRemoteEntries } from "./driver-ports/for-getting-remote-
 import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { LoggingConfig } from "./config/log.contract";
 import { NFError } from "lib/native-federation.error";
+import type { ModeConfig } from "./config/mode.contract";
 
+/**
+ * Fetch the remoteEntry.json metadata files defined in the provided manifest: 
+ * 
+ * @param config 
+ * @param adapters 
+ * @returns A list of the remoteEntries
+ */
 const createGetRemoteEntries = (
-    config: LoggingConfig,
+    config: LoggingConfig & ModeConfig,
     {remoteEntryProvider, manifestProvider, remoteInfoRepo}: DrivingContract
 ): ForGettingRemoteEntries => (remotesOrManifestUrl: string | Manifest = {})
     : Promise<RemoteEntry[]> => {
@@ -15,13 +23,13 @@ const createGetRemoteEntries = (
         async function fetchRemoteEntries(manifest: Manifest)
             : Promise<(RemoteEntry|false)[]> { 
                 try {
-                    const host = await remoteEntryProvider.provideHost();
+                    const host = await remoteEntryProvider.provideHost().catch(handleFetchFailed);
                     const remotes = await Promise.all(
                         Object.entries(manifest).map(fetchRemoteEntry)
                     );
                     return [host, ...remotes];
                 }catch(e) {
-                    console.error("Could not fetch remotes", e);
+                    config.log.debug("Could not fetch remotes", e);
                     throw new NFError("Could not fetch remotes");
                 }
             }
@@ -33,9 +41,17 @@ const createGetRemoteEntries = (
                     return Promise.resolve(false);
                 }
                 return remoteEntryProvider.provideRemote(remoteEntryUrl)
-                    .then(notifyRemoteEntryFetched(remoteName));
+                    .then(notifyRemoteEntryFetched(remoteName))
+                    .catch(handleFetchFailed);
             }
 
+        function handleFetchFailed(err: unknown): Promise<false> {
+            config.log.debug(`Failed to fetch remote.`,  err)
+            return (config.strict) 
+                ? Promise.reject(new NFError(`Failed to fetch remoteEntry.`))
+                : Promise.resolve(false);
+        }
+        
         const notifyRemoteEntryFetched = (remoteName: string) => (remoteEntry: RemoteEntry|false) => {
             if(!remoteEntry) return remoteEntry;
 
