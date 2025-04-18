@@ -22,7 +22,7 @@ import { useShimImportMap } from '../lib/4.config/import-map/use-import-shim';
     await initFederation(JSON.parse(jsonScript.textContent), {
         logger: consoleLogger, 
         logLevel: "debug", 
-        ...useShimImportMap(),
+        ...useShimImportMap({shimMode: true}),
         importMapType: 'importmap'
     }).then(({loadRemoteModule}) => {
         (window as any).loadRemoteModule = loadRemoteModule
