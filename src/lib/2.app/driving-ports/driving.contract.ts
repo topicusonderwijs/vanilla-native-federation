@@ -4,7 +4,7 @@ import type { ForProvidingManifest } from "./for-providing-manifest.port"
 import type { ForProvidingRemoteEntries } from "./for-providing-remote-entries.port"
 import type { ForRemoteInfoStorage } from "./for-remote-info-storage.port"
 import type { ForScopedExternalsStorage } from "./for-scoped-externals-storage.port"
-import type { ForStoringSharedExternalsStorage } from "./for-shared-externals-storage.port"
+import type { ForSharedExternalsStorage } from "./for-shared-externals-storage.port"
 
 export type DrivingContract = {
     versionCheck: ForVersionChecking,
@@ -12,6 +12,6 @@ export type DrivingContract = {
     remoteEntryProvider: ForProvidingRemoteEntries,
     remoteInfoRepo: ForRemoteInfoStorage,
     scopedExternalsRepo: ForScopedExternalsStorage,
-    sharedExternalsRepo: ForStoringSharedExternalsStorage,
+    sharedExternalsRepo: ForSharedExternalsStorage,
     browser: ForBrowserTasks
 }

@@ -3,7 +3,7 @@ import type { ForProcessingRemoteEntries } from "./driver-ports/for-processing-r
 import type { RemoteEntry, RemoteInfo, SharedInfo, SharedVersion, Version } from "lib/1.domain";
 import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { LoggingConfig } from "./config/log.contract";
-import * as _path from "lib/utils/path";
+import * as _path from "../utils/path";
 
 /**
  * Extract the externals and remote-infos from the remoteEntry files and merge them into storage. 
@@ -14,7 +14,7 @@ import * as _path from "lib/utils/path";
  */
 const createProcessRemoteEntries = (
     config: LoggingConfig,
-    { remoteInfoRepo, sharedExternalsRepo, scopedExternalsRepo, versionCheck }: DrivingContract
+    { remoteInfoRepo, sharedExternalsRepo, scopedExternalsRepo, versionCheck }: Pick<DrivingContract,  'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'>
 ): ForProcessingRemoteEntries => { 
 
     function addRemoteInfoToStorage({name, url, exposes}: RemoteEntry)
@@ -55,13 +55,14 @@ const createProcessRemoteEntries = (
                 .tryGetVersions(sharedInfo.packageName)
                 .orElse([]);
 
+            const matchingVersionIDX = cached.findIndex(c => c.version === sharedInfo.version);
 
-            // 1) Skip if: 'cached exists' AND ( 'cached is host' OR ¬'new is host') 
-            // 2) 'is host' has precedence over 'is cached'
-            const cachedMatchingVersion = cached.find(c => c.version === sharedInfo.version);
-            if (cachedMatchingVersion && (cachedMatchingVersion.host || !isHostVersion)) {
-                config.log.warn(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping.`);
-                return;
+            if (~matchingVersionIDX) {
+                if(cached[matchingVersionIDX]!.host || !isHostVersion) {
+                    config.log.warn(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping.`);
+                    return;
+                }
+                delete cached[matchingVersionIDX];
             }
 
             cached.push({

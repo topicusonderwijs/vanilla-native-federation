@@ -10,7 +10,7 @@ export const MOCK_SHARED_INFO_I = ()
         version: "1.2.3", 
         requiredVersion: "~1.2.1", 
         strictVersion: false,
-        singleton: true,
+        singleton: false,
         packageName: "dep-a",
         outFileName: "dep-a.js"
     });
@@ -20,7 +20,7 @@ export const MOCK_SHARED_INFO_II = ()
         version: "4.5.6", 
         requiredVersion: "^4.1.1", 
         strictVersion: true,
-        singleton: false,
+        singleton: true,
         packageName: "dep-b",
         outFileName: "dep-b.js"
     });
