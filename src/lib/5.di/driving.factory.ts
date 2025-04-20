@@ -13,7 +13,7 @@ export const createDriving = (config: Config): DrivingContract => ({
 
     manifestProvider: createManifestProvider(),
 
-    remoteEntryProvider: createRemoteEntryProvider(config),
+    remoteEntryProvider: createRemoteEntryProvider(),
 
     remoteInfoRepo: createRemoteInfoRepository(config),
     scopedExternalsRepo: createScopedExternalsRepository(config),
