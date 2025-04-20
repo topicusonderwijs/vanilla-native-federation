@@ -6,6 +6,10 @@ import { createVersionCheck } from '../3.adapters/checks/version.check';
 import { LoggingConfig } from './config/log.contract';
 import { ModeConfig } from './config/mode.contract';
 
+
+/**
+ * This tests the precedence of the different external versions
+ */
 describe('createDetermineSharedExternals (compatibility precedence)', () => {
     let determineSharedExternals: ForDeterminingSharedExternals;
     let mockConfig: any;

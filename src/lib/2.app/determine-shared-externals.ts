@@ -13,6 +13,8 @@ import type { ModeConfig } from "./config/mode.contract";
  * 1) Latest external defined in 'host' remoteEntry (if available).
  * 2) If defined in config, prioritize latest available version.
  * 3) Find most optimal version, by comparing potential extra downloads per version.
+ * 
+ * The host flag has the highest priority, this allows the user to force certain versions as the main shared version. 
  * @param config 
  * @param adapters 
  * @returns 
