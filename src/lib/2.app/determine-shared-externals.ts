@@ -1,6 +1,6 @@
 import type { ForDeterminingSharedExternals } from "./driver-ports/for-determining-shared-externals.port";
 import type { SharedExternal } from "lib/1.domain";
-import { NFError } from "lib/native-federation.error";
+import { NFError } from "../native-federation.error";
 import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { LoggingConfig } from "./config/log.contract";
 import type { ModeConfig } from "./config/mode.contract";
@@ -19,13 +19,14 @@ import type { ModeConfig } from "./config/mode.contract";
  */
 const createDetermineSharedExternals = (
     config: LoggingConfig & ModeConfig,
-    {versionCheck, sharedExternalsRepo}: DrivingContract
+    {versionCheck, sharedExternalsRepo}: Pick<DrivingContract, 'versionCheck' | 'sharedExternalsRepo'>
 ): ForDeterminingSharedExternals => { 
     
-    function determineVersionAction([externalName, external]: [string, SharedExternal]) {
+    function updateVersionActions(externalName: string, external: SharedExternal) {
         if (external.versions.length === 1) {
             external.versions[0]!.action = 'share';
-            return;
+            external.dirty = false;
+            return external;
         }
 
         let sharedVersion = external.versions.find(v => v.host);
@@ -68,21 +69,25 @@ const createDetermineSharedExternals = (
 
         sharedVersion.action = 'share';
         external.dirty = false;
+        return external;
     }
 
     return () => {
         const sharedExternals = sharedExternalsRepo.getAll();
 
         try {
-            Object.entries(sharedExternals).filter(([_, e]) => e.dirty).forEach(determineVersionAction);
-            sharedExternalsRepo.set(sharedExternals);
+            Object.entries(sharedExternals)
+                .filter(([_, e]) => e.dirty)
+                .forEach(([name, external]) => {
+                    sharedExternalsRepo.addOrUpdate(name, updateVersionActions(name, external))
+                });
 
             config.log.debug("Processed shared externals", sharedExternals);
             return Promise.resolve();
         } catch(err: unknown) {
             config.log.error("Failed to determine shared externals", err);
             config.log.debug("Currently processed shared externals", sharedExternals);
-            throw new NFError("Failed to determine shared externals.");
+            return Promise.reject(new NFError("Failed to determine shared externals."));
         }
     };
 }
