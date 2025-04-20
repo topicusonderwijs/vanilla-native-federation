@@ -21,6 +21,15 @@ describe('DefaultConfig', () => {
                 hostRemoteEntry: false
             })
         });  
+        it('Should apply correct transition from string option', () => {
+            const actual = createHostConfig({hostRemoteEntry: {url: "test-url"}});
+            expect(actual).toEqual({
+                hostRemoteEntry: {
+                    name: "__NF-HOST__",
+                    url: "test-url"
+                }
+            })
+        }); 
     })
 
     describe('ImportMapOptions -> ImportMapConfig', () => {

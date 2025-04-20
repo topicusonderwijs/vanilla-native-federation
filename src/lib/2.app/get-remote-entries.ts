@@ -20,11 +20,12 @@ const createGetRemoteEntries = (
     {remoteEntryProvider, manifestProvider, remoteInfoRepo}: Pick<DrivingContract, 'remoteEntryProvider'|'manifestProvider'|'remoteInfoRepo'>
 ): ForGettingRemoteEntries => (remotesOrManifestUrl: string | Manifest = {})
     : Promise<RemoteEntry[]> => {
-        
+    
+
         function addHostRemoteEntry(manifest: Manifest)
             : Manifest {
                 if(!!config.hostRemoteEntry) {
-                    manifest["__NF-HOST__"] = (config.hostRemoteEntry.cacheTag) 
+                    manifest[config.hostRemoteEntry.name] = (config.hostRemoteEntry.cacheTag) 
                         ? `${config.hostRemoteEntry.url}?cacheTag=${config.hostRemoteEntry.cacheTag}`
                         : config.hostRemoteEntry.url;
                 }
@@ -57,14 +58,14 @@ const createGetRemoteEntries = (
         }
         
         const verifyRemoteEntry = (remoteName: string) => (remoteEntry: RemoteEntry) => {
-            if(remoteName === "__NF-HOST__") {
+            if(!!config.hostRemoteEntry && remoteName === config.hostRemoteEntry.name) {
                 remoteEntry.host = true;
-                if (!remoteEntry.name) remoteEntry.name = remoteName;
+                remoteEntry.name = config.hostRemoteEntry.name;
             }
 
             config.log.debug(`fetched '${remoteEntry.name}' from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`);
 
-            if(!remoteEntry.host && remoteEntry.name !== remoteName) {
+            if(remoteEntry.name !== remoteName) {
                 config.log.warn(`Fetched remote '${remoteEntry.name}' does not match requested '${remoteName}'.`);
             }
             

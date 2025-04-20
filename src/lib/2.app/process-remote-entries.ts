@@ -49,19 +49,18 @@ const createProcessRemoteEntries = (
         }
     
 
-    function addSharedExternal(scope: string, sharedInfo: SharedInfo, isHost?: boolean) 
+    function addSharedExternal(scope: string, sharedInfo: SharedInfo, isHostVersion?: boolean) 
         : void {
             const cached: SharedVersion[] = sharedExternalsRepo
                 .tryGetVersions(sharedInfo.packageName)
                 .orElse([]);
 
-            const cachedVersion = cached.find(e => e.version === sharedInfo.version);
-            if(!!cachedVersion) {
+
+            // 1) Skip if: 'cached exists' AND ( 'cached is host' OR ¬'new is host') 
+            // 2) 'is host' has precedence over 'is cached'
+            const cachedMatchingVersion = cached.find(c => c.version === sharedInfo.version);
+            if (cachedMatchingVersion && (cachedMatchingVersion.host || !isHostVersion)) {
                 config.log.warn(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping.`);
-                if (isHost) {
-                    cachedVersion.host = true;
-                    sharedExternalsRepo.addOrUpdate(sharedInfo.packageName, {dirty: true, versions: cached});
-                }
                 return;
             }
 
@@ -70,7 +69,7 @@ const createProcessRemoteEntries = (
                 url: _path.join(scope, sharedInfo.outFileName),
                 requiredVersion: sharedInfo.requiredVersion,
                 strictVersion: sharedInfo.strictVersion,
-                host: !!isHost,
+                host: !!isHostVersion,
                 cached: false,               
                 action: 'skip'
             } as SharedVersion);

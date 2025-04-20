@@ -87,6 +87,7 @@ describe('createGetRemoteEntries', () => {
     describe("with host remoteEntry", () => {
         it('should process hostRemoteEntry if defined in config', async () => {
             mockConfig.hostRemoteEntry = {
+                name: "host",
                 url: `${MOCK_HOST_REMOTE_ENTRY_SCOPE_URL()}remoteEntry.json`
             }
             const result = await getRemoteEntries(MOCK_MANIFEST());
@@ -97,8 +98,9 @@ describe('createGetRemoteEntries', () => {
             expect(result[2]!.host).toBe(true);
         });
 
-        it('should process hostRemoteEntry if defined in config', async () => {
+        it('should process hostRemoteEntry with cacheTag if defined in config', async () => {
             mockConfig.hostRemoteEntry = {
+                name: "host",
                 url: `${MOCK_HOST_REMOTE_ENTRY_SCOPE_URL()}remoteEntry.json`,
                 cacheTag: "123abc"
             }
@@ -108,11 +110,21 @@ describe('createGetRemoteEntries', () => {
 
             expect(result).toEqual([MOCK_REMOTE_ENTRY_I(), MOCK_REMOTE_ENTRY_II(), MOCK_HOST_REMOTE_ENTRY()]);
         });
+
+        it('should rename host remoteName to config defined name', async () => {
+            mockConfig.hostRemoteEntry = {
+                name: "newHostName",
+                url: `${MOCK_HOST_REMOTE_ENTRY_SCOPE_URL()}remoteEntry.json`
+            }
+            const result = await getRemoteEntries({});
+            
+            expect(result).toEqual([{...MOCK_HOST_REMOTE_ENTRY(), name: 'newHostName'}]);
+        });
     })
     
     describe('handling existing remotes', () => {
         it('should skip fetching remotes that exist in the repository', async () => {
-            // Setup repository to contain one of the remotes
+            // Setup storage to contain one of the remotes
             mockAdapters.remoteInfoRepo.contains = jest.fn().mockImplementation((name) => name === 'team/mfe1');
             
             const result = await getRemoteEntries(MOCK_MANIFEST());
