@@ -6,7 +6,7 @@ import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { LoggingConfig } from "./config/log.contract";
 import { NFError } from "../native-federation.error";
 import type { ModeConfig } from "./config/mode.contract";
-import { HostConfig } from "./config/host.contract";
+import type { HostConfig } from "./config/host.contract";
 
 /**
  * Fetch the remoteEntry.json metadata files defined in the provided manifest: 
@@ -57,14 +57,14 @@ const createGetRemoteEntries = (
         }
         
         const verifyRemoteEntry = (remoteName: string) => (remoteEntry: RemoteEntry) => {
-            config.log.debug(`fetched '${remoteEntry.name}' from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`);
-
             if(remoteName === "__NF-HOST__") {
                 remoteEntry.host = true;
                 if (!remoteEntry.name) remoteEntry.name = remoteName;
             }
 
-            if(remoteEntry.name !== remoteName) {
+            config.log.debug(`fetched '${remoteEntry.name}' from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`);
+
+            if(!remoteEntry.host && remoteEntry.name !== remoteName) {
                 config.log.warn(`Fetched remote '${remoteEntry.name}' does not match requested '${remoteName}'.`);
             }
             
