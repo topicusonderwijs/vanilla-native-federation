@@ -2,7 +2,7 @@ import { ForDeterminingSharedExternals } from './driver-ports/for-determining-sh
 import { DrivingContract } from './driving-ports/driving.contract';
 import { createDetermineSharedExternals } from './determine-shared-externals';
 import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
-import { createVersionCheck } from '../3.adapters/checks/version.check';
+import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
 import { LoggingConfig } from './config/log.contract';
 import { ModeConfig } from './config/mode.contract';
 

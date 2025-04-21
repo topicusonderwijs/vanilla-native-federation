@@ -1,9 +1,9 @@
-import { RemoteInfo } from '../../1.domain/remote/remote-info.contract';
+import { RemoteInfo } from 'lib/1.domain/remote/remote-info.contract';
 import { createRemoteInfoRepository } from './remote-info.repository';
-import { Optional } from '../../utils/optional';
-import { createStorageHandlerMock } from '../../6.mocks/handlers/storage.mock';
-import { MOCK_REMOTE_INFO_I, MOCK_REMOTE_INFO_II } from "../../6.mocks/domain/remote-info/remote-info.mock";
-import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from '../../6.mocks/domain/remote-entry/remote-entry.mock';
+import { Optional } from 'lib/utils/optional';
+import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
+import { MOCK_REMOTE_INFO_I, MOCK_REMOTE_INFO_II } from "lib/6.mocks/domain/remote-info/remote-info.mock";
+import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
 
 describe('createRemoteInfoRepository', () => {
 

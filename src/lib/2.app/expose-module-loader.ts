@@ -1,8 +1,8 @@
 import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { ForExposingModuleLoader } from "./driver-ports/for-exposing-module-loader.port";
-import { NFError } from "../native-federation.error";
+import { NFError } from "lib/native-federation.error";
 import type { LoggingConfig } from "./config/log.contract";
-import * as _path from "../utils/path";
+import * as _path from "lib/utils/path";
 const createExposeModuleLoader = (
     config: LoggingConfig,
     { remoteInfoRepo, browser }: Pick<DrivingContract, 'remoteInfoRepo'|'browser'>

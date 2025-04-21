@@ -2,12 +2,12 @@ import { createProcessRemoteEntries } from './process-remote-entries';
 import { ForProcessingRemoteEntries } from './driver-ports/for-processing-remote-entries.port';
 import { DrivingContract } from './driving-ports/driving.contract';
 import { LoggingConfig } from './config/log.contract';
-import { mockRemoteInfoRepository } from '../6.mocks/adapters/remote-info.repository.mock';
-import { mockSharedExternalsRepository } from '../6.mocks/adapters/shared-externals.repository.mock';
-import { mockScopedExternalsRepository } from '../6.mocks/adapters/scoped-externals.repository.mock';
-import { createVersionCheck } from '../3.adapters/checks/version.check';
-import { SharedVersion, Version } from '../1.domain/externals/version.contract';
-import { Optional } from '../utils/optional';
+import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
+import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
+import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-externals.repository.mock';
+import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
+import { SharedVersion, Version } from 'lib/1.domain/externals/version.contract';
+import { Optional } from 'lib/utils/optional';
 
 describe('createProcessRemoteEntries', () => {
     let processRemoteEntries: ForProcessingRemoteEntries;

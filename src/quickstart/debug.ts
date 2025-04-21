@@ -1,9 +1,9 @@
 
 import 'es-module-shims';
 
-import { initFederation } from '../lib/init-federation';
-import { consoleLogger } from '../lib/4.config/logging/console.logger';
-import { useShimImportMap } from '../lib/4.config/import-map/use-import-shim';
+import { initFederation } from 'lib/init-federation';
+import { consoleLogger } from 'lib/4.config/logging/console.logger';
+import { useShimImportMap } from 'lib/4.config/import-map/use-import-shim';
 
 (async () => {
     const jsonScript = document.getElementById('manifest');

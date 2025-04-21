@@ -1,7 +1,7 @@
 import { createManifestProvider } from './manifest-provider';
-import { Manifest } from '../../1.domain/remote-entry/manifest.contract';
-import { ForProvidingManifest } from "../../2.app/driving-ports/for-providing-manifest.port";
-import { NFError } from '../../native-federation.error';
+import { Manifest } from 'lib/1.domain/remote-entry/manifest.contract';
+import { ForProvidingManifest } from "lib/2.app/driving-ports/for-providing-manifest.port";
+import { NFError } from 'lib/native-federation.error';
 
 describe('createManifestProvider', () => {
     let manifestProvider: ForProvidingManifest;

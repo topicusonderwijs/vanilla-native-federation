@@ -1,6 +1,6 @@
 import type { RemoteEntry } from "lib/1.domain/remote-entry/remote-entry.contract";
 import type { ForProvidingRemoteEntries } from "lib/2.app/driving-ports/for-providing-remote-entries.port";
-import { NFError } from "../../native-federation.error";
+import { NFError } from "lib/native-federation.error";
 
 const createRemoteEntryProvider = (): ForProvidingRemoteEntries => {
 

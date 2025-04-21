@@ -58,7 +58,7 @@ describe('pathHandler', () => {
         it('should handle relative paths', () => {
             expect(getScope('./file.txt')).toBe('./');
             expect(getScope('../file.txt')).toBe('../');
-            expect(getScope('../../file.txt')).toBe('../../');
+            expect(getScope('lib/file.txt')).toBe('lib/');
         });
 
         it('should handle complex relative paths', () => {

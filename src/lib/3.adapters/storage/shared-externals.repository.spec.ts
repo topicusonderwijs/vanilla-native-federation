@@ -1,9 +1,9 @@
 import { createSharedExternalsRepository } from './shared-externals.repository';
-import { SharedExternals } from '../../1.domain/externals/external.contract';
-import { SharedVersion } from '../../1.domain/externals/version.contract';
-import { createStorageHandlerMock } from '../../6.mocks/handlers/storage.mock';
-import { Optional } from '../../utils/optional';
-import { MOCK_VERSION_II } from '../../6.mocks/domain/externals/version.mock';
+import { SharedExternals } from 'lib/1.domain/externals/external.contract';
+import { SharedVersion } from 'lib/1.domain/externals/version.contract';
+import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
+import { Optional } from 'lib/utils/optional';
+import { MOCK_VERSION_II } from 'lib/6.mocks/domain/externals/version.mock';
 
 describe('createSharedExternalsRepository', () => {
     const setupWithCache = ((storage: any) => {

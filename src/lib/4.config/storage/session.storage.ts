@@ -1,4 +1,4 @@
-import { type StorageEntryHandler, type StorageEntry, NF_STORAGE_ENTRY } from "../../2.app/config/storage.contract";
+import { type StorageEntryHandler, type StorageEntry, NF_STORAGE_ENTRY } from "lib/2.app/config/storage.contract";
 
 const sessionStorageEntry: StorageEntryHandler = <TValue>
     (key: string, initialValue: TValue) => {

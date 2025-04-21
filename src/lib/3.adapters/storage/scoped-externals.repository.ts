@@ -1,6 +1,6 @@
 import type { ScopedExternals } from "lib/1.domain/externals/external.contract";
-import type { StorageConfig, StorageEntry } from "../../2.app/config/storage.contract";
-import { Optional } from "../../utils/optional";
+import type { StorageConfig, StorageEntry } from "lib/2.app/config/storage.contract";
+import { Optional } from "lib/utils/optional";
 import type { ForScopedExternalsStorage } from "lib/2.app/driving-ports/for-scoped-externals-storage.port";
 import type { Version } from "lib/1.domain";
 

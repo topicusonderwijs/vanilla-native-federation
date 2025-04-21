@@ -1,4 +1,4 @@
-import { RemoteEntry } from "../../../1.domain/remote-entry/remote-entry.contract";
+import { RemoteEntry } from "lib/1.domain/remote-entry/remote-entry.contract";
 import { MOCK_FEDERATION_INFO_I, MOCK_FEDERATION_INFO_II, MOCK_HOST_FEDERATION_INFO } from "./federation-info.mock";
 
 /**

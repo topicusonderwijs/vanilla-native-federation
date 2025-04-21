@@ -1,11 +1,11 @@
-import type { ExternalsScope } from '../../1.domain/externals/external.contract';
+import type { ExternalsScope } from 'lib/1.domain/externals/external.contract';
 import { createScopedExternalsRepository } from './scoped-externals.repository';
-import { Optional } from '../../utils/optional';
-import { createStorageHandlerMock } from '../../6.mocks/handlers/storage.mock';
-import { MOCK_EXTERNALS_SCOPE } from '../../6.mocks/domain/externals/external.mock';
-import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from '../../6.mocks/domain/remote-entry/remote-entry.mock';
-import { Version } from '../../1.domain/externals/version.contract';
-import { MOCK_VERSION_I } from '../../6.mocks/domain/externals/version.mock';
+import { Optional } from 'lib/utils/optional';
+import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
+import { MOCK_EXTERNALS_SCOPE } from 'lib/6.mocks/domain/externals/external.mock';
+import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
+import { Version } from 'lib/1.domain/externals/version.contract';
+import { MOCK_VERSION_I } from 'lib/6.mocks/domain/externals/version.mock';
 
 describe('createScopedExternalsRepository', () => {
 

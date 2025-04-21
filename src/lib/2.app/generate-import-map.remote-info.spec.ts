@@ -1,9 +1,9 @@
 import { ForGeneratingImportMap } from './driver-ports/for-generating-import-map';
 import { DrivingContract } from './driving-ports/driving.contract';
 import { createGenerateImportMap } from './generate-import-map';
-import { mockSharedExternalsRepository } from '../6.mocks/adapters/shared-externals.repository.mock';
-import { mockScopedExternalsRepository } from '../6.mocks/adapters/scoped-externals.repository.mock';
-import { mockRemoteInfoRepository } from '../6.mocks/adapters/remote-info.repository.mock';
+import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
+import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-externals.repository.mock';
+import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
 import { LoggingConfig } from './config/log.contract';
 import { ModeConfig } from './config/mode.contract';
 

@@ -1,4 +1,4 @@
-import { ForVersionChecking } from '../../2.app/driving-ports/for-version-checking.port';
+import { ForVersionChecking } from 'lib/2.app/driving-ports/for-version-checking.port';
 import { createVersionCheck } from './version.check';
 /**
  *   === VERSION RULES ===

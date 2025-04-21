@@ -1,11 +1,11 @@
 import { ForDeterminingSharedExternals } from './driver-ports/for-determining-shared-externals.port';
 import { DrivingContract } from './driving-ports/driving.contract';
 import { createDetermineSharedExternals } from './determine-shared-externals';
-import { mockSharedExternalsRepository } from '../6.mocks/adapters/shared-externals.repository.mock';
-import { createVersionCheck } from '../3.adapters/checks/version.check';
+import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
+import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
 import { LoggingConfig } from './config/log.contract';
 import { ModeConfig } from './config/mode.contract';
-import { NFError } from '../native-federation.error';
+import { NFError } from 'lib/native-federation.error';
 
 describe('createDetermineSharedExternals', () => {
     let determineSharedExternals: ForDeterminingSharedExternals;

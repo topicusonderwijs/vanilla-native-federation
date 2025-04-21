@@ -1,8 +1,8 @@
 import type { ForGeneratingImportMap } from "./driver-ports/for-generating-import-map";
 import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { ImportMap, Imports } from "lib/1.domain/import-map/import-map.contract";
-import * as _path from "../utils/path";
-import { NFError } from "../native-federation.error";
+import * as _path from "lib/utils/path";
+import { NFError } from "lib/native-federation.error";
 import type { LoggingConfig } from "./config/log.contract";
 import type { ModeConfig } from "./config/mode.contract";
 import type { SharedVersion } from "lib/1.domain";

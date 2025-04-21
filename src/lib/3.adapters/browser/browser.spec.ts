@@ -1,7 +1,7 @@
 import { createBrowser } from './browser';
-import { ImportMapConfig } from '../../2.app/config/import-map.contract';
-import { ForBrowserTasks } from '../../2.app/driving-ports/for-browser-tasks';
-import { MOCK_IMPORT_MAP } from '../../6.mocks/domain/import-map.mock';
+import { ImportMapConfig } from 'lib/2.app/config/import-map.contract';
+import { ForBrowserTasks } from 'lib/2.app/driving-ports/for-browser-tasks';
+import { MOCK_IMPORT_MAP } from 'lib/6.mocks/domain/import-map.mock';
 
 function setupDomEnvironment() {
     document.head.innerHTML = '';

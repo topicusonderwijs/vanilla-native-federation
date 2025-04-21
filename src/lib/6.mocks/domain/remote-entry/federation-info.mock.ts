@@ -1,4 +1,4 @@
-import { ExposesInfo, FederationInfo, SharedInfo } from "../../../1.domain/remote-entry/remote-entry.contract";
+import { ExposesInfo, FederationInfo, SharedInfo } from "lib/1.domain/remote-entry/remote-entry.contract";
 
 /**
  * --------------------------------------

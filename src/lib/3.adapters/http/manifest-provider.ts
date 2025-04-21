@@ -1,6 +1,6 @@
 import type { Manifest } from "lib/1.domain";
 import type { ForProvidingManifest } from "lib/2.app/driving-ports/for-providing-manifest.port";
-import { NFError } from "../../native-federation.error";
+import { NFError } from "lib/native-federation.error";
 
 const createManifestProvider = (): ForProvidingManifest => {
     const mapToJson = (response: Response) => {

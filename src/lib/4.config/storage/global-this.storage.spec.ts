@@ -1,7 +1,7 @@
-import { NF_STORAGE_ENTRY } from "../../2.app/config/storage.contract";
-import { RemoteInfo } from "../../1.domain/remote/remote-info.contract";
+import { NF_STORAGE_ENTRY } from "lib/2.app/config/storage.contract";
+import { RemoteInfo } from "lib/1.domain/remote/remote-info.contract";
 import { globalThisStorageEntry } from './global-this.storage';
-import { MOCK_REMOTE_INFO_I, MOCK_REMOTE_INFO_II } from "../../6.mocks/domain/remote-info/remote-info.mock";
+import { MOCK_REMOTE_INFO_I, MOCK_REMOTE_INFO_II } from "lib/6.mocks/domain/remote-info/remote-info.mock";
 
 describe('globalThisStorageEntry', () => {
 

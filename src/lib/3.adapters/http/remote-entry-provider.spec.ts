@@ -1,9 +1,9 @@
 import { createRemoteEntryProvider } from './remote-entry-provider';
-import { RemoteEntry } from '../../1.domain/remote-entry/remote-entry.contract';
-import { ForProvidingRemoteEntries } from '../../2.app/driving-ports/for-providing-remote-entries.port';
-import { NFError } from '../../native-federation.error';
-import { MOCK_FEDERATION_INFO_I } from "../../6.mocks/domain/remote-entry/federation-info.mock";
-import { MOCK_REMOTE_ENTRY_I, MOCK_REMOTE_ENTRY_SCOPE_I_URL } from "../../6.mocks/domain/remote-entry/remote-entry.mock";
+import { RemoteEntry } from 'lib/1.domain/remote-entry/remote-entry.contract';
+import { ForProvidingRemoteEntries } from 'lib/2.app/driving-ports/for-providing-remote-entries.port';
+import { NFError } from 'lib/native-federation.error';
+import { MOCK_FEDERATION_INFO_I } from "lib/6.mocks/domain/remote-entry/federation-info.mock";
+import { MOCK_REMOTE_ENTRY_I, MOCK_REMOTE_ENTRY_SCOPE_I_URL } from "lib/6.mocks/domain/remote-entry/remote-entry.mock";
 
 describe('createRemoteEntryProvider', () => {
     let remoteEntryProvider: ForProvidingRemoteEntries;

@@ -1,12 +1,12 @@
 import { createGetRemoteEntries } from './get-remote-entries';
 import { DrivingContract } from './driving-ports/driving.contract';
 import { ForGettingRemoteEntries } from './driver-ports/for-getting-remote-entries.port';
-import { mockManifestProvider } from '../6.mocks/adapters/manifest-provider.mock';
-import { mockRemoteEntryProvider } from '../6.mocks/adapters/remote-entry-provider.mock';
-import { mockRemoteInfoRepository } from '../6.mocks/adapters/remote-info.repository.mock';
-import { MOCK_MANIFEST } from '../6.mocks/domain/manifest.mock';
-import { MOCK_HOST_REMOTE_ENTRY, MOCK_HOST_REMOTE_ENTRY_SCOPE_URL, MOCK_REMOTE_ENTRY_I, MOCK_REMOTE_ENTRY_II, MOCK_REMOTE_ENTRY_SCOPE_I_URL, MOCK_REMOTE_ENTRY_SCOPE_II_URL } from '../6.mocks/domain/remote-entry/remote-entry.mock';
-import { NFError } from '../native-federation.error';
+import { mockManifestProvider } from 'lib/6.mocks/adapters/manifest-provider.mock';
+import { mockRemoteEntryProvider } from 'lib/6.mocks/adapters/remote-entry-provider.mock';
+import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
+import { MOCK_MANIFEST } from 'lib/6.mocks/domain/manifest.mock';
+import { MOCK_HOST_REMOTE_ENTRY, MOCK_HOST_REMOTE_ENTRY_SCOPE_URL, MOCK_REMOTE_ENTRY_I, MOCK_REMOTE_ENTRY_II, MOCK_REMOTE_ENTRY_SCOPE_I_URL, MOCK_REMOTE_ENTRY_SCOPE_II_URL } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
+import { NFError } from 'lib/native-federation.error';
 import { HostConfig } from './config/host.contract';
 import { LoggingConfig } from './config/log.contract';
 import { ModeConfig } from './config/mode.contract';

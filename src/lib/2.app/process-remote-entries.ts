@@ -3,7 +3,7 @@ import type { ForProcessingRemoteEntries } from "./driver-ports/for-processing-r
 import type { RemoteEntry, RemoteInfo, SharedInfo, SharedVersion, Version } from "lib/1.domain";
 import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { LoggingConfig } from "./config/log.contract";
-import * as _path from "../utils/path";
+import * as _path from "lib/utils/path";
 
 /**
  * Extract the externals and remote-infos from the remoteEntry files and merge them into storage. 
