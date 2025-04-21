@@ -1,6 +1,7 @@
 import type { RemoteInfo, RemoteName, Remotes } from "lib/1.domain";
 import type { StorageConfig, StorageEntry } from "../../2.app/config/storage.contract";
 import type { ForRemoteInfoStorage } from "lib/2.app/driving-ports/for-remote-info-storage.port";
+import * as _path from '../../utils/path';
 import { Optional } from "../../utils/optional";
 
 const createRemoteInfoRepository = (
@@ -23,7 +24,8 @@ const createRemoteInfoRepository = (
             return Optional.of(_cache[remoteName])
         }, 
         tryGetModule: function (remoteName: RemoteName, exposedModule: string) {
-            return Optional.of(_cache[remoteName]?.exposes.find(m => m.moduleName === exposedModule));
+            return Optional.of(_cache[remoteName]?.exposes.find(m => m.moduleName === exposedModule))
+                .map(m => _path.join(_cache[remoteName]!.scopeUrl, m.file));
         },
         getAll: function () {
             return _cache;

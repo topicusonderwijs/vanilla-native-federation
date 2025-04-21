@@ -13,6 +13,6 @@ export const createDrivers = (config: Config, adapters: DrivingContract): Driver
     processRemoteEntries: createProcessRemoteEntries(config,adapters),
     determineSharedExternals: createDetermineSharedExternals(config,adapters),
     generateImportMap: createGenerateImportMap(config, adapters),
-    commitChanges: createCommitChanges(config, adapters),
+    commitChanges: createCommitChanges(adapters),
     exposeModuleLoader: createExposeModuleLoader(config, adapters)
 });

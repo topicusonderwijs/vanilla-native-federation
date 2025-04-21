@@ -3,6 +3,7 @@ import { createRemoteInfoRepository } from './remote-info.repository';
 import { Optional } from '../../utils/optional';
 import { createStorageHandlerMock } from '../../6.mocks/handlers/storage.mock';
 import { MOCK_REMOTE_INFO_I, MOCK_REMOTE_INFO_II } from "../../6.mocks/domain/remote-info/remote-info.mock";
+import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from '../../6.mocks/domain/remote-entry/remote-entry.mock';
 
 describe('createRemoteInfoRepository', () => {
 
@@ -151,4 +152,34 @@ describe('createRemoteInfoRepository', () => {
         });
     });
 
+    describe('tryGetModule', () => {
+        it('should return the exposed module', () => {
+            const {remoteInfoRepo} = setupWithCache({
+                "team/mfe1": MOCK_REMOTE_INFO_I()
+            });
+
+            const actual: Optional<string> = remoteInfoRepo.tryGetModule("team/mfe1", "./wc-comp-a");
+
+            expect(actual.isPresent()).toBe(true);
+            expect(actual.get()).toEqual(`${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}component-a.js`);
+        });
+
+        it('should return empty optional if module doesnt exist', () => {
+            const {remoteInfoRepo} = setupWithCache({
+                "team/mfe1": MOCK_REMOTE_INFO_I()
+            });
+
+            const actual: Optional<string> = remoteInfoRepo.tryGetModule("team/mfe1", "./wc-comp-c");
+
+            expect(actual.isPresent()).toBe(false);
+        });
+
+        it('should return empty optional if remote-info doesnt exist', () => {
+            const {remoteInfoRepo} = setupWithCache({});
+
+            const actual: Optional<string> = remoteInfoRepo.tryGetModule("team/mfe1", "./wc-comp-a");
+
+            expect(actual.isPresent()).toBe(false);
+        });
+    });
 });
