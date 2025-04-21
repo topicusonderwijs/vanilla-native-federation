@@ -39,7 +39,7 @@ describe('createDetermineSharedExternals', () => {
                     dirty: true,
                     versions: [{
                         version: "1.2.3", 
-                        url: "http://my.service/mfe1/dep-a.js",
+                        file: "http://my.service/mfe1/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -57,7 +57,7 @@ describe('createDetermineSharedExternals', () => {
                     dirty: false,
                     versions: [{
                         version: "1.2.3", 
-                        url: "http://my.service/mfe1/dep-a.js",
+                        file: "http://my.service/mfe1/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -75,7 +75,7 @@ describe('createDetermineSharedExternals', () => {
                     versions: [
                         {
                             version: "1.2.3", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~1.2.1",
                             strictVersion: false,
                             cached: false,
@@ -102,7 +102,7 @@ describe('createDetermineSharedExternals', () => {
                     versions: [
                         {
                             version: "19.0.1", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~19.0.1",
                             strictVersion: false,
                             cached: false,
@@ -111,7 +111,7 @@ describe('createDetermineSharedExternals', () => {
                         },
                         {
                             version: "18.0.1", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~18.0.1",
                             strictVersion: false,
                             cached: false,
@@ -131,7 +131,7 @@ describe('createDetermineSharedExternals', () => {
                     versions: [
                         {
                             version: "19.0.1", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~19.0.1",
                             strictVersion: false,
                             cached: false,
@@ -140,7 +140,7 @@ describe('createDetermineSharedExternals', () => {
                         },
                         {
                             version: "18.0.1", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~18.0.1",
                             strictVersion: false,
                             cached: false,
@@ -162,7 +162,7 @@ describe('createDetermineSharedExternals', () => {
                     versions: [
                         {
                             version: "19.0.1", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~19.0.1",
                             strictVersion: true,
                             cached: false,
@@ -171,7 +171,7 @@ describe('createDetermineSharedExternals', () => {
                         },
                         {
                             version: "18.0.1", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~18.0.1",
                             strictVersion: true,
                             cached: false,
@@ -191,7 +191,7 @@ describe('createDetermineSharedExternals', () => {
                     versions: [
                         {
                             version: "19.0.1", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~19.0.1",
                             strictVersion: true,
                             cached: false,
@@ -200,7 +200,7 @@ describe('createDetermineSharedExternals', () => {
                         },
                         {
                             version: "18.0.1", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~18.0.1",
                             strictVersion: true,
                             cached: false,
@@ -222,7 +222,7 @@ describe('createDetermineSharedExternals', () => {
                     versions: [
                         {
                             version: "19.0.1", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~19.0.1",
                             strictVersion: true,
                             cached: false,
@@ -231,7 +231,7 @@ describe('createDetermineSharedExternals', () => {
                         },
                         {
                             version: "18.0.1", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~18.0.1",
                             strictVersion: true,
                             cached: false,

@@ -46,7 +46,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                 versions: [
                     {
                         version: "1.2.3", 
-                        url: "http://my.service/mfe1/dep-a.js",
+                        file: "http://my.service/mfe1/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -74,7 +74,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                 versions: [
                     {
                         version: "1.2.3", 
-                        url: "http://my.service/mfe1/dep-a.js",
+                        file: "http://my.service/mfe1/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -83,7 +83,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                     },
                     {
                         version: "1.2.2", 
-                        url: "http://my.service/host/dep-a.js",
+                        file: "http://my.service/host/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -92,7 +92,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                     },
                     {
                         version: "1.2.1", 
-                        url: "http://my.service/mfe3/dep-a.js",
+                        file: "http://my.service/mfe3/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -120,7 +120,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                 versions: [
                     {
                         version: "19.0.2", 
-                        url: "http://my.service/mfe1/dep-a.js",
+                        file: "http://my.service/mfe1/dep-a.js",
                         requiredVersion: "~19.0.1",
                         strictVersion: false,
                         cached: false,
@@ -129,7 +129,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                     },
                     {
                         version: "19.0.2", 
-                        url: "http://my.service/mfe2/dep-a.js",
+                        file: "http://my.service/mfe2/dep-a.js",
                         requiredVersion: "~19.0.1",
                         strictVersion: false,
                         cached: false,
@@ -138,7 +138,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                     },
                     {
                         version: "18.0.1", 
-                        url: "http://my.service/mfe3/dep-a.js",
+                        file: "http://my.service/mfe3/dep-a.js",
                         requiredVersion: "~18.0.1",
                         strictVersion: false,
                         cached: false,
@@ -170,7 +170,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                 versions: [
                     {
                         version: "1.2.3", 
-                        url: "http://my.service/mfe1/dep-a.js",
+                        file: "http://my.service/mfe1/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -179,7 +179,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                     },
                     {
                         version: "1.2.2", 
-                        url: "http://my.service/mfe2/dep-a.js",
+                        file: "http://my.service/mfe2/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -199,7 +199,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                 versions: [
                     {
                         version: "1.2.3", 
-                        url: "http://my.service/mfe1/dep-a.js",
+                        file: "http://my.service/mfe1/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: true,
@@ -208,7 +208,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                     },
                     {
                         version: "1.2.2", 
-                        url: "http://my.service/mfe2/dep-a.js",
+                        file: "http://my.service/mfe2/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -230,7 +230,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                 versions: [
                     {
                         version: "1.2.3", 
-                        url: "http://my.service/mfe1/dep-a.js",
+                        file: "http://my.service/mfe1/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -239,7 +239,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                     },
                     {
                         version: "1.2.2", 
-                        url: "http://my.service/mfe2/dep-a.js",
+                        file: "http://my.service/mfe2/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -269,7 +269,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                 versions: [
                     {
                         version: "1.2.3", 
-                        url: "http://my.service/mfe1/dep-a.js",
+                        file: "http://my.service/mfe1/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,
@@ -278,7 +278,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
                     },
                     {
                         version: "1.2.2", 
-                        url: "http://my.service/mfe2/dep-a.js",
+                        file: "http://my.service/mfe2/dep-a.js",
                         requiredVersion: "~1.2.1",
                         strictVersion: false,
                         cached: false,

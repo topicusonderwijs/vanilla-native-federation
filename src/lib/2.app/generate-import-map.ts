@@ -3,9 +3,9 @@ import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { ImportMap, Imports } from "lib/1.domain/import-map/import-map.contract";
 import * as _path from "../utils/path";
 import { NFError } from "../native-federation.error";
-import { LoggingConfig } from "./config/log.contract";
-import { ModeConfig } from "./config/mode.contract";
-import { SharedVersion } from "lib/1.domain";
+import type { LoggingConfig } from "./config/log.contract";
+import type { ModeConfig } from "./config/mode.contract";
+import type { SharedVersion } from "lib/1.domain";
 
 
 /**
@@ -25,7 +25,7 @@ const createGenerateImportMap = (
         Object.entries(remotes).forEach(([remoteName, remote]) => {
             remote.exposes.forEach((exposed) => {
                 const moduleName = _path.join(remoteName, exposed.moduleName);
-                importMap.imports[moduleName] = exposed.url;
+                importMap.imports[moduleName] = _path.join(remote.scopeUrl, exposed.file);
             })
         });
 
@@ -39,7 +39,7 @@ const createGenerateImportMap = (
             if(!importMap.scopes) importMap.scopes = {};
             importMap.scopes[scope] = Object.entries(externals)
                 .reduce((modules, [external, version]) => {
-                    modules[external] = version.url
+                    modules[external] = _path.join(scope, version.file)
                     return modules;
                 }, {} as Imports);
         });
@@ -51,10 +51,10 @@ const createGenerateImportMap = (
         if(version.action === "skip") return importMap; 
 
         if(version.action === "scope") {
-            const scope = _path.getScope(version.url);
+            const scope = _path.getScope(version.file);
             if(!importMap.scopes) importMap.scopes = {};
             if(!importMap.scopes[scope]) importMap.scopes[scope] = {};
-            importMap.scopes[scope][externalName] = version.url;
+            importMap.scopes[scope][externalName] = version.file;
             version.cached = true;
             return importMap;
         }
@@ -68,7 +68,7 @@ const createGenerateImportMap = (
             return importMap;
         }
 
-        importMap.imports[externalName] = version.url;
+        importMap.imports[externalName] = version.file;
         version.cached = true;
 
         return importMap;

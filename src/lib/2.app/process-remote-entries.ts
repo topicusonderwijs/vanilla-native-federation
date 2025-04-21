@@ -26,7 +26,7 @@ const createProcessRemoteEntries = (
                 exposes: Object.values(exposes ?? [])
                     .map(m => ({
                         moduleName: m.key,
-                        url: _path.join(scopeUrl, m.outFileName) 
+                        file: m.outFileName 
                     }))
             } as RemoteInfo);
         }
@@ -67,7 +67,7 @@ const createProcessRemoteEntries = (
 
             cached.push({
                 version: sharedInfo.version!,
-                url: _path.join(scope, sharedInfo.outFileName),
+                file: _path.join(scope, sharedInfo.outFileName),
                 requiredVersion: sharedInfo.requiredVersion,
                 strictVersion: sharedInfo.strictVersion,
                 host: !!isHostVersion,
@@ -88,7 +88,7 @@ const createProcessRemoteEntries = (
                 sharedInfo.packageName, 
                 {
                     version: sharedInfo.version!,
-                    url: _path.join(scope, sharedInfo.outFileName)
+                    file: sharedInfo.outFileName
                 } as Version
             );
         }

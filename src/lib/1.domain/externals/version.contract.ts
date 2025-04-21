@@ -4,7 +4,7 @@ export type VersionName = string;
 
 export type Version = {
     version: VersionName,
-    url: string
+    file: string
 }
 
 export type SharedVersionAction = 'skip'|'scope'|'share';

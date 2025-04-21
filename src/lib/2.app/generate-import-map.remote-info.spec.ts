@@ -42,8 +42,8 @@ describe('createGenerateImportMap (remoteInfos)', () => {
             "team/mfe1": {
                 scopeUrl: "http://my.service/mfe1/",
                 exposes: [
-                    { moduleName: './wc-comp-a', url: 'http://my.service/mfe1/component-a.js' },
-                    { moduleName: './wc-comp-b', url: 'http://my.service/mfe1/component-b.js' }
+                    { moduleName: './wc-comp-a', file: 'component-a.js' },
+                    { moduleName: './wc-comp-b', file: 'component-b.js' }
                 ]
             }
         }))
@@ -64,14 +64,14 @@ describe('createGenerateImportMap (remoteInfos)', () => {
             "team/mfe1": {
                 scopeUrl: "http://my.service/mfe1/",
                 exposes: [
-                    { moduleName: './wc-comp-a', url: 'http://my.service/mfe1/component-a.js' },
-                    { moduleName: './wc-comp-b', url: 'http://my.service/mfe1/component-b.js' }
+                    { moduleName: './wc-comp-a', file: 'component-a.js' },
+                    { moduleName: './wc-comp-b', file: 'component-b.js' }
                 ]
             },
             "team/mfe2": {
                 scopeUrl: "http://my.service/mfe2/",
                 exposes: [
-                    { moduleName: './wc-comp-c', url: 'http://my.service/mfe2/component-c.js' }
+                    { moduleName: './wc-comp-c', file: 'component-c.js' }
                 ]
             }
         }))
@@ -97,7 +97,7 @@ describe('createGenerateImportMap (remoteInfos)', () => {
             "team/mfe2": {
                 scopeUrl: "http://my.service/mfe2/",
                 exposes: [
-                    { moduleName: './wc-comp-c', url: 'http://my.service/mfe2/component-c.js' }
+                    { moduleName: './wc-comp-c', file: 'component-c.js' }
                 ]
             }
         }))

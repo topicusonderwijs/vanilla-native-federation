@@ -155,7 +155,7 @@ describe('createScopedExternalsRepository', () => {
             });
             const newVersion = (): Version => ({
                 version: "9.9.9",
-                url: "http://custom.service/"
+                file: "dep-x.js"
             });
 
             externalsRepo.addExternal(MOCK_REMOTE_ENTRY_SCOPE_I_URL(), "dep-x", newVersion());
@@ -169,7 +169,7 @@ describe('createScopedExternalsRepository', () => {
             });
             const newVersion = (): Version => ({
                 version: "9.9.9",
-                url: "http://custom.service/"
+                file: "dep-x.js"
             });
 
             externalsRepo.addExternal(MOCK_REMOTE_ENTRY_SCOPE_I_URL(), "dep-x", newVersion());
@@ -189,7 +189,7 @@ describe('createScopedExternalsRepository', () => {
             });
             const newVersion = (): Version => ({
                 version: "9.9.9",
-                url: "http://custom.service/"
+                file: "dep-x.js"
             });
 
             externalsRepo.addExternal("new-scope", "dep-x", newVersion());
@@ -206,11 +206,11 @@ describe('createScopedExternalsRepository', () => {
             });
             const newVersionI = (): Version => ({
                 version: "8.8.8",
-                url: "http://custom.service/"
+                file: "dep-a.js"
             });
             const newVersionII = (): Version => ({
                 version: "9.9.9",
-                url: "http://other.custom.service/"
+                file: "dep-b.js"
             });
 
             externalsRepo
@@ -227,7 +227,7 @@ describe('createScopedExternalsRepository', () => {
         it('should overwrite an existing external in a scope', () => {
             const newVersion = (): Version => ({
                 version: "8.8.8",
-                url: "http://custom.service/"
+                file: "new-dep-a.js"
             });
 
             const {externalsRepo, mockStorage} = setupWithCache({

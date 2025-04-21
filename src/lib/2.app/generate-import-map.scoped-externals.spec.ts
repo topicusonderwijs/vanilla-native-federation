@@ -43,7 +43,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
             "http://my.service/mfe1/": {
                 "dep-a":{
                     version: "1.2.3", 
-                    url: "http://my.service/mfe1/dep-a.js",
+                    file: "dep-a.js",
                 }
             }
         }))
@@ -66,13 +66,13 @@ describe('createGenerateImportMap (scoped-externals)', () => {
             "http://my.service/mfe1/": {
                 "dep-a":{
                     version: "1.2.3", 
-                    url: "http://my.service/mfe1/dep-a.js",
+                    file: "dep-a.js",
                 }
             },
             "http://my.service/mfe2/": {
                 "dep-b":{
                     version: "1.2.3", 
-                    url: "http://my.service/mfe2/dep-b.js",
+                    file: "dep-b.js",
                 }
             }
         }))
@@ -97,11 +97,11 @@ describe('createGenerateImportMap (scoped-externals)', () => {
             "http://my.service/mfe1/": {
                 "dep-a":{
                     version: "1.2.3", 
-                    url: "http://my.service/mfe1/dep-a.js",
+                    file: "dep-a.js",
                 },
                 "dep-b":{
                     version: "1.2.3", 
-                    url: "http://my.service/mfe1/dep-b.js",
+                    file: "dep-b.js",
                 }
             },
         }))

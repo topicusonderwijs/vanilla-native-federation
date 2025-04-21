@@ -58,7 +58,7 @@ describe('createProcessRemoteEntries', () => {
                 {
                     scopeUrl: "http://my.service/mfe1/",
                     exposes: [
-                        { moduleName: './wc-comp-a', url: 'http://my.service/mfe1/component-a.js' }
+                        { moduleName: './wc-comp-a', file: 'component-a.js' }
                     ]
                 }
             );
@@ -93,7 +93,7 @@ describe('createProcessRemoteEntries', () => {
                 'dep-a',
                 {
                     version: "1.2.3", 
-                    url: "http://my.service/mfe1/dep-a.js"
+                    file: "dep-a.js"
                 } as Version
             );
         });
@@ -155,7 +155,7 @@ describe('createProcessRemoteEntries', () => {
                     versions: [
                         {
                             version: "1.2.3", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~1.2.1",
                             strictVersion: false,
                             cached: false,
@@ -202,7 +202,7 @@ describe('createProcessRemoteEntries', () => {
             mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn((): Optional<SharedVersion[]> => Optional.of([
                 {
                     version: "1.2.3", 
-                    url: "http://my.service/mfe1/dep-a.js",
+                    file: "http://my.service/mfe1/dep-a.js",
                     requiredVersion: "~1.2.1",
                     strictVersion: false,
                     cached: true,
@@ -240,7 +240,7 @@ describe('createProcessRemoteEntries', () => {
             mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn((): Optional<SharedVersion[]> => Optional.of([
                 {
                     version: "1.2.3", 
-                    url: "http://my.service/mfe1/dep-a.js",
+                    file: "http://my.service/mfe1/dep-a.js",
                     requiredVersion: "~1.2.1",
                     strictVersion: false,
                     cached: true,
@@ -278,7 +278,7 @@ describe('createProcessRemoteEntries', () => {
                     versions: [
                         {
                             version: "1.2.3", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~1.2.1",
                             strictVersion: false,
                             cached: false,
@@ -295,7 +295,7 @@ describe('createProcessRemoteEntries', () => {
             mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn((): Optional<SharedVersion[]> => Optional.of([
                 {
                     version: "1.2.3", 
-                    url: "http://my.service/mfe1/dep-a.js",
+                    file: "http://my.service/mfe1/dep-a.js",
                     requiredVersion: "~1.2.1",
                     strictVersion: false,
                     cached: true,
@@ -337,7 +337,7 @@ describe('createProcessRemoteEntries', () => {
             mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn((): Optional<SharedVersion[]> => Optional.of([
                 {
                     version: "1.2.4", 
-                    url: "http://my.service/mfe1/dep-a.js",
+                    file: "http://my.service/mfe1/dep-a.js",
                     requiredVersion: "~1.2.1",
                     strictVersion: false,
                     cached: true,
@@ -346,7 +346,7 @@ describe('createProcessRemoteEntries', () => {
                 },
                 {
                     version: "1.2.2", 
-                    url: "http://my.service/mfe1/dep-a.js",
+                    file: "http://my.service/mfe1/dep-a.js",
                     requiredVersion: "~1.2.1",
                     strictVersion: false,
                     cached: false,
@@ -384,7 +384,7 @@ describe('createProcessRemoteEntries', () => {
                     versions: [
                         {
                             version: "1.2.4", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~1.2.1",
                             strictVersion: false,
                             cached: true,
@@ -393,7 +393,7 @@ describe('createProcessRemoteEntries', () => {
                         },
                         {
                             version: "1.2.3", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~1.2.1",
                             strictVersion: false,
                             cached: false,
@@ -402,7 +402,7 @@ describe('createProcessRemoteEntries', () => {
                         },
                         {
                             version: "1.2.2", 
-                            url: "http://my.service/mfe1/dep-a.js",
+                            file: "http://my.service/mfe1/dep-a.js",
                             requiredVersion: "~1.2.1",
                             strictVersion: false,
                             cached: false,

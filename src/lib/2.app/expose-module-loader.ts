@@ -20,7 +20,7 @@ const createExposeModuleLoader = (
 
             config.log.debug(`Loading initialized module '${JSON.stringify(remoteModule)}'`);
 
-            return Promise.resolve(browser.importModule(remoteModule.url));
+            return Promise.resolve(browser.importModule(remoteModule.file));
         }catch(e) {
             let errMsg = `Failed to load remote ${remoteName} module ${exposedModule}`;
             if (e instanceof Error) errMsg = e.message;

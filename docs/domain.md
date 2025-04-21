@@ -136,7 +136,7 @@ classDiagram
     
     class RemoteModule{
         moduleName: string
-        url: string
+        file: string
     }
 
 ```
@@ -163,7 +163,7 @@ classDiagram
     }
     class SharedVersion{
         version: string
-        url: string
+        file: string
         requiredVersion: string
         strictVersion: boolean
         cached: boolean
@@ -178,7 +178,7 @@ classDiagram
     } 
     class Version{
         version: string
-        url: string
+        file: string
     }
 
 ```
@@ -191,7 +191,7 @@ An example of the cached externals can be seen below, the action is calculated i
         "dep-a": [
             {
                 "version": "1.2.3", 
-                "url":"https://example.org/mfe1/dep-a.js",
+                "file":"https://example.org/mfe1/dep-a.js",
                 "requiredVersion": "~1.2.1", 
                 "strictVersion": false,                
                 "action": "share",
@@ -200,7 +200,7 @@ An example of the cached externals can be seen below, the action is calculated i
             },
             {
                 "version":"1.2.2", 
-                "url":"https://example.org/mfe2/dep-a.js",
+                "file":"https://example.org/mfe2/dep-a.js",
                 "requiredVersion": "^1.2.1", 
                 "strictVersion": true, 
                 "action": "skip",
@@ -213,7 +213,7 @@ An example of the cached externals can be seen below, the action is calculated i
         "https://example.org/mfe1/": {
             "dep-b": {
                 "version": "4.5.6", 
-                "url":"https://example.org/mfe1/dep-b.js",
+                "file":"dep-b.js",
             }
         }
     }
