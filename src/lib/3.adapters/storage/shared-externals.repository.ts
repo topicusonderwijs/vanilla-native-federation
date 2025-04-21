@@ -10,7 +10,7 @@ const createSharedExternalsRepository = (
 
     if (config.clearCache) STORAGE.clear();
 
-    let _cache: SharedExternals = STORAGE.get()!;
+    const _cache: SharedExternals = STORAGE.get()!;
 
     return {
         getAll: function () {
