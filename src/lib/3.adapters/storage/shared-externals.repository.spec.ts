@@ -74,50 +74,6 @@ describe('createSharedExternalsRepository', () => {
         });
     });
 
-    describe('contains', () => {
-        it('should return true if shared list is empty', () => {
-            const {externalsRepo} = setupWithCache({});
-            expect(externalsRepo.contains("dep-a")).toBe(false);
-        });
-
-        it('should return false if not in shared list', () => {
-            const {externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }});
-            expect(externalsRepo.contains("dep-b")).toBe(false);
-        });
-
-        it('should return true if in shared list', () => {
-            const {externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }});
-            expect(externalsRepo.contains("dep-a")).toBe(true);
-        });
-    });
-
-    describe('set', () => {
-        it('should not set the whole entry if no commit', () => {
-            const {mockStorage, externalsRepo} = setupWithCache({});
-            externalsRepo.set({"dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }});
-            expect(mockStorage["shared-externals"]).toEqual({});
-        });
-        it('should set the whole entry after commit', () => {
-            const {mockStorage, externalsRepo} = setupWithCache({});
-            externalsRepo.set({"dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }});
-            expect(mockStorage["shared-externals"]).toEqual({});
-            externalsRepo.commit();
-            expect(mockStorage["shared-externals"]).toEqual({"dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }});
-        });
-        it('should clear the whole entry', () => {
-            const {mockStorage, externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }});
-            externalsRepo.set({});
-            externalsRepo.commit();
-            expect(mockStorage["shared-externals"]).toEqual({});
-        });
-        it('should replace the whole entry', () => {
-            const {mockStorage, externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }});
-            externalsRepo.set({"dep-b": { dirty: false, versions: [] }});
-            externalsRepo.commit();
-            expect(mockStorage["shared-externals"]).toEqual({"dep-b": { dirty: false, versions: [] }});
-        });
-    });
-
     describe('addOrUpdate', () => {
         it('should not add or update if no commit', () => {
             const {mockStorage, externalsRepo} = setupWithCache({});

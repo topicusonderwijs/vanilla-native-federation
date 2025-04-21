@@ -1,4 +1,3 @@
-import { RemoteInfo } from 'lib/1.domain/remote/remote-info.contract';
 import { createRemoteInfoRepository } from './remote-info.repository';
 import { Optional } from 'lib/utils/optional';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
@@ -117,38 +116,6 @@ describe('createRemoteInfoRepository', () => {
             const {remoteInfoRepo} = setupWithCache({});
             const result = remoteInfoRepo.addOrUpdate("team/mfe1", MOCK_REMOTE_INFO_I());
             expect(result).toBe(remoteInfoRepo);
-        });
-    });
-
-    describe('tryGet', () => {
-        it('should return the remote', () => {
-            const {remoteInfoRepo} = setupWithCache({
-                "team/mfe1": MOCK_REMOTE_INFO_I()
-            });
-
-            const actual: Optional<RemoteInfo> = remoteInfoRepo.tryGet("team/mfe1");
-
-            expect(actual.isPresent()).toBe(true);
-            expect(actual.get()).toEqual(MOCK_REMOTE_INFO_I());
-        });
-
-        it('should return empty optional if remote doesnt exist', () => {
-            const {remoteInfoRepo} = setupWithCache({});
-            const actual: Optional<RemoteInfo> = remoteInfoRepo.tryGet("team/mfe1");
-
-            expect(actual.isPresent()).toBe(false);
-            expect(actual.get()).toEqual(undefined);
-        });
-
-        it('should return empty optional if only other remotes exist', () => {
-            const {remoteInfoRepo} = setupWithCache({
-                "team/mfe1": MOCK_REMOTE_INFO_I()
-            });
-
-            const actual: Optional<RemoteInfo> = remoteInfoRepo.tryGet("team/mfe2");
-
-            expect(actual.isPresent()).toBe(false);
-            expect(actual.get()).toEqual(undefined);
         });
     });
 

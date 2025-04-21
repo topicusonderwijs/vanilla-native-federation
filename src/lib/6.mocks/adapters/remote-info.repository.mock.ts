@@ -4,7 +4,6 @@ export const mockRemoteInfoRepository = ()
     : jest.Mocked<ForRemoteInfoStorage> => ({
         contains: jest.fn(),
         addOrUpdate: jest.fn(),
-        tryGet: jest.fn(),
         tryGetModule: jest.fn(),
         getAll: jest.fn(),
         commit: jest.fn()

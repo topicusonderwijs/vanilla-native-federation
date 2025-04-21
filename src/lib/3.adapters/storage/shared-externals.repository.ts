@@ -15,10 +15,6 @@ const createSharedExternalsRepository = (
     return {
         getAll: function () {
             return {..._cache};
-        }, 
-        contains: function (externalName: string) {
-            const external = _cache[externalName];
-            return !!external && external.versions.length > 0;
         },
         addOrUpdate: function (externalName: string, external: SharedExternal) {
             _cache[externalName] = external;
@@ -26,10 +22,6 @@ const createSharedExternalsRepository = (
         },
         tryGetVersions: function (external: string) {
             return Optional.of(_cache[external]?.versions);
-        },
-        set: function (externals: SharedExternals) {
-            _cache = {...externals};
-            return this;
         },
         commit: function () {
             STORAGE.set(_cache);

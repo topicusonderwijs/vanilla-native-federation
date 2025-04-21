@@ -19,10 +19,7 @@ const createRemoteInfoRepository = (
         addOrUpdate: function (remoteName: string, remote: RemoteInfo) {
             _cache[remoteName] = remote;
             return this;
-        }, 
-        tryGet: function (remoteName: RemoteName) {
-            return Optional.of(_cache[remoteName])
-        }, 
+        },
         tryGetModule: function (remoteName: RemoteName, exposedModule: string) {
             return Optional.of(_cache[remoteName]?.exposes.find(m => m.moduleName === exposedModule))
                 .map(m => _path.join(_cache[remoteName]!.scopeUrl, m.file));
