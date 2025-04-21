@@ -114,7 +114,7 @@ The `sharedExternal` contains the metadata for an external (dependency) that can
 | packageName | The name of the external |
 | outFileName | The filename of the external, relative from the location of the remoteEntry.json |
 
-**todo** refer to the sharing versions section.
+> Read more about the version resolver [here](./version-resolver.md).
 
 ## Cache (RemoteInfo)
 

@@ -15,5 +15,6 @@ This library is under [MIT License](./LICENSE.md) and is inspired on [@softarc/n
 Learn more about the vanilla-native-federation library:
 
 1. [Getting started](./docs/getting-started.md)
-1. [Exploring the native-federation domain](./docs/domain.md)
-2. [Configuring the vanilla-native-federation library](./docs/config.md)
+2. [Exploring the native-federation domain](./docs/domain.md)
+3. [Configuring the vanilla-native-federation library](./docs/config.md)
+4. [A deep dive into the externals version resolver](./docs/version-resolver.md)
