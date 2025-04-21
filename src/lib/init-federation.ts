@@ -1,20 +1,27 @@
-import type { StepFactories } from "./steps/steps.contract";
-import { resolver } from "./steps/steps.resolver";
-import { defaultConfig } from "./config/config";
-import type { Config } from "./config/config.contract";
+import { createDriving } from "./5.di/driving.factory";
+import { createDrivers } from "./5.di/drivers.factory";
+import { createConfigHandlers } from "./5.di/config.factory";
+import type { Options } from "./2.app/config/config.contract";
 
 const initFederation = (
-    remotesOrManifestUrl: string | Record<string, string> = {},
-    override: Partial<Config> & {steps?: Partial<StepFactories>} = {}
-) => {   
-    const steps = resolver(
-        defaultConfig(override ?? {}), 
-        override?.steps ?? {}
-    );
+    remotesOrManifestUrl: string | Record<string, string>,
+    config: Options
+) => {  
+    const configHandlers = createConfigHandlers(config);
+    const adapters = createDriving(configHandlers);
+    const app = createDrivers(configHandlers, adapters);
 
-    return steps.fetchRemoteEntries(remotesOrManifestUrl)
-        .then(steps.createImportMap)
-        .then(steps.exposeModuleLoader)
+    return app.getRemoteEntries(remotesOrManifestUrl)
+        .then(app.processRemoteEntries)
+        .then(app.determineSharedExternals)
+        .then(app.generateImportMap)
+        .then(app.commitChanges)
+        .then(app.exposeModuleLoader)
+        .catch(e => {
+            configHandlers.log.error("Init failed: ", e);
+            return Promise.reject(e);
+        })
+
 }
 
 export { initFederation };

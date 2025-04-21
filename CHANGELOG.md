@@ -1,3 +1,13 @@
+## 0.12.0 - COMPLETE REWORK, docs show the new domain model, options and configuration.
+- [new] Refactored to hexagonal architecture.
+- [fix] Added enhanced documentation.
+- [fix] Added strict mode to config which throws errors if something goes wrong during initialization. 
+- [fix] Added default shared external resolver that scopes a version if incompatible with the chosen shared version.
+- [fix] Added resolver that checks the most optimal version of each singleton external for usage as shared version.
+- [fix] When supplied, the externals in the host remoteEntry will be used as shared version to allow locking a certain version by the host. 
+- [fix] The storage will now only persist the changes after all changes were succesful to avoid the host getting stuck in an error state because of contaminated storage. 
+- [rem] Removed 'plugins' and replaced for 'config' object. 
+
 ## 0.11.1 - Bugfix: Init failed if one remoteEntry was skipped in step 1 (metadata verification step)
 - [fix] Init will now only log an error and a warning if a module could not be initialized instead of throwing an error during init.
 - [test] Cleaned the test in externals handler.

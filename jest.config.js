@@ -13,10 +13,12 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       babel: true,
-      tsconfig: 'tsconfig.json',
+      tsconfig: 'tsconfig.spec.json',
     }]
   },
-
+  moduleNameMapper: {
+    "^lib/(.*)$": ["<rootDir>/src/lib/$1"],
+  },
   setupFiles: [],
 
   collectCoverage: true,
@@ -27,7 +29,7 @@ module.exports = {
     'src/**/*.{js,ts}',
     '!src/**/*.d.ts',
     '!src/**/index.ts',
-    '!src/**/*.resolver.ts',
+    '!src/lib/5.di/**/*',
   ],
   preset: 'ts-jest',
   clearMocks: true
