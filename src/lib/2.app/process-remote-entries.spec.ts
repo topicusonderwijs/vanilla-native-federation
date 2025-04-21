@@ -120,7 +120,7 @@ describe('createProcessRemoteEntries', () => {
             await processRemoteEntries(remoteEntries);
 
             expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
-            expect(mockConfig.log.warn).toHaveBeenCalledWith("[team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping.")
+            expect(mockConfig.log.warn).toHaveBeenCalledWith("[team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version.")
         });
     });
 
@@ -191,7 +191,7 @@ describe('createProcessRemoteEntries', () => {
             await processRemoteEntries(remoteEntries);
 
             expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
-            expect(mockConfig.log.warn).toHaveBeenCalledWith("[team/mfe1][dep-a] Version 'bad-version' is not a valid version, skipping.")
+            expect(mockConfig.log.warn).toHaveBeenCalledWith("[team/mfe1][dep-a] Version 'bad-version' is not a valid version, skipping version.")
 
         });
         
@@ -232,7 +232,7 @@ describe('createProcessRemoteEntries', () => {
             await processRemoteEntries(remoteEntries);
 
             expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalledTimes(1);
-            expect(mockConfig.log.warn).toHaveBeenCalledWith("[http://my.service/mfe1/] Shared version '1.2.3' already exists, skipping.")
+            expect(mockConfig.log.debug).toHaveBeenCalledWith("[http://my.service/mfe1/] Shared version '1.2.3' already exists, skipping version.")
         });
 
 
@@ -326,7 +326,7 @@ describe('createProcessRemoteEntries', () => {
             await processRemoteEntries(remoteEntries);
 
             expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalledTimes(1);
-            expect(mockConfig.log.warn).toHaveBeenCalledWith("[http://my.service/mfe1/] Shared version '1.2.3' already exists, skipping.")
+            expect(mockConfig.log.debug).toHaveBeenCalledWith("[http://my.service/mfe1/] Shared version '1.2.3' already exists, skipping version.")
         });
     });
 

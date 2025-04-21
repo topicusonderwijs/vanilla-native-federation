@@ -37,7 +37,7 @@ const createProcessRemoteEntries = (
 
             remoteEntry.shared.forEach(external => {
                 if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
-                    config.log.warn(`[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping.`);
+                    config.log.warn(`[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`);
                     return;
                 }
                 if(external.singleton) {
@@ -59,7 +59,7 @@ const createProcessRemoteEntries = (
 
             if (~matchingVersionIDX) {
                 if(cached[matchingVersionIDX]!.host || !isHostVersion) {
-                    config.log.warn(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping.`);
+                    config.log.debug(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping version.`);
                     return;
                 }
                 delete cached[matchingVersionIDX];

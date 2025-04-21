@@ -69,7 +69,7 @@ import { initFederation, config } from 'vanilla-native-federation';
 
 initFederation("http://example.org/manifest.json", {
     // Option 1: Using es-module-shims
-    ...config.useImportMapShim({shimMode: true}),
+    ...config.useShimImportMap({shimMode: true}),
 
     // Option 2: Using the default importmap
     ...config.useDefaultImportMap(),
