@@ -5,23 +5,23 @@ import type { LoggingConfig } from "./config/log.contract";
 import * as _path from "lib/utils/path";
 const createExposeModuleLoader = (
     config: LoggingConfig,
-    { remoteInfoRepo, browser }: Pick<DrivingContract, 'remoteInfoRepo'|'browser'>
+    ports: Pick<DrivingContract, 'remoteInfoRepo'|'browser'>
 ): ForExposingModuleLoader => { 
 
     function loadRemoteModule(
         remoteName: string, exposedModule: string
     ): Promise<unknown> {
         try{
-            if(!remoteInfoRepo.contains(remoteName)) {
+            if(!ports.remoteInfoRepo.contains(remoteName)) {
                 throw new NFError(`Remote '${remoteName}' is not initialized.`);
             }
 
-            const remoteModuleUrl = remoteInfoRepo.tryGetModule(remoteName, exposedModule)
+            const remoteModuleUrl = ports.remoteInfoRepo.tryGetModule(remoteName, exposedModule)
                 .orThrow(new NFError(`Exposed module '${exposedModule}' from remote '${remoteName}' not found in storage.`));
 
             config.log.debug(`Loading initialized module '${remoteModuleUrl}'`);
 
-            return browser.importModule(remoteModuleUrl);
+            return ports.browser.importModule(remoteModuleUrl);
         }catch(err) {
             config.log.error(`Failed to load module ${_path.join(remoteName, exposedModule)}: `, err);
 

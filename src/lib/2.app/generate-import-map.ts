@@ -16,11 +16,11 @@ import type { SharedVersion } from "lib/1.domain";
  */
 const createGenerateImportMap = (
     config: LoggingConfig & ModeConfig,
-    {remoteInfoRepo, scopedExternalsRepo, sharedExternalsRepo}: Pick<DrivingContract, 'remoteInfoRepo'|'scopedExternalsRepo'|'sharedExternalsRepo'>
+    ports: Pick<DrivingContract, 'remoteInfoRepo'|'scopedExternalsRepo'|'sharedExternalsRepo'>
 ): ForGeneratingImportMap => { 
     
     function addRemoteInfos(importMap: ImportMap) {
-        const remotes = remoteInfoRepo.getAll();
+        const remotes = ports.remoteInfoRepo.getAll();
 
         Object.entries(remotes).forEach(([remoteName, remote]) => {
             remote.exposes.forEach((exposed) => {
@@ -33,7 +33,7 @@ const createGenerateImportMap = (
     }
 
     function addScopedExternals(importMap: ImportMap) {
-        const scopedExternals = scopedExternalsRepo.getAll();
+        const scopedExternals = ports.scopedExternalsRepo.getAll();
 
         Object.entries(scopedExternals).forEach(([scope, externals]) => {
             if(!importMap.scopes) importMap.scopes = {};
@@ -75,11 +75,11 @@ const createGenerateImportMap = (
     }
 
     function addSharedExternals(importMap: ImportMap) {
-        const sharedExternals = sharedExternalsRepo.getAll();
+        const sharedExternals = ports.sharedExternalsRepo.getAll();
 
         Object.entries(sharedExternals).forEach(([externalName, external]) => {
             importMap = external.versions.reduce(addVersionToImportMap(externalName), importMap);
-            sharedExternalsRepo.addOrUpdate(externalName, external);
+            ports.sharedExternalsRepo.addOrUpdate(externalName, external);
         });
 
         return importMap;

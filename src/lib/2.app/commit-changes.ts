@@ -3,18 +3,18 @@ import type { ForCommittingChanges } from "./driver-ports/for-committing-changes
 import type { ImportMap } from "lib/1.domain/import-map/import-map.contract";
 
 const createCommitChanges = (
-    { remoteInfoRepo, sharedExternalsRepo, scopedExternalsRepo, browser }: Pick<DrivingContract, 'remoteInfoRepo'|'scopedExternalsRepo'|'sharedExternalsRepo'|'browser'>
+    ports: Pick<DrivingContract, 'remoteInfoRepo'|'scopedExternalsRepo'|'sharedExternalsRepo'|'browser'>
 ): ForCommittingChanges => { 
 
     function addToBrowser(importMap: ImportMap) {
-        browser.setImportMap(importMap);
+        ports.browser.setImportMap(importMap);
         return importMap;
     }
 
     function persistRepositoryChanges() {
-        remoteInfoRepo.commit();
-        scopedExternalsRepo.commit();
-        sharedExternalsRepo.commit();
+        ports.remoteInfoRepo.commit();
+        ports.scopedExternalsRepo.commit();
+        ports.sharedExternalsRepo.commit();
         return;
     }
 

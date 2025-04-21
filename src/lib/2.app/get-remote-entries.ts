@@ -17,7 +17,7 @@ import type { HostConfig } from "./config/host.contract";
  */
 const createGetRemoteEntries = (
     config: LoggingConfig & ModeConfig & HostConfig,
-    {remoteEntryProvider, manifestProvider, remoteInfoRepo}: Pick<DrivingContract, 'remoteEntryProvider'|'manifestProvider'|'remoteInfoRepo'>
+    ports: Pick<DrivingContract, 'remoteEntryProvider'|'manifestProvider'|'remoteInfoRepo'>
 ): ForGettingRemoteEntries => (remotesOrManifestUrl: string | Manifest = {})
     : Promise<RemoteEntry[]> => {
     
@@ -41,11 +41,11 @@ const createGetRemoteEntries = (
 
         function fetchRemoteEntry([remoteName, remoteEntryUrl]: [RemoteName, RemoteEntryUrl])
             : Promise<RemoteEntry|false> {
-                if(remoteInfoRepo.contains(remoteName)) {
+                if(ports.remoteInfoRepo.contains(remoteName)) {
                     config.log.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
                     return Promise.resolve(false);
                 }
-                return remoteEntryProvider.provide(remoteEntryUrl)
+                return ports.remoteEntryProvider.provide(remoteEntryUrl)
                     .then(verifyRemoteEntry(remoteName))
                     .catch(handleFetchFailed);
             }
@@ -77,7 +77,7 @@ const createGetRemoteEntries = (
                 return federationInfos.filter(info => !!info);
             }
 
-        return manifestProvider.provide(remotesOrManifestUrl)
+        return ports.manifestProvider.provide(remotesOrManifestUrl)
             .catch(err => {
                 config.log.warn(`Failed to fetch manifest.`,  err);
                 return Promise.reject(new NFError(`Could not fetch manifest.`));

@@ -14,14 +14,14 @@ import * as _path from "lib/utils/path";
  */
 const createProcessRemoteEntries = (
     config: LoggingConfig,
-    { remoteInfoRepo, sharedExternalsRepo, scopedExternalsRepo, versionCheck }: Pick<DrivingContract,  'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'>
+    ports: Pick<DrivingContract,  'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'>
 ): ForProcessingRemoteEntries => { 
 
     function addRemoteInfoToStorage({name, url, exposes}: RemoteEntry)
         : void {
             const scopeUrl =  _path.getScope(url);
 
-            remoteInfoRepo.addOrUpdate(name, {
+            ports.remoteInfoRepo.addOrUpdate(name, {
                 scopeUrl,
                 exposes: Object.values(exposes ?? [])
                     .map(m => ({
@@ -36,7 +36,7 @@ const createProcessRemoteEntries = (
             const scopeUrl =  _path.getScope(remoteEntry.url);
 
             remoteEntry.shared.forEach(external => {
-                if (!external.version || !versionCheck.isValidSemver(external.version)) {
+                if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
                     config.log.warn(`[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping.`);
                     return;
                 }
@@ -51,7 +51,7 @@ const createProcessRemoteEntries = (
 
     function addSharedExternal(scope: string, sharedInfo: SharedInfo, isHostVersion?: boolean) 
         : void {
-            const cached: SharedVersion[] = sharedExternalsRepo
+            const cached: SharedVersion[] = ports.sharedExternalsRepo
                 .tryGetVersions(sharedInfo.packageName)
                 .orElse([]);
 
@@ -75,15 +75,15 @@ const createProcessRemoteEntries = (
                 action: 'skip'
             } as SharedVersion);
 
-            sharedExternalsRepo.addOrUpdate(
+            ports.sharedExternalsRepo.addOrUpdate(
                 sharedInfo.packageName, 
-                { dirty: true, versions: cached.sort((a,b) => versionCheck.compare(b.version, a.version)) }
+                { dirty: true, versions: cached.sort((a,b) => ports.versionCheck.compare(b.version, a.version)) }
             );
         }
 
     function addScopedExternal(scope: string, sharedInfo: SharedInfo) 
         : void {
-            scopedExternalsRepo.addExternal(
+            ports.scopedExternalsRepo.addExternal(
                 scope, 
                 sharedInfo.packageName, 
                 {
@@ -96,9 +96,9 @@ const createProcessRemoteEntries = (
     function logStorageStatus(status: string)
         : void {
             config.log.debug(status, {
-                "remotes": remoteInfoRepo.getAll(),
-                "shared-externals": sharedExternalsRepo.getAll(),
-                "scoped-externals": scopedExternalsRepo.getAll(),
+                "remotes": ports.remoteInfoRepo.getAll(),
+                "shared-externals": ports.sharedExternalsRepo.getAll(),
+                "scoped-externals": ports.scopedExternalsRepo.getAll(),
             })
         }
         

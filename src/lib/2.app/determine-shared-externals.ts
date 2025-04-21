@@ -21,7 +21,7 @@ import type { ModeConfig } from "./config/mode.contract";
  */
 const createDetermineSharedExternals = (
     config: LoggingConfig & ModeConfig,
-    {versionCheck, sharedExternalsRepo}: Pick<DrivingContract, 'versionCheck' | 'sharedExternalsRepo'>
+    ports: Pick<DrivingContract, 'versionCheck' | 'sharedExternalsRepo'>
 ): ForDeterminingSharedExternals => { 
     
     function updateVersionActions(externalName: string, external: SharedExternal) {
@@ -42,7 +42,7 @@ const createDetermineSharedExternals = (
             let leastExtraDownloads = Number.MAX_VALUE;
             external.versions.forEach(vA => {
                 const extraDownloads = external.versions
-                    .filter(vB => (!vB.cached && vB.strictVersion && !versionCheck.isCompatible(vA.version, vB.requiredVersion)))
+                    .filter(vB => (!vB.cached && vB.strictVersion && !ports.versionCheck.isCompatible(vA.version, vB.requiredVersion)))
                     .length;
                 if (extraDownloads < leastExtraDownloads) {
                     leastExtraDownloads = extraDownloads;
@@ -55,7 +55,7 @@ const createDetermineSharedExternals = (
 
         // Determine action of other versions based on chosen sharedVersion
         external.versions.forEach(v => {
-            if(versionCheck.isCompatible(sharedVersion!.version, v.requiredVersion)) {
+            if(ports.versionCheck.isCompatible(sharedVersion!.version, v.requiredVersion)) {
                 v.action = "skip";
                 return;
             }
@@ -75,13 +75,13 @@ const createDetermineSharedExternals = (
     }
 
     return () => {
-        const sharedExternals = sharedExternalsRepo.getAll();
+        const sharedExternals = ports.sharedExternalsRepo.getAll();
 
         try {
             Object.entries(sharedExternals)
                 .filter(([_, e]) => e.dirty)
                 .forEach(([name, external]) => {
-                    sharedExternalsRepo.addOrUpdate(name, updateVersionActions(name, external))
+                    ports.sharedExternalsRepo.addOrUpdate(name, updateVersionActions(name, external))
                 });
 
             config.log.debug("Processed shared externals", sharedExternals);
