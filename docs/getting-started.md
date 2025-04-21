@@ -16,7 +16,7 @@ A preconfigured setup of the `vanilla-native-federation` can be used in a HTML f
         <script>
             <!-- event will be fired if native-federation initialization is done -->
             window.addEventListener('mfe-loader-available', (e) => {
-                e.loadRemoteModule("team/mfe1", "./comp");
+                e.detail.loadRemoteModule("team/mfe1", "<your-exposed-comp>");
             }, {once: true});
         </script>
         <script src="https://unpkg.com/vanilla-native-federation@0.12.0/quickstart/debug.mjs"></script>
