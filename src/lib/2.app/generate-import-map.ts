@@ -1,13 +1,25 @@
 import type { ForGeneratingImportMap } from "./driver-ports/for-generating-import-map";
 import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { ImportMap, Imports } from "lib/1.domain/import-map/import-map.contract";
-import * as _path from "lib/utils/path";
+import * as _path from "../utils/path";
+import { NFError } from "../native-federation.error";
+import { LoggingConfig } from "./config/log.contract";
+import { ModeConfig } from "./config/mode.contract";
+import { SharedVersion } from "lib/1.domain";
 
+
+/**
+ * Step 4, generate an importMap from the cached remoteEntries
+ * 
+ * @param param0 
+ * @returns 
+ */
 const createGenerateImportMap = (
-    {remoteInfoRepo, scopedExternalsRepo, sharedExternalsRepo}: DrivingContract
+    config: LoggingConfig & ModeConfig,
+    {remoteInfoRepo, scopedExternalsRepo, sharedExternalsRepo}: Pick<DrivingContract, 'remoteInfoRepo'|'scopedExternalsRepo'|'sharedExternalsRepo'>
 ): ForGeneratingImportMap => { 
     
-    function addRemoteInfos(importMap: Required<ImportMap>) {
+    function addRemoteInfos(importMap: ImportMap) {
         const remotes = remoteInfoRepo.getAll();
 
         Object.entries(remotes).forEach(([remoteName, remote]) => {
@@ -20,10 +32,11 @@ const createGenerateImportMap = (
         return importMap;
     }
 
-    function addScopedExternals(importMap: Required<ImportMap>) {
+    function addScopedExternals(importMap: ImportMap) {
         const scopedExternals = scopedExternalsRepo.getAll();
 
         Object.entries(scopedExternals).forEach(([scope, externals]) => {
+            if(!importMap.scopes) importMap.scopes = {};
             importMap.scopes[scope] = Object.entries(externals)
                 .reduce((modules, [external, version]) => {
                     modules[external] = version.url
@@ -34,25 +47,38 @@ const createGenerateImportMap = (
         return importMap;
     }
 
-    function addSharedExternals(importMap: Required<ImportMap>) {
+    const addVersionToImportMap = (externalName: string) => (importMap: ImportMap, version: SharedVersion) => {
+        if(version.action === "skip") return importMap; 
+
+        if(version.action === "scope") {
+            const scope = _path.getScope(version.url);
+            if(!importMap.scopes) importMap.scopes = {};
+            if(!importMap.scopes[scope]) importMap.scopes[scope] = {};
+            importMap.scopes[scope][externalName] = version.url;
+            version.cached = true;
+            return importMap;
+        }
+
+        if(!!importMap.imports[externalName]) {
+            if (config.strict) {
+                config.log.error(`Singleton external ${externalName} has multiple shared versions.`);
+                throw new NFError("Could not create ImportMap.");
+            }
+            config.log.warn(`Singleton external ${externalName} has multiple shared versions.`);
+            return importMap;
+        }
+
+        importMap.imports[externalName] = version.url;
+        version.cached = true;
+
+        return importMap;
+    }
+
+    function addSharedExternals(importMap: ImportMap) {
         const sharedExternals = sharedExternalsRepo.getAll();
 
         Object.entries(sharedExternals).forEach(([externalName, external]) => {
-            external.versions.forEach(v => {
-                switch(v.action) {
-                    case "skip": return;
-                    case "share": 
-                        importMap.imports[externalName] = v.url;
-                        break;
-                    case "scope":
-                        const scope = _path.getScope(v.url);
-                        if(!importMap.scopes[scope]) importMap.scopes[scope] = {};
-                        importMap.scopes[scope][externalName] = v.url;
-                        break;
-                }
-                v.cached = true;
-            });
-
+            importMap = external.versions.reduce(addVersionToImportMap(externalName), importMap);
             sharedExternalsRepo.addOrUpdate(externalName, external);
         });
 
@@ -60,7 +86,7 @@ const createGenerateImportMap = (
     }
 
     return () => {
-        return Promise.resolve({imports: {}, scopes: {}})
+        return Promise.resolve({imports: {}})
             .then(addRemoteInfos)
             .then(addScopedExternals)
             .then(addSharedExternals);
