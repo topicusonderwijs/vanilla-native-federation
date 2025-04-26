@@ -22,9 +22,10 @@
     "allowSyntheticDefaultImports": true,
     
     "declaration": true,
-    "sourceMap": true,
+    "declarationDir": "./dist/types",
     "emitDeclarationOnly": true,
-    
+
+    "sourceMap": true,    
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },

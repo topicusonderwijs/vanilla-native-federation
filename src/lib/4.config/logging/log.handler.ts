@@ -7,14 +7,13 @@ const createLogHandler = (logger: Logger, logLevel: LogType): LogHandler => {
     return logTypes.reduce((acc, logMessageType) => {
         return {
             ...acc,
-            [logMessageType]: (message: string) => {
+            [logMessageType]: (message: string, details: unknown) => {
                 if (LogLevel[logMessageType] >= LogLevel[logLevel]) {
-                    logger[logMessageType](message);
+                    logger[logMessageType](message, details);
                 }
-            },
-            level: logLevel
+            }
         };
-    }, {} as LogHandler);
+    }, {level: logLevel} as LogHandler);
 };
 
 export { createLogHandler };

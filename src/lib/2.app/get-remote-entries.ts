@@ -9,11 +9,15 @@ import type { ModeConfig } from "./config/mode.contract";
 import type { HostConfig } from "./config/host.contract";
 
 /**
- * Fetch the remoteEntry.json metadata files defined in the provided manifest: 
+ * Step 1: Fetch the remoteEntry JSON objects: 
+ * 
+ * A Manifest or URL to a Manifest is used as the input.  Based on the defined remotes
+ * in the manifest, the library will download the remoteEntry.json files which contain the
+ * metadata of the defined remotes (name, exposed modules and required dependencies a.k.a. externals)
  * 
  * @param config 
  * @param adapters 
- * @returns A list of the remoteEntries
+ * @returns A list of the remoteEntry json objects
  */
 const createGetRemoteEntries = (
     config: LoggingConfig & ModeConfig & HostConfig,
@@ -21,7 +25,6 @@ const createGetRemoteEntries = (
 ): ForGettingRemoteEntries => (remotesOrManifestUrl: string | Manifest = {})
     : Promise<RemoteEntry[]> => {
     
-
         function addHostRemoteEntry(manifest: Manifest)
             : Manifest {
                 if(!!config.hostRemoteEntry) {
@@ -41,7 +44,7 @@ const createGetRemoteEntries = (
 
         function fetchRemoteEntry([remoteName, remoteEntryUrl]: [RemoteName, RemoteEntryUrl])
             : Promise<RemoteEntry|false> {
-                if(ports.remoteInfoRepo.contains(remoteName)) {
+                if(config.profile.skipCachedRemotes && ports.remoteInfoRepo.contains(remoteName)) {
                     config.log.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
                     return Promise.resolve(false);
                 }

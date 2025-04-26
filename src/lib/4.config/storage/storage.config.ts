@@ -1,6 +1,5 @@
-import type { StorageConfig } from "lib/2.app";
+import type { StorageConfig, StorageOptions } from "lib/2.app/config/storage.contract";
 import { globalThisStorageEntry } from "./global-this.storage";
-import type { StorageOptions } from "lib/2.app/config/storage.contract";
 
 export const createStorageConfig = (override: StorageOptions): StorageConfig => ({
     storage: globalThisStorageEntry,

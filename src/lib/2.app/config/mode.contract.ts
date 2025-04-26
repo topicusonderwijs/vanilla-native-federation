@@ -2,7 +2,10 @@
 
 export type ModeConfig = {
     strict: boolean,
-    latestSharedExternal: boolean
+    profile: { 
+        latestSharedExternal: boolean,
+        skipCachedRemotes: boolean
+    }
 }
 
 export type ModeOptions = Partial<ModeConfig>

@@ -1,3 +1,11 @@
+## 0.12.1 - Small optimizations and docs
+- [new] Added performance profiles to the configuration.
+- [new] Exposed SDK for customization. 
+- [new] Exposed Ports (driver and driving) through SDK export.
+- [doc] Added documentation to different steps. 
+- [fix] Fixed a bug where the package.json pointed to the wrong declaration ts files.
+- [fix] Fixed bug where consoleLogger was unable to print the details object. 
+
 ## 0.12.0 - COMPLETE REWORK, docs show the new domain model, options and configuration.
 - [new] Refactored to hexagonal architecture.
 - [fix] Added enhanced documentation.
@@ -6,7 +14,7 @@
 - [fix] Added resolver that checks the most optimal version of each singleton external for usage as shared version.
 - [fix] When supplied, the externals in the host remoteEntry will be used as shared version to allow locking a certain version by the host. 
 - [fix] The storage will now only persist the changes after all changes were succesful to avoid the host getting stuck in an error state because of contaminated storage. 
-- [rem] Removed 'plugins' and replaced for 'config' object. 
+- [rem] Removed 'plugins' and replaced for 'config' object. bad typescrypt declaration file export
 
 ## 0.11.1 - Bugfix: Init failed if one remoteEntry was skipped in step 1 (metadata verification step)
 - [fix] Init will now only log an error and a warning if a module could not be initialized instead of throwing an error during init.

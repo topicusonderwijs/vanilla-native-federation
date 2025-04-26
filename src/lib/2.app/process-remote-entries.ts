@@ -6,7 +6,13 @@ import type { LoggingConfig } from "./config/log.contract";
 import * as _path from "lib/utils/path";
 
 /**
- * Extract the externals and remote-infos from the remoteEntry files and merge them into storage. 
+ * Step 2: Process remoteEntry objects
+ * 
+ * Extracts the externals and remote-info objects from the provided remoteEntry objects. 
+ * The metadata will be merged into the existing cache/storage but the changes are not persisted (yet). 
+ * 
+ * - For remotes and scoped externals that means a full replace. 
+ * - For shared externals that means merging the versions into the currently cached externals. 
  * 
  * @param config 
  * @param adapters 
@@ -59,7 +65,7 @@ const createProcessRemoteEntries = (
 
             if (~matchingVersionIDX) {
                 if(cached[matchingVersionIDX]!.host || !isHostVersion) {
-                    config.log.debug(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping version.`);
+                    config.log.debug(`[${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, skipping version.`);
                     return;
                 }
                 delete cached[matchingVersionIDX];
@@ -103,12 +109,12 @@ const createProcessRemoteEntries = (
         }
         
     return remoteEntries => {
-        if(config.log.level === "debug") logStorageStatus("temp cache state: Initial");
+        if(config.log.level === "debug") logStorageStatus("Storage: before processing remoteEntries");
         remoteEntries.forEach(remoteEntry => {
             addRemoteInfoToStorage(remoteEntry);
             addExternalsToStorage(remoteEntry);
         });
-        if(config.log.level === "debug") logStorageStatus("temp cache state: After merging remoteEntries");
+        if(config.log.level === "debug") logStorageStatus("Storage: before processing remoteEntries");
        
 
         return Promise.resolve();

@@ -9,10 +9,13 @@ import type { SharedVersion } from "lib/1.domain";
 
 
 /**
- * Step 4, generate an importMap from the cached remoteEntries
+ * Step 4: Generate an importMap from the cached remoteEntries
  * 
- * @param param0 
- * @returns 
+ * The processed externals in the storage/cache (step 2 & 3) are used 
+ * to generate an importMap. The step returns the generated importMap object. 
+ * 
+ * @param config 
+ * @param adapters 
  */
 const createGenerateImportMap = (
     config: LoggingConfig & ModeConfig,

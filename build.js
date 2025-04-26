@@ -8,7 +8,6 @@ const PATHS = {
   dist: 'dist',
   lib: path.join('src', 'lib'),
   quickstart: path.join('src', 'quickstart'),
-  entryPoint: 'src/index.ts',
   tsconfigFile: 'tsconfig.build.json',
 };
 
@@ -118,7 +117,7 @@ async function generateBuildConfigs() {
     },
     fesm2022: {
       ...baseConfig,
-      entryPoints: [PATHS.entryPoint],
+      entryPoints: ['src/lib/index.ts'],
       outfile: path.join(OUTPUT_PATHS.fesm2022, `${PACKAGE_NAME}.mjs`),
       bundle: true,
       sourcemap: true
@@ -144,15 +143,15 @@ async function generateBuildConfigs() {
 function generatePackageExports() {
   return {
     exports: {
-      "./package.json": { default: "./package.json" },
+      "./package.json": {default: "./package.json"},
       ".": {
-        types: "./index.d.ts",
-        esm: "./esm2022/vanilla-native-federation.mjs",
+        types: "./types/lib/index.d.ts",
+        esm: "./esm2022/index.mjs",
         default: "./fesm2022/vanilla-native-federation.mjs"
-      }
+      },
     },
+    typings: "types/lib/index.d.ts",
     module: './fesm2022/vanilla-native-federation.mjs',
-    typings: 'index.d.ts',
     type: 'module'
   };
 }

@@ -1,15 +1,11 @@
-import { createDriving } from "./5.di/driving.factory";
-import { createDrivers } from "./5.di/drivers.factory";
-import { createConfigHandlers } from "./5.di/config.factory";
 import type { Options } from "./2.app/config/config.contract";
+import { CREATE_NF_APP } from "./create-nf-app";
 
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string>,
-    config: Options
+    options: Options
 ) => {  
-    const configHandlers = createConfigHandlers(config);
-    const adapters = createDriving(configHandlers);
-    const app = createDrivers(configHandlers, adapters);
+    const {app, config} = CREATE_NF_APP(options);
 
     return app.getRemoteEntries(remotesOrManifestUrl)
         .then(app.processRemoteEntries)
@@ -18,7 +14,7 @@ const initFederation = (
         .then(app.commitChanges)
         .then(app.exposeModuleLoader)
         .catch(e => {
-            configHandlers.log.error("Init failed: ", e);
+            config.log.error("Init failed: ", e);
             return Promise.reject(e);
         })
 
