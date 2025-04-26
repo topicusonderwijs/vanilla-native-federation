@@ -58,7 +58,10 @@ describe('DefaultConfig', () => {
 
             expect(actual).toEqual({
                 strict: false,
-                latestSharedExternal: false
+                profile: {
+                    latestSharedExternal: false,
+                    skipCachedRemotes: false
+                }
             });
         });  
     });

@@ -41,7 +41,7 @@ const createGetRemoteEntries = (
 
         function fetchRemoteEntry([remoteName, remoteEntryUrl]: [RemoteName, RemoteEntryUrl])
             : Promise<RemoteEntry|false> {
-                if(ports.remoteInfoRepo.contains(remoteName)) {
+                if(config.profile.skipCachedRemotes && ports.remoteInfoRepo.contains(remoteName)) {
                     config.log.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
                     return Promise.resolve(false);
                 }

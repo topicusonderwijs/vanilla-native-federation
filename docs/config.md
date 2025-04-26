@@ -15,7 +15,7 @@ The configuration is divided into 5 sections
 
 The `hostRemoteEntry` configuration is meant for adding a host remoteEntry file which receives priority during the determine-shared-versions step. That is, when an external version is defined in the host remoteEntry.json file, it will be guaranteed the shared version. The goal of the cachetag is to avoid caching the remoteEntry.json file.
 
-```
+```javascript
 export type HostOptions = {
     hostRemoteEntry?: false|{
         url: string,
@@ -32,7 +32,7 @@ export type HostOptions = {
 
 ### Example
 
-```
+```javascript
 import { initFederation, config } from 'vanilla-native-federation';
 
 initFederation("http://example.org/manifest.json", {
@@ -45,7 +45,7 @@ initFederation("http://example.org/manifest.json", {
 
 The native-federation library uses importmaps under the hood for module resolving. Since importmaps are a [relatively new feature of browsers](https://caniuse.com/import-maps), it might be a good idea to use a polyfill that is guaranteed to work, also in older browsers. There are 3 options supported: default, [es-module-shims](https://www.npmjs.com/package/es-module-shims/v/1.0.1) and systemJS.
 
-```
+```javascript
 export type ImportMapOptions = {
     importMapType?: string,
     loadModuleFn?: (url: string) => unknown
@@ -63,7 +63,7 @@ export type ImportMapOptions = {
 
 ### Example
 
-```
+```javascript
 import 'es-module-shims';
 import { initFederation, config } from 'vanilla-native-federation';
 
@@ -83,7 +83,7 @@ initFederation("http://example.org/manifest.json", {
 
 Allows for the configuration and specificity of logging. Additionally, a custom logger can be defined.
 
-```
+```javascript
 export type LoggingOptions = {
     logger?: LogHandler,
     logLevel?: "debug"|"warn"|"error",
@@ -100,7 +100,7 @@ export type LoggingOptions = {
 
 ### Example
 
-```
+```javascript
 import { initFederation, config } from 'vanilla-native-federation';
 
 initFederation("http://example.org/manifest.json", {
@@ -118,10 +118,15 @@ initFederation("http://example.org/manifest.json", {
 
 The mode config focusses on the way the library behaves, especially when resolving shared externals. The options are meant as hyperparameters to tweak the strictness of native-federation. 
 
-```
+```javascript
 export type ModeConfig = {
     strict: boolean,
-    latestSharedExternal: boolean
+
+    // Option 1: default profile
+    profile: config.defaultProfile
+
+    // Option 2: caching profile
+    profile: config.cachingProfile
 }
 ```
 
@@ -129,17 +134,19 @@ export type ModeConfig = {
 
 | Option | Default | Description |
 | --- | --- | --- |
-| strict | `false` | When enabled, the init function will throw an error if a remoteEntry could not be fetched or a version incompatibility within a shared external occurs.
-| latestSharedExternal | `false` | When enabled, the version resolver will prioritize using the latest version of a shared external over the most optimal version. 
+| strict | `false` | When enabled, the init function will throw an error if a remoteEntry could not be fetched or a version incompatibility within a shared external occurs.|
+| profile.latestSharedExternal | `false` | When enabled, the version resolver will prioritize using the latest version of a shared external over the most optimal version. |
+| profile.skipCachedRemotes | `false` | When enabled, the library will skip the download/processing of remoteEntry of remotes that have already been cached. This can optimize the process but will prevent the library from updating the cache if a change was performed in the remoteEntry. | 
+
 
 ### Example
 
-```
+```javascript
 import { initFederation, config } from 'vanilla-native-federation';
 
 initFederation("http://example.org/manifest.json", {
     strict: true,
-    latestSharedExternal: true
+    profile: config.cachingProfile // { latestShareExternal: false, skipCachedRemotes: true }
 });
 ```
 
@@ -147,7 +154,7 @@ initFederation("http://example.org/manifest.json", {
 
 The library stores the current state by default in the globalThis object, it is possible to provide a custom storage or switch to localStorage or sessionStorage. 
 
-```
+```javascript
 type StorageConfig = {
     storage: StorageEntryHandler,
     clearCache: boolean,
@@ -163,7 +170,7 @@ type StorageConfig = {
 
 ### Example
 
-```
+```javascript
 import { initFederation, config } from 'vanilla-native-federation';
 
 initFederation("http://example.org/manifest.json", {

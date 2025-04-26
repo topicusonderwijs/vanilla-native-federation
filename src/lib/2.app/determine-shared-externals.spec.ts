@@ -20,7 +20,10 @@ describe('createDetermineSharedExternals', () => {
                 error: jest.fn(),
                 level: "debug"
             },
-            latestSharedExternal: false,
+            profile: {
+                latestSharedExternal: false,
+                skipCachedRemotes: false
+            },
             strict: false
         } as LoggingConfig & ModeConfig;
         

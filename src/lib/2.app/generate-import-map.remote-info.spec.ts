@@ -21,7 +21,10 @@ describe('createGenerateImportMap (remoteInfos)', () => {
                 level: "debug"
             },
             strict: false,
-            latestSharedExternal: false
+            profile: {
+                latestSharedExternal: false,
+                skipCachedRemotes: false
+            }
         } as LoggingConfig & ModeConfig;
 
         mockAdapters = {

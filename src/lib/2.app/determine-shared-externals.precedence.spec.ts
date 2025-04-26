@@ -23,7 +23,10 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
                 error: jest.fn(),
                 level: "debug"
             },
-            latestSharedExternal: false,
+            profile: {
+                latestSharedExternal: false,
+                skipCachedRemotes: false
+            },
             strict: false
         } as LoggingConfig & ModeConfig;
         
@@ -230,7 +233,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
 
     it('Should prioritize latest version if config is enabled', async () => {
         mockConfig.strict = false;
-        mockConfig.latestSharedExternal = true;
+        mockConfig.profile.latestSharedExternal = true;
 
         mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
             "dep-a": {

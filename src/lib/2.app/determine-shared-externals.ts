@@ -33,7 +33,7 @@ const createDetermineSharedExternals = (
 
         let sharedVersion = external.versions.find(v => v.host);
 
-        if(!sharedVersion && config.latestSharedExternal) {
+        if(!sharedVersion && config.profile.latestSharedExternal) {
             sharedVersion = external.versions[0];
         }
 

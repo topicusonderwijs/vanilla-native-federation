@@ -24,7 +24,10 @@ describe('createGetRemoteEntries', () => {
                 error: jest.fn(),
                 level: "debug"
             },
-            latestSharedExternal: false,
+            profile: {
+                latestSharedExternal: false,
+                skipCachedRemotes: false
+            },
             hostRemoteEntry: false,
             strict: false
         } as HostConfig & LoggingConfig & ModeConfig;
@@ -123,8 +126,18 @@ describe('createGetRemoteEntries', () => {
     })
     
     describe('handling existing remotes', () => {
-        it('should skip fetching remotes that exist in the repository', async () => {
+        it('should not skip fetching remotes that exist in the repository when disabled in config', async () => {
             // Setup storage to contain one of the remotes
+            mockAdapters.remoteInfoRepo.contains = jest.fn().mockImplementation((name) => name === 'team/mfe1');
+            
+            const result = await getRemoteEntries(MOCK_MANIFEST());
+            
+            expect(result).toEqual([MOCK_REMOTE_ENTRY_I(), MOCK_REMOTE_ENTRY_II()]);
+        });
+
+        it('should skip fetching remotes that exist in the repository when enabled in config', async () => {
+            mockConfig.profile.skipCachedRemotes = true;
+
             mockAdapters.remoteInfoRepo.contains = jest.fn().mockImplementation((name) => name === 'team/mfe1');
             
             const result = await getRemoteEntries(MOCK_MANIFEST());
