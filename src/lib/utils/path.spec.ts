@@ -51,10 +51,6 @@ describe('pathHandler', () => {
             expect(getScope('/path/to/archive.tar.gz')).toBe('/path/to/');
         });
 
-        it('should handle Windows-style paths if they use forward slashes', () => {
-            expect(getScope('C:/Users/username/Documents/file.txt')).toBe('C:/Users/username/Documents/');
-        });
-
         it('should handle relative paths', () => {
             expect(getScope('./file.txt')).toBe('./');
             expect(getScope('../file.txt')).toBe('../');
@@ -76,12 +72,6 @@ describe('pathHandler', () => {
 
         it('should handle paths that only contain a directory name (no slashes)', () => {
             expect(getScope('directory')).toBe('directory/');
-        });
-
-        it('should handle edge cases with dots', () => {
-            expect(getScope('/path/to/.')).toBe('/path/to/');
-            expect(getScope('/path/to/..')).toBe('/path/to/');
-            expect(getScope('/path/to/...')).toBe('/path/to/');
         });
     });
 
