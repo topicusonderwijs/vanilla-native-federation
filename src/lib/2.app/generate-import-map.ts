@@ -5,7 +5,7 @@ import * as _path from "lib/utils/path";
 import { NFError } from "lib/native-federation.error";
 import type { LoggingConfig } from "./config/log.contract";
 import type { ModeConfig } from "./config/mode.contract";
-import type { SharedVersion } from "lib/1.domain";
+import type { SharedVersion } from "lib/1.domain/public_api";
 
 
 /**

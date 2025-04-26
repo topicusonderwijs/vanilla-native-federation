@@ -1,4 +1,4 @@
-import { ExternalsScope, SharedExternal, SharedExternals } from "lib/1.domain";
+import { ExternalsScope, SharedExternal, SharedExternals } from "lib/1.domain/public_api";
 import { MOCK_VERSION_I, MOCK_VERSION_II, MOCK_VERSION_III, MOCK_VERSION_IV, MOCK_VERSION_V, MOCK_VERSION_VI } from "./version.mock";
 
 /**

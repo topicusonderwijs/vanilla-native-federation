@@ -1,7 +1,7 @@
 import type { ScopedExternals } from "lib/1.domain/externals/external.contract";
 import type { StorageConfig, StorageEntry } from "lib/2.app/config/storage.contract";
 import type { ForScopedExternalsStorage } from "lib/2.app/driving-ports/for-scoped-externals-storage.port";
-import type { Version } from "lib/1.domain";
+import type { Version } from "lib/1.domain/public_api";
 
 const createScopedExternalsRepository = (
     config: StorageConfig,

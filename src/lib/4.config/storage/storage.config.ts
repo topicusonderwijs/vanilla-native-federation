@@ -1,4 +1,4 @@
-import type { StorageConfig } from "lib/2.app";
+import type { StorageConfig } from "lib/2.app/public_api";
 import { globalThisStorageEntry } from "./global-this.storage";
 import type { StorageOptions } from "lib/2.app/config/storage.contract";
 

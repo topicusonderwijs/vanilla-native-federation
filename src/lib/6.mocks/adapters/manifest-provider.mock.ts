@@ -1,6 +1,6 @@
 import { ForProvidingManifest } from "lib/2.app/driving-ports/for-providing-manifest.port";
 import { MOCK_MANIFEST } from "../domain/manifest.mock";
-import { Manifest } from "lib/1.domain";
+import { Manifest } from "lib/1.domain/public_api";
 
 export const mockManifestProvider = ()
     : jest.Mocked<ForProvidingManifest> => ({

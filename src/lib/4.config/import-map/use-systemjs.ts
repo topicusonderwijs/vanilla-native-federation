@@ -1,4 +1,4 @@
-import type { ImportMapConfig } from "lib/2.app";
+import type { ImportMapConfig } from "lib/2.app/public_api";
 
 
 export const useSystemJSImportMap = (): ImportMapConfig => ({

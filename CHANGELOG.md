@@ -1,5 +1,7 @@
-## 0.12.1 - Small optimizations
+## 0.12.1 - Small optimizations and docs
 - [new] Added performance profiles to the configuration.
+- [new] Exposed SDK for customization. 
+- [doc] Added documentation to different steps. 
 
 ## 0.12.0 - COMPLETE REWORK, docs show the new domain model, options and configuration.
 - [new] Refactored to hexagonal architecture.

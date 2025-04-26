@@ -1,4 +1,4 @@
-import type { Manifest } from "lib/1.domain";
+import type { Manifest } from "lib/1.domain/public_api";
 import type { ForProvidingManifest } from "lib/2.app/driving-ports/for-providing-manifest.port";
 import { NFError } from "lib/native-federation.error";
 
