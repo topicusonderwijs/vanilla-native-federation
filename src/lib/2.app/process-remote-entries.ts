@@ -6,7 +6,13 @@ import type { LoggingConfig } from "./config/log.contract";
 import * as _path from "lib/utils/path";
 
 /**
- * Extract the externals and remote-infos from the remoteEntry files and merge them into storage. 
+ * Step 2: Process remoteEntry objects
+ * 
+ * Extracts the externals and remote-info objects from the provided remoteEntry objects. 
+ * The metadata will be merged into the existing cache/storage but the changes are not persisted (yet). 
+ * 
+ * - For remotes and scoped externals that means a full replace. 
+ * - For shared externals that means merging the versions into the currently cached externals. 
  * 
  * @param config 
  * @param adapters 

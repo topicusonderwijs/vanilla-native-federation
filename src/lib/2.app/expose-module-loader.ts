@@ -3,6 +3,21 @@ import type { ForExposingModuleLoader } from "./driver-ports/for-exposing-module
 import { NFError } from "lib/native-federation.error";
 import type { LoggingConfig } from "./config/log.contract";
 import * as _path from "lib/utils/path";
+
+
+/**
+ * Step 6: expose module loader
+ * 
+ * The module loader can only be used after the importmap was generated and added to
+ * the DOM, hence the module loader fn is exposed to the host after the final commit 
+ * step. 
+ * 
+ * The loadRemoteModule is also a callback that is returned as a promise by the initFederation
+ * function. This way the loadRemoteModule can be shared througout the host application using 
+ * CustomEvents or by adding it to the global Window object for easy access. 
+ * 
+ * @param adapters 
+ */
 const createExposeModuleLoader = (
     config: LoggingConfig,
     ports: Pick<DrivingContract, 'remoteInfoRepo'|'browser'>
