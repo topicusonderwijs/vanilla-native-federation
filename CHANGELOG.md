@@ -1,3 +1,6 @@
+## 0.12.1 - Small optimizations
+- [new] Added performance profiles to the configuration.
+
 ## 0.12.0 - COMPLETE REWORK, docs show the new domain model, options and configuration.
 - [new] Refactored to hexagonal architecture.
 - [fix] Added enhanced documentation.
