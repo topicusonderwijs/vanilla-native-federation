@@ -1,4 +1,4 @@
-import { ImportMap } from "lib/1.domain/public_api";
+import { ImportMap } from "lib/1.domain";
 import { MOCK_HOST_REMOTE_ENTRY_SCOPE_URL, MOCK_REMOTE_ENTRY_SCOPE_I_URL, MOCK_REMOTE_ENTRY_SCOPE_II_URL } from "./remote-entry/remote-entry.mock";
 
 

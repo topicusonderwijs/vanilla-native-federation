@@ -1,4 +1,4 @@
-import type { RemoteInfo, RemoteName, Remotes } from "lib/1.domain/public_api";
+import type { RemoteInfo, RemoteName, Remotes } from "lib/1.domain";
 import type { StorageConfig, StorageEntry } from "lib/2.app/config/storage.contract";
 import type { ForRemoteInfoStorage } from "lib/2.app/driving-ports/for-remote-info-storage.port";
 import * as _path from 'lib/utils/path';

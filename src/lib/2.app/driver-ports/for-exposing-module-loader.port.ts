@@ -1,4 +1,4 @@
-import type { LoadRemoteModule } from "lib/1.domain/public_api";
+import type { LoadRemoteModule } from "lib/1.domain";
 
 
 export type ForExposingModuleLoader = () => Promise<{loadRemoteModule: LoadRemoteModule}>

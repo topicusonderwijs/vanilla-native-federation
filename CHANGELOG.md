@@ -1,7 +1,9 @@
 ## 0.12.1 - Small optimizations and docs
 - [new] Added performance profiles to the configuration.
 - [new] Exposed SDK for customization. 
+- [new] Exposed Ports (driver and driving) through SDK export.
 - [doc] Added documentation to different steps. 
+- [fix] Fixed bad typescrypt declaration file export.
 
 ## 0.12.0 - COMPLETE REWORK, docs show the new domain model, options and configuration.
 - [new] Refactored to hexagonal architecture.

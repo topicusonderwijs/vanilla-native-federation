@@ -1,4 +1,4 @@
-import { RemoteInfo } from "lib/1.domain/public_api";
+import { RemoteInfo } from "lib/1.domain";
 import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from "../remote-entry/remote-entry.mock";
 
 export const MOCK_REMOTE_INFO_I = ()
