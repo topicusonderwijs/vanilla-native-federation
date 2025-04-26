@@ -65,7 +65,7 @@ const createProcessRemoteEntries = (
 
             if (~matchingVersionIDX) {
                 if(cached[matchingVersionIDX]!.host || !isHostVersion) {
-                    config.log.debug(`[${scope}] Shared version '${sharedInfo.version}' already exists, skipping version.`);
+                    config.log.debug(`[${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, skipping version.`);
                     return;
                 }
                 delete cached[matchingVersionIDX];
@@ -109,12 +109,12 @@ const createProcessRemoteEntries = (
         }
         
     return remoteEntries => {
-        if(config.log.level === "debug") logStorageStatus("temp cache state: Initial");
+        if(config.log.level === "debug") logStorageStatus("Storage: before processing remoteEntries");
         remoteEntries.forEach(remoteEntry => {
             addRemoteInfoToStorage(remoteEntry);
             addExternalsToStorage(remoteEntry);
         });
-        if(config.log.level === "debug") logStorageStatus("temp cache state: After merging remoteEntries");
+        if(config.log.level === "debug") logStorageStatus("Storage: before processing remoteEntries");
        
 
         return Promise.resolve();
