@@ -8,7 +8,7 @@ A preconfigured setup of the `vanilla-native-federation` can be used in a HTML f
 <html>
     <head>
         <title>Shell</title>
-        <script type="application/json" id="manifest">
+        <script type="application/json" id="mfe-manifest">
             {
                 "team/mfe1": "http://localhost:3000/remoteEntry.json",
             }
