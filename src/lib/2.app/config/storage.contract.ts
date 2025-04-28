@@ -12,11 +12,14 @@ type StorageEntryCreator = (namespace: string) => StorageEntryHandler
 type StorageEntryHandler = <TValue>(key: string, initialValue: TValue) => StorageEntry<TValue>;
 
 type StorageConfig = {
-    storage: StorageEntryCreator,
-    clearStorage: boolean,
-    storageNamespace: string
+    storage: StorageEntryHandler,
+    clearStorage: boolean
 }
 
-type StorageOptions = Partial<StorageConfig>
+type StorageOptions = {
+    storage?: StorageEntryCreator,
+    clearStorage?: boolean,
+    storageNamespace?: string
+}
 
 export {StorageEntry, StorageEntryKey, StorageEntryHandler, StorageConfig, StorageOptions, StorageEntryCreator}

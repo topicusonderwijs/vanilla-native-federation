@@ -6,7 +6,7 @@ import type { Version } from "lib/1.domain";
 const createScopedExternalsRepository = (
     config: StorageConfig,
 ): ForScopedExternalsStorage => {
-    const STORAGE: StorageEntry<ScopedExternals> = config.storage(config.storageNamespace)("scoped-externals", {});
+    const STORAGE: StorageEntry<ScopedExternals> = config.storage("scoped-externals", {});
     
     if (config.clearStorage) STORAGE.clear();
 

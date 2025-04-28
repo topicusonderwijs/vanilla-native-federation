@@ -13,8 +13,7 @@ describe('createSharedExternalsRepository', () => {
 
         const mockConfig: StorageConfig = {
             storage: mockStorageEntry, 
-            clearStorage: false,
-            storageNamespace: "namespace"
+            clearStorage: false
         }
         const externalsRepo = createSharedExternalsRepository(mockConfig);
         return {mockStorage, externalsRepo};
@@ -32,8 +31,7 @@ describe('createSharedExternalsRepository', () => {
 
             const mockConfig: StorageConfig = {
                 storage: mockStorageEntry, 
-                clearStorage: true,
-                storageNamespace: "namespace"
+                clearStorage: true
             }
             createSharedExternalsRepository(mockConfig);
             expect(mockStorage["shared-externals"]).toEqual({});

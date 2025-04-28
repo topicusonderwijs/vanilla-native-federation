@@ -167,7 +167,7 @@ type StorageConfig = {
 | --- | --- | --- |
 | storage | `globalThisStorageEntry` | Allows the provision of a custom storage implementation. 
 | clearStorage | `false` | When enabled, the initFederation function will clear the current cache/storage before initializing the remoteEntries. 
-
+| storageNamespace | `"__NATIVE_FEDERATION__"` | The namespace under which the cache will be stored. e.g. remotes will be stored under `__NATIVE_FEDERATION__.remotes` in localStorage |
 ### Example
 
 ```javascript
@@ -175,6 +175,7 @@ import { initFederation, config } from 'vanilla-native-federation';
 
 initFederation("http://example.org/manifest.json", {
     clearStorage: true,
+    storageNamespace: "__custom_namespace__",
 
     // Option 1: globalThis
     logger: config.globalThisStorage,

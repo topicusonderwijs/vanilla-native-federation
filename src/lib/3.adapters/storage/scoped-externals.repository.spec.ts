@@ -14,8 +14,7 @@ describe('createScopedExternalsRepository', () => {
 
         const mockConfig: StorageConfig = {
             storage: mockStorageEntry, 
-            clearStorage: false,
-            storageNamespace: "namespace"
+            clearStorage: false
         }
         const externalsRepo = createScopedExternalsRepository(mockConfig);
         return {mockStorage, externalsRepo};
@@ -34,8 +33,7 @@ describe('createScopedExternalsRepository', () => {
             const mockStorageEntry = createStorageHandlerMock(mockStorage);
             const mockConfig: StorageConfig = {
                 storage: mockStorageEntry, 
-                clearStorage: true,
-                storageNamespace: "namespace"
+                clearStorage: true
             }
             createScopedExternalsRepository(mockConfig);
             expect(mockStorage["scoped-externals"]).toEqual({});

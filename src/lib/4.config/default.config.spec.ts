@@ -71,11 +71,11 @@ describe('DefaultConfig', () => {
             const spy = jest.spyOn(storageHandler, 'globalThisStorageEntry');
 
             const actual = createStorageConfig({});
-            actual.storage("namespace")("key","value");
+            actual.storage("entry", {});
 
             expect(spy).toHaveBeenCalled();
             expect(actual.clearStorage).toBe(false);
-            expect(actual.storageNamespace).toBe("__NATIVE_FEDERATION__");
+
         });  
     });
 })

@@ -13,8 +13,7 @@ describe('createRemoteInfoRepository', () => {
 
         const mockConfig: StorageConfig = {
             storage: mockStorageEntry, 
-            clearStorage: false,
-            storageNamespace: "namespace"
+            clearStorage: false
         }
         const remoteInfoRepo = createRemoteInfoRepository(mockConfig);
         return {mockStorage, mockStorageEntry, remoteInfoRepo};
@@ -34,8 +33,7 @@ describe('createRemoteInfoRepository', () => {
             const mockStorageEntry = createStorageHandlerMock(mockStorage);
             const mockConfig: StorageConfig = {
                 storage: mockStorageEntry, 
-                clearStorage: true,
-                storageNamespace: "namespace"
+                clearStorage: true
             }
             createRemoteInfoRepository(mockConfig);
             
