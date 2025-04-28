@@ -32,10 +32,10 @@ The quickstart will look for a script in the HTML file with the id "manifest". B
 
 ```html
 <!-- logLevel: debug -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.0/quickstart/debug.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.12.2/quickstart/debug.mjs"></script>
 
 <!-- logLevel: error -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.0/quickstart/test.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.12.2/quickstart/test.mjs"></script>
 ````
 
 ## Dependencies:
