@@ -1,3 +1,6 @@
+## 0.12.2 - Docs
+- [fix] Exported `Options` and `Config` types.
+
 ## 0.12.1 - Small optimizations and docs
 - [new] Added performance profiles to the configuration.
 - [new] Exposed SDK for customization. 
