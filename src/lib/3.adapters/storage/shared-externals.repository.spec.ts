@@ -4,12 +4,19 @@ import { SharedVersion } from 'lib/1.domain/externals/version.contract';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { Optional } from 'lib/utils/optional';
 import { MOCK_VERSION_II } from 'lib/6.mocks/domain/externals/version.mock';
+import { StorageConfig } from 'lib/2.app';
 
 describe('createSharedExternalsRepository', () => {
     const setupWithCache = ((storage: any) => {
         const mockStorage = {"shared-externals": storage};
         const mockStorageEntry = createStorageHandlerMock(mockStorage);
-        const externalsRepo = createSharedExternalsRepository({storage: mockStorageEntry, clearCache: false});
+
+        const mockConfig: StorageConfig = {
+            storage: mockStorageEntry, 
+            clearStorage: false,
+            storageNamespace: "namespace"
+        }
+        const externalsRepo = createSharedExternalsRepository(mockConfig);
         return {mockStorage, externalsRepo};
     });
 
@@ -22,7 +29,13 @@ describe('createSharedExternalsRepository', () => {
         it('should reset cache when in config', () => {
             const mockStorage = {"shared-externals": {"dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }}};
             const mockStorageEntry = createStorageHandlerMock(mockStorage);
-            createSharedExternalsRepository({storage: mockStorageEntry, clearCache: true});
+
+            const mockConfig: StorageConfig = {
+                storage: mockStorageEntry, 
+                clearStorage: true,
+                storageNamespace: "namespace"
+            }
+            createSharedExternalsRepository(mockConfig);
             expect(mockStorage["shared-externals"]).toEqual({});
         });
     })

@@ -3,6 +3,7 @@ import { globalThisStorageEntry } from "./global-this.storage";
 
 export const createStorageConfig = (override: StorageOptions): StorageConfig => ({
     storage: globalThisStorageEntry,
-    clearCache: false,
+    clearStorage: false,
+    storageNamespace: "__NATIVE_FEDERATION__",
     ...override
 });

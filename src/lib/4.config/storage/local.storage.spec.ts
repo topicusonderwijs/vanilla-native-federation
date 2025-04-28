@@ -1,10 +1,11 @@
-import { NF_STORAGE_ENTRY } from "lib/2.app/config/storage.contract";
+import { StorageEntryHandler } from "lib/2.app/config/storage.contract";
 import { localStorageEntry } from './local.storage';
 import { MOCK_REMOTE_INFO_I, MOCK_REMOTE_INFO_II } from "lib/6.mocks/domain/remote-info/remote-info.mock";
 import { RemoteInfo } from "lib/1.domain/remote/remote-info.contract";
 
 describe('localStorageEntry', () => {
     let mockStorage: any;
+    let storageEntryHandler: StorageEntryHandler
     beforeEach(() => {
         mockStorage = {};
         Object.defineProperty(window, "localStorage", { value: {
@@ -13,6 +14,7 @@ describe('localStorageEntry', () => {
                 mockStorage[key] = value;
             }),
         } });
+        storageEntryHandler = localStorageEntry("namespace");
     });
 
     afterEach(() => {
@@ -20,17 +22,17 @@ describe('localStorageEntry', () => {
     })
 
     it('Create entry with default value on init', () => {
-        localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
+        storageEntryHandler('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
 
-        expect(mockStorage[`${NF_STORAGE_ENTRY}.remotes`]).toBeDefined();
-        expect(JSON.parse(mockStorage[`${NF_STORAGE_ENTRY}.remotes`])).toEqual(
+        expect(mockStorage[`${"namespace"}.remotes`]).toBeDefined();
+        expect(JSON.parse(mockStorage[`${"namespace"}.remotes`])).toEqual(
             {"team/mfe1": MOCK_REMOTE_INFO_I()}
         );
     });
 
     describe('get', () => {
         it('get should return the fallback value', () => {
-            const entry = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
+            const entry = storageEntryHandler('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
 
             const expected = {"team/mfe1": MOCK_REMOTE_INFO_I()};
 
@@ -38,7 +40,7 @@ describe('localStorageEntry', () => {
         });
 
         it('not allow any mutations', () => {
-            const entry = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
+            const entry = storageEntryHandler('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
 
             const expected = {"team/mfe1": MOCK_REMOTE_INFO_I()};
 
@@ -51,7 +53,7 @@ describe('localStorageEntry', () => {
 
     describe('set', () => {
         it('set stores value in namespace', () => {
-            const entry = localStorageEntry<Record<string, RemoteInfo>>('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
+            const entry = storageEntryHandler<Record<string, RemoteInfo>>('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
             const expected = {"team/mfe2": MOCK_REMOTE_INFO_II()};
 
             entry.set({"team/mfe2": MOCK_REMOTE_INFO_II()});
@@ -60,7 +62,7 @@ describe('localStorageEntry', () => {
         });
 
         it('not allow any mutations', () => {
-            const entry = localStorageEntry('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
+            const entry = storageEntryHandler('remotes', {"team/mfe1": MOCK_REMOTE_INFO_I()});
             const newEntry = {"team/mfe2": MOCK_REMOTE_INFO_II()} as any;
             entry.set(newEntry);
 
@@ -72,9 +74,9 @@ describe('localStorageEntry', () => {
 
     describe('clear', () => {
         it('clears the entry back to the initialValue', () => {
-            mockStorage[`${NF_STORAGE_ENTRY}.remotes`] = JSON.stringify({"team/mfe1": MOCK_REMOTE_INFO_I()});
+            mockStorage[`${"namespace"}.remotes`] = JSON.stringify({"team/mfe1": MOCK_REMOTE_INFO_I()});
             
-            const entry = localStorageEntry<Record<string, RemoteInfo>>('remotes', {});
+            const entry = storageEntryHandler<Record<string, RemoteInfo>>('remotes', {});
 
             expect(entry.get()).toEqual({"team/mfe1": MOCK_REMOTE_INFO_I()});
 

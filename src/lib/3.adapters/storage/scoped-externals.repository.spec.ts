@@ -4,13 +4,20 @@ import { MOCK_EXTERNALS_SCOPE } from 'lib/6.mocks/domain/externals/external.mock
 import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
 import { Version } from 'lib/1.domain/externals/version.contract';
 import { MOCK_VERSION_I } from 'lib/6.mocks/domain/externals/version.mock';
+import { StorageConfig } from 'lib/2.app';
 
 describe('createScopedExternalsRepository', () => {
 
     const setupWithCache = ((storage: any) => {
         const mockStorage = {"scoped-externals": storage};
         const mockStorageEntry = createStorageHandlerMock(mockStorage);
-        const externalsRepo = createScopedExternalsRepository({storage: mockStorageEntry, clearCache: false});
+
+        const mockConfig: StorageConfig = {
+            storage: mockStorageEntry, 
+            clearStorage: false,
+            storageNamespace: "namespace"
+        }
+        const externalsRepo = createScopedExternalsRepository(mockConfig);
         return {mockStorage, externalsRepo};
     });
 
@@ -25,7 +32,12 @@ describe('createScopedExternalsRepository', () => {
                 [MOCK_REMOTE_ENTRY_SCOPE_I_URL()]: MOCK_EXTERNALS_SCOPE()
             }};
             const mockStorageEntry = createStorageHandlerMock(mockStorage);
-            createScopedExternalsRepository({storage: mockStorageEntry, clearCache: true});
+            const mockConfig: StorageConfig = {
+                storage: mockStorageEntry, 
+                clearStorage: true,
+                storageNamespace: "namespace"
+            }
+            createScopedExternalsRepository(mockConfig);
             expect(mockStorage["scoped-externals"]).toEqual({});
         });
     });

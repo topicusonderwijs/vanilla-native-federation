@@ -27,7 +27,7 @@ Therefore, native-federation requires a resolver to calculate which versions to 
 
 ## Merging versions into storage
 
-Step 1 (get-remote-entries) will skip the download of a remoteEntry.json if the remote is already in storage. This can save redundant downloads of files that have already been processed. This can be bypassed by adding the `clearCache: true` flag to the [configuration](./config.md). __note:__ this only counts when persistance storage like `sessionStorage` or `localStorage` is chosen as storage type. 
+Step 1 (get-remote-entries) will skip the download of a remoteEntry.json if the remote is already in storage. This can save redundant downloads of files that have already been processed. This can be bypassed by adding the `clearStorage: true` flag to the [configuration](./config.md). __note:__ this only counts when persistance storage like `sessionStorage` or `localStorage` is chosen as storage type. 
 
 Step 2 (process-remote-entries) will merge the externals from the remoteEntry.json into the existing storage. For `singleton: false` externals that means the pre-existing scope is deleted from storage and the scoped dependencies are inserted into memory. For `singleton: true` externals the version will be inserted in a central list of versions connected to that specific external. If the version already exists in that list the insertion will be skipped. This builds up a list of available versions per shared external.
 

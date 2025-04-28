@@ -38,7 +38,7 @@ describe('createExposeModuleLoader', () => {
         mockAdapters.remoteInfoRepo.contains = jest.fn(() => true);
         mockAdapters.remoteInfoRepo.tryGetModule = jest.fn((): Optional<string> => Optional.of("http://my.service/mfe1/component-a.js"));
 
-        const { loadRemoteModule } = await exposeModuleLoader();
+        const loadRemoteModule = await exposeModuleLoader();
 
         await loadRemoteModule("team/mfe1", "./component-a");
 
@@ -48,7 +48,7 @@ describe('createExposeModuleLoader', () => {
     it('should throw an error if remote-info is not in storage', async () => {
         mockAdapters.remoteInfoRepo.contains = jest.fn(() => false);
 
-        const { loadRemoteModule } = await exposeModuleLoader();
+        const loadRemoteModule = await exposeModuleLoader();
 
         await expect(loadRemoteModule("team/mfe1", "./comp-a"))
             .rejects.toEqual(new NFError("Failed to load module team/mfe1/./comp-a"));
@@ -63,7 +63,7 @@ describe('createExposeModuleLoader', () => {
         mockAdapters.remoteInfoRepo.contains = jest.fn(() => true);
         mockAdapters.remoteInfoRepo.tryGetModule = jest.fn((): Optional<string> => Optional.empty());
 
-        const { loadRemoteModule } = await exposeModuleLoader();
+        const loadRemoteModule = await exposeModuleLoader();
 
         await expect(loadRemoteModule("team/mfe1", "./comp-a"))
             .rejects.toEqual(new NFError("Failed to load module team/mfe1/./comp-a"));

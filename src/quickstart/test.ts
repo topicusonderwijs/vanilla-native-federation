@@ -12,7 +12,7 @@ import { useShimImportMap } from 'lib/4.config/import-map/use-import-shim';
      * Option 1: supply a feed URL.
      * HTML tag: <meta name="mfe-feed" content="{url}">
      */
-    let url = document.querySelector('meta[name="mfe-feed"]')?.getAttribute('content');
+    const url = document.querySelector('meta[name="mfe-feed"]')?.getAttribute('content');
     if(!! url) {
         manifest = url;
     } 

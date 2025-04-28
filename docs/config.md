@@ -157,7 +157,7 @@ The library stores the current state by default in the globalThis object, it is 
 ```javascript
 type StorageConfig = {
     storage: StorageEntryHandler,
-    clearCache: boolean,
+    clearStorage: boolean,
 }
 ```
 
@@ -166,7 +166,7 @@ type StorageConfig = {
 | Option | Default | Description |
 | --- | --- | --- |
 | storage | `globalThisStorageEntry` | Allows the provision of a custom storage implementation. 
-| clearCache | `false` | When enabled, the initFederation function will clear the current cache/storage before initializing the remoteEntries. 
+| clearStorage | `false` | When enabled, the initFederation function will clear the current cache/storage before initializing the remoteEntries. 
 
 ### Example
 
@@ -174,7 +174,7 @@ type StorageConfig = {
 import { initFederation, config } from 'vanilla-native-federation';
 
 initFederation("http://example.org/manifest.json", {
-    clearCache: true,
+    clearStorage: true,
 
     // Option 1: globalThis
     logger: config.globalThisStorage,

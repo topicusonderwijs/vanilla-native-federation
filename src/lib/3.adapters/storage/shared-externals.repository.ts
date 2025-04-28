@@ -6,9 +6,9 @@ import { Optional } from "lib/utils/optional";
 const createSharedExternalsRepository = (
     config: StorageConfig,
 ): ForSharedExternalsStorage => {
-    const STORAGE: StorageEntry<SharedExternals> = config.storage("shared-externals", {});
+    const STORAGE: StorageEntry<SharedExternals> = config.storage(config.storageNamespace)("shared-externals", {});
 
-    if (config.clearCache) STORAGE.clear();
+    if (config.clearStorage) STORAGE.clear();
 
     const _cache: SharedExternals = STORAGE.get()!;
 

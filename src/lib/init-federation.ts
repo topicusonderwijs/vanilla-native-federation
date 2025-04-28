@@ -13,11 +13,14 @@ const initFederation = (
         .then(app.generateImportMap)
         .then(app.commitChanges)
         .then(app.exposeModuleLoader)
+        .then(loadRemoteModule => ({
+            loadRemoteModule,
+            config
+        }))
         .catch(e => {
             config.log.error("Init failed: ", e);
             return Promise.reject(e);
         })
-
 }
 
 export { initFederation };

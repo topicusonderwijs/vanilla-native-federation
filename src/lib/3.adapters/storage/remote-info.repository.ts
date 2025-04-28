@@ -7,8 +7,8 @@ import { Optional } from "lib/utils/optional";
 const createRemoteInfoRepository = (
     config: StorageConfig,
 ): ForRemoteInfoStorage => {
-    const STORAGE: StorageEntry<Remotes> = config.storage("remotes", {});
-    if (config.clearCache) STORAGE.clear();
+    const STORAGE: StorageEntry<Remotes> = config.storage(config.storageNamespace)("remotes", {});
+    if (config.clearStorage) STORAGE.clear();
 
     const _cache: Remotes = STORAGE.get() ?? {};
 

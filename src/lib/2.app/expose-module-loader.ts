@@ -45,7 +45,7 @@ const createExposeModuleLoader = (
  
     }
 
-    return () => Promise.resolve({loadRemoteModule})
+    return () => Promise.resolve(loadRemoteModule)
 };
 
 export { createExposeModuleLoader }

@@ -1,4 +1,3 @@
-const NF_STORAGE_ENTRY = "__NATIVE_FEDERATION__";
 
 type StorageEntry<TValue> = {
     set: (value: TValue) => StorageEntry<TValue>;
@@ -8,13 +7,16 @@ type StorageEntry<TValue> = {
 
 type StorageEntryKey = number|symbol|string;
 
+type StorageEntryCreator = (namespace: string) => StorageEntryHandler
+
 type StorageEntryHandler = <TValue>(key: string, initialValue: TValue) => StorageEntry<TValue>;
 
 type StorageConfig = {
-    storage: StorageEntryHandler,
-    clearCache: boolean,
+    storage: StorageEntryCreator,
+    clearStorage: boolean,
+    storageNamespace: string
 }
 
 type StorageOptions = Partial<StorageConfig>
 
-export {StorageEntry, StorageEntryKey, StorageEntryHandler, NF_STORAGE_ENTRY, StorageConfig, StorageOptions}
+export {StorageEntry, StorageEntryKey, StorageEntryHandler, StorageConfig, StorageOptions, StorageEntryCreator}
