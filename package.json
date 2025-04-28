@@ -1,10 +1,11 @@
 {
-  "version": "0.12.1",
+  "version": "0.12.2",
   "name": "vanilla-native-federation",
   "author": "aukevanoost",
   "keywords": [
     "native-federation",
-    "native-federation-runtime"
+    "native-federation-runtime",
+    "micro-frontends"
   ],
   "scripts": {
     "build": "node build.js",

@@ -19,7 +19,7 @@ A preconfigured setup of the `vanilla-native-federation` can be used in a HTML f
                 e.detail.loadRemoteModule("team/mfe1", "<your-exposed-comp>");
             }, {once: true});
         </script>
-        <script src="https://unpkg.com/vanilla-native-federation@0.12.0/quickstart/debug.mjs"></script>
+        <script src="https://unpkg.com/vanilla-native-federation@0.12.2/quickstart/debug.mjs"></script>
     </head>
     <body>
         <!-- Name of your custom element -->

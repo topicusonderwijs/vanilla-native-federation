@@ -3,6 +3,7 @@
 - [chg] Updated quickstart to support `mfe-manifest` and `mfe-feed` input instead of only `manifest` script tag. 
 - [new] Added customizable namespace option for storage, still defaults to `__NATIVE_FEDERATION__`.
 - [new] `initFederation` now also exports the config. 
+- [docs] Updated readme to provide quick overview
 
 ## 0.12.1 - Small optimizations and docs
 - [new] Added performance profiles to the configuration.
