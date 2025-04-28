@@ -8,7 +8,7 @@ const createRemoteInfoRepository = (
     config: StorageConfig,
 ): ForRemoteInfoStorage => {
     const STORAGE: StorageEntry<Remotes> = config.storage("remotes", {});
-    if (config.clearCache) STORAGE.clear();
+    if (config.clearStorage) STORAGE.clear();
 
     const _cache: Remotes = STORAGE.get() ?? {};
 

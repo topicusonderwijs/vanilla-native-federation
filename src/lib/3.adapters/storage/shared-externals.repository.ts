@@ -8,7 +8,7 @@ const createSharedExternalsRepository = (
 ): ForSharedExternalsStorage => {
     const STORAGE: StorageEntry<SharedExternals> = config.storage("shared-externals", {});
 
-    if (config.clearCache) STORAGE.clear();
+    if (config.clearStorage) STORAGE.clear();
 
     const _cache: SharedExternals = STORAGE.get()!;
 

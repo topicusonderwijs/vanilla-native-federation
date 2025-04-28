@@ -8,7 +8,7 @@ A preconfigured setup of the `vanilla-native-federation` can be used in a HTML f
 <html>
     <head>
         <title>Shell</title>
-        <script type="application/json" id="manifest">
+        <script type="application/json" id="mfe-manifest">
             {
                 "team/mfe1": "http://localhost:3000/remoteEntry.json",
             }
@@ -19,7 +19,7 @@ A preconfigured setup of the `vanilla-native-federation` can be used in a HTML f
                 e.detail.loadRemoteModule("team/mfe1", "<your-exposed-comp>");
             }, {once: true});
         </script>
-        <script src="https://unpkg.com/vanilla-native-federation@0.12.0/quickstart/debug.mjs"></script>
+        <script src="https://unpkg.com/vanilla-native-federation@0.12.2/quickstart/debug.mjs"></script>
     </head>
     <body>
         <!-- Name of your custom element -->
@@ -32,10 +32,10 @@ The quickstart will look for a script in the HTML file with the id "manifest". B
 
 ```html
 <!-- logLevel: debug -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.0/quickstart/debug.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.12.2/quickstart/debug.mjs"></script>
 
 <!-- logLevel: error -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.0/quickstart/test.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.12.2/quickstart/test.mjs"></script>
 ````
 
 ## Dependencies:

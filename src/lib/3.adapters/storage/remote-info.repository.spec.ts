@@ -3,13 +3,19 @@ import { Optional } from 'lib/utils/optional';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { MOCK_REMOTE_INFO_I, MOCK_REMOTE_INFO_II } from "lib/6.mocks/domain/remote-info/remote-info.mock";
 import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
+import { StorageConfig } from 'lib/2.app';
 
 describe('createRemoteInfoRepository', () => {
 
     const setupWithCache = ((storage: any) => {
         const mockStorage = {"remotes": storage};
         const mockStorageEntry = createStorageHandlerMock(mockStorage);
-        const remoteInfoRepo = createRemoteInfoRepository({storage: mockStorageEntry, clearCache: false});
+
+        const mockConfig: StorageConfig = {
+            storage: mockStorageEntry, 
+            clearStorage: false
+        }
+        const remoteInfoRepo = createRemoteInfoRepository(mockConfig);
         return {mockStorage, mockStorageEntry, remoteInfoRepo};
     });
 
@@ -25,8 +31,12 @@ describe('createRemoteInfoRepository', () => {
                 "team/mfe1": MOCK_REMOTE_INFO_I()
             }};
             const mockStorageEntry = createStorageHandlerMock(mockStorage);
-            createRemoteInfoRepository({storage: mockStorageEntry, clearCache: true});
-
+            const mockConfig: StorageConfig = {
+                storage: mockStorageEntry, 
+                clearStorage: true
+            }
+            createRemoteInfoRepository(mockConfig);
+            
             expect(mockStorage["remotes"]).toEqual({});
         });
     });

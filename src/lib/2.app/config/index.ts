@@ -1,4 +1,4 @@
-
+export {Options, Config} from './config.contract';
 export {ImportMapConfig} from "./import-map.contract";
 export {LogLevel, LogType, LoggingConfig} from "./log.contract";
-export {NF_STORAGE_ENTRY, StorageEntry, StorageEntryKey, StorageConfig} from "./storage.contract";
+export {StorageEntry, StorageEntryKey, StorageConfig} from "./storage.contract";

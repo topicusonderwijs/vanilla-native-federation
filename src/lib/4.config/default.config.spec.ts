@@ -74,7 +74,8 @@ describe('DefaultConfig', () => {
             actual.storage("entry", {});
 
             expect(spy).toHaveBeenCalled();
-            expect(actual.clearCache).toBe(false);
+            expect(actual.clearStorage).toBe(false);
+
         });  
     });
 })
