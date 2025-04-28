@@ -150,7 +150,7 @@ function generatePackageExports() {
         default: "./fesm2022/vanilla-native-federation.mjs"
       },
     },
-    typings: "types/lib/index.d.ts",
+    typings: "./types/lib/index.d.ts",
     module: './fesm2022/vanilla-native-federation.mjs',
     type: 'module'
   };
