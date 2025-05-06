@@ -1,1 +1,1 @@
-export type LoadRemoteModule = (remoteName: string, exposedModule: string) => Promise<unknown>
+export type LoadRemoteModule<TModule = unknown> = (remoteName: string, exposedModule: string) => Promise<TModule>

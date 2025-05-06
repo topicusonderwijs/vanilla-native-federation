@@ -3,7 +3,7 @@ import { CREATE_NF_APP } from "./create-nf-app";
 
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string>,
-    options: Options
+    options: Options = {}
 ) => {  
     const {app, config} = CREATE_NF_APP(options);
 
