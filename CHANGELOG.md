@@ -1,6 +1,7 @@
 ## 0.12.3 - Added type to loadRemoteModule
 - [fix] Added option to type LoadRemoteModule.
 - [fix] Added fallback settings to initEderation function.
+- [upd] Updated dependencies.
 
 ## 0.12.2 - Docs
 - [fix] Exported `Options` and `Config` types.
