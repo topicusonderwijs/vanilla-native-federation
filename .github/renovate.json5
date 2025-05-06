@@ -1,0 +1,6 @@
+{
+  extends: [
+    "local>topicusonderwijs/renovate-config:default.json5",
+    "local>topicusonderwijs/renovate-config:npm.json5"
+  ]
+}
