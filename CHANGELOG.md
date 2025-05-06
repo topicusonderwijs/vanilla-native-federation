@@ -1,3 +1,7 @@
+## 0.12.3 - Added type to loadRemoteModule
+- [fix] Added option to type LoadRemoteModule.
+- [fix] Added fallback settings to initEderation function.
+
 ## 0.12.2 - Docs
 - [fix] Exported `Options` and `Config` types.
 - [chg] Updated quickstart to support `mfe-manifest` and `mfe-feed` input instead of only `manifest` script tag. 
