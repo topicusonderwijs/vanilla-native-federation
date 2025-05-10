@@ -25,10 +25,8 @@ const createProcessRemoteEntries = (
 
     function addRemoteInfoToStorage({name, url, exposes}: RemoteEntry)
         : void {
-            const scopeUrl =  _path.getScope(url);
-
             ports.remoteInfoRepo.addOrUpdate(name, {
-                scopeUrl,
+                scopeUrl: _path.getScope(url),
                 exposes: Object.values(exposes ?? [])
                     .map(m => ({
                         moduleName: m.key,
@@ -65,10 +63,11 @@ const createProcessRemoteEntries = (
 
             if (~matchingVersionIDX) {
                 if(cached[matchingVersionIDX]!.host || !isHostVersion) {
-                    config.log.debug(`[${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, skipping version.`);
+                    config.log.debug(`[${isHostVersion ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, skipping version.`);
                     return;
                 }
-                delete cached[matchingVersionIDX];
+                cached.splice(matchingVersionIDX, 1)[0];
+                config.log.debug(`[${isHostVersion ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, replacing version.`);
             }
 
             cached.push({
@@ -102,23 +101,23 @@ const createProcessRemoteEntries = (
     function logStorageStatus(status: string)
         : void {
             config.log.debug(status, {
-                "remotes": ports.remoteInfoRepo.getAll(),
+                "remotes": {...ports.remoteInfoRepo.getAll()},
                 "shared-externals": ports.sharedExternalsRepo.getAll(),
                 "scoped-externals": ports.scopedExternalsRepo.getAll(),
             })
         }
-        
+
     return remoteEntries => {
         if(config.log.level === "debug") logStorageStatus("Storage: before processing remoteEntries");
         remoteEntries.forEach(remoteEntry => {
             addRemoteInfoToStorage(remoteEntry);
             addExternalsToStorage(remoteEntry);
         });
-        if(config.log.level === "debug") logStorageStatus("Storage: before processing remoteEntries");
-       
+        if(config.log.level === "debug") logStorageStatus("Storage: after processing remoteEntries");
 
         return Promise.resolve();
     };
+
 }
 
 export { createProcessRemoteEntries };
