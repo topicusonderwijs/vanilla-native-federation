@@ -66,7 +66,7 @@ const createProcessRemoteEntries = (
                     config.log.debug(`[${isHostVersion ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, skipping version.`);
                     return;
                 }
-                cached.splice(matchingVersionIDX, 1)[0];
+                cached.splice(matchingVersionIDX, 1);
                 config.log.debug(`[${isHostVersion ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, replacing version.`);
             }
 
