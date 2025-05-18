@@ -1,9 +1,9 @@
-import type { Options } from "./2.app/config/config.contract";
+import type { NFOptions } from "./2.app/config/config.contract";
 import { CREATE_NF_APP } from "./create-nf-app";
 
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string>,
-    options: Options = {}
+    options: NFOptions = {}
 ) => {  
     const {app, config} = CREATE_NF_APP(options);
 

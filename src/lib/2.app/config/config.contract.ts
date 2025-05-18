@@ -4,6 +4,6 @@ import type { ImportMapConfig, ImportMapOptions } from "./import-map.contract"
 import type { HostConfig, HostOptions } from "./host.contract"
 import type { ModeConfig, ModeOptions } from "./mode.contract"
 
-export type Config = StorageConfig & LoggingConfig & ImportMapConfig & HostConfig & ModeConfig
+export type ConfigContract = StorageConfig & LoggingConfig & ImportMapConfig & HostConfig & ModeConfig
 
-export type Options = StorageOptions & LoggingOptions & ImportMapOptions & HostOptions & ModeOptions
+export type NFOptions = StorageOptions & LoggingOptions & ImportMapOptions & HostOptions & ModeOptions
