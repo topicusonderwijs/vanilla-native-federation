@@ -11,10 +11,10 @@ jobs:
         with:
           node-version: '22.x'
       - name: Dependencies OK
-        run: yarn install
+        run: npm ci
       - name: Library builds
-        run: yarn build 
+        run: npm run build 
       - name: Code quality OK
-        run: yarn lint
+        run: npm run lint
       - name: Tests OK
-        run: yarn test
+        run: npm run test
