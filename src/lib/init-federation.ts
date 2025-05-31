@@ -1,10 +1,11 @@
+import type { InitFederationResult, LoadRemoteModule } from "./1.domain";
 import type { NFOptions } from "./2.app/config/config.contract";
 import { CREATE_NF_APP } from "./create-nf-app";
 
 const initFederation = (
     remotesOrManifestUrl: string | Record<string, string>,
     options: NFOptions = {}
-) => {  
+): InitFederationResult => {  
     const {app, config} = CREATE_NF_APP(options);
 
     return app.getRemoteEntries(remotesOrManifestUrl)
@@ -15,6 +16,10 @@ const initFederation = (
         .then(app.exposeModuleLoader)
         .then(loadRemoteModule => ({
             loadRemoteModule,
+            as: <TModule = unknown>() => loadRemoteModule as LoadRemoteModule<TModule>,
+            remote: <TModule = unknown>(remoteName: string) => ({
+                loadModule: (exposedModule: string) => loadRemoteModule(remoteName, exposedModule) as Promise<TModule>
+            }),
             config
         }))
         .catch(e => {
