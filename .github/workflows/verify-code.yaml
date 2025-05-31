@@ -1,0 +1,20 @@
+name: Verify library
+on:
+  push:
+    branches: [ main ]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      - name: Dependencies OK
+        run: yarn install
+      - name: Library builds
+        run: yarn build 
+      - name: Code quality OK
+        run: yarn lint
+      - name: Tests OK
+        run: yarn test
