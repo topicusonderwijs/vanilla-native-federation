@@ -13,11 +13,45 @@ This library is part of the bigger native-federation pattern and covers the inte
 
 The simplest approach uses the pre-built runtime script with declarative configuration. This method requires no build tools or npm installation - everything is configured directly in HTML.
 
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My Application</title>
+        
+        <!-- Define your micro frontends -->
+        <script type="application/json" id="mfe-manifest">
+            {
+                "team/button": "http://localhost:3000/remoteEntry.json",
+                "team/header": "http://localhost:4000/remoteEntry.json"
+            }
+        </script>
+        
+        <!-- Handle loaded modules -->
+        <script>
+            window.addEventListener('mfe-loader-available', (e) => {
+                // Load your micro frontends
+                e.detail.loadRemoteModule("team/button", "./Button");
+                e.detail.loadRemoteModule("team/header", "./Header");
+            }, {once: true});
+        </script>
+        
+        <!-- Include the runtime -->
+        <script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/debug.mjs"></script>
+    </head>
+    <body>
+        <!-- Use your loaded components -->
+        <my-header></my-header>
+        <my-button>Click me</my-button>
+    </body>
+</html>
+```
+
 ### Understanding the HTML Structure
 
 The quick integration relies on three essential HTML components that work together to bootstrap the micro frontend system:
 
-**Manifest Declaration**
+**Manifest Declaration**<br />
 The manifest script tag tells the system where to find your micro frontends. The `id="mfe-manifest"` attribute is required because the quickstart runtime specifically searches for this element when initializing. Without this exact ID, the runtime cannot discover your micro frontends.
 
 ```html
@@ -31,7 +65,7 @@ The manifest script tag tells the system where to find your micro frontends. The
 
 Each entry maps a logical name (like "team/button") to the URL of that micro frontend's metadata file. The runtime fetches these URLs to understand what components are available and what dependencies they need.
 
-**Event Handler Setup**
+**Event Handler Setup**<br />
 The micro frontend loading process is asynchronous - the runtime needs time to fetch metadata, resolve dependencies, and set up import maps. The `mfe-loader-available` event signals when this process is complete and the `loadRemoteModule` function is ready to use.
 
 ```html
