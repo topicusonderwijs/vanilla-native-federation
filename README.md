@@ -2,6 +2,11 @@
 
 [![Verify library](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml/badge.svg)](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml)
 
+```
+$ npm install vanilla-native-federation
+```
+
+
 A lightweight runtime library for implementing native federation in server-side rendered applications. Built on the foundation of [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime) and designed specifically for non-SPA environments like PHP, Ruby, Java, and ASP.NET applications.
 
 ## Key Features
