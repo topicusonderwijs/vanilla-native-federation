@@ -109,7 +109,7 @@ const HeaderComponent = await loadRemoteModule('team/mfe2', './Header');
 | Guide | Description |
 |-------|-------------|
 | [🚀 Getting Started](./docs/getting-started.md) | Detailed setup instructions and examples |
-| [🏗️ Architecture](./docs/domain.md) | Understanding the native federation domain |
+| [🏗️ Architecture](./docs/architecture.md) | Understanding the native federation domain |
 | [⚙️ Configuration](./docs/config.md) | Complete configuration reference |
 | [🔄 Version Resolution](./docs/version-resolver.md) | How dependency conflicts are resolved |
 
