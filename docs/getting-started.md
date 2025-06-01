@@ -19,7 +19,7 @@ A preconfigured setup of the `vanilla-native-federation` can be used in a HTML f
                 e.detail.loadRemoteModule("team/mfe1", "<your-exposed-comp>");
             }, {once: true});
         </script>
-        <script src="https://unpkg.com/vanilla-native-federation@0.12.2/quickstart/debug.mjs"></script>
+        <script src="https://unpkg.com/vanilla-native-federation@0.12.5/quickstart/debug.mjs"></script>
     </head>
     <body>
         <!-- Name of your custom element -->
@@ -32,10 +32,10 @@ The quickstart will look for a script in the HTML file with the id "manifest". B
 
 ```html
 <!-- logLevel: debug -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.2/quickstart/debug.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.12.5/quickstart/debug.mjs"></script>
 
 <!-- logLevel: error -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.2/quickstart/test.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.12.5/quickstart/test.mjs"></script>
 ````
 
 ## Dependencies:
@@ -43,7 +43,7 @@ The quickstart will look for a script in the HTML file with the id "manifest". B
 Right now, it is recommended to use the [es-module-shims](https://www.npmjs.com/package/es-module-shims) library to provide fallback functionality for old browsers regarding import maps. The shim can be added in the HTML page: 
 
 ```
-<script async src="https://ga.jspm.io/npm:es-module-shims@2.0.9/dist/es-module-shims.js"></script>
+<script async src="https://ga.jspm.io/npm:es-module-shims@2.5.1/dist/es-module-shims.js"></script>
 ```
 
 **Important:** The examples assume that the fetched remote modules bootstrap a [custom element](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements). The `loadRemoteModule()` method in this vanilla-native-federation library returns a promise of the contents of the remote JavaScript module returned. Therefore, it is also possible to write a different (custom) handler for the returned ES module. 

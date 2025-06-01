@@ -21,7 +21,7 @@ describe('consoleLogger', () => {
 
   it('should log debug messages with correct prefix', () => {
     consoleLogger.debug('test debug message');
-    expect(console.log).toHaveBeenCalledWith('[DEBUG]: test debug message', undefined);
+    expect(console.log).toHaveBeenCalledWith('[DEBUG]: test debug message');
 
     consoleLogger.debug('test debug message', new Error("Something went wrong"));
     expect(console.log).toHaveBeenCalledWith('[DEBUG]: test debug message', new Error("Something went wrong"));
@@ -29,7 +29,7 @@ describe('consoleLogger', () => {
 
   it('should log error messages with correct prefix', () => {
     consoleLogger.error('test error message');
-    expect(console.error).toHaveBeenCalledWith('[NF]: test error message', undefined);
+    expect(console.error).toHaveBeenCalledWith('[NF]: test error message');
 
     consoleLogger.error('test error message', new Error("Something went wrong"));
     expect(console.error).toHaveBeenCalledWith('[NF]: test error message', new Error("Something went wrong"));
@@ -37,7 +37,7 @@ describe('consoleLogger', () => {
 
   it('should log warning messages with correct prefix', () => {
     consoleLogger.warn('test warning message');
-    expect(console.warn).toHaveBeenCalledWith('[NF]: test warning message', undefined);
+    expect(console.warn).toHaveBeenCalledWith('[NF]: test warning message');
 
     consoleLogger.warn('test warning message', new Error("Something went wrong"));
     expect(console.warn).toHaveBeenCalledWith('[NF]: test warning message', new Error("Something went wrong"));

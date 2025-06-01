@@ -232,7 +232,7 @@ describe('createProcessRemoteEntries', () => {
             await processRemoteEntries(remoteEntries);
 
             expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalledTimes(1);
-            expect(mockConfig.log.debug).toHaveBeenCalledWith("[http://my.service/mfe1/][dep-a] Shared version '1.2.3' already exists, skipping version.")
+            expect(mockConfig.log.debug).toHaveBeenCalledWith("[remote][http://my.service/mfe1/][dep-a] Shared version '1.2.3' already exists, skipping version.")
         });
 
 
@@ -326,7 +326,7 @@ describe('createProcessRemoteEntries', () => {
             await processRemoteEntries(remoteEntries);
 
             expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalledTimes(1);
-            expect(mockConfig.log.debug).toHaveBeenCalledWith("[http://my.service/mfe1/][dep-a] Shared version '1.2.3' already exists, skipping version.")
+            expect(mockConfig.log.debug).toHaveBeenCalledWith("[host][http://my.service/mfe1/][dep-a] Shared version '1.2.3' already exists, skipping version.")
         });
     });
 
