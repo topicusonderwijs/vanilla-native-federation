@@ -156,7 +156,7 @@ Dive deeper into native federation concepts:
 
 ### 👀 Examples
 
-- [Wicket + Angular](github.com/Aukevanoost/native-federation-examples)
+- [Wicket + Angular](https://github.com/Aukevanoost/native-federation-examples)
 - _your solution?_
 
 
