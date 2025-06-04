@@ -113,10 +113,10 @@ const HeaderComponent = await loadRemoteModule('team/mfe2', './Header');
 
 | Guide | Description |
 |-------|-------------|
-| [🚀 Getting Started](./docs/getting-started.md) | Detailed setup instructions and examples |
-| [🏗️ Architecture](./docs/architecture.md) | Understanding the native federation domain |
-| [⚙️ Configuration](./docs/config.md) | Complete configuration reference |
-| [🔄 Version Resolution](./docs/version-resolver.md) | How dependency conflicts are resolved |
+| [🚀 Getting Started](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/getting-started.md) | Detailed setup instructions and examples |
+| [🏗️ Architecture](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/architecture.md) | Understanding the native federation domain |
+| [⚙️ Configuration](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/config.md) | Complete configuration reference |
+| [🔄 Version Resolution](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/version-resolver.md) | How dependency conflicts are resolved |
 
 ## Native Federation Ecosystem
 
@@ -145,7 +145,7 @@ This library is part of the broader native federation ecosystem:
 ## Contributing & Support
 
 ### 🤝 Contributing
-We welcome contributions! See our [Contributing Guide](./CONTRIBUTING.md) for the development setup, code standards, our pull request process or issue reporting.
+We welcome contributions! See our [Contributing Guide](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/CONTRIBUTING.md) for the development setup, code standards, our pull request process or issue reporting.
 
 ### 📚 Learn More
 Dive deeper into native federation concepts:
@@ -161,7 +161,7 @@ Dive deeper into native federation concepts:
 
 
 ### 📄 License
-MIT License - see [LICENSE.md](./LICENSE.md) for details.
+MIT License - see [LICENSE.md](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/LICENSE.md) for details.
 
 ---
 
