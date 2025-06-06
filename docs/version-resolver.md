@@ -2,11 +2,11 @@
 
 # Version Resolver
 
-The version resolver determines how to handle dependencies when multiple micro frontends need the same externals (dependencies). It decides which dependency versions to share globally versus scope to specific remotes (micro frontends). 
+The version resolver determines how to handle dependencies when multiple micro frontends need the same externals (dependencies). It decides which dependency versions to share globally, share within specific scopes, or scope to individual remotes (micro frontends).
 
 ## Understanding Import Maps
 
-The version resolver will create an importmap from the provided remote metadata files (remoteEntry.json), dependencies (externals) can be shared with other remotes or scoped and thus only available for the exposed modules in that particular remote. 
+The version resolver creates an import map from the provided remote metadata files (remoteEntry.json). Dependencies (externals) can be shared globally, shared within specific groups (shared scopes), or scoped to individual micro frontends.
 
 ### What is an Import Map?
 
@@ -17,15 +17,20 @@ An [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elem
   "imports": {
     "react": "https://cdn.example.com/react@18.2.0.js",
     "lodash": "https://cdn.example.com/lodash@4.17.21.js"
+  },
+  "scopes": {
+    "https://legacy-mfe.example.com/": {
+      "react": "https://legacy-mfe.example.com/react@17.0.2.js"
+    }
   }
 }
 ```
 
 When your code does `import React from 'react'`, the browser uses this map to fetch the actual file.
 
-### Only one globally shared version
+### Only one shared version per scope
 
-**Critical constraint**: Import maps don't understand the concept of versioning, therefore, it can only specify **one global version** of each dependency:
+**Critical constraint**: Import maps can only specify **one version** of each dependency per scope:
 
 ```javascript
 // ❌ This is NOT possible in import maps
@@ -37,63 +42,73 @@ When your code does `import React from 'react'`, the browser uses this map to fe
 }
 ```
 
-This limitation is a version resolver is necessary. When multiple micro frontends require different versions of the same dependency, only one can be imported.
+This limitation necessitates version resolution. When multiple micro frontends require different versions of the same dependency within a scope, only one can be shared.
 
-### The Solution: Scopes
+### The Solution: Multiple Scope Levels
 
-Import maps provide **scopes** as a workaround for incompatible versions:
+Import maps provide **scopes** and **shared scopes** as solutions for dependency management:
 
 ```javascript
 {
   "imports": {
-    // Global default - most micro frontends use this
-    "react": "https://cdn.example.com/react@18.2.0.js"
+    // Global scope - most micro frontends use this
+    "react": "https://cdn.example.com/react@18.2.0.js",
+    "ui-library": "https://cdn.example.com/ui-lib@2.1.0.js"
   },
   "scopes": {
-    // Exception for legacy micro frontend
+    // Individual micro frontend scope
     "https://legacy-mfe.example.com/": {
       "react": "https://legacy-mfe.example.com/react@17.0.2.js"
+    },
+    // Shared scope for a group of related micro frontends
+    "https://design-system-mfe1.example.com/": {
+      "ui-library": "https://design-system.example.com/ui-lib@3.0.0.js"
+    },
+    "https://design-system-mfe2.example.com/": {
+      "ui-library": "https://design-system.example.com/ui-lib@3.0.0.js"
     }
   }
 }
 ```
 
 **How it works**:
-- When MFE1 or MFE2 imports React → gets version 18.2.0 (global)
-- When legacy-mfe imports React → gets version 17.0.2 (scoped)
+- **Global sharing**: Most micro frontends use React 18.2.0 and UI Library 2.1.0
+- **Individual scoping**: Legacy MFE gets its own React 17.0.2
+- **Shared scope grouping**: Design system MFEs share UI Library 3.0.0 among themselves
 
-**The trade-off**: Scoped dependencies require separate downloads, increasing bundle size. This because 2 versions of the external are being downloaded. 
+**The trade-off**: Each additional scope requires separate downloads, but shared scopes allow optimization within groups.
 
 ## Shared vs Scoped Dependencies
 
-In the micro-frontend's metadata file (remoteEntry.json), dependencies are marked as "externals". Every external contains a `version` property (the version of the external) and a `requiredVersion` property (the versions of the external that this particular remote is compatible with).
+In the micro-frontend's metadata file (remoteEntry.json), dependencies are marked as "externals". Every external contains configuration that determines how it should be shared.
 
 ### Shared externals (singleton: true)
-Dependencies marked as `singleton: true` in remoteEntry.json are candidates for global sharing:
+Dependencies marked as `singleton: true` are candidates for sharing:
 
 ```javascript
 // In remoteEntry.json
 {
   "shared": [{
     "packageName": "react",
-    "singleton": true,        // ← Marked as globally shared
+    "singleton": true,        // ← Marked for sharing
+    "sharedScope": "default", // ← Optional: share in specific scope
     "version": "18.2.0",
     "requiredVersion": "^18.0.0"
   }]
 }
 ```
 
-**Result**: Only one version downloads globally, used by all **compatible** micro frontends.
+**Result**: Shared within the specified scope (global if no sharedScope specified).
 
 ### Scoped externals (singleton: false)
-Dependencies with `singleton: false` are always scoped to their remote:
+Dependencies with `singleton: false` are always scoped to their individual remote:
 
 ```javascript
 // In remoteEntry.json  
 {
   "shared": [{
     "packageName": "lodash-utils",
-    "singleton": false,       // ← Always scoped
+    "singleton": false,       // ← Always individually scoped
     "version": "1.0.0"
   }]
 }
@@ -101,106 +116,181 @@ Dependencies with `singleton: false` are always scoped to their remote:
 
 **Result**: Each micro frontend gets its own copy, no sharing occurs.
 
+### Shared Scope Configuration
+
+The `sharedScope` property allows you to create groups of micro frontends that share dependencies among themselves:
+
+```json
+// Team A micro frontends - share UI components v3.x
+{
+  "shared": [{
+    "packageName": "ui-components",
+    "singleton": true,
+    "sharedScope": "team-a",
+    "version": "3.1.0",
+    "requiredVersion": "^3.0.0"
+  }]
+}
+
+// Team B micro frontends - share UI components v2.x  
+{
+  "shared": [{
+    "packageName": "ui-components", 
+    "singleton": true,
+    "sharedScope": "team-b",
+    "version": "2.5.0",
+    "requiredVersion": "^2.0.0"
+  }]
+}
+
+// Global shared dependency
+{
+  "shared": [{
+    "packageName": "react",
+    "singleton": true,
+    "version": "18.2.0",
+    "requiredVersion": "^18.0.0"
+  }]
+}
+```
+
 ## Resolution Process
 
-The resolver creates an import-map based on the provided metadata (remoteEntry.json) files. It needs to process which dependencies can be shared and which have to be scoped.
+The resolver creates an import map based on the provided metadata (remoteEntry.json) files, processing dependencies at multiple scope levels.
 
-### Step 1: Categorize Dependencies
+### Step 1: Categorize Dependencies by Scope
 
 ```mermaid
 flowchart LR
     A[Process remoteEntry.json] --> B{singleton: true?}
-    B -->|Yes| C[Add to shared externals list]
-    B -->|No| D[Add to scoped externals list]
-    C --> E[Needs version resolution]
-    D --> F[No resolution needed]
+    B -->|Yes| C{Has sharedScope?}
+    B -->|No| D[Add to individual scoped externals]
+    C -->|Yes| E[Add to shared scope externals]
+    C -->|No| F[Add to global shared externals]
+    E --> G[Needs scope-level resolution]
+    F --> H[Needs global resolution]
+    D --> I[No resolution needed]
 ```
 
-### Step 2: Resolve Shared Dependencies
+### Step 2: Resolve Dependencies by Scope
 
-Only shared dependencies (`singleton: true`) go through version resolution:
+Dependencies are resolved separately for each scope:
 
-```javascript
-// Input: Multiple micro frontends need React
-MFE1: react@18.2.0 (requires "^18.0.0", singleton: true)
-MFE2: react@18.1.0 (requires "^18.0.0", singleton: true) 
-MFE3: react@17.0.2 (requires "^17.0.0", singleton: true, strictVersion: true)
+```json
+// Input: Multiple scopes with different versions
+Global scope:
+  react@18.2.0 (requires "^18.0.0", singleton: true)
+  react@18.1.0 (requires "^18.0.0", singleton: true)
+
+"team-a" scope:
+  ui-lib@3.1.0 (requires "^3.0.0", singleton: true, sharedScope: "team-a")
+  ui-lib@3.0.5 (requires "^3.0.0", singleton: true, sharedScope: "team-a")
+
+"team-b" scope:  
+  ui-lib@2.5.0 (requires "^2.0.0", singleton: true, sharedScope: "team-b")
+
+Individual scopes:
+  lodash@4.17.21 (singleton: false)
 ```
 
 ### Step 3: Resolution Algorithm
 
-For each shared dependency, the resolver determines one version to share globally:
+For each scope (global, shared scopes, individual), the resolver determines one version to share:
 
 ```mermaid
 flowchart TD
-    A[Shared dependency with multiple versions] --> B[Apply priority rules to choose shared version]
-    B --> C[Assign actions to all other versions]
+    A[Dependencies grouped by scope] --> B[For each scope:]
+    B --> C[Apply priority rules to choose shared version]
+    C --> D[Assign actions to all other versions in scope]
     
-    B --> B1{Host version exists?}
-    B1 -->|Yes| B2[Choose host version]
-    B1 -->|No| B3{latestSharedExternal enabled?}
-    B3 -->|Yes| B4[Choose latest version]
-    B3 -->|No| B5[Choose version with least incompatibilities]
+    C --> C1{Host version exists in scope?}
+    C1 -->|Yes| C2[Choose host version]
+    C1 -->|No| C3{latestSharedExternal enabled?}
+    C3 -->|Yes| C4[Choose latest version in scope]
+    C3 -->|No| C5[Choose version with least incompatibilities in scope]
     
-    C --> C1[For each remaining version:]
-    C1 --> C2{Compatible with chosen version?}
-    C2 -->|Yes| C3[Action: SKIP<br/>Don't download]
-    C2 -->|No| C4{strictVersion: true?}
-    C4 -->|Yes| C5[Action: SCOPE<br/>Download separately]
-    C4 -->|No| C6[Action: SKIP + WARN<br/>Risk compatibility issues]
+    D --> D1[For each remaining version in scope:]
+    D1 --> D2{Compatible with chosen version?}
+    D2 -->|Yes| D3[Action: SKIP<br/>Don't download]
+    D2 -->|No| D4{strictVersion: true?}
+    D4 -->|Yes| D5[Action: SCOPE<br/>Download individually]
+    D4 -->|No| D6[Action: SKIP + WARN<br/>Risk compatibility issues]
 ```
 
 ### Step 4: Generate Import Map
 
-The resolver creates different import map sections based on the actions:
+The resolver creates different import map sections based on scope and actions:
 
 ```mermaid
 flowchart LR
-    A[Resolution Results] --> B{Action Type}
-    B -->|SHARE| C[Add to *imports* property]
-    B -->|SCOPE| D[Add to *scopes* property]
-    B -->|SKIP| E[Omit]
+    A[Resolution Results] --> B{Scope Type}
+    B -->|Global Scope + SHARE| C[Add to *imports* property]
+    B -->|Shared Scope + SHARE| D[Add to scope in *scopes* property]
+    B -->|SCOPE| E[Add to individual scope in *scopes*]
+    B -->|SKIP| F[Omit from map]
     
-    C --> F[One version for all remotes]
-    D --> G[Separate version per remote]
-    E --> H[Use shared version instead]
+    C --> G[Available to all micro frontends]
+    D --> H[Available to micro frontends in shared scope]
+    E --> I[Available only to specific micro frontend]
 ```
 
-## Complete Example: React Resolution
+## Complete Example: Multi-Scope Resolution
 
-### Input: Three Micro Frontends
+### Input: Multiple Teams with Shared Scopes
 
-```javascript
-// MFE1's remoteEntry.json
+```json
+// Global MFE - React for everyone
 {
   "shared": [{
     "packageName": "react",
     "version": "18.2.0",
     "requiredVersion": "^18.0.0",
-    "singleton": true,
-    "strictVersion": false
+    "singleton": true
   }]
 }
 
-// MFE2's remoteEntry.json  
+// Team A MFE 1 - Design system v3
 {
   "shared": [{
-    "packageName": "react", 
-    "version": "18.1.0",
-    "requiredVersion": "^18.0.0", 
+    "packageName": "design-system",
+    "version": "3.1.0",
+    "requiredVersion": "^3.0.0",
     "singleton": true,
-    "strictVersion": false
+    "sharedScope": "team-a"
   }]
 }
 
-// MFE3's remoteEntry.json
+// Team A MFE 2 - Design system v3
+{
+  "shared": [{
+    "packageName": "design-system", 
+    "version": "3.0.5",
+    "requiredVersion": "^3.0.0",
+    "singleton": true,
+    "sharedScope": "team-a"
+  }]
+}
+
+// Team B MFE - Design system v2 (legacy)
+{
+  "shared": [{
+    "packageName": "design-system",
+    "version": "2.8.0",
+    "requiredVersion": "^2.0.0", 
+    "singleton": true,
+    "sharedScope": "team-b",
+    "strictVersion": true
+  }]
+}
+
+// Legacy MFE - Old React
 {
   "shared": [{
     "packageName": "react",
-    "version": "17.0.2", 
+    "version": "17.0.2",
     "requiredVersion": "^17.0.0",
     "singleton": true,
-    "strictVersion": true  // ← Must have exact compatibility
+    "strictVersion": true
   }]
 }
 ```
@@ -209,16 +299,13 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[Collect React versions] --> B[18.2.0, 18.1.0, 17.0.2]
-    B --> C[Choose shared version: 18.2.0<br/>Latest compatible version]
-    C --> D[Check other versions against 18.2.0]
+    A[Group by scope] --> B[Global: react versions]
+    A --> C[team-a: design-system versions]  
+    A --> D[team-b: design-system versions]
     
-    D --> E[18.1.0: Compatible with ^18.0.0]
-    E --> F[Action: SKIP<br/>Use shared 18.2.0 instead]
-    
-    D --> G[17.0.2: NOT compatible with ^18.0.0]
-    G --> H{strictVersion: true?}
-    H --> I[Action: SCOPE<br/>Download separately for MFE3]
+    B --> E[Choose React<br/>18.2.0 → shared globally<br/>17.0.2 → individual scope]
+    C --> F[Choose design-system<br/>3.1.0 → shared in team-a<br/>3.0.5 → overridden]
+    D --> G[Choose design-system<br/>2.8.0 → shared in team-b]
 ```
 
 ### Output Import Map
@@ -226,13 +313,26 @@ flowchart TD
 ```javascript
 {
   "imports": {
-    // Shared globally - MFE1 and MFE2 use this
+    // Global shared - used by most micro frontends
     "react": "https://mfe1.example.com/react@18.2.0.js"
   },
   "scopes": {
-    // Scoped to MFE3 only
-    "https://mfe3.example.com/": {
-      "react": "https://mfe3.example.com/react@17.0.2.js"  
+    // Team A shared scope - design-system 3.x
+    "https://team-a-mfe1.example.com/": {
+      "design-system": "https://team-a-mfe1.example.com/design-system@3.1.0.js"
+    },
+    "https://team-a-mfe2.example.com/": {
+      "design-system": "https://team-a-mfe1.example.com/design-system@3.1.0.js"
+    },
+    
+    // Team B shared scope - design-system 2.x
+    "https://team-b-mfe.example.com/": {
+      "design-system": "https://team-b-mfe.example.com/design-system@2.8.0.js"
+    },
+    
+    // Individual scope - incompatible React version
+    "https://legacy-mfe.example.com/": {
+      "react": "https://legacy-mfe.example.com/react@17.0.2.js"
     }
   }
 }
@@ -240,13 +340,32 @@ flowchart TD
 
 ### What Actually Downloads
 
-- **react@18.2.0**: Downloaded once, used by MFE1 and MFE2
-- **react@18.1.0**: Not downloaded (skipped, compatible with 18.2.0)  
-- **react@17.0.2**: Downloaded separately for MFE3 (incompatible, strict)
+- **react@18.2.0**: Downloaded once, used by all compatible micro frontends
+- **react@17.0.2**: Downloaded separately for legacy MFE (incompatible, strict)
+- **design-system@3.1.0**: Downloaded once, shared between Team A MFEs
+- **design-system@3.0.5**: Not downloaded (skipped, compatible with 3.1.0)
+- **design-system@2.8.0**: Downloaded separately for Team B (different shared scope)
 
-## Understanding "dirty"
+## Understanding Scope Levels
 
-When processing remoteEntry.json files, shared dependencies are marked as "dirty" in storage when new versions are added or when their version list changes. This signals that the dependency needs resolution.
+### Global Scope (`__GLOBAL__`)
+- **Purpose**: Dependencies shared across all micro frontends
+- **Use case**: Core libraries like React, common utilities
+- **Configuration**: `singleton: true` without `sharedScope`
+
+### Shared Scopes (custom names)
+- **Purpose**: Dependencies shared within a specific group of micro frontends
+- **Use case**: Team-specific libraries, design systems, domain-specific tools
+- **Configuration**: `singleton: true` with `sharedScope: "scope-name"`
+
+### Individual Scopes (per micro frontend)
+- **Purpose**: Dependencies used only by one micro frontend
+- **Use case**: Incompatible versions, micro frontend-specific libraries
+- **Configuration**: `singleton: false` or incompatible shared dependencies
+
+## Understanding "dirty" Flag
+
+When processing remoteEntry.json files, shared dependencies are marked as "dirty" when new versions are added or their version list changes. This signals that the dependency needs resolution within its scope.
 
 ```mermaid
 sequenceDiagram
@@ -254,52 +373,57 @@ sequenceDiagram
     participant Storage as Storage
     participant Step3 as Step 3: Determine Versions
     
-    Step2->>Storage: Add react@18.2.0 to existing versions
-    Storage->>Storage: Mark react as dirty: true
-    Step3->>Storage: Find all dirty dependencies
-    Storage-->>Step3: react: dirty=true
-    Step3->>Step3: Resolve react versions
-    Step3->>Storage: Mark react as dirty: false
+    Step2->>Storage: Add react@18.2.0 to global scope
+    Storage->>Storage: Mark global react as dirty: true
+    Step2->>Storage: Add ui-lib@3.1.0 to team-a scope  
+    Storage->>Storage: Mark team-a ui-lib as dirty: true
+    Step3->>Storage: Find all dirty dependencies in all scopes
+    Storage-->>Step3: global react: dirty=true, team-a ui-lib: dirty=true
+    Step3->>Step3: Resolve each scope separately
+    Step3->>Storage: Mark all resolved dependencies as dirty: false
 ```
 
-**Why this matters**: The dirty flag prevents unnecessary re-resolution of dependencies that haven't changed, improving performance when the same micro frontends are loaded repeatedly.
+**Why this matters**: The dirty flag prevents unnecessary re-resolution of dependencies that haven't changed within their scope, improving performance when the same micro frontends are loaded repeatedly.
 
 ## Understanding "strictVersion"
 
-The `strictVersion` flag **only applies to shared dependencies** (`singleton: true`) and determines how incompatible versions are handled:
+The `strictVersion` flag applies to shared dependencies (`singleton: true`) and determines how incompatible versions are handled within each scope:
 
 ### strictVersion: false (default)
 
-The user will be notified about the incompatible version that is loaded, but since the user disabled strict version, the resolver will skip this version since another version was already shared.
+The user will be notified about the incompatible version, but the resolver will skip this version since another version was already shared in the scope.
 
-```javascript
-// MFE needs lodash ~4.16.0, but shared version is 4.17.0
+```json
+// MFE needs ui-lib ~4.16.0, but team-a scope shares 4.17.0
 {
-  "packageName": "lodash",
+  "packageName": "ui-lib",
   "version": "4.16.5", 
-  "requiredVersion": "~4.16.0",    // ← Only allows 4.16.x versions
+  "requiredVersion": "~4.16.0",
   "singleton": true,
+  "sharedScope": "team-a",
   "strictVersion": false
 }
 
 // Result: SKIP + WARNING  
-// The MFE will use the shared 4.17.0 version
+// The MFE will use the shared 4.17.0 version from team-a scope
 // May cause runtime compatibility issues
 ```
 
 ### strictVersion: true
-```javascript
-// MFE needs lodash ~4.16.0, but shared version is 4.17.0  
+
+```json
+// MFE needs ui-lib ~4.16.0, but team-a scope shares 4.17.0
 {
-  "packageName": "lodash",
+  "packageName": "ui-lib",
   "version": "4.16.5",
-  "requiredVersion": "~4.16.0",    // ← Only allows 4.16.x versions 
-  "singleton": true
+  "requiredVersion": "~4.16.0",
+  "singleton": true,
+  "sharedScope": "team-a", 
   "strictVersion": true
 }
 
-// Result: SCOPE
-// The MFE gets its own lodash@4.16.5 download  
+// Result: SCOPE (individual)
+// The MFE gets its own ui-lib@4.16.5 download  
 // Guaranteed compatibility, but extra download
 ```
 
@@ -309,55 +433,60 @@ The user will be notified about the incompatible version that is loaded, but sin
 
 ### 1. Host Version Override
 
-To allow the user to steer which version will be used of a shared external, the host remoteEntry.json has the highest precedence. When an external version exists in the host remoteEntry.json, it is guaranteed chosen as globally shared version.
+Host remoteEntry.json has the highest precedence within each scope. When an external version exists in the host remoteEntry.json for a specific scope, it is guaranteed chosen as the shared version for that scope.
 
 ```javascript
 await initFederation(manifest, {
   hostRemoteEntry: { url: "./host-remoteEntry.json" }
 });
 
-// If host specifies react@18.0.5, it wins over:
-// - MFE1's react@18.2.0
-// - MFE2's react@18.1.0
-// All other versions are evaluated against the host version
+// If host specifies react@18.0.5 globally, it wins over:
+// - MFE1's react@18.2.0 (global)
+// - MFE2's react@18.1.0 (global)
+
+// If host specifies ui-lib@3.0.0 for team-a scope, it wins over:
+// - Team A MFE1's ui-lib@3.1.0 (team-a scope)
+// - Team A MFE2's ui-lib@3.0.5 (team-a scope)
 ```
 
 ### 2. Latest Version Strategy
 
-Can be activated optionally with the `profile.latestSharedExternal` hyperparameter. This changes the strategy of the version resolver from "most optimal" to "latest available" version
+Can be activated with the `profile.latestSharedExternal` hyperparameter. This changes the strategy within each scope from "most optimal" to "latest available" version.
 
 ```javascript
 await initFederation(manifest, {
   profile: { latestSharedExternal: true }
 });
 
-// Available versions: [18.1.0, 18.2.0, 18.0.5]
-// Chosen: 18.2.0 (latest, regardless of compatibility)
+// Available versions in global scope: [18.1.0, 18.2.0, 18.0.5]
+// Chosen: 18.2.0 (latest in global scope)
+
+// Available versions in team-a scope: [3.0.5, 3.1.0, 3.0.8]
+// Chosen: 3.1.0 (latest in team-a scope)
 ```
 
 ### 3. Optimal Version Strategy (default)
 
-**Why this is default**: Minimizes bundle size and download time by choosing the version that requires the fewest additional scoped downloads.
+**Why this is default**: Minimizes bundle size and download time by choosing the version that requires the fewest additional scoped downloads within each scope.
 
-```javascript
-// The resolver calculates which version minimizes extra downloads:
+```json
+// The resolver calculates which version minimizes extra downloads per scope:
 
-// If 18.2.0 is chosen:
+// Global scope - if 18.2.0 is chosen:
 // - 18.1.0: compatible (SKIP) → 0 extra downloads
 // - 17.0.2: incompatible + strict (SCOPE) → 1 extra download
 // Total cost: 1 extra download
 
-// If 17.0.2 is chosen:  
-// - 18.2.0: incompatible + strict (SCOPE) → 1 extra download
-// - 18.1.0: incompatible + strict (SCOPE) → 1 extra download  
-// Total cost: 2 extra downloads
+// Team-a scope - if 3.1.0 is chosen:
+// - 3.0.5: compatible (SKIP) → 0 extra downloads
+// Total cost: 0 extra downloads
 
-// Result: Choose 18.2.0 (lower cost)
+// Result: Choose 18.2.0 globally, 3.1.0 for team-a scope
 ```
 
-### Caching Strategy
+### 4. Caching Strategy
 
-The resolver optimizes for applications with page reloads. As visible, when a storage like sessionStorage is chosen, the shared dependencies are passed onto the next page. This way they can be reused to minimize downloads on consecutive pages:
+The resolver optimizes for applications with page reloads. When storage like sessionStorage is chosen, shared dependencies are cached across page loads within their respective scopes:
 
 ```mermaid
 sequenceDiagram
@@ -366,21 +495,21 @@ sequenceDiagram
     participant Storage as Storage
     participant Page2 as Page Load 2
     
-    Page1->>Resolver: Process dependencies
-    Resolver->>Storage: Mark versions as cached
-    Note over Storage: lodash@4.17.21: cached=true
+    Page1->>Resolver: Process dependencies by scope
+    Resolver->>Storage: Mark versions as cached per scope
+    Note over Storage: Global: react@18.2.0: cached=true<br/>team-a: ui-lib@3.1.0: cached=true
     
     Page2->>Resolver: Process dependencies  
-    Resolver->>Storage: Check cached versions
-    Storage-->>Resolver: lodash@4.17.21 already downloaded
-    Resolver->>Page2: Prioritize cached version
+    Resolver->>Storage: Check cached versions by scope
+    Storage-->>Resolver: Cached versions found per scope
+    Resolver->>Page2: Prioritize cached versions within scopes
 ```
 
 ## Configuration
 
 ### Host Remote Entry
 
-Specify a host `remoteEntry.json` to control critical dependencies:
+Specify a host `remoteEntry.json` to control critical dependencies across all scopes:
 
 ```javascript
 await initFederation(manifest, {
@@ -390,13 +519,15 @@ await initFederation(manifest, {
 });
 ```
 
+Host dependencies can specify `sharedScope` to control specific shared scopes, or omit it to control global sharing.
+
 ### Resolution Strategy
 
-Hyperparameters to tweak the behavior of the version resolver. 
+Hyperparameters to tweak the behavior of the version resolver across all scopes:
 
 ```javascript
 await initFederation(manifest, {
-  // Use latest available versions
+  // Use latest available versions in each scope
   profile: { 
     latestSharedExternal: true 
   },
@@ -406,14 +537,14 @@ await initFederation(manifest, {
     skipCachedRemotes: true 
   },
   
-  // Fail on version conflicts
+  // Fail on version conflicts in any scope
   strict: true
 });
 ```
 
 ### Storage Options
 
-Choosing a different storage allows the library to reuse the cached externals over different page loads. 
+Choosing different storage allows the library to reuse cached externals across page loads, maintaining scope-specific optimizations:
 
 ```javascript
 // In-memory only (default) - fastest, lost on page reload
@@ -435,19 +566,33 @@ storage: config.localStorageEntry
 
 ### Version Conflicts
 
-```javascript
-// Error in strict mode
+```json
+// Error in strict mode for global scope
 NFError: [dep-a] Shared version 2.0.0 is not compatible with range '^1.0.0'
+
+// Error in strict mode for shared scope
+NFError: ShareScope external team-a.dep-a has multiple shared versions.
 
 // Solutions:
 // 1. Loosen the version constraints in the remoteEntry.json
-// 2. Use host override for the dependency
+// 2. Use host override for the dependency in the specific scope
 // 3. Disable strict mode
+// 4. Move conflicting dependencies to different shared scopes
+```
+
+### Shared Scope Issues
+
+```json
+// Warning for shared scope with no shared versions
+Warning: ShareScope external team-a.dep-a has no shared versions.
+
+// All versions in the shared scope will be individually scoped
+// Consider reviewing version compatibility or shared scope assignments
 ```
 
 ## Semver Compatibility
 
-The resolver uses [standard semantic versioning rules](https://www.npmjs.com/package/semver):
+The resolver uses [standard semantic versioning rules](https://www.npmjs.com/package/semver) within each scope:
 
 | Range | Matches | Examples |
 |-------|---------|----------|
@@ -456,4 +601,4 @@ The resolver uses [standard semantic versioning rules](https://www.npmjs.com/pac
 | `>=1.2.3` | Greater than or equal | `1.2.3`, `2.0.0` |
 | `1.2.3` | Exact version | `1.2.3` only |
 
-Pre-release versions are only compatible with the same pre-release range.
+Pre-release versions are only compatible with the same pre-release range within the same scope.
