@@ -5,7 +5,7 @@ import * as _path from "lib/utils/path";
 import { NFError } from "lib/native-federation.error";
 import type { LoggingConfig } from "./config/log.contract";
 import type { ModeConfig } from "./config/mode.contract";
-import type { SharedVersion } from "lib/1.domain";
+import type { SharedExternal, SharedVersion } from "lib/1.domain";
 
 
 /**
@@ -77,7 +77,7 @@ const createGenerateImportMap = (
         return importMap;
     }
 
-    function addSharedExternals(importMap: ImportMap) {
+    function addGlobalSharedExternals(importMap: ImportMap) {
         const sharedExternals = ports.sharedExternalsRepo.getAll();
 
         Object.entries(sharedExternals).forEach(([externalName, external]) => {
@@ -88,11 +88,58 @@ const createGenerateImportMap = (
         return importMap;
     }
 
+    const findOverride = (external: SharedExternal, scope: string, externalName: string): SharedVersion|undefined => {
+        const sharedVersions = external.versions.filter(v => v.action === "share");
+        if(sharedVersions.length > 1) {
+            if (config.strict) {
+                config.log.error(`ShareScope external ${scope}.${externalName} has multiple shared versions.`);
+                throw new NFError("Could not create ImportMap.");
+            }
+            config.log.warn(`ShareScope external ${scope}.${externalName} has multiple shared versions.`);
+        }
+        if(sharedVersions.length < 1) {
+            config.log.warn(`ShareScope external ${scope}.${externalName} has no shared versions.`);
+        }
+        return sharedVersions[0];
+    }
+
+    const addOrOverrideSkippedVersions = (externalName: string, override?: SharedVersion) => (importMap: ImportMap, version: SharedVersion) => {
+        
+        const scope = _path.getScope(version.file);
+
+        if(!importMap.scopes) importMap.scopes = {};
+        if(!importMap.scopes[scope]) importMap.scopes[scope] = {};
+        importMap.scopes[scope]![externalName] = version.file;
+        version.cached = true;
+
+        if (!!override && version.action !== "scope") {
+            importMap.scopes[scope]![externalName] = override.file;
+            if(override.file !== version.file) version.cached = false;
+        }
+
+        return importMap;
+    }
+
+    function addSharedScopeExternals(importMap: ImportMap) {
+        ports.sharedExternalsRepo.getScopes({includeGlobal: false})
+            .forEach(sharedScope => {
+                const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
+                Object.entries(sharedExternals).forEach(([externalName, external]) => {
+                    const override = findOverride(external, sharedScope, externalName);
+                    importMap = external.versions.reduce(addOrOverrideSkippedVersions(externalName, override), importMap);
+                    ports.sharedExternalsRepo.addOrUpdate(externalName, external, sharedScope);
+                });
+            })
+
+        return importMap;
+    }
+
     return () => {
         return Promise.resolve({imports: {}})
             .then(addRemoteInfos)
             .then(addScopedExternals)
-            .then(addSharedExternals);
+            .then(addSharedScopeExternals)
+            .then(addGlobalSharedExternals);
     };
 }
 

@@ -56,7 +56,7 @@ const createProcessRemoteEntries = (
     function addSharedExternal(scope: string, sharedInfo: SharedInfo, isHostVersion?: boolean) 
         : void {
             const cached: SharedVersion[] = ports.sharedExternalsRepo
-                .tryGetVersions(sharedInfo.packageName)
+                .tryGetVersions(sharedInfo.packageName, sharedInfo.sharedScope)
                 .orElse([]);
 
             const matchingVersionIDX = cached.findIndex(c => c.version === sharedInfo.version);
@@ -82,7 +82,8 @@ const createProcessRemoteEntries = (
 
             ports.sharedExternalsRepo.addOrUpdate(
                 sharedInfo.packageName, 
-                { dirty: true, versions: cached.sort((a,b) => ports.versionCheck.compare(b.version, a.version)) }
+                { dirty: true, versions: cached.sort((a,b) => ports.versionCheck.compare(b.version, a.version)) },
+                sharedInfo.sharedScope
             );
         }
 

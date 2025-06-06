@@ -1,3 +1,4 @@
+import { GLOBAL_SCOPE } from "lib/1.domain";
 import { ForSharedExternalsStorage } from "lib/2.app/driving-ports/for-shared-externals-storage.port";
 
 export const mockSharedExternalsRepository = ()
@@ -5,5 +6,6 @@ export const mockSharedExternalsRepository = ()
         addOrUpdate: jest.fn(),
         getAll: jest.fn(),
         commit: jest.fn(),
+        getScopes: jest.fn((o = {includeGlobal: true}) => (o.includeGlobal) ? [GLOBAL_SCOPE] : []),
         tryGetVersions: jest.fn()
     });

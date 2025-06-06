@@ -163,6 +163,7 @@ classDiagram
         singleton: boolean
         strictVersion: boolean
         requiredVersion: string
+        sharedScope?: string
         version?: string
         packageName: string
         outFileName: string
@@ -206,6 +207,7 @@ classDiagram
 | requiredVersion | Version range this micro frontend is compatible with (enables clustering) | 
 | strictVersion | Will make sure the remote receives a compatible version when the external is shared, even if that means loading multiple versions of the dependency |
 | singleton | Allows the dependency to be shared and used by other remotes that need it. |
+| sharedScope | Allows for sharing dependencies in a specific group instead of globally, allowing for clusters of shared externals |
 | packageName | Dependency identifier for resolution |
 | outFileName | File path relative to the micro frontend's scope |
 
@@ -258,12 +260,16 @@ Dependencies are categorized into two types based on their singleton property. `
 
 ```mermaid
 classDiagram
-    SharedExternals *-- SharedExternal
+    SharedExternals *-- SharedScope
+    SharedScope *-- SharedExternal
     SharedExternal *-- SharedVersion
     ScopedExternals *-- ExternalsScope
     ExternalsScope *-- Version
 
     class SharedExternals {
+        Map<.string, SharedScope>
+    }
+    class SharedScope {
         Map<.string, SharedExternal>
     }
     class SharedExternal {
@@ -298,29 +304,57 @@ The action field is calculated during the dependency resolution phase:
 ```json
 {
     "shared-externals": {
-        "dep-a": {
-            "dirty": false,
-            "versions": [
-                {
-                    "version": "1.2.3", 
-                    "file":"https://example.org/mfe1/dep-a.js",
-                    "requiredVersion": "~1.2.1", 
-                    "strictVersion": false,                
-                    "action": "share",
-                    "host": false,
-                    "cached": true
-                },
-                {
-                    "version":"1.2.2", 
-                    "file":"https://example.org/mfe2/dep-a.js",
-                    "requiredVersion": "^1.2.1", 
-                    "strictVersion": true, 
-                    "action": "skip",
-                    "host": false,
-                    "cached": false
-                }
-            ]
+        "__GLOBAL__": {
+            "dep-a": {
+                "dirty": false,
+                "versions": [
+                    {
+                        "version": "1.2.3", 
+                        "file":"https://example.org/mfe1/dep-a.js",
+                        "requiredVersion": "~1.2.1", 
+                        "strictVersion": false,                
+                        "action": "share",
+                        "host": false,
+                        "cached": true
+                    },
+                    {
+                        "version":"1.2.2", 
+                        "file":"https://example.org/mfe2/dep-a.js",
+                        "requiredVersion": "^1.2.1", 
+                        "strictVersion": true, 
+                        "action": "skip",
+                        "host": false,
+                        "cached": false
+                    }
+                ]
+            }
+        },
+        "custom-scope": {
+            "dep-c": {
+                "dirty": false,
+                "versions": [
+                    {
+                        "version": "1.2.4", 
+                        "file":"https://example.org/mfe1/dep-c.js",
+                        "requiredVersion": "~1.2.1", 
+                        "strictVersion": false,                
+                        "action": "share",
+                        "host": false,
+                        "cached": true
+                    },
+                    {
+                        "version": "1.2.3", 
+                        "file":"https://example.org/mfe2/dep-c.js",
+                        "requiredVersion": "~1.2.1", 
+                        "strictVersion": false,                
+                        "action": "skip",
+                        "host": false,
+                        "cached": false
+                    }
+                ]
+            }
         }
+        
     },
     "scoped-externals": {
         "https://example.org/mfe1/": {
@@ -350,7 +384,11 @@ The final import map provides the browser with optimized module resolution instr
     "scopes": {
         // Scoped externals
         "https://example.org/mfe1/": {
-            "dep-b": "https://example.org/mfe1/dep-b.js"
+            "dep-b": "https://example.org/mfe1/dep-b.js",
+            "dep-c": "https://example.org/mfe1/dep-c.js"
+        },
+        "https://example.org/mfe1/": {
+            "dep-c": "https://example.org/mfe1/dep-c.js"
         }
     }
 }
@@ -359,6 +397,7 @@ The final import map provides the browser with optimized module resolution instr
 This structure enables:
 - **Global sharing** via the imports object (dep-a downloads once, used everywhere compatible)
 - **Scoped isolation** via the scopes object (dep-b only loads for its specific micro frontend)
+- **Grouped externals** Reusing compatible externals with the same `shareScope` to minimize downloads even more! 
 - **Optimal caching** through strategic version selection and reuse
 
 ## Caching and Performance

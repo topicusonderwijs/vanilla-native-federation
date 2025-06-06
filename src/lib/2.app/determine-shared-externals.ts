@@ -81,22 +81,23 @@ const createDetermineSharedExternals = (
     }
 
     return () => {
-        const sharedExternals = ports.sharedExternalsRepo.getAll();
+        for (const sharedScope of ports.sharedExternalsRepo.getScopes()) {
+            const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
+            try {
+                Object.entries(sharedExternals)
+                    .filter(([_, e]) => e.dirty)
+                    .forEach(([name, external]) => {
+                        ports.sharedExternalsRepo.addOrUpdate(name, updateVersionActions(name, external), sharedScope)
+                    });
 
-        try {
-            Object.entries(sharedExternals)
-                .filter(([_, e]) => e.dirty)
-                .forEach(([name, external]) => {
-                    ports.sharedExternalsRepo.addOrUpdate(name, updateVersionActions(name, external))
-                });
-
-            config.log.debug("Processed shared externals", sharedExternals);
-            return Promise.resolve();
-        } catch(err: unknown) {
-            config.log.error("Failed to determine shared externals", err);
-            config.log.debug("Currently processed shared externals", sharedExternals);
-            return Promise.reject(new NFError("Failed to determine shared externals."));
+                config.log.debug("Processed shared externals", sharedExternals);
+            } catch(err: unknown) {
+                config.log.error("Failed to determine shared externals in scope "+sharedScope, err);
+                config.log.debug("Currently processed shared externals in scope "+sharedScope, sharedExternals);
+                return Promise.reject(new NFError("Failed to determine shared externals."));
+            }
         }
+        return Promise.resolve();
     };
 }
 
