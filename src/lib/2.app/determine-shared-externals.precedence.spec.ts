@@ -5,6 +5,7 @@ import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-exter
 import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
 import { LoggingConfig } from './config/log.contract';
 import { ModeConfig } from './config/mode.contract';
+import { GLOBAL_SCOPE } from 'lib/1.domain';
 
 
 /**
@@ -34,7 +35,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
             versionCheck: createVersionCheck(),
             sharedExternalsRepo: mockSharedExternalsRepository()
         };
-        
+        mockAdapters.sharedExternalsRepo.getScopes = jest.fn(() => [GLOBAL_SCOPE])
         determineSharedExternals = createDetermineSharedExternals(mockConfig, mockAdapters);
     });
 

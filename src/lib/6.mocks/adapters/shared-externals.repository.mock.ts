@@ -5,5 +5,6 @@ export const mockSharedExternalsRepository = ()
         addOrUpdate: jest.fn(),
         getAll: jest.fn(),
         commit: jest.fn(),
+        getScopes: jest.fn(),
         tryGetVersions: jest.fn()
     });

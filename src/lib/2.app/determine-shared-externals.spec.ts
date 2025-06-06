@@ -6,6 +6,7 @@ import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
 import { LoggingConfig } from './config/log.contract';
 import { ModeConfig } from './config/mode.contract';
 import { NFError } from 'lib/native-federation.error';
+import { GLOBAL_SCOPE } from 'lib/1.domain';
 
 describe('createDetermineSharedExternals', () => {
     let determineSharedExternals: ForDeterminingSharedExternals;
@@ -31,6 +32,7 @@ describe('createDetermineSharedExternals', () => {
             versionCheck: createVersionCheck(),
             sharedExternalsRepo: mockSharedExternalsRepository()
         };
+        mockAdapters.sharedExternalsRepo.getScopes = jest.fn(() => [GLOBAL_SCOPE])
         
         determineSharedExternals = createDetermineSharedExternals(mockConfig, mockAdapters);
     });
