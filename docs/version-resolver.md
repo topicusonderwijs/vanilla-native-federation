@@ -61,11 +61,11 @@ Import maps provide **scopes** and **shared scopes** as solutions for dependency
       "react": "https://legacy-mfe.example.com/react@17.0.2.js"
     },
     // Shared scope for a group of related micro frontends
-    "https://design-system-mfe1.example.com/": {
-      "ui-library": "https://design-system.example.com/ui-lib@3.0.0.js"
+    "mfe1.example.com/": {
+      "ui-library": "mfe1.example.com/ui-lib@3.0.0.js"
     },
-    "https://design-system-mfe2.example.com/": {
-      "ui-library": "https://design-system.example.com/ui-lib@3.0.0.js"
+    "mfe2.example.com/": {
+      "ui-library": "mfe1.example.com/ui-lib@3.0.0.js"
     }
   }
 }
@@ -85,30 +85,29 @@ In the micro-frontend's metadata file (remoteEntry.json), dependencies are marke
 ### Shared externals (singleton: true)
 Dependencies marked as `singleton: true` are candidates for sharing:
 
-```javascript
+```json
 // In remoteEntry.json
 {
   "shared": [{
     "packageName": "react",
-    "singleton": true,        // ← Marked for sharing
-    "sharedScope": "default", // ← Optional: share in specific scope
+    "singleton": true,
     "version": "18.2.0",
     "requiredVersion": "^18.0.0"
   }]
 }
 ```
 
-**Result**: Shared within the specified scope (global if no sharedScope specified).
+**Result**: Grouped with other externals in the same shared scope for resolution (global scope if no sharedScope specified).
 
 ### Scoped externals (singleton: false)
 Dependencies with `singleton: false` are always scoped to their individual remote:
 
-```javascript
+```json
 // In remoteEntry.json  
 {
   "shared": [{
     "packageName": "lodash-utils",
-    "singleton": false,       // ← Always individually scoped
+    "singleton": false,
     "version": "1.0.0"
   }]
 }
@@ -118,7 +117,9 @@ Dependencies with `singleton: false` are always scoped to their individual remot
 
 ### Shared Scope Configuration
 
-The `sharedScope` property allows you to create groups of micro frontends that share dependencies among themselves:
+The `sharedScope` property creates logical groups for dependency resolution. Dependencies with the same shared scope are resolved together, but the final import map still uses individual micro frontend scopes:
+
+> Shared scope groups don't exist in import maps, therefore it is only popssible through using the same URL in multiple specific scopes.
 
 ```json
 // Team A micro frontends - share UI components v3.x
@@ -153,6 +154,11 @@ The `sharedScope` property allows you to create groups of micro frontends that s
   }]
 }
 ```
+
+**How shared scopes work:**
+1. **Resolution**: Dependencies with the same `sharedScope` are grouped and resolved together
+2. **Sharing**: The chosen version is shared among all micro frontends in that logical group
+3. **Import Map**: Each micro frontend gets the shared version added to its individual scope in the final import map
 
 ## Resolution Process
 
@@ -227,7 +233,7 @@ flowchart LR
     B -->|Global Scope + SHARE| C[Add to *imports* property]
     B -->|Shared Scope + SHARE| D[Add to scope in *scopes* property]
     B -->|SCOPE| E[Add to individual scope in *scopes*]
-    B -->|SKIP| F[Omit from map]
+    B -->|SKIP| F[Omit from map or get overridden by SHARE]
     
     C --> G[Available to all micro frontends]
     D --> H[Available to micro frontends in shared scope]
@@ -303,9 +309,9 @@ flowchart TD
     A --> C[team-a: design-system versions]  
     A --> D[team-b: design-system versions]
     
-    B --> E[Choose React<br/>18.2.0 → shared globally<br/>17.0.2 → individual scope]
-    C --> F[Choose design-system<br/>3.1.0 → shared in team-a<br/>3.0.5 → overridden]
-    D --> G[Choose design-system<br/>2.8.0 → shared in team-b]
+    B --> E[Choose React <br/> 18.2.0 → Shared globally <br/> 17.0.2 → individual scope]
+    C --> F[Choose design-system <br/> 3.1.0  → Shared for team-a<br/>3.0.5 → skip]
+    D --> G[Choose design-system <br/> 2.8.0 for team-b]
 ```
 
 ### Output Import Map
@@ -317,7 +323,7 @@ flowchart TD
     "react": "https://mfe1.example.com/react@18.2.0.js"
   },
   "scopes": {
-    // Team A shared scope - design-system 3.x
+    // Each Team A MFE gets the shared team-a version
     "https://team-a-mfe1.example.com/": {
       "design-system": "https://team-a-mfe1.example.com/design-system@3.1.0.js"
     },
@@ -325,7 +331,7 @@ flowchart TD
       "design-system": "https://team-a-mfe1.example.com/design-system@3.1.0.js"
     },
     
-    // Team B shared scope - design-system 2.x
+    // Team B MFE gets its own version (different logical shared scope)
     "https://team-b-mfe.example.com/": {
       "design-system": "https://team-b-mfe.example.com/design-system@2.8.0.js"
     },
@@ -338,13 +344,15 @@ flowchart TD
 }
 ```
 
+**Key insight**: Notice that both Team A MFEs reference the same URL (`https://team-a-mfe1.example.com/design-system@3.1.0.js`) even though they have different scope prefixes. This is how shared scopes work - the resolver picks one version from the logical group and all MFEs in that group use the same URL.
+
 ### What Actually Downloads
 
 - **react@18.2.0**: Downloaded once, used by all compatible micro frontends
 - **react@17.0.2**: Downloaded separately for legacy MFE (incompatible, strict)
-- **design-system@3.1.0**: Downloaded once, shared between Team A MFEs
-- **design-system@3.0.5**: Not downloaded (skipped, compatible with 3.1.0)
-- **design-system@2.8.0**: Downloaded separately for Team B (different shared scope)
+- **design-system@3.1.0**: Downloaded once, shared between Team A MFEs (logical shared scope)
+- **design-system@3.0.5**: Not downloaded (uses team-a shared version URL instead)
+- **design-system@2.8.0**: Downloaded separately for Team B (different logical shared scope)
 
 ## Understanding Scope Levels
 
@@ -352,16 +360,19 @@ flowchart TD
 - **Purpose**: Dependencies shared across all micro frontends
 - **Use case**: Core libraries like React, common utilities
 - **Configuration**: `singleton: true` without `sharedScope`
+- **Import map**: Added to the `imports` property
 
 ### Shared Scopes (custom names)
-- **Purpose**: Dependencies shared within a specific group of micro frontends
+- **Purpose**: Logical groupings for dependency resolution among specific micro frontends
 - **Use case**: Team-specific libraries, design systems, domain-specific tools
 - **Configuration**: `singleton: true` with `sharedScope: "scope-name"`
+- **Import map**: Resolved version URL is added to each MFE's individual scope
 
 ### Individual Scopes (per micro frontend)
 - **Purpose**: Dependencies used only by one micro frontend
 - **Use case**: Incompatible versions, micro frontend-specific libraries
 - **Configuration**: `singleton: false` or incompatible shared dependencies
+- **Import map**: Added to the specific MFE's scope with its own URL
 
 ## Understanding "dirty" Flag
 
@@ -405,7 +416,7 @@ The user will be notified about the incompatible version, but the resolver will 
 }
 
 // Result: SKIP + WARNING  
-// The MFE will use the shared 4.17.0 version from team-a scope
+// The MFE will use the shared 4.17.0 version URL from team-a scope
 // May cause runtime compatibility issues
 ```
 
@@ -519,7 +530,7 @@ await initFederation(manifest, {
 });
 ```
 
-Host dependencies can specify `sharedScope` to control specific shared scopes, or omit it to control global sharing.
+Host dependencies can specify `sharedScope` to control specific logical shared scopes, or omit it to control global sharing. Host versions always take precedence within their respective scope.
 
 ### Resolution Strategy
 
@@ -562,6 +573,8 @@ storage: config.localStorageEntry
 - **sessionStorage**: Multi-page applications where users navigate between pages
 - **localStorage**: Frequently visited applications where long-term caching provides value
 
+**Scope impact**: All storage options maintain the logical shared scope groupings and resolved version URLs for optimal performance.
+
 ## Troubleshooting
 
 ### Version Conflicts
@@ -589,6 +602,11 @@ Warning: ShareScope external team-a.dep-a has no shared versions.
 // All versions in the shared scope will be individually scoped
 // Consider reviewing version compatibility or shared scope assignments
 ```
+
+**Common causes**:
+- All versions in the logical shared scope are incompatible with each other and have `strictVersion: true`
+- Misconfigured shared scope names leading to single-version groups
+- Version ranges that don't overlap within the logical group
 
 ## Semver Compatibility
 
