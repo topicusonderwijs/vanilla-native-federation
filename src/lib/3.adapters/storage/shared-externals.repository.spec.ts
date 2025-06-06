@@ -3,7 +3,7 @@ import { GLOBAL_SCOPE, SharedExternals, SharedScope } from 'lib/1.domain/externa
 import { SharedVersion } from 'lib/1.domain/externals/version.contract';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { Optional } from 'lib/utils/optional';
-import { MOCK_VERSION_II } from 'lib/6.mocks/domain/externals/version.mock';
+import { MOCK_VERSION_II, MOCK_VERSION_III } from 'lib/6.mocks/domain/externals/version.mock';
 import { StorageConfig } from 'lib/2.app';
 
 describe('createSharedExternalsRepository', () => {
@@ -51,11 +51,29 @@ describe('createSharedExternalsRepository', () => {
             expect(actual).toEqual({});
         });
 
-        it('should return all shared deps', () => {
+        it('should return all shared deps of a particular scope', () => {
             const {externalsRepo} = setupWithCache({
                 [GLOBAL_SCOPE]: {
                     "dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }
-                }
+                },
+                ["custom-scope"]: {
+                    "dep-b": { dirty: false, versions: [MOCK_VERSION_III()] }
+                },
+            });
+
+            const actual: SharedScope = externalsRepo.getAll("custom-scope");
+
+            expect(actual).toEqual({"dep-b": { dirty: false, versions: [MOCK_VERSION_III()] }});
+        });
+
+        it('should return all shared deps of the global scope by default', () => {
+            const {externalsRepo} = setupWithCache({
+                [GLOBAL_SCOPE]: {
+                    "dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }
+                },
+                ["custom-scope"]: {
+                    "dep-b": { dirty: false, versions: [MOCK_VERSION_III()] }
+                },
             });
 
             const actual: SharedScope = externalsRepo.getAll();
@@ -87,10 +105,44 @@ describe('createSharedExternalsRepository', () => {
             expect(actual.get()).toEqual(undefined);
         });
 
-        it('should return empty optional if only other scopes exist', () => {
-            const {externalsRepo} = setupWithCache({"dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }});
+        it('should return empty optional if only other externals exist', () => {
+            const {externalsRepo} = setupWithCache({
+                [GLOBAL_SCOPE]: {
+                    "dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }
+                }
+            });
 
             const actual: Optional<SharedVersion[]> = externalsRepo.tryGetVersions("dep-b");
+
+            expect(actual.isPresent()).toBe(false);
+            expect(actual.get()).toEqual(undefined);
+        });
+
+        it('should return an external from a custom scope', () => {
+            const {externalsRepo} = setupWithCache({
+                [GLOBAL_SCOPE]: {
+                    "dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }
+                },
+                ["custom-scope"]: {
+                    "dep-b": { dirty: false, versions: [MOCK_VERSION_III()] }
+                },                
+            });
+            const actual: Optional<SharedVersion[]> = externalsRepo.tryGetVersions("dep-b", "custom-scope");
+
+            expect(actual.isPresent()).toBe(true);
+            expect(actual.get()).toEqual([MOCK_VERSION_III()]);
+        });
+
+        it('should not return an external from a different scope', () => {
+            const {externalsRepo} = setupWithCache({
+                [GLOBAL_SCOPE]: {
+                    "dep-a": { dirty: false, versions: [MOCK_VERSION_II()] }
+                },
+                ["custom-scope"]: {
+                    "dep-b": { dirty: false, versions: [MOCK_VERSION_III()] }
+                },                
+            });
+            const actual: Optional<SharedVersion[]> = externalsRepo.tryGetVersions("dep-a", "custom-scope");
 
             expect(actual.isPresent()).toBe(false);
             expect(actual.get()).toEqual(undefined);
@@ -225,6 +277,70 @@ describe('createSharedExternalsRepository', () => {
             const {externalsRepo} = setupWithCache({});
             const result = externalsRepo.addOrUpdate("dep-a", { dirty: false, versions: [MOCK_VERSION_II()] });
             expect(result).toBe(externalsRepo);
+        });
+
+        it('should add a new dirty external to a custom scope', () => {
+            const {mockStorage, externalsRepo} = setupWithCache({
+                [GLOBAL_SCOPE]: {
+                    "dep-a": { dirty: false, versions: [MOCK_VERSION_II()]},
+                }
+
+            });
+            
+            externalsRepo.addOrUpdate("dep-b", { dirty: true, versions: [MOCK_VERSION_III()] }, "custom-scope");
+            expect(mockStorage["shared-externals"]).toEqual({
+                [GLOBAL_SCOPE]: {
+                    "dep-a": { dirty: false, versions: [MOCK_VERSION_II()]},
+                }
+            });
+
+            externalsRepo.commit();
+            expect(mockStorage["shared-externals"]).toEqual({
+                [GLOBAL_SCOPE]: {
+                    "dep-a": { dirty: false, versions: [MOCK_VERSION_II()]},
+                },
+                "custom-scope": {
+                    "dep-b": { dirty: true, versions: [MOCK_VERSION_III()]},
+                }
+            });
+        });
+    });
+
+    describe('getScopes', () => {
+        it('should return only GLOBAL by default', () => {
+            const {externalsRepo} = setupWithCache({
+                [GLOBAL_SCOPE]: {}
+            });
+            
+            const actual = externalsRepo.getScopes();
+
+            expect(actual).toEqual(["__GLOBAL__"]);
+        });
+
+        it('should return all availble scopes', () => {
+            const {externalsRepo} = setupWithCache({
+                [GLOBAL_SCOPE]: {},
+                "custom-scope": {},
+                "other-custom-scope": {}
+
+            });
+            
+            const actual = externalsRepo.getScopes();
+
+            expect(actual).toEqual(["__GLOBAL__","custom-scope","other-custom-scope"]);
+        });
+
+        it('should exclude the global scope when in options', () => {
+            const {externalsRepo} = setupWithCache({
+                [GLOBAL_SCOPE]: {},
+                "custom-scope": {},
+                "other-custom-scope": {}
+
+            });
+            
+            const actual = externalsRepo.getScopes({includeGlobal: false});
+
+            expect(actual).toEqual(["custom-scope","other-custom-scope"]);
         });
     });
 });

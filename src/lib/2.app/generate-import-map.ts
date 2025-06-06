@@ -5,7 +5,7 @@ import * as _path from "lib/utils/path";
 import { NFError } from "lib/native-federation.error";
 import type { LoggingConfig } from "./config/log.contract";
 import type { ModeConfig } from "./config/mode.contract";
-import { GLOBAL_SCOPE, type SharedExternal, type SharedVersion } from "lib/1.domain";
+import type { SharedExternal, SharedVersion } from "lib/1.domain";
 
 
 /**
@@ -116,8 +116,7 @@ const createGenerateImportMap = (
     }
 
     function addSharedScopeExternals(importMap: ImportMap) {
-        ports.sharedExternalsRepo.getScopes()
-            .filter(s => s !== GLOBAL_SCOPE) 
+        ports.sharedExternalsRepo.getScopes({includeGlobal: false})
             .forEach(sharedScope => {
                 const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
                 Object.entries(sharedExternals).forEach(([externalName, external]) => {

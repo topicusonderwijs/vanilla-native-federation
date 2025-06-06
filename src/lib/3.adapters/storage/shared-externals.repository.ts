@@ -21,8 +21,9 @@ const createSharedExternalsRepository = (
             _cache[sharedScope ?? GLOBAL_SCOPE]![externalName] = external;
             return this;
         },
-        getScopes: function() {
-            return Object.keys(_cache);
+        getScopes: function(o = {includeGlobal: true}) {
+            if (o.includeGlobal) return Object.keys(_cache);
+            return Object.keys(_cache).filter(s => s !== GLOBAL_SCOPE);
         },
         tryGetVersions: function (external: string, sharedScope?: string) {
             return Optional.of(_cache[sharedScope ?? GLOBAL_SCOPE]?.[external]?.versions);
