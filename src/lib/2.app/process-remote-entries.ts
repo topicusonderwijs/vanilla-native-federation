@@ -82,7 +82,8 @@ const createProcessRemoteEntries = (
 
             ports.sharedExternalsRepo.addOrUpdate(
                 sharedInfo.packageName, 
-                { dirty: true, versions: cached.sort((a,b) => ports.versionCheck.compare(b.version, a.version)) }
+                { dirty: true, versions: cached.sort((a,b) => ports.versionCheck.compare(b.version, a.version)) },
+                sharedInfo.sharedScope
             );
         }
 

@@ -92,7 +92,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
                         action: "share"
                     },
                 ]
-            }
+            },
+            GLOBAL_SCOPE
         )
     });
 
@@ -149,7 +150,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
                         action: "skip"
                     },
                 ]
-            }
+            },
+            GLOBAL_SCOPE
         )
     });
 
@@ -227,7 +229,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
                         action: "skip"
                     },
                 ]
-            }
+            },
+            GLOBAL_SCOPE
         )
     });
 
@@ -306,7 +309,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
                         action: "scope"
                     },
                 ]
-            }
+            },
+            GLOBAL_SCOPE
         )
     });
 

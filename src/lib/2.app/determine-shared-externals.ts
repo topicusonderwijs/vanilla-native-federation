@@ -81,14 +81,13 @@ const createDetermineSharedExternals = (
     }
 
     return () => {
-        for (const sharedScope in ports.sharedExternalsRepo.getScopes()) {
+        for (const sharedScope of ports.sharedExternalsRepo.getScopes()) {
             const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
-
             try {
                 Object.entries(sharedExternals)
                     .filter(([_, e]) => e.dirty)
                     .forEach(([name, external]) => {
-                        ports.sharedExternalsRepo.addOrUpdate(name, updateVersionActions(name, external))
+                        ports.sharedExternalsRepo.addOrUpdate(name, updateVersionActions(name, external), sharedScope)
                     });
 
                 config.log.debug("Processed shared externals", sharedExternals);

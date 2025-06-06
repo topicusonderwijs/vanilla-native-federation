@@ -28,9 +28,6 @@ describe('createExposeModuleLoader', () => {
             remoteInfoRepo: mockRemoteInfoRepository(),
             browser: mockBrowser()
         };
-
-        mockAdapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
-
         exposeModuleLoader = createExposeModuleLoader(mockConfig, mockAdapters);
     });
 

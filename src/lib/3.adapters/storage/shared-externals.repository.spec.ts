@@ -335,7 +335,6 @@ describe('createSharedExternalsRepository', () => {
                 [GLOBAL_SCOPE]: {},
                 "custom-scope": {},
                 "other-custom-scope": {}
-
             });
             
             const actual = externalsRepo.getScopes({includeGlobal: false});

@@ -163,8 +163,7 @@ describe('createProcessRemoteEntries', () => {
                             action: "skip"
                         } as SharedVersion
                     ]
-
-                }
+                }, undefined
             );
         });
 
@@ -193,6 +192,53 @@ describe('createProcessRemoteEntries', () => {
             expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
             expect(mockConfig.log.warn).toHaveBeenCalledWith("[team/mfe1][dep-a] Version 'bad-version' is not a valid version, skipping version.")
 
+        });
+        
+    });
+
+    describe('process shared externals - handle custom scopes', () => {
+        it('should add a shared external', async () => {
+            mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn((): Optional<SharedVersion[]> => Optional.empty())
+            const remoteEntries = [
+                {
+                    name: 'team/mfe1',
+                    url: "http://my.service/mfe1/remoteEntry.json",
+                    exposes: [],
+                    shared: [
+                        {
+                            version: "1.2.3", 
+                            requiredVersion: "~1.2.1", 
+                            strictVersion: false,
+                            sharedScope: "custom-scope",
+                            singleton: true,
+                            packageName: "dep-a",
+                            outFileName: "dep-a.js"
+                        }
+                    ]
+                }
+            ];
+
+            await processRemoteEntries(remoteEntries);
+
+            expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+            expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+                'dep-a',
+                {
+                    dirty: true,
+                    versions: [
+                        {
+                            version: "1.2.3", 
+                            file: "http://my.service/mfe1/dep-a.js",
+                            requiredVersion: "~1.2.1",
+                            strictVersion: false,
+                            cached: false,
+                            host: false,
+                            action: "skip"
+                        } as SharedVersion
+                    ]
+                },
+                "custom-scope"
+            );
         });
         
     });
@@ -286,8 +332,8 @@ describe('createProcessRemoteEntries', () => {
                             action: "skip"
                         } as SharedVersion
                     ]
-
-                }
+                }, 
+                undefined
             );
         });
 
@@ -411,7 +457,7 @@ describe('createProcessRemoteEntries', () => {
                         } 
                     ]
 
-                }
+                }, undefined
             );
         });
     });
