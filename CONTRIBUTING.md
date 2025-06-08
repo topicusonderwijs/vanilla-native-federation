@@ -1,6 +1,12 @@
 # Contributing
 
-Thanks for being interested in contributing! Here's how to help:
+Thanks for being interested in contributing! We welcome all meaningful contributions that help improve the library.
+
+## Getting Started
+
+We love seeing fresh ideas and improvements! Before diving into major architectural changes or large refactors, it's usually helpful to chat with us first in an issue - we're always happy to discuss the best approach and can save you time.
+
+For the smoothest experience, we find that contributions focusing on functionality, bug fixes, and meaningful improvements tend to have the quickest path to merge. Style tweaks are great, but if that's the main focus, consider bundling them with a feature or fix to maximize impact.
 
 ## Quick Start
 
@@ -10,13 +16,14 @@ Thanks for being interested in contributing! Here's how to help:
 4. Create a branch: `git checkout -b my-feature`
 5. Make your changes
 6. Lint your code: `npm run lint`
-7. Push your branch and open a PR
+7. Test your code: `npm run test`
+8. Push your branch and open a PR
 
 ## Pull Request Guidelines
 
 - Include tests for any new features
 - Update documentation if needed
-- Follow our coding style (runs on commit)
+- Follow our coding style (eslint)
 - Keep PRs focused - one feature or bug fix per PR
 
 ## Commit Messages
