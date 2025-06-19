@@ -77,10 +77,10 @@ Your micro frontends are now loaded and ready to use. The runtime handles:
 ### Available quickstart Runtimes
 
 ```html
-<!-- Development: Detailed logging -->
+<!-- Development: Detailed console logging -->
 <script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/debug.mjs"></script>
 
-<!-- Production: Optimized for performance -->
+<!-- Development: Optimized for performance -->
 <script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/test.mjs"></script>
 ```
 

@@ -2,14 +2,14 @@
 
 # Getting Started
 
-This guide demonstrates how to integrate the vanilla-native-federation orchestrator into your application to be able to load micro frontends. As expected, the orchestrator uses the native-federation mental model.
+This guide demonstrates how to integrate the vanilla-native-federation orchestrator into your application. The orchestrator is used to integrate micro frontends into any HTML page. As expected, the orchestrator uses the [native-federation mental model](https://www.npmjs.com/package/@angular-architects/native-federation) to share dependencies over the micro frontends and load ES modules.
 
 ## Prerequisites
 
-This library is part of the bigger native-federation pattern and covers the integration of micro frontends in the host/shell application. Therefore, this getting-started tutorial assumes: 
+This library is part of the bigger native-federation pattern and covers the integration of micro frontends in the shell (host) application. Therefore, this getting-started tutorial assumes: 
 
-- Basic HTML and JavaScript knowledge
-- One or more micro frontends with published `remoteEntry.json` files
+- Basic HTML and JavaScript knowledge.
+- The presence of one or more micro frontends with published `remoteEntry.json` files.
 
 ## Quick Integration
 
@@ -65,7 +65,7 @@ The manifest script tag tells the system where to find your micro frontends. The
 </script>
 ```
 
-Each entry maps a logical name (like "team/button") to the URL of that micro frontend's metadata file. The runtime fetches these URLs to understand what components are available and what dependencies they need.
+Each entry maps a logical name (like "@team/component") to the URL of that micro frontend's metadata file. The runtime fetches these URLs to understand what components are available and what dependencies they need.
 
 **Event Handler Setup**<br />
 The micro frontend loading process is asynchronous - the runtime needs time to fetch metadata, resolve dependencies, and set up import maps. The `mfe-loader-available` event signals when this process is complete and the `loadRemoteModule` function is ready to use.
@@ -81,7 +81,7 @@ The micro frontend loading process is asynchronous - the runtime needs time to f
 </script>
 ```
 
-The `{ once: true }` option ensures the event handler only runs once, preventing duplicate loading if the event somehow fires multiple times. Each `loadRemoteModule` call fetches and initializes a specific component from a micro frontend. This function typically triggers side effects like registering custom elements rather than returning component instances directly.
+The `{ once: true }` option ensures the event handler only runs once, preventing duplicate loading if the event somehow fires multiple times. Each `loadRemoteModule` call fetches and initializes a specific micro frontend. This function typically triggers side effects like registering custom elements rather than returning component instances directly.
 
 **Runtime Inclusion**
 The runtime script performs all the orchestration work: fetching manifests, processing metadata, resolving dependencies, and setting up the browser's module loading system.
@@ -102,7 +102,7 @@ This script must be loaded after the manifest and event handler are defined, as 
 </html>
 ```
 
-Most micro frontends built for server-side integration register themselves as custom elements (web components). When you call `loadRemoteModule("team/button", "./Button")`, the loaded component typically registers a custom element like `<my-button>`. The HTML elements in your page will remain empty until the corresponding micro frontends load and register themselves.
+Micro frontends can register themselves as custom elements (part of the [webcomponents](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) spec). When you call `loadRemoteModule("team/button", "./Button")`, the loaded component typically registers a custom element like `<my-button>`. The HTML elements in your page will remain empty until the corresponding micro frontends load and register themselves.
 
 ### Runtime Variants
 
@@ -110,7 +110,7 @@ Most micro frontends built for server-side integration register themselves as cu
 <!-- Development build with detailed logging -->
 <script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/debug.mjs"></script>
 
-<!-- Production build with minimal logging -->
+<!-- Development: Optimized for performance -->
 <script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/test.mjs"></script>
 ```
 
@@ -123,8 +123,7 @@ For applications requiring specific configuration or integration patterns, a cus
 The quickstart approach works well for simple scenarios, but custom implementation becomes necessary when:
 
 - **Build Integration**: You need to bundle the orchestrator with your application code
-- **Error Handling**: Your application requires specific error handling or fallback behavior
-- **Dynamic Configuration**: Micro frontend locations need to be determined at runtime
+- **Finegrained control**: Your application requires specific error handling, an specific optimized orchestrator or custom fallback behavior.
 - **Framework Integration**: You're integrating with React, Angular, Vue, or other frameworks that manage component lifecycles
 - **Advanced Caching**: You need fine-grained control over storage and caching strategies
 
@@ -138,7 +137,9 @@ Custom implementation involves three key steps: installing dependencies, creatin
 npm install vanilla-native-federation es-module-shims
 ```
 
-The `es-module-shims` package provides polyfill support for older browsers that don't natively support import maps. Even if you're targeting modern browsers, including this dependency ensures broader compatibility.
+The [es-module-shims](https://www.npmjs.com/package/es-module-shims) package provides polyfill support for older browsers that don't natively support import maps. Even if you're targeting modern browsers, including this dependency ensures broader compatibility. 
+
+> I also found out that you can't create the import map and import the module defined in the import-map in the same "script". _that is, within the same script tag_. The es-module-shims polyfill however, does! This is also the reason why the orchestrator is in a different script and the loadRemoteModule is shared through an custom event that is fired after the import-map is added to the HTML. 
 
 ### Creating the Orchestrator
 
@@ -146,7 +147,7 @@ The `es-module-shims` package provides polyfill support for older browsers that 
 import 'es-module-shims';
 import { initFederation, config } from 'vanilla-native-federation';
 
-async function initializeMicroFrontends() {
+(async () => {
     const manifest = {
         "team/button": "http://localhost:3000/remoteEntry.json",
         "team/header": "http://localhost:4000/remoteEntry.json"
@@ -160,10 +161,10 @@ async function initializeMicroFrontends() {
             ...config.useShimImportMap({ shimMode: true })
         });
 
-        // Load specific modules
+        // Load specific modules (only possible in shim-mode)
         await Promise.all([
             loadRemoteModule('team/button', './Button'),
-            loadRemoteModule('team/header', './Header')
+            loadRemoteModule('team/header', './Header')  
         ]);
         
         console.log('All micro frontends loaded successfully');
@@ -171,13 +172,10 @@ async function initializeMicroFrontends() {
         console.error('Failed to initialize micro frontends:', error);
         // Handle initialization failure appropriately for your application
     }
-}
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', initializeMicroFrontends);
+})();
 ```
 
-This approach gives you explicit control over the initialization timing, error handling, and configuration. The `try-catch` block allows you to implement fallback behavior if micro frontend loading fails, which is crucial for production applications.
+This approach gives you explicit control over the initialization timing, error handling, and configuration. The `try-catch` block allows you to implement fallback behavior if micro frontend loading fails.
 
 ### Integration Strategy
 
@@ -234,11 +232,13 @@ await initFederation(manifest, {
 });
 ```
 
-**Why Storage Matters**: Server-side applications often involve multiple page loads as users navigate. Without storage, each page load would re-fetch all micro frontend metadata and re-resolve dependencies, creating unnecessary network requests and slower page loads. Session storage provides a good balance - micro frontends stay cached during a user's session but don't persist indefinitely.
+**Why Storage Matters**: Server-side applications often involve multiple page loads as users navigate. Keeping track of which dependencies were already are cached by the browser (even on previously visited pages) may prevent the download of redundant scripts. 
+
+For example. if a mfe on page A uses the same dependency as a mfe on page B. It would be a waste to redownload that dependency if the previously version could be reused!
 
 **Memory vs Session vs Local Storage**: 
 - Memory storage is fastest but lost on every page reload
-- Session storage persists during the browser session, ideal for multi-page websites
+- Session storage persists during the browser session, ideal for multi-page (SSR) websites
 - Local storage persists across browser restarts, useful for cache that needs to exist over longer periods and multiple browser sessions
 
 ### Import Map Implementation
@@ -269,7 +269,7 @@ await initFederation(manifest, {
     
     // Built-in loggers
     logger: config.consoleLogger,  // Logs to browser console
-    logger: config.noopLogger,     // Silent operation
+    logger: config.noopLogger,     // No logging
     
     // Custom logger
     logger: {
@@ -280,7 +280,7 @@ await initFederation(manifest, {
 });
 ```
 
-**Why Logging Configuration Matters**: During development, debug-level logging shows you exactly what micro frontends are being loaded, what dependencies are being shared, and how version conflicts are resolved. In production, you typically want error-level logging only to avoid console noise while still capturing critical issues.
+**Finegrained control**: During development, debug-level logging shows you exactly what micro frontends are being loaded, what dependencies are being shared, and how version conflicts are resolved. In production, you typically want error-level logging only to avoid console noise while still capturing critical issues.
 
 ### Mode Configuration
 
@@ -303,20 +303,15 @@ await initFederation(manifest, {
 });
 ```
 
-**Why Mode Configuration Matters**: Different applications have different tolerance for risk. A strict mode setup fails fast when dependency versions are incompatible, preventing runtime errors but potentially making the application less resilient. The caching profile optimizes for performance by skipping known micro frontends, but might miss updates. The default profile balances compatibility and performance.
+**Optimize your orchestrator**: Different applications can have different tolerance for risk. A strict mode setup fails fast when dependency versions are incompatible, The errors will still be runtime so be aware! The caching profile optimizes for performance by skipping already downloaded micro frontends. This can be useful but will cause the orchestrator to miss recently deployed versions of the remotes since it only takes from cache. 
 
 ### Host Remote Entry
 
-Host remote entry configuration allows you to control which versions of shared dependencies get used globally.
+Host remote entry configuration allows you to control over which versions of shared dependencies are used globally. The dependency versions of the hostRemoteEntry have a higher precedence than the versions defined in the remote remoteEntries. The cacheTag allows the orchestrator to treat the hostRemoteEntry as a different file, thus redownloading a new version if the cacheTag changed. 
 
 ```javascript
 await initFederation(manifest, {
-    // Simple host configuration
-    hostRemoteEntry: {
-        url: "./host-remoteEntry.json"
-    },
-    
-    // Advanced host configuration with cache busting
+    // host remoteEntry configuration with (optional) cache busting
     hostRemoteEntry: {
         url: "./host-remoteEntry.json",
         cacheTag: "v1.2.3"
@@ -326,9 +321,9 @@ await initFederation(manifest, {
 
 **Why Host Configuration Matters**: Without a host configuration, the library automatically chooses dependency versions based on compatibility algorithms. With a host configuration, you can explicitly control critical dependencies like React or Angular versions. This is essential when you need to ensure all micro frontends use the same version of a core library, regardless of what individual teams specify in their configurations.
 
-## Build Configuration
+## bundling the orchestrator
 
-For production deployments, bundle the orchestrator script. This creates a single JavaScript file which can be imported into the shell application. The example below shows a simple ESBuild configuration for bundling. 
+For production deployments, it is recommended to bundle the orchestrator script. This creates a single JavaScript file which can be imported into the shell application. The example below shows a simple ESBuild configuration for bundling. 
 
 ```javascript
 // build.js
@@ -347,12 +342,11 @@ await esbuild.build({
 
 ## Loading Remote Modules
 
-The `loadRemoteModule` function accepts a remote name and exposed module path and returns a Promise:
+The `loadRemoteModule` function exposed by `initFederation`, accepts a remote name and exposed module path and returns a Promise:
 
 ```javascript
 
-const { as, loadRemoteModule, remote } = await initFederation(manifest);
-
+const { as, loadRemoteModule, remote, config } = await initFederation(manifest, {/* options */ });
 
 // Basic usage - loads module for side effects (e.g., custom element registration)
 await loadRemoteModule('team/button', './Button');
@@ -366,47 +360,58 @@ const typedComponent = await as<ButtonComponent>().loadTypedModule('team/button'
 // Remote-specific loader
 const buttonRemote = remote<ButtonComponent>('team/button');
 const button = await buttonRemote.loadModule('./Button');
+
+// Reading the configuration
+console.log(config); // type: ConfigContract
 ```
 
-## Error Handling
+## The ConfigContract
 
-### Common Issues
-
-**Module Loading Failures**
-- Verify `remoteEntry.json` accessibility
-- Check CORS configuration on remote hosts
-- Validate exposed module names
-
-**Import Map Errors**
-- Ensure browser support or include es-module-shims
-- Verify module export formats
-- Check for naming conflicts
-
-**Dependency Resolution**
-- Review version compatibility ranges
-- Check `singleton` and `strictVersion` settings
-- Examine shared dependency configuration
-
-### Debugging
-
-Enable detailed logging to diagnose issues:
-
-```javascript
-{
-    logLevel: "debug",
-    logger: config.consoleLogger
-}
-```
-
-Monitor browser developer tools for:
-- Network requests to `remoteEntry.json` files
-- Import map script injection
-- Module loading errors
-- Console warnings and errors
+The initFederation takes the `options` explained above as input and merges them with the default 'fallback' options into a "config" object. This object is used as general "environment" object that decides how the orchestrator should behave. The config object can be used after initialization to interact with the cache or logger. 
 
 ## Framework Integration
 
-This library integrates with any frontend framework or backend technology with minimal interference. It only needs plain HTML and support for JavaScript. 
+This library integrates with any frontend framework or backend technology with minimal interference. It only needs plain HTML and support for JavaScript. The orchestrator seamlessly integrates with the current native-federation ecosystem and can also be used as replacement for the default `@softarc/native-federation-runtime` library.
+
+### Angular host
+
+The orchestrator can also be used in Angular applications by updating the `main.ts`:
+
+```
+import { config, initFederation } from 'vanilla-native-federation';
+
+initFederation({},{
+    hostRemoteEntry: './remoteEntry.json',
+    ...config.useShimImportMap({ shimMode: true }),
+})
+.then(async (nf) => {
+    const app = await import('./bootstrap');
+    await app.bootstrap(nf.loadRemoteModule);
+}).catch((err) => {
+    console.error('Failed to load app!');
+    console.error(err);
+});
+```
+
+And then the `bootstrap.ts` to allow the use of the `loadRemoteModule`.
+
+```
+import { bootstrapApplication } from '@angular/platform-browser';
+import { ApplicationConfig, InjectionToken, provideZoneChangeDetection } from '@angular/core';
+import { AppComponent } from './app/app.component';
+import { LoadRemoteModule } from 'vanilla-native-federation';
+
+const appConfig = (loader: LoadRemoteModule<unknown>): ApplicationConfig => ({
+  providers: [
+    { provide: MODULE_LOADER, useValue: loader },
+    provideZoneChangeDetection({eventCoalescing: true})
+  ]
+});
+
+export const bootstrap = (loader: LoadRemoteModule<unknown>) => 
+  bootstrapApplication(AppComponent, appConfig(loader))
+    .catch((err) => console.error(err));
+```
 
 ## Next Steps
 
