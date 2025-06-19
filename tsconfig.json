@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ES2022",
-    "lib": ["ES2022", "dom", "dom.iterable"],
+    "lib": ["ES2022", "dom"],
     "moduleResolution": "node",
     
     "outDir": "./dist",
@@ -19,7 +19,6 @@
     "noUncheckedIndexedAccess": true,
     
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     
     "declaration": true,
     "declarationDir": "./dist/types",
@@ -30,5 +29,5 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["dist"]
 }
