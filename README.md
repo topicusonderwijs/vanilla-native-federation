@@ -21,7 +21,7 @@ A lightweight runtime library for implementing native federation in server-side 
 
 ### Built for (SSR) applications
 
-This particular library is specialized for **server-side rendered applications** that need micro frontend capabilities without the complexity of SPA frameworks. Whether you're building with PHP, Ruby on Rails, Django, Spring Boot, or ASP.NET, this library provides a seamless integration path.
+This particular library is specialized for **server-side rendered applications** that need micro frontend capabilities without the complexity of SPA frameworks. Whether you're building with PHP, Ruby on Rails, Django, Spring Boot, Wildfly or ASP.NET, this library provides a seamless integration path.
 
 ### Extends the Native Federation Ecosystem
 Built upon the excellent [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), this library extends native federation capabilities specifically for SSR environments while maintaining full compatibility with the broader ecosystem. Alternatively, this library is also really easy to integrate into SPA frameworks instead of the original runtime. 
