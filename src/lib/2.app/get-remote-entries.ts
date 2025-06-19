@@ -8,87 +8,111 @@ import { NFError } from "lib/native-federation.error";
 import type { ModeConfig } from "./config/mode.contract";
 import type { HostConfig } from "./config/host.contract";
 
-/**
- * Step 1: Fetch the remoteEntry JSON objects: 
- * 
- * A Manifest or URL to a Manifest is used as the input.  Based on the defined remotes
- * in the manifest, the library will download the remoteEntry.json files which contain the
- * metadata of the defined remotes (name, exposed modules and required dependencies a.k.a. externals)
- * 
- * @param config 
- * @param adapters 
- * @returns A list of the remoteEntry json objects
- */
-const createGetRemoteEntries = (
+
+export function createGetRemoteEntries(
     config: LoggingConfig & ModeConfig & HostConfig,
     ports: Pick<DrivingContract, 'remoteEntryProvider'|'manifestProvider'|'remoteInfoRepo'>
-): ForGettingRemoteEntries => (remotesOrManifestUrl: string | Manifest = {})
-    : Promise<RemoteEntry[]> => {
-    
-        function addHostRemoteEntry(manifest: Manifest)
-            : Manifest {
-                if(!!config.hostRemoteEntry) {
-                    manifest[config.hostRemoteEntry.name] = (config.hostRemoteEntry.cacheTag) 
-                        ? `${config.hostRemoteEntry.url}?cacheTag=${config.hostRemoteEntry.cacheTag}`
-                        : config.hostRemoteEntry.url;
-                }
-                return manifest;
-            }
+): ForGettingRemoteEntries {
 
-        async function fetchRemoteEntries(manifest: Manifest)
-            : Promise<(RemoteEntry|false)[]> { 
-                return Promise.all(
-                    Object.entries(manifest).map(fetchRemoteEntry)
-                );
-            }
+    /**
+     * Step 1: Fetch the remoteEntry JSON objects: 
+     * 
+     * A Manifest or URL to a Manifest is used as the input.  Based on the defined remotes
+     * in the manifest, the library will download the remoteEntry.json files which contain the
+     * metadata of the defined remotes (name, exposed modules and required dependencies a.k.a. externals)
+     * 
+     * @param config 
+     * @param adapters 
+     * @returns A list of the remoteEntry json objects
+     */
+    return (remotesOrManifestUrl = {}) => ports.manifestProvider
+        .provide(remotesOrManifestUrl)
+        .catch(err => {
+            config.log.warn(`Failed to fetch manifest.`,  err);
+            return Promise.reject(new NFError(`Could not fetch manifest.`));
+        })
+        .then(addHostRemoteEntry)
+        .then(fetchRemoteEntries)
+        .then(removeSkippedRemotes)
 
-        function fetchRemoteEntry([remoteName, remoteEntryUrl]: [RemoteName, RemoteEntryUrl])
-            : Promise<RemoteEntry|false> {
-                if(config.profile.skipCachedRemotes && ports.remoteInfoRepo.contains(remoteName)) {
-                    config.log.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
-                    return Promise.resolve(false);
-                }
-                return ports.remoteEntryProvider.provide(remoteEntryUrl)
-                    .then(verifyRemoteEntry(remoteName))
-                    .catch(handleFetchFailed);
-            }
 
-        const handleFetchFailed = (err: unknown): Promise<false> => {
-            config.log.warn(`Failed to fetch remoteEntry.`,  err)
-            return (config.strict) 
-                ? Promise.reject(new NFError(`Could not fetch remoteEntry.`))
-                : Promise.resolve(false);
+    function addHostRemoteEntry(manifest: Manifest): Manifest {
+        if (!config.hostRemoteEntry) {
+            return manifest;
         }
+
+        const { name, url, cacheTag } = config.hostRemoteEntry;
+        const urlWithCache = cacheTag ? `${url}?cacheTag=${cacheTag}` : url;
         
-        const verifyRemoteEntry = (remoteName: string) => (remoteEntry: RemoteEntry) => {
-            if(!!config.hostRemoteEntry && remoteName === config.hostRemoteEntry.name) {
-                remoteEntry.host = true;
-                remoteEntry.name = config.hostRemoteEntry.name;
-            }
-
-            config.log.debug(`fetched '${remoteEntry.name}' from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`);
-
-            if(remoteEntry.name !== remoteName) {
-                config.log.warn(`Fetched remote '${remoteEntry.name}' does not match requested '${remoteName}'.`);
-            }
-            
-            return remoteEntry;
-        }
-
-        function removeSkippedRemotes(federationInfos: (RemoteEntry|false)[])
-            : RemoteEntry[] {
-                return federationInfos.filter(info => !!info);
-            }
-
-        return ports.manifestProvider.provide(remotesOrManifestUrl)
-            .catch(err => {
-                config.log.warn(`Failed to fetch manifest.`,  err);
-                return Promise.reject(new NFError(`Could not fetch manifest.`));
-            })
-            .then(addHostRemoteEntry)
-            .then(fetchRemoteEntries)
-            .then(removeSkippedRemotes)
+        return {
+            ...manifest,
+            [name]: urlWithCache
+        };
     }
 
+    async function fetchRemoteEntries(manifest: Manifest): Promise<(RemoteEntry | false)[]> {
+        const fetchPromises = Object.entries(manifest).map(([remoteName, remoteEntryUrl]) => 
+            fetchRemoteEntry(remoteName, remoteEntryUrl)
+        );
+        
+        return Promise.all(fetchPromises);
+    }
 
-export { createGetRemoteEntries }
+    async function fetchRemoteEntry(
+        remoteName: RemoteName, 
+        remoteEntryUrl: RemoteEntryUrl
+    ): Promise<RemoteEntry | false> {
+        
+        if (shouldSkipCachedRemote(remoteName)) {
+            config.log.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
+            return false;
+        }
+
+        try {
+            const remoteEntry = await ports.remoteEntryProvider.provide(remoteEntryUrl);
+            return processRemoteEntry(remoteEntry, remoteName);
+        } catch (error) {
+            return handleRemoteEntryFetchError(error);
+        }
+    }
+
+    function shouldSkipCachedRemote(remoteName: RemoteName): boolean {
+        return config.profile.skipCachedRemotes && ports.remoteInfoRepo.contains(remoteName);
+    }
+
+    function processRemoteEntry(remoteEntry: RemoteEntry, expectedRemoteName: string): RemoteEntry {
+        if (!!config.hostRemoteEntry && expectedRemoteName === config.hostRemoteEntry.name) {
+            remoteEntry.host = true;
+            remoteEntry.name = config.hostRemoteEntry!.name;
+        }
+
+        config.log.debug(
+            `Fetched '${remoteEntry.name}' from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`
+        );
+        validateRemoteEntryName(remoteEntry, expectedRemoteName);
+        
+        return remoteEntry;
+    }
+
+    function validateRemoteEntryName(remoteEntry: RemoteEntry, expectedName: string): void {
+        if (remoteEntry.name !== expectedName) {
+            config.log.warn(
+                `Fetched remote '${remoteEntry.name}' does not match requested '${expectedName}'.`
+            );
+        }
+    }
+
+    async function handleRemoteEntryFetchError(error: unknown): Promise<false> {
+        config.log.warn('Failed to fetch remoteEntry.', error);
+        
+        if (config.strict) {
+            throw new NFError('Could not fetch remoteEntry.');
+        }
+        
+        return false;
+    }
+
+    function removeSkippedRemotes(remoteEntries: (RemoteEntry | false)[]): RemoteEntry[] {
+        return remoteEntries.filter((entry): entry is RemoteEntry => entry !== false);
+    }
+}

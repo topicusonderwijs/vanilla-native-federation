@@ -5,23 +5,35 @@ import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { LoggingConfig } from "./config/log.contract";
 import * as _path from "lib/utils/path";
 
-/**
- * Step 2: Process remoteEntry objects
- * 
- * Extracts the externals and remote-info objects from the provided remoteEntry objects. 
- * The metadata will be merged into the existing cache/storage but the changes are not persisted (yet). 
- * 
- * - For remotes and scoped externals that means a full replace. 
- * - For shared externals that means merging the versions into the currently cached externals. 
- * 
- * @param config 
- * @param adapters 
- * @returns Promise<void>
- */
-const createProcessRemoteEntries = (
+
+export function createProcessRemoteEntries(
     config: LoggingConfig,
     ports: Pick<DrivingContract,  'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'>
-): ForProcessingRemoteEntries => { 
+): ForProcessingRemoteEntries { 
+
+    /**
+     * Step 2: Process remoteEntry objects
+     * 
+     * Extracts the externals and remote-info objects from the provided remoteEntry objects. 
+     * The metadata will be merged into the existing cache/storage but the changes are not persisted (yet). 
+     * 
+     * - For remotes and scoped externals that means a full replace. 
+     * - For shared externals that means merging the versions into the currently cached externals. 
+     * 
+     * @param config 
+     * @param adapters 
+     * @returns Promise<void>
+     */
+    return remoteEntries => {
+        if(config.log.level === "debug") logStorageStatus("Storage: before processing remoteEntries");
+        remoteEntries.forEach(remoteEntry => {
+            addRemoteInfoToStorage(remoteEntry);
+            addExternalsToStorage(remoteEntry);
+        });
+        if(config.log.level === "debug") logStorageStatus("Storage: after processing remoteEntries");
+
+        return Promise.resolve();
+    };
 
     function addRemoteInfoToStorage({name, url, exposes}: RemoteEntry)
         : void {
@@ -107,18 +119,4 @@ const createProcessRemoteEntries = (
                 "scoped-externals": ports.scopedExternalsRepo.getAll(),
             })
         }
-
-    return remoteEntries => {
-        if(config.log.level === "debug") logStorageStatus("Storage: before processing remoteEntries");
-        remoteEntries.forEach(remoteEntry => {
-            addRemoteInfoToStorage(remoteEntry);
-            addExternalsToStorage(remoteEntry);
-        });
-        if(config.log.level === "debug") logStorageStatus("Storage: after processing remoteEntries");
-
-        return Promise.resolve();
-    };
-
 }
-
-export { createProcessRemoteEntries };
