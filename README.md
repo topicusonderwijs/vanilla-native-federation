@@ -6,8 +6,7 @@
 $ npm install vanilla-native-federation
 ```
 
-
-A lightweight runtime library for implementing native federation in server-side rendered applications. Built on the foundation of [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime) and designed specifically for non-SPA environments like PHP, Ruby, Java, and ASP.NET applications.
+A lightweight **runtime orchestrator** for implementing micro frontends in non-SPA applications using native federation. This is an alternative runtime to [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), specifically designed for integrating micro frontends with minimal effort into traditional web applications built with technologies like PHP, ASP.NET, JSF, JSP, Ruby on Rails, or Django.
 
 ## Key Features
 
@@ -19,12 +18,13 @@ A lightweight runtime library for implementing native federation in server-side 
 - ⚡ **Lightweight & Fast** - Minimal bundle size with tree-shaking support.
 - 🛠️ **Highly Configurable** - Extensive options and SDK for fine-tuning behavior.
 
-### Built for (SSR) applications
+### How it works
 
-This particular library is specialized for **server-side rendered applications** that need micro frontend capabilities without the complexity of SPA frameworks. Whether you're building with PHP, Ruby on Rails, Django, Spring Boot, or ASP.NET, this library provides a seamless integration path.
+The library runs in the browser to orchestrate the integration of micro frontends into plain HTML pages. While the main application can be server-rendered, the micro frontends are loaded dynamically as ES modules at runtime, providing the benefits of micro frontend architecture without requiring a full SPA framework for the host.
 
 ### Extends the Native Federation Ecosystem
-Built upon the excellent [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), this library extends native federation capabilities specifically for SSR environments while maintaining full compatibility with the broader ecosystem. Alternatively, this library is also really easy to integrate into SPA frameworks instead of the original runtime. 
+
+This library provides an alternative runtime to [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), extending native federation capabilities specifically for non-SPA environments while maintaining full compatibility with the broader ecosystem. It can load any remotes that have been built using [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation) and expose a remoteEntry.json metadata file.
 
 ## Quick Start
 
@@ -69,10 +69,10 @@ Get up and running in under 2 minutes:
 ### 2. That's it! 🎉
 
 Your micro frontends are now loaded and ready to use. The runtime handles:
-- ✅ Fetching and processing remoteEntry.json files
-- ✅ Resolving shared dependencies
-- ✅ Generating optimized import maps
-- ✅ Loading your micro frontend modules
+- ✅ Fetching and processing of remoteEntry.json files
+- ✅ Resolving and reuse of shared dependencies
+- ✅ Generating an optimized import map based on cached dependencies
+- ✅ Loading your remote modules (micro frontends)
 
 ### Available quickstart Runtime
 
@@ -83,7 +83,7 @@ Your micro frontends are now loaded and ready to use. The runtime handles:
 
 ## Advanced Usage
 
-For more control over the initialization process:
+ The quickstart is intended for experimenting. For production environments it is recommended to use a custom orchestrator based on the vnf library, this gives more control over the initialization process and allows for custom logging implementations like Bugsnag or Sentry rather than the default consoleLogger:
 
 ```javascript
 import { initFederation } from 'vanilla-native-federation';
@@ -93,11 +93,10 @@ const { loadRemoteModule } = await initFederation({
     "team/mfe1": "http://localhost:3000/remoteEntry.json",
     "team/mfe2": "http://localhost:4000/remoteEntry.json"
 }, {
-    // Extensive configuration options available
     logLevel: "error",
     logger: consoleLogger,
     storage: localStorageEntry,
-    // ... see docs for full options
+    // ... see docs for all available options
 });
 
 // Load specific modules
@@ -124,7 +123,7 @@ This library is part of the broader native federation ecosystem:
 |---------|---------|----------|
 | [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation) | Build toolchain | Creating federated applications |
 | [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime) | SPA runtime | React, Angular, Vue applications |
-| **vanilla-native-federation** | SSR runtime | PHP, Ruby, Java, .NET applications |
+| **vanilla-native-federation** | Alternative runtime | PHP, ASP.NET, JSF, JSP applications |
 | [@angular-architects/native-federation](https://www.npmjs.com/package/@angular-architects/native-federation) | Angular integration | Angular-specific features |
 
 > 🔗 **Full compatibility** with standard remoteEntry.json format ensures seamless interoperability
@@ -133,34 +132,4 @@ This library is part of the broader native federation ecosystem:
 
 - ✅ **Modern browsers**: Native import map support
 - ✅ **Legacy browsers**: Automatic polyfill with [es-module-shims](https://www.npmjs.com/package/es-module-shims)
-- ✅ **All major frameworks**: React, Angular, Vue, Svelte, etc.
-
-```html
-<!-- Add for legacy browser support -->
-<script async src="https://ga.jspm.io/npm:es-module-shims@2.5.1/dist/es-module-shims.js"></script>
-```
-
-## Contributing & Support
-
-### 🤝 Contributing
-We welcome contributions! See our [Contributing Guide](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/CONTRIBUTING.md) for the development setup, code standards, our pull request process or issue reporting.
-
-### 📚 Learn More
-Dive deeper into native federation concepts:
-- [📺 Native Federation Overview](https://www.youtube.com/watch?v=cofoI5_S5lE) by Manfred Steyer
-- [📝 Announcing Native Federation 1.0](https://www.angulararchitects.io/blog/announcing-native-federation-1-0/)
-- [🎓 Micro Frontends Tutorial](https://www.angulararchitects.io/en/blog/micro-frontends-with-modern-angular-part-1-standalone-and-esbuild/)
-- [💻 Example Applications](https://github.com/angular-architects/module-federation-plugin/tree/main/apps)
-
-### 👀 Examples
-
-- [Wicket + Angular](https://github.com/Aukevanoost/native-federation-examples)
-- _your solution?_
-
-
-### 📄 License
-MIT License - see [LICENSE.md](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/LICENSE.md) for details.
-
----
-
-**Made with ❤️ for the native federation community**
+- ✅ **Framework agnostic**: Accepts React, Angular, Vue, Svelte, etc. _It is recommended to use webcomponents as remote modules to ensure maximum compatibility._
