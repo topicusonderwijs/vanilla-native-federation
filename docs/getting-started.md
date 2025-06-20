@@ -144,7 +144,8 @@ The `es-module-shims` package provides polyfill support for older browsers that 
 
 ```javascript
 import 'es-module-shims';
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
+import { consoleLogger, sessionStorageEntry, useShimImportMap } from 'vanilla-native-federation/options';
 
 async function initializeMicroFrontends() {
     const manifest = {
@@ -155,9 +156,9 @@ async function initializeMicroFrontends() {
     try {
         const { loadRemoteModule } = await initFederation(manifest, {
             logLevel: "error",
-            logger: config.consoleLogger,
-            storage: config.sessionStorageEntry,
-            ...config.useShimImportMap({ shimMode: true })
+            logger: consoleLogger,
+            storage: sessionStorageEntry,
+            ...useShimImportMap({ shimMode: true })
         });
 
         // Load specific modules
@@ -184,20 +185,20 @@ This approach gives you explicit control over the initialization timing, error h
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Application</title>
-    <!-- Include es-module-shims for older browser compatibility -->
-    <script type="esms-options">{ "shimMode": true }</script> 
-    <script async src="https://ga.jspm.io/npm:es-module-shims@2.5.1/dist/es-module-shims.js"></script>
-</head>
-<body>
-    <!-- Your micro frontend components will render here -->
-    <my-header></my-header>
-    <my-button>Click me</my-button>
-    
-    <!-- Load your orchestrator script -->
-    <script type="module-shim" src="./orchestrator.js"></script>
-</body>
+    <head>
+        <title>Application</title>
+        <!-- Include es-module-shims for older browser compatibility -->
+        <script type="esms-options">{ "shimMode": true }</script> 
+        <script async src="https://ga.jspm.io/npm:es-module-shims@2.6.0/dist/es-module-shims.js"></script>
+    </head>
+    <body>
+        <!-- Your micro frontend components will render here -->
+        <my-header></my-header>
+        <my-button>Click me</my-button>
+        
+        <!-- Load your orchestrator script -->
+        <script type="module-shim" src="./orchestrator.js"></script>
+    </body>
 </html>
 ```
 
@@ -214,17 +215,18 @@ The library provides extensive configuration options to control behavior, storag
 Storage configuration determines how the library caches micro frontend metadata and resolved dependencies between page loads. The choice significantly impacts performance and user experience.
 
 ```javascript
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
+import { globalThisStorageEntry, sessionStorageEntry, localStorageEntry } from 'vanilla-native-federation/options';
 
 await initFederation(manifest, {
     // Memory only - fastest, lost on page reload (default)
-    storage: config.globalThisStorageEntry,
+    storage: globalThisStorageEntry,
     
     // Session storage - persists across page reloads within the same browser session
-    storage: config.sessionStorageEntry,
+    storage: sessionStorageEntry,
     
     // Local storage - persists across browser sessions
-    storage: config.localStorageEntry,
+    storage: localStorageEntry,
     
     // Clear existing cache on initialization
     clearStorage: true,
@@ -252,7 +254,7 @@ await initFederation(manifest, {
     loadModuleFn: url => import(url),
     
     // Use es-module-shims polyfill for older browsers
-    ...config.useShimImportMap({ shimMode: true }),
+    ...useShimImportMap({ shimMode: true }),
 });
 ```
 
@@ -268,8 +270,8 @@ await initFederation(manifest, {
     logLevel: "debug",
     
     // Built-in loggers
-    logger: config.consoleLogger,  // Logs to browser console
-    logger: config.noopLogger,     // Silent operation
+    logger: consoleLogger,  // Logs to browser console
+    logger: noopLogger,     // Silent operation
     
     // Custom logger
     logger: {
@@ -292,8 +294,8 @@ await initFederation(manifest, {
     strict: true,
     
     // Resolution profile
-    profile: config.defaultProfile,    // Optimize for compatibility
-    profile: config.cachingProfile,    // Optimize for performance
+    profile: defaultProfile,    // Optimize for compatibility
+    profile: cachingProfile,    // Optimize for performance
     
     // Custom profile
     profile: {
