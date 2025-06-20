@@ -3,9 +3,8 @@
     "target": "ES2022",
     "module": "ES2022",
     "lib": ["ES2022", "dom", "dom.iterable"],
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     
-    "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": "./src",
     
@@ -21,14 +20,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     
-    "declaration": true,
-    "declarationDir": "./dist/types",
-    "emitDeclarationOnly": true,
-
-    "sourceMap": true,    
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "src/**/*.spec.ts", "src/**/*.test.ts"]
 }

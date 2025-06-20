@@ -21,6 +21,9 @@ The simplest approach uses the pre-built runtime script with declarative configu
     <head>
         <title>My Application</title>
         
+        <!-- Enable shim-mode for optimal browser support -->
+        <script type="esms-options">{ "shimMode": true }</script> 
+
         <!-- Define your micro frontends -->
         <script type="application/json" id="mfe-manifest">
             {
@@ -39,7 +42,7 @@ The simplest approach uses the pre-built runtime script with declarative configu
         </script>
         
         <!-- Include the runtime -->
-        <script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/debug.mjs"></script>
+        <script src="https://unpkg.com/vanilla-native-federation@0.14.0/quickstart.mjs"></script>
     </head>
     <body>
         <!-- Use your loaded components -->
@@ -87,7 +90,7 @@ The `{ once: true }` option ensures the event handler only runs once, preventing
 The runtime script performs all the orchestration work: fetching manifests, processing metadata, resolving dependencies, and setting up the browser's module loading system.
 
 ```html
-<script src="https://unpkg.com/vanilla-native-federation@latest/quickstart/debug.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@latest/quickstart.mjs"></script>
 ```
 
 This script must be loaded after the manifest and event handler are defined, as it immediately begins looking for the manifest and will fire the `mfe-loader-available` event once initialization completes.
@@ -104,14 +107,11 @@ This script must be loaded after the manifest and event handler are defined, as 
 
 Most micro frontends built for server-side integration register themselves as custom elements (web components). When you call `loadRemoteModule("team/button", "./Button")`, the loaded component typically registers a custom element like `<my-button>`. The HTML elements in your page will remain empty until the corresponding micro frontends load and register themselves.
 
-### Runtime Variants
+### Quickstart (pre-built)
 
 ```html
-<!-- Development build with detailed logging -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/debug.mjs"></script>
-
-<!-- Production build with minimal logging -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/test.mjs"></script>
+<!-- Development and quick testing -->
+<script src="https://unpkg.com/vanilla-native-federation@0.14.0/quickstart.mjs"></script>
 ```
 
 ## Custom Implementation
