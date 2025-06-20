@@ -77,12 +77,13 @@ describe('createGetRemoteEntries', () => {
         
         it('should log debug messages when remotes are fetched', async () => {
             await getRemoteEntries(MOCK_MANIFEST());
-            
-            expect(mockConfig.log.debug).toHaveBeenCalledWith(
-                expect.stringContaining(`fetched 'team/mfe1' from '${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json'`)
+
+            expect(mockConfig.log.debug).toHaveBeenNthCalledWith(1,
+                `Fetched 'team/mfe1' from 'http://my.service/mfe1/remoteEntry.json', exposing: [{"key":"./wc-comp-a","outFileName":"component-a.js"}]`
             );
-            expect(mockConfig.log.debug).toHaveBeenCalledWith(
-                expect.stringContaining(`fetched 'team/mfe2' from '${MOCK_REMOTE_ENTRY_SCOPE_II_URL()}remoteEntry.json'`)
+            
+            expect(mockConfig.log.debug).toHaveBeenNthCalledWith(2,
+                `Fetched 'team/mfe2' from 'http://my.service/mfe2/remoteEntry.json', exposing: [{"key":"./wc-comp-b","outFileName":"component-b.js"},{"key":"./wc-comp-c","outFileName":"component-c.js"}]`
             );
         });
     });

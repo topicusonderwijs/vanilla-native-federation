@@ -6,31 +6,53 @@ import type { LoggingConfig } from "./config/log.contract";
 import type { ModeConfig } from "./config/mode.contract";
 
 
-/**
- * Step 3: Determine which version is the optimal version to share. 
- * 
- * The shared external versions that were merged into the cache/storage caused the shared
- * external to be 'dirty', this step cleans all dirty externals in the storage by calculating
- * the most optimal version to share since only 1 version can be shared globally. All other
- * versions that are compatible are skipped and the incompatible ones are defined as scoped external. 
- * 
- * Check the docs for a full explanation of the dependency resolver.
- * 
- * Priority:
- * 1) Latest external defined in 'host' remoteEntry (if available).
- * 2) If defined in config, prioritize latest available version.
- * 3) Find most optimal version, by comparing potential extra downloads per version.
- * 
- * @param config 
- * @param adapters 
- * @returns 
- */
-const createDetermineSharedExternals = (
+export function createDetermineSharedExternals(
     config: LoggingConfig & ModeConfig,
     ports: Pick<DrivingContract, 'versionCheck' | 'sharedExternalsRepo'>
-): ForDeterminingSharedExternals => { 
-    
-    function updateVersionActions(externalName: string, external: SharedExternal) {
+): ForDeterminingSharedExternals { 
+ 
+    /**
+     * Step 3: Determine which version is the optimal version to share. 
+     * 
+     * The shared external versions that were merged into the cache/storage caused the shared
+     * external to be 'dirty', this step cleans all dirty externals in the storage by calculating
+     * the most optimal version to share since only 1 version can be shared globally. All other
+     * versions that are compatible are skipped and the incompatible ones are defined as scoped external. 
+     * 
+     * Check the docs for a full explanation of the dependency resolver.
+     * 
+     * Priority:
+     * 1) Latest external defined in 'host' remoteEntry (if available).
+     * 2) If defined in config, prioritize latest available version.
+     * 3) Find most optimal version, by comparing potential extra downloads per version.
+     * 
+     * @param config 
+     * @param adapters 
+     * @returns 
+     */
+    return () => {
+        for (const sharedScope of ports.sharedExternalsRepo.getScopes()) {
+            const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
+            try {
+                Object.entries(sharedExternals)
+                    .filter(([_, e]) => e.dirty)
+                    .forEach(([name, external]) => ports.sharedExternalsRepo.addOrUpdate(
+                        name, 
+                        setVersionActions(name, external), 
+                        sharedScope
+                    ));
+                config.log.debug("Processed shared externals", sharedExternals);
+            } catch(err: unknown) {
+                config.log.error("Failed to determine shared externals in scope "+sharedScope, err);
+                config.log.debug("Currently processed shared externals in scope "+sharedScope, sharedExternals);
+                return Promise.reject(new NFError("Failed to determine shared externals."));
+            }
+        }
+        return Promise.resolve();
+    };
+
+
+    function setVersionActions(externalName: string, external: SharedExternal) {
         if (external.versions.length === 1) {
             external.versions[0]!.action = 'share';
             external.dirty = false;
@@ -79,26 +101,4 @@ const createDetermineSharedExternals = (
         external.dirty = false;
         return external;
     }
-
-    return () => {
-        for (const sharedScope of ports.sharedExternalsRepo.getScopes()) {
-            const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
-            try {
-                Object.entries(sharedExternals)
-                    .filter(([_, e]) => e.dirty)
-                    .forEach(([name, external]) => {
-                        ports.sharedExternalsRepo.addOrUpdate(name, updateVersionActions(name, external), sharedScope)
-                    });
-
-                config.log.debug("Processed shared externals", sharedExternals);
-            } catch(err: unknown) {
-                config.log.error("Failed to determine shared externals in scope "+sharedScope, err);
-                config.log.debug("Currently processed shared externals in scope "+sharedScope, sharedExternals);
-                return Promise.reject(new NFError("Failed to determine shared externals."));
-            }
-        }
-        return Promise.resolve();
-    };
 }
-
-export { createDetermineSharedExternals };

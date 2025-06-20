@@ -1,146 +1,192 @@
 import type { ForGeneratingImportMap } from "./driver-ports/for-generating-import-map";
 import type { DrivingContract } from "./driving-ports/driving.contract";
 import type { ImportMap, Imports } from "lib/1.domain/import-map/import-map.contract";
-import * as _path from "lib/utils/path";
-import { NFError } from "lib/native-federation.error";
+import type { ExternalsScope, RemoteInfo, SharedExternal, SharedVersion } from "lib/1.domain";
 import type { LoggingConfig } from "./config/log.contract";
 import type { ModeConfig } from "./config/mode.contract";
-import type { SharedExternal, SharedVersion } from "lib/1.domain";
+import * as _path from "lib/utils/path";
+import { NFError } from "lib/native-federation.error";
 
+export function createGenerateImportMap(
+    config: LoggingConfig & ModeConfig, 
+    ports: Pick<DrivingContract, 'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo'>
+): ForGeneratingImportMap {
+    /**
+     * Step 4: Generate an importMap from the cached remoteEntries
+     * 
+     * The processed externals in the storage/cache (step 2 & 3) are used 
+     * to generate an importMap. The step returns the generated importMap object.
+     */
+    return () => {
+        const importMap: ImportMap = { imports: {} };
+        try {
+            addScopedExternals(importMap);
+            addSharedScopeExternals(importMap);
+            addGlobalSharedExternals(importMap);
+            addRemoteInfos(importMap);
+            return Promise.resolve(importMap);
+        }catch(e){
+            return Promise.reject(e);
+        }
 
-/**
- * Step 4: Generate an importMap from the cached remoteEntries
- * 
- * The processed externals in the storage/cache (step 2 & 3) are used 
- * to generate an importMap. The step returns the generated importMap object. 
- * 
- * @param config 
- * @param adapters 
- */
-const createGenerateImportMap = (
-    config: LoggingConfig & ModeConfig,
-    ports: Pick<DrivingContract, 'remoteInfoRepo'|'scopedExternalsRepo'|'sharedExternalsRepo'>
-): ForGeneratingImportMap => { 
-    
-    function addRemoteInfos(importMap: ImportMap) {
-        const remotes = ports.remoteInfoRepo.getAll();
+    };
 
-        Object.entries(remotes).forEach(([remoteName, remote]) => {
-            remote.exposes.forEach((exposed) => {
-                const moduleName = _path.join(remoteName, exposed.moduleName);
-                importMap.imports[moduleName] = _path.join(remote.scopeUrl, exposed.file);
-            })
-        });
-
-        return importMap;
-    }
-
-    function addScopedExternals(importMap: ImportMap) {
+    /**
+     * Step 4.1: Begin with appending smallest scope of shared dependencies
+     * @param importMap 
+     * @returns 
+     */
+    function addScopedExternals(importMap: ImportMap): ImportMap {
         const scopedExternals = ports.scopedExternalsRepo.getAll();
 
-        Object.entries(scopedExternals).forEach(([scope, externals]) => {
-            if(!importMap.scopes) importMap.scopes = {};
-            importMap.scopes[scope] = Object.entries(externals)
-                .reduce((modules, [external, version]) => {
-                    modules[external] = _path.join(scope, version.file)
-                    return modules;
-                }, {} as Imports);
-        });
+        for (const [scope, externals] of Object.entries(scopedExternals)) {
+            addToScope(importMap, scope, createScopeModules(externals, scope))
+        }
 
         return importMap;
     }
 
-    const addVersionToImportMap = (externalName: string) => (importMap: ImportMap, version: SharedVersion) => {
-        if(version.action === "skip") return importMap; 
+    function createScopeModules(externals: ExternalsScope, scope: string): Imports {
+        const modules: Imports = {};
+        
+        for (const [external, version] of Object.entries(externals)) {
+            modules[external] = _path.join(scope, version.file);
+        }
+        
+        return modules;
+    }
 
-        if(version.action === "scope") {
-            const scope = _path.getScope(version.file);
-            if(!importMap.scopes) importMap.scopes = {};
-            if(!importMap.scopes[scope]) importMap.scopes[scope] = {};
-            importMap.scopes[scope][externalName] = version.file;
-            version.cached = true;
-            return importMap;
+    /**
+     * Step 4.2: Added the shareScope externals, overriding the scoped externals that are shared
+     * @param importMap 
+     * @returns 
+     */
+    function addSharedScopeExternals(importMap: ImportMap): ImportMap {
+        const sharedScopes = ports.sharedExternalsRepo.getScopes({ includeGlobal: false });
+
+        for (const sharedScope of sharedScopes) {
+            processSharedScope(importMap, sharedScope);
         }
 
-        if(!!importMap.imports[externalName]) {
-            if (config.strict) {
-                config.log.error(`Singleton external ${externalName} has multiple shared versions.`);
-                throw new NFError("Could not create ImportMap.");
+        return importMap;
+    }
+
+    function processSharedScope(importMap: ImportMap, sharedScope: string): void {
+        const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
+
+        for (const [externalName, external] of Object.entries(sharedExternals)) {
+            const override = findOverride(external, sharedScope, externalName);
+
+            for (const version of external.versions) {
+
+                if (!override || version.action === "scope") {
+                    addToScope(importMap, _path.getScope(version.file), {[externalName]: version.file})
+                    version.cached = true;
+                } else if (override) { // skip and share both get the same override
+                    addToScope(importMap, _path.getScope(version.file), {[externalName]: override.file})
+                    if (version.file === override.file) {
+                        version.cached = true;
+                    }
+                }
             }
-            config.log.warn(`Singleton external ${externalName} has multiple shared versions.`);
-            return importMap;
+            ports.sharedExternalsRepo.addOrUpdate(externalName, external, sharedScope);
         }
-
-        importMap.imports[externalName] = version.file;
-        version.cached = true;
-
-        return importMap;
     }
 
-    function addGlobalSharedExternals(importMap: ImportMap) {
-        const sharedExternals = ports.sharedExternalsRepo.getAll();
-
-        Object.entries(sharedExternals).forEach(([externalName, external]) => {
-            importMap = external.versions.reduce(addVersionToImportMap(externalName), importMap);
-            ports.sharedExternalsRepo.addOrUpdate(externalName, external);
-        });
-
-        return importMap;
-    }
-
-    const findOverride = (external: SharedExternal, scope: string, externalName: string): SharedVersion|undefined => {
+    function findOverride(external: SharedExternal, scope: string, externalName: string): SharedVersion | undefined {
         const sharedVersions = external.versions.filter(v => v.action === "share");
-        if(sharedVersions.length > 1) {
-            if (config.strict) {
-                config.log.error(`ShareScope external ${scope}.${externalName} has multiple shared versions.`);
-                throw new NFError("Could not create ImportMap.");
-            }
-            config.log.warn(`ShareScope external ${scope}.${externalName} has multiple shared versions.`);
+        
+        const scopedExternalName = `${scope}.${externalName}`;
+        
+        if (sharedVersions.length > 1) {
+            handleMultipleSharedVersions(scopedExternalName);
         }
-        if(sharedVersions.length < 1) {
-            config.log.warn(`ShareScope external ${scope}.${externalName} has no shared versions.`);
+        
+        if (sharedVersions.length < 1) {
+            config.log.warn(`ShareScope external ${scopedExternalName} has no shared versions.`);
         }
+
         return sharedVersions[0];
     }
 
-    const addOrOverrideSkippedVersions = (externalName: string, override?: SharedVersion) => (importMap: ImportMap, version: SharedVersion) => {
+    function handleMultipleSharedVersions(scopedExternalName: string): void {
+        const message = `ShareScope external ${scopedExternalName} has multiple shared versions.`;
         
-        const scope = _path.getScope(version.file);
+        if (config.strict) {
+            config.log.error(message);
+            throw new NFError("Could not create ImportMap.");
+        }
+        
+        config.log.warn(message);
+    }
 
-        if(!importMap.scopes) importMap.scopes = {};
-        if(!importMap.scopes[scope]) importMap.scopes[scope] = {};
-        importMap.scopes[scope]![externalName] = version.file;
-        version.cached = true;
+    /**
+     * Step 4.3: Added the globally shared externals. 
+     * @param importMap 
+     * @returns 
+     */
+    function addGlobalSharedExternals(importMap: ImportMap): ImportMap {
+        const sharedExternals = ports.sharedExternalsRepo.getAll();
 
-        if (!!override && version.action !== "scope") {
-            importMap.scopes[scope]![externalName] = override.file;
-            if(override.file !== version.file) version.cached = false;
+        for (const [externalName, external] of Object.entries(sharedExternals)) {
+            for (const version of external.versions) {
+                if (version.action === "scope") {
+                    addToScope(importMap, _path.getScope(version.file), {[externalName]: version.file})
+                    version.cached = true;
+                }
+                if (version.action === "share") {
+                    if (importMap.imports[externalName]) {
+                        handleDuplicateGlobalExternal(externalName);
+                        continue; // skip
+                    }
+                    addToGlobal(importMap, {[externalName]: version.file})
+                    version.cached = true;
+                }
+            }
+            ports.sharedExternalsRepo.addOrUpdate(externalName, external);
         }
 
         return importMap;
     }
 
-    function addSharedScopeExternals(importMap: ImportMap) {
-        ports.sharedExternalsRepo.getScopes({includeGlobal: false})
-            .forEach(sharedScope => {
-                const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
-                Object.entries(sharedExternals).forEach(([externalName, external]) => {
-                    const override = findOverride(external, sharedScope, externalName);
-                    importMap = external.versions.reduce(addOrOverrideSkippedVersions(externalName, override), importMap);
-                    ports.sharedExternalsRepo.addOrUpdate(externalName, external, sharedScope);
-                });
-            })
-
-        return importMap;
+    function handleDuplicateGlobalExternal(externalName: string): void {
+        const message = `Singleton external ${externalName} has multiple shared versions.`;
+        
+        if (config.strict) {
+            config.log.error(message);
+            throw new NFError("Could not create ImportMap.");
+        }
+        
+        config.log.warn(message);
     }
 
-    return () => {
-        return Promise.resolve({imports: {}})
-            .then(addRemoteInfos)
-            .then(addScopedExternals)
-            .then(addSharedScopeExternals)
-            .then(addGlobalSharedExternals);
-    };
-}
+    function addToScope(importMap: ImportMap, scope: string, imports: Imports): void {
+        if (!importMap.scopes) importMap.scopes = {}
+        if (!importMap.scopes[scope]) importMap.scopes[scope] = {};
+        importMap.scopes[scope] = Object.assign(importMap.scopes[scope], imports);
+    }
+    function addToGlobal(importMap: ImportMap, imports: Imports): void {
+        importMap.imports = Object.assign(importMap.imports, imports);
+    }
 
-export { createGenerateImportMap };
+    /**
+     * Step 4.4: Added the remote-modules (into the global scope).
+     * @param importMap 
+     * @returns 
+     */
+    function addRemoteInfos(importMap: ImportMap): void {
+        const remotes = ports.remoteInfoRepo.getAll();
+
+        for (const [remoteName, remote] of Object.entries(remotes)) {
+            addRemoteExposedModules(importMap, remoteName, remote);
+        }
+    }
+
+    function addRemoteExposedModules(importMap: ImportMap, remoteName: string, remote: RemoteInfo): void {
+        for (const exposed of remote.exposes) {
+            const moduleName = _path.join(remoteName, exposed.moduleName);
+            const moduleUrl = _path.join(remote.scopeUrl, exposed.file);
+            importMap.imports[moduleName] = moduleUrl;
+        }
+    }
+}

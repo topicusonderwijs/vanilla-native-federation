@@ -2,9 +2,8 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ES2022",
-    "lib": ["ES2022", "dom", "dom.iterable"],
-    "moduleResolution": "Bundler",
-    
+    "lib": ["ES2022", "dom"],
+    "moduleResolution": "Bundler",    
     "rootDir": "./src",
     "baseUrl": "./src",
     
@@ -18,11 +17,10 @@
     "noUncheckedIndexedAccess": true,
     
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/**/*.spec.ts", "src/**/*.test.ts"]
+  "exclude": ["dist", "src/**/*.spec.ts", "src/**/*.test.ts"]
 }
