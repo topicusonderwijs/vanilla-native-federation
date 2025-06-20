@@ -7,14 +7,13 @@ const PATHS = {
   src: 'src',
   dist: 'dist',
   lib: path.join('src', 'lib'),
-  quickstart: path.join('src', 'quickstart'),
-  tsconfigFile: 'tsconfig.build.json',
+  quickstart: path.join('src'),
+  tsconfigTypes: 'tsconfig.build.json',
 };
 
 const OUTPUT_PATHS = {
-  esm2022: path.join('dist', 'esm2022'),
   fesm2022: path.join('dist', 'fesm2022'),
-  quickstart: path.join('dist', 'quickstart')
+  quickstart: path.join('dist')
 };
 
 const FILES_TO_COPY = ['README.md', 'LICENSE.md'];
@@ -33,10 +32,10 @@ const createBaseConfig = () => ({
   platform: 'browser',
   format: 'esm',
   resolveExtensions: ['.ts', '.js'],
-  tsconfig: PATHS.tsconfigFile,
   minify: false,
   treeShaking: true,
-  metafile: true
+  metafile: true,
+  splitting: false,
 });
 
 const fsUtils = {
@@ -66,76 +65,46 @@ const fsUtils = {
       logger.warn(`Could not copy ${src}: ${err.message}`);
       return false;
     }
-  },
-  
-  getSourceFiles: async (dir) => {
-    const getAllFiles = async (directory) => {
-      try {
-        const entries = await fs.readdir(directory, { withFileTypes: true });
-        const filePromises = entries.map(entry => {
-          const fullPath = path.resolve(directory, entry.name);
-          return entry.isDirectory() ? getAllFiles(fullPath) : fullPath;
-        });
-        
-        const nestedFiles = await Promise.all(filePromises);
-        return nestedFiles.flat();
-      } catch (err) {
-        logger.warn(`Error reading ${directory}: ${err.message}`);
-        return [];
-      }
-    };
-
-    const allFiles = await getAllFiles(dir);
-    return allFiles.filter(file => file.endsWith('.ts') && !file.endsWith('.spec.ts'));
-  },
-  
-  getQuickstarts: async () => {
-    try {
-      const entries = await fs.readdir(PATHS.quickstart, { withFileTypes: true });
-      return entries.map(file => file.name);
-    } catch (err) {
-      logger.warn(`Failed to read quickstarts: ${err.message}`);
-      return [];
-    }
   }
 };
 
-
-async function generateBuildConfigs() {
+async function generateBundles() {
   const baseConfig = createBaseConfig();
-  const sourceFiles = await fsUtils.getSourceFiles(PATHS.lib);
-  const quickstarts = await fsUtils.getQuickstarts();
   
   const builds = {
-    esm2022: {
-      ...baseConfig,
-      entryPoints: sourceFiles,
-      outdir: OUTPUT_PATHS.esm2022,
-      bundle: false,
-      outExtension: { '.js': '.mjs' },
-      sourcemap: false
-    },
-    fesm2022: {
+    'vanilla-native-federation': {
       ...baseConfig,
       entryPoints: ['src/lib/index.ts'],
       outfile: path.join(OUTPUT_PATHS.fesm2022, `${PACKAGE_NAME}.mjs`),
       bundle: true,
       sourcemap: true
+    },
+    
+    'vanilla-native-federation/sdk': {
+      ...baseConfig,
+      entryPoints: ['src/lib/sdk.index.ts'],
+      outfile: path.join(OUTPUT_PATHS.fesm2022, 'sdk.mjs'),
+      bundle: true,
+      sourcemap: true
+    },
+    
+    'vanilla-native-federation/options': {
+      ...baseConfig,
+      entryPoints: ['src/lib/options.index.ts'],
+      outfile: path.join(OUTPUT_PATHS.fesm2022, 'options.mjs'),
+      bundle: true,
+      sourcemap: true
+    },
+
+    'quickstart': {
+      ...baseConfig,
+      entryPoints: [path.join(PATHS.quickstart, "quickstart.ts")],
+      outfile: path.join(OUTPUT_PATHS.quickstart, `quickstart.mjs`),
+      bundle: true,
+      sourcemap: false,
+      minify: true
     }
   };
-
-  for (const quickstart of quickstarts) {
-    const outputName = quickstart.slice(0, -3); 
-    builds[`quickstart/${quickstart}`] = {
-      ...baseConfig,
-      entryPoints: [path.join(PATHS.quickstart, quickstart)],
-      outfile: path.join(OUTPUT_PATHS.quickstart, `${outputName}.mjs`),
-      bundle: true,
-      sourcemap: true,
-      minify: true,
-      metafile: false
-    };
-  }
 
   return builds;
 }
@@ -143,23 +112,38 @@ async function generateBuildConfigs() {
 function generatePackageExports() {
   return {
     exports: {
-      "./package.json": {default: "./package.json"},
-      ".": {
-        types: "./types/lib/index.d.ts",
-        esm: "./esm2022/index.mjs",
-        default: "./fesm2022/vanilla-native-federation.mjs"
+      "./package.json": { "default": "./package.json" },
+      "./quickstart.mjs": {
+        "default": "./quickstart.mjs"
       },
+
+      ".": {
+        "types": "./types/lib/index.d.ts",
+        "default": "./fesm2022/vanilla-native-federation.mjs"
+      },
+      
+      "./sdk": {
+        "types": "./types/lib/sdk.index.d.ts", 
+        "default": "./fesm2022/sdk.mjs"
+      },
+      
+      "./options": {
+        "types": "./types/lib/options.index.d.ts",
+        "default": "./fesm2022/options.mjs"
+      }
     },
+    
     typings: "./types/lib/index.d.ts",
-    module: './fesm2022/vanilla-native-federation.mjs',
-    type: 'module'
+    module: './fesm2022/vanilla-native-federation.mjs', 
+    type: 'module',
+    sideEffects: false
   };
 }
 
 async function generateTypes() {
   logger.info('Generating declaration files...');
   try {
-    execSync(`tsc -p ${PATHS.tsconfigFile}`, { stdio: 'inherit' });
+    execSync(`tsc -p ${PATHS.tsconfigTypes}`, { stdio: 'inherit' });
     logger.success('Types generated');
     return true;
   } catch (err) {
@@ -192,7 +176,6 @@ async function setupDistDirectory() {
   
   const dirs = [
     PATHS.dist, 
-    OUTPUT_PATHS.esm2022, 
     OUTPUT_PATHS.fesm2022,
     OUTPUT_PATHS.quickstart
   ];
@@ -204,11 +187,20 @@ async function setupDistDirectory() {
 async function runBuilds(configs) {
   const buildPromises = Object.entries(configs).map(async ([name, config]) => {
     try {
-      await esbuild.build(config);
-      logger.success(`Build "${name}" completed`);
+      const result = await esbuild.build(config);
+      
+      if (result.metafile && config.outfile) {
+        const { outputs } = result.metafile;
+        const outputFile = Object.keys(outputs)[0];
+        if (outputFile) {
+          const sizeKB = (outputs[outputFile].bytes / 1024).toFixed(1);
+          logger.success(`${name}: ${sizeKB}KB`);
+        }
+      }
+      
       return true;
     } catch (err) {
-      logger.error(`Build "${name}" failed: ${err.message}`);
+      logger.error(`❌ ${name}: ${err.message}`);
       return false;
     }
   });
@@ -230,10 +222,14 @@ async function build() {
     logger.start('Starting build...');
     
     await setupDistDirectory();
-    await generateTypes();
     
-    const buildConfigs = await generateBuildConfigs();
-    await runBuilds(buildConfigs);
+    await Promise.all([
+      generateTypes(),
+      (async () => {
+        const bundleConfigs = await generateBundles();
+        await runBuilds(bundleConfigs);
+      })()
+    ]);
     
     await Promise.all([
       updatePackageJson(),

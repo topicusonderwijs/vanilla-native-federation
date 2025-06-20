@@ -1,8 +1,12 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": [
-    "dist",
-    "src/lib/6.mocks/**/*",
-    "**/*.spec.ts"
-  ]
+  "compilerOptions": {
+    "outDir": "./dist",
+    
+    "declaration": true,
+    "declarationDir": "./dist/types",
+    "emitDeclarationOnly": true,
+    "sourceMap": true
+  },
+  "exclude": ["dist", "src/**/*.spec.ts", "src/**/*.mock.ts"]
 }

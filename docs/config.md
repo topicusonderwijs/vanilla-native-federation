@@ -34,7 +34,7 @@ export type HostOptions = {
 ### Example
 
 ```javascript
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
 
 initFederation("http://example.org/manifest.json", {
     hostRemoteEntry: { url: "./remoteEntry.json" }
@@ -66,17 +66,18 @@ export type ImportMapOptions = {
 
 ```javascript
 import 'es-module-shims';
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
+import { useShimImportMap, useDefaultImportMap, useSystemJSImportMap } from 'vanilla-native-federation/options';
 
 initFederation("http://example.org/manifest.json", {
     // Option 1: Using es-module-shims
-    ...config.useShimImportMap({shimMode: true}),
+    ...useShimImportMap({shimMode: true}),
 
     // Option 2: Using the default importmap
-    ...config.useDefaultImportMap(),
+    ...useDefaultImportMap(),
 
     // Option 3: Using systemJS
-    ...config.useSystemJSImportMap()
+    ...useSystemJSImportMap()
 });
 ```
 
@@ -102,16 +103,17 @@ export type LoggingOptions = {
 ### Example
 
 ```javascript
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
+import { noopLogger, consoleLogger } from 'vanilla-native-federation/options';
 
 initFederation("http://example.org/manifest.json", {
     logLevel: "debug",
 
     // Option 1: noopLogger
-    logger: config.noopLogger,
+    logger: noopLogger,
 
     // Option 2: consoleLogger
-    logger: config.consoleLogger,
+    logger: consoleLogger,
 });
 ```
 
@@ -124,10 +126,10 @@ export type ModeConfig = {
     strict: boolean,
 
     // Option 1: default profile
-    profile: config.defaultProfile
+    profile: defaultProfile
 
     // Option 2: caching profile
-    profile: config.cachingProfile
+    profile: cachingProfile
 }
 ```
 
@@ -143,11 +145,12 @@ export type ModeConfig = {
 ### Example
 
 ```javascript
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
+import { noopLogger, consoleLogger } from 'vanilla-native-federation/options';
 
 initFederation("http://example.org/manifest.json", {
     strict: true,
-    profile: config.cachingProfile // { latestShareExternal: false, skipCachedRemotes: true }
+    profile: cachingProfile // { latestShareExternal: false, skipCachedRemotes: true }
 });
 ```
 
@@ -172,19 +175,20 @@ type StorageConfig = {
 ### Example
 
 ```javascript
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
+import { globalThisStorage, localStorageEntry, sessionStorageEntry } from 'vanilla-native-federation/options';
 
 initFederation("http://example.org/manifest.json", {
     clearStorage: true,
     storageNamespace: "__custom_namespace__",
 
     // Option 1: globalThis
-    logger: config.globalThisStorage,
+    logger: globalThisStorage,
 
     // Option 2: localStorage
-    logger: config.localStorageEntry,
+    logger: localStorageEntry,
 
     // Option 3: sessionStorage
-    logger: config.sessionStorageEntry,
+    logger: sessionStorageEntry,
 });
 ```

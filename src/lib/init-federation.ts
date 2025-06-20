@@ -1,4 +1,4 @@
-import type { InitFederationResult, LoadRemoteModule } from "./1.domain";
+import type { InitFederationResult, LoadRemoteModule } from "./1.domain/init-federation.contract";
 import type { NFOptions } from "./2.app/config/config.contract";
 import { CREATE_NF_APP } from "./create-nf-app";
 

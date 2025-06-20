@@ -21,6 +21,9 @@ The simplest approach uses the pre-built runtime script with declarative configu
     <head>
         <title>My Application</title>
         
+        <!-- Enable shim-mode for optimal browser support -->
+        <script type="esms-options">{ "shimMode": true }</script> 
+
         <!-- Define your micro frontends -->
         <script type="application/json" id="mfe-manifest">
             {
@@ -39,7 +42,7 @@ The simplest approach uses the pre-built runtime script with declarative configu
         </script>
         
         <!-- Include the runtime -->
-        <script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/debug.mjs"></script>
+        <script src="https://unpkg.com/vanilla-native-federation@0.14.0/quickstart.mjs"></script>
     </head>
     <body>
         <!-- Use your loaded components -->
@@ -87,7 +90,7 @@ The `{ once: true }` option ensures the event handler only runs once, preventing
 The runtime script performs all the orchestration work: fetching manifests, processing metadata, resolving dependencies, and setting up the browser's module loading system.
 
 ```html
-<script src="https://unpkg.com/vanilla-native-federation@latest/quickstart/debug.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@latest/quickstart.mjs"></script>
 ```
 
 This script must be loaded after the manifest and event handler are defined, as it immediately begins looking for the manifest and will fire the `mfe-loader-available` event once initialization completes.
@@ -104,14 +107,11 @@ This script must be loaded after the manifest and event handler are defined, as 
 
 Micro frontends can register themselves as custom elements (part of the [webcomponents](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) spec). When you call `loadRemoteModule("team/button", "./Button")`, the loaded component typically registers a custom element like `<my-button>`. The HTML elements in your page will remain empty until the corresponding micro frontends load and register themselves.
 
-### Runtime Variants
+### Quickstart (pre-built)
 
 ```html
-<!-- Development build with detailed logging -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/debug.mjs"></script>
-
-<!-- Development: Optimized for performance -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/test.mjs"></script>
+<!-- Development and quick testing -->
+<script src="https://unpkg.com/vanilla-native-federation@0.14.0/quickstart.mjs"></script>
 ```
 
 ## Custom Implementation
@@ -145,7 +145,8 @@ The [es-module-shims](https://www.npmjs.com/package/es-module-shims) package pro
 
 ```javascript
 import 'es-module-shims';
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
+import { consoleLogger, sessionStorageEntry, useShimImportMap } from 'vanilla-native-federation/options';
 
 (async () => {
     const manifest = {
@@ -156,9 +157,9 @@ import { initFederation, config } from 'vanilla-native-federation';
     try {
         const { loadRemoteModule } = await initFederation(manifest, {
             logLevel: "error",
-            logger: config.consoleLogger,
-            storage: config.sessionStorageEntry,
-            ...config.useShimImportMap({ shimMode: true })
+            logger: consoleLogger,
+            storage: sessionStorageEntry,
+            ...useShimImportMap({ shimMode: true })
         });
 
         // Load specific modules (only possible in shim-mode)
@@ -182,20 +183,20 @@ This approach gives you explicit control over the initialization timing, error h
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Application</title>
-    <!-- Include es-module-shims for older browser compatibility -->
-    <script type="esms-options">{ "shimMode": true }</script> 
-    <script async src="https://ga.jspm.io/npm:es-module-shims@2.5.1/dist/es-module-shims.js"></script>
-</head>
-<body>
-    <!-- Your micro frontend components will render here -->
-    <my-header></my-header>
-    <my-button>Click me</my-button>
-    
-    <!-- Load your orchestrator script -->
-    <script type="module-shim" src="./orchestrator.js"></script>
-</body>
+    <head>
+        <title>Application</title>
+        <!-- Include es-module-shims for older browser compatibility -->
+        <script type="esms-options">{ "shimMode": true }</script> 
+        <script async src="https://ga.jspm.io/npm:es-module-shims@2.6.0/dist/es-module-shims.js"></script>
+    </head>
+    <body>
+        <!-- Your micro frontend components will render here -->
+        <my-header></my-header>
+        <my-button>Click me</my-button>
+        
+        <!-- Load your orchestrator script -->
+        <script type="module-shim" src="./orchestrator.js"></script>
+    </body>
 </html>
 ```
 
@@ -212,17 +213,18 @@ The library provides extensive configuration options to control behavior, storag
 Storage configuration determines how the library caches micro frontend metadata and resolved dependencies between page loads. The choice significantly impacts performance and user experience.
 
 ```javascript
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
+import { globalThisStorageEntry, sessionStorageEntry, localStorageEntry } from 'vanilla-native-federation/options';
 
 await initFederation(manifest, {
     // Memory only - fastest, lost on page reload (default)
-    storage: config.globalThisStorageEntry,
+    storage: globalThisStorageEntry,
     
     // Session storage - persists across page reloads within the same browser session
-    storage: config.sessionStorageEntry,
+    storage: sessionStorageEntry,
     
     // Local storage - persists across browser sessions
-    storage: config.localStorageEntry,
+    storage: localStorageEntry,
     
     // Clear existing cache on initialization
     clearStorage: true,
@@ -252,7 +254,7 @@ await initFederation(manifest, {
     loadModuleFn: url => import(url),
     
     // Use es-module-shims polyfill for older browsers
-    ...config.useShimImportMap({ shimMode: true }),
+    ...useShimImportMap({ shimMode: true }),
 });
 ```
 
@@ -268,8 +270,8 @@ await initFederation(manifest, {
     logLevel: "debug",
     
     // Built-in loggers
-    logger: config.consoleLogger,  // Logs to browser console
-    logger: config.noopLogger,     // No logging
+    logger: consoleLogger,  // Logs to browser console
+    logger: noopLogger,     // No logging
     
     // Custom logger
     logger: {
@@ -292,8 +294,8 @@ await initFederation(manifest, {
     strict: true,
     
     // Resolution profile
-    profile: config.defaultProfile,    // Optimize for compatibility
-    profile: config.cachingProfile,    // Optimize for performance
+    profile: defaultProfile,    // Optimize for compatibility
+    profile: cachingProfile,    // Optimize for performance
     
     // Custom profile
     profile: {
@@ -365,9 +367,9 @@ const button = await buttonRemote.loadModule('./Button');
 console.log(config); // type: ConfigContract
 ```
 
-## The ConfigContract
+### The ConfigContract
 
-The initFederation takes the `options` explained above as input and merges them with the default 'fallback' options into a "config" object. This object is used as general "environment" object that decides how the orchestrator should behave. The config object can be used after initialization to interact with the cache or logger. 
+The initFederation takes the `options` explained above as input and merges them with the default 'fallback' options into a `config` object. This object is used as general "environment" object that decides how the orchestrator should behave. The config object can be used after initialization to interact with internals of the library like cache or the logger. 
 
 ## Framework Integration
 
@@ -377,12 +379,13 @@ This library integrates with any frontend framework or backend technology with m
 
 The orchestrator can also be used in Angular applications by updating the `main.ts`:
 
-```
-import { config, initFederation } from 'vanilla-native-federation';
+```javascript
+import { initFederation } from 'vanilla-native-federation';
+import { useShimImportMap } from 'vanilla-native-federation/options';
 
 initFederation({},{
     hostRemoteEntry: './remoteEntry.json',
-    ...config.useShimImportMap({ shimMode: true }),
+    ...useShimImportMap({ shimMode: true }),
 })
 .then(async (nf) => {
     const app = await import('./bootstrap');
@@ -395,7 +398,7 @@ initFederation({},{
 
 And then the `bootstrap.ts` to allow the use of the `loadRemoteModule`.
 
-```
+```javascript
 import { bootstrapApplication } from '@angular/platform-browser';
 import { ApplicationConfig, InjectionToken, provideZoneChangeDetection } from '@angular/core';
 import { AppComponent } from './app/app.component';

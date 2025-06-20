@@ -9,11 +9,10 @@ module.exports = {
   testPathIgnorePatterns: [
     '/node_modules/'
   ],
-  preset: 'ts-jest',
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       babel: true,
-      tsconfig: 'tsconfig.spec.json',
+      tsconfig: 'tsconfig.json',
     }]
   },
   moduleNameMapper: {

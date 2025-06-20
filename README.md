@@ -56,7 +56,7 @@ Get up and running in under 2 minutes:
         </script>
         
         <!-- Include the runtime -->
-        <script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/debug.mjs"></script>
+        <script src="https://unpkg.com/vanilla-native-federation@0.14.0/quickstart.mjs"></script>
     </head>
     <body>
         <!-- Use your loaded components -->
@@ -74,14 +74,11 @@ Your micro frontends are now loaded and ready to use. The runtime handles:
 - ✅ Generating optimized import maps
 - ✅ Loading your micro frontend modules
 
-### Available quickstart Runtimes
+### Available quickstart Runtime
 
 ```html
-<!-- Development: Detailed console logging -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/debug.mjs"></script>
-
-<!-- Development: Optimized for performance -->
-<script src="https://unpkg.com/vanilla-native-federation@0.12.6/quickstart/test.mjs"></script>
+<!-- Development and quick testing -->
+<script src="https://unpkg.com/vanilla-native-federation@0.14.0/quickstart.mjs"></script>
 ```
 
 ## Advanced Usage
@@ -89,7 +86,8 @@ Your micro frontends are now loaded and ready to use. The runtime handles:
 For more control over the initialization process:
 
 ```javascript
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
+import { consoleLogger, localStorageEntry } from 'vanilla-native-federation/options';
 
 const { loadRemoteModule } = await initFederation({
     "team/mfe1": "http://localhost:3000/remoteEntry.json",
@@ -97,8 +95,8 @@ const { loadRemoteModule } = await initFederation({
 }, {
     // Extensive configuration options available
     logLevel: "error",
-    logger: config.consoleLogger,
-    storage: config.localStorageEntry,
+    logger: consoleLogger,
+    storage: localStorageEntry,
     // ... see docs for full options
 });
 
