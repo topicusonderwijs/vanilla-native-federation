@@ -367,9 +367,9 @@ const button = await buttonRemote.loadModule('./Button');
 console.log(config); // type: ConfigContract
 ```
 
-## The ConfigContract
+### The ConfigContract
 
-The initFederation takes the `options` explained above as input and merges them with the default 'fallback' options into a "config" object. This object is used as general "environment" object that decides how the orchestrator should behave. The config object can be used after initialization to interact with the cache or logger. 
+The initFederation takes the `options` explained above as input and merges them with the default 'fallback' options into a `config` object. This object is used as general "environment" object that decides how the orchestrator should behave. The config object can be used after initialization to interact with internals of the library like cache or the logger. 
 
 ## Framework Integration
 
@@ -379,12 +379,13 @@ This library integrates with any frontend framework or backend technology with m
 
 The orchestrator can also be used in Angular applications by updating the `main.ts`:
 
-```
-import { config, initFederation } from 'vanilla-native-federation';
+```javascript
+import { initFederation } from 'vanilla-native-federation';
+import { useShimImportMap } from 'vanilla-native-federation/options';
 
 initFederation({},{
     hostRemoteEntry: './remoteEntry.json',
-    ...config.useShimImportMap({ shimMode: true }),
+    ...useShimImportMap({ shimMode: true }),
 })
 .then(async (nf) => {
     const app = await import('./bootstrap');
@@ -397,7 +398,7 @@ initFederation({},{
 
 And then the `bootstrap.ts` to allow the use of the `loadRemoteModule`.
 
-```
+```javascript
 import { bootstrapApplication } from '@angular/platform-browser';
 import { ApplicationConfig, InjectionToken, provideZoneChangeDetection } from '@angular/core';
 import { AppComponent } from './app/app.component';

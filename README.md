@@ -86,7 +86,8 @@ Your micro frontends are now loaded and ready to use. The runtime handles:
 For more control over the initialization process:
 
 ```javascript
-import { initFederation, config } from 'vanilla-native-federation';
+import { initFederation } from 'vanilla-native-federation';
+import { consoleLogger, localStorageEntry } from 'vanilla-native-federation/options';
 
 const { loadRemoteModule } = await initFederation({
     "team/mfe1": "http://localhost:3000/remoteEntry.json",
@@ -94,8 +95,8 @@ const { loadRemoteModule } = await initFederation({
 }, {
     // Extensive configuration options available
     logLevel: "error",
-    logger: config.consoleLogger,
-    storage: config.localStorageEntry,
+    logger: consoleLogger,
+    storage: localStorageEntry,
     // ... see docs for full options
 });
 

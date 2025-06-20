@@ -182,8 +182,9 @@ flowchart LR
 
 Dependencies are resolved separately for each scope:
 
-```json
+```
 // Input: Multiple scopes with different versions
+
 Global scope:
   react@18.2.0 (requires "^18.0.0", singleton: true)
   react@18.1.0 (requires "^18.0.0", singleton: true)
@@ -480,19 +481,19 @@ await initFederation(manifest, {
 
 **Why this is default**: Minimizes bundle size and download time by choosing the version that requires the fewest additional scoped downloads within each scope.
 
-```json
+```
 // The resolver calculates which version minimizes extra downloads per scope:
 
-// Global scope - if 18.2.0 is chosen:
-// - 18.1.0: compatible (SKIP) → 0 extra downloads
-// - 17.0.2: incompatible + strict (SCOPE) → 1 extra download
-// Total cost: 1 extra download
+Global scope - if 18.2.0 is chosen:
+  18.1.0: compatible (SKIP) → 0 extra downloads
+  17.0.2: incompatible + strict (SCOPE) → 1 extra download
+  Total cost: 1 extra download
 
-// Team-a scope - if 3.1.0 is chosen:
-// - 3.0.5: compatible (SKIP) → 0 extra downloads
-// Total cost: 0 extra downloads
+Team-a scope - if 3.1.0 is chosen:
+  3.0.5: compatible (SKIP) → 0 extra downloads
+  Total cost: 0 extra downloads
 
-// Result: Choose 18.2.0 globally, 3.1.0 for team-a scope
+Result: Choose 18.2.0 globally, 3.1.0 for team-a scope
 ```
 
 ### 4. Caching Strategy
@@ -559,13 +560,13 @@ Choosing different storage allows the library to reuse cached externals across p
 
 ```javascript
 // In-memory only (default) - fastest, lost on page reload
-storage: config.globalThisStorageEntry,
+storage: globalThisStorageEntry,
 
 // Single session only - survives page reloads, cleared when browser closes  
-storage: config.sessionStorageEntry,
+storage: sessionStorageEntry,
 
 // Persist across browser sessions - survives browser restarts
-storage: config.localStorageEntry
+storage: localStorageEntry
 ```
 
 **When to use each**:
@@ -579,7 +580,7 @@ storage: config.localStorageEntry
 
 ### Version Conflicts
 
-```json
+```
 // Error in strict mode for global scope
 NFError: [dep-a] Shared version 2.0.0 is not compatible with range '^1.0.0'
 
@@ -595,7 +596,7 @@ NFError: ShareScope external team-a.dep-a has multiple shared versions.
 
 ### Shared Scope Issues
 
-```json
+```
 // Warning for shared scope with no shared versions
 Warning: ShareScope external team-a.dep-a has no shared versions.
 
