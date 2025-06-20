@@ -22,5 +22,5 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*"],
-  "exclude": ["dist", "src/**/*.spec.ts", "src/**/*.test.ts"]
+  "exclude": ["dist"]
 }

@@ -8,7 +8,7 @@ const PATHS = {
   dist: 'dist',
   lib: path.join('src', 'lib'),
   quickstart: path.join('src'),
-  tsconfigTypes: 'tsconfig.types.json',
+  tsconfigTypes: 'tsconfig.build.json',
 };
 
 const OUTPUT_PATHS = {
