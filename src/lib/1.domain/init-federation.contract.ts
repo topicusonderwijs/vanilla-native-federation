@@ -8,5 +8,5 @@ export type InitFederationResult = Promise<{
     remote: <TModule = unknown>(remoteName: string) => {
         loadModule: (exposedModule: string) => Promise<TModule>;
     },
-    as: <TModule = unknown>() => LoadRemoteModule<TModule>
+    as: <TModule = unknown>() => {loadRemoteModule: LoadRemoteModule<TModule>}
 }>

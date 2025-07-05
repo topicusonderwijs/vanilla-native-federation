@@ -16,7 +16,7 @@ const initFederation = (
         .then(app.exposeModuleLoader)
         .then(loadRemoteModule => ({
             loadRemoteModule,
-            as: <TModule = unknown>() => loadRemoteModule as LoadRemoteModule<TModule>,
+            as: <TModule = unknown>() => ({loadRemoteModule: loadRemoteModule as LoadRemoteModule<TModule>,}),
             remote: <TModule = unknown>(remoteName: string) => ({
                 loadModule: (exposedModule: string) => loadRemoteModule(remoteName, exposedModule) as Promise<TModule>
             }),
