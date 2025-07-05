@@ -42,7 +42,7 @@ The simplest approach uses the pre-built runtime script with declarative configu
         </script>
         
         <!-- Include the runtime -->
-        <script src="https://unpkg.com/vanilla-native-federation@0.14.0/quickstart.mjs"></script>
+        <script src="https://unpkg.com/vanilla-native-federation@0.14.1/quickstart.mjs"></script>
     </head>
     <body>
         <!-- Use your loaded components -->
@@ -111,7 +111,7 @@ Micro frontends can register themselves as custom elements (part of the [webcomp
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@0.14.0/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.14.1/quickstart.mjs"></script>
 ```
 
 ## Custom Implementation
