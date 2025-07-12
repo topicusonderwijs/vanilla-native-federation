@@ -8,7 +8,7 @@ import { SharedVersion } from 'lib/1.domain/externals/version.contract';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { Optional } from 'lib/utils/optional';
 import { MOCK_VERSION_II, MOCK_VERSION_III } from 'lib/6.mocks/domain/externals/version.mock';
-import { StorageConfig } from 'lib/2.app';
+import { StorageConfig } from 'lib/2.app/init-federation';
 
 describe('createSharedExternalsRepository', () => {
   const setupWithCache = (storage: any) => {

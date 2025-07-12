@@ -1,7 +1,7 @@
-import type { DrivingContract } from './driving-ports/driving.contract';
-import type { ForExposingModuleLoader } from './driver-ports/for-exposing-module-loader.port';
+import type { DrivingContract } from '../driving-ports/driving.contract';
+import type { ForExposingModuleLoader } from '../driver-ports/for-exposing-module-loader.port';
 import { NFError } from 'lib/native-federation.error';
-import type { LoggingConfig } from './config/log.contract';
+import type { LoggingConfig } from '../config/log.contract';
 import * as _path from 'lib/utils/path';
 
 export function createExposeModuleLoader(

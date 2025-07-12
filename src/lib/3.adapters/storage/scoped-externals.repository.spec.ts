@@ -4,7 +4,7 @@ import { MOCK_EXTERNALS_SCOPE } from 'lib/6.mocks/domain/externals/external.mock
 import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
 import { Version } from 'lib/1.domain/externals/version.contract';
 import { MOCK_VERSION_I } from 'lib/6.mocks/domain/externals/version.mock';
-import { StorageConfig } from 'lib/2.app';
+import { StorageConfig } from 'lib/2.app/init-federation';
 
 describe('createScopedExternalsRepository', () => {
   const setupWithCache = (storage: any) => {

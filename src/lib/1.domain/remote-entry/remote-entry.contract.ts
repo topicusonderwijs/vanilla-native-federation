@@ -23,6 +23,7 @@ interface FederationInfo {
 type RemoteEntry = FederationInfo & {
   url: RemoteEntryUrl;
   host?: boolean;
+  dynamic?: boolean;
 };
 
 export { RemoteEntry, FederationInfo, ExposesInfo, SharedInfo };

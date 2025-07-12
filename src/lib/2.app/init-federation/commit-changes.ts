@@ -1,5 +1,5 @@
-import type { DrivingContract } from './driving-ports/driving.contract';
-import type { ForCommittingChanges } from './driver-ports/for-committing-changes.port';
+import type { DrivingContract } from '../driving-ports/driving.contract';
+import type { ForCommittingChanges } from '../driver-ports/for-committing-changes.port';
 import type { ImportMap } from 'lib/1.domain/import-map/import-map.contract';
 
 export function createCommitChanges(

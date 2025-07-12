@@ -6,7 +6,7 @@ import {
   MOCK_REMOTE_INFO_II,
 } from 'lib/6.mocks/domain/remote-info/remote-info.mock';
 import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
-import { StorageConfig } from 'lib/2.app';
+import { StorageConfig } from 'lib/2.app/init-federation';
 
 describe('createRemoteInfoRepository', () => {
   const setupWithCache = (storage: any) => {

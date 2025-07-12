@@ -1,5 +1,5 @@
-import { ForCommittingChanges } from './driver-ports/for-committing-changes.port';
-import { DrivingContract } from './driving-ports/driving.contract';
+import { ForCommittingChanges } from '../driver-ports/for-committing-changes.port';
+import { DrivingContract } from '../driving-ports/driving.contract';
 import { createCommitChanges } from './commit-changes';
 import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
 import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';

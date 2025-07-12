@@ -1,9 +1,9 @@
-import type { ForDeterminingSharedExternals } from './driver-ports/for-determining-shared-externals.port';
+import type { ForDeterminingSharedExternals } from '../driver-ports/for-determining-shared-externals.port';
 import type { SharedExternal } from 'lib/1.domain';
 import { NFError } from 'lib/native-federation.error';
-import type { DrivingContract } from './driving-ports/driving.contract';
-import type { LoggingConfig } from './config/log.contract';
-import type { ModeConfig } from './config/mode.contract';
+import type { DrivingContract } from '../driving-ports/driving.contract';
+import type { LoggingConfig } from '../config/log.contract';
+import type { ModeConfig } from '../config/mode.contract';
 
 export function createDetermineSharedExternals(
   config: LoggingConfig & ModeConfig,

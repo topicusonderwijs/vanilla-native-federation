@@ -1,4 +1,4 @@
-import type { ConfigContract } from 'lib/2.app';
+import type { ConfigContract } from 'lib/2.app/init-federation';
 
 export type LoadRemoteModule<TModule = unknown> = (
   remoteName: string,
