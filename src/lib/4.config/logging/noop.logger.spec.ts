@@ -1,7 +1,6 @@
 import { noopLogger } from './noop.logger';
 
 describe('consoleLogger', () => {
-
   beforeEach(() => {
     noopLogger.debug = jest.fn();
     noopLogger.warn = jest.fn();

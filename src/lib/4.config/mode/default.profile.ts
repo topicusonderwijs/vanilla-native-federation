@@ -1,6 +1,4 @@
-
-
 export const defaultProfile = {
-    latestSharedExternal: false,
-    skipCachedRemotes: false
-}
+  latestSharedExternal: false,
+  skipCachedRemotes: false,
+};

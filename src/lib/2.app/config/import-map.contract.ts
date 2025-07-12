@@ -1,8 +1,6 @@
-
-
 export type ImportMapConfig = {
-    importMapType: string,
-    loadModuleFn: (url: string) => Promise<unknown>
-}
+  importMapType: string;
+  loadModuleFn: (url: string) => Promise<unknown>;
+};
 
-export type ImportMapOptions = Partial<ImportMapConfig>
+export type ImportMapOptions = Partial<ImportMapConfig>;

@@ -1,6 +1,4 @@
-
-
 export type RemoteModule = {
-    moduleName: string, 
-    file: string
-}
+  moduleName: string;
+  file: string;
+};

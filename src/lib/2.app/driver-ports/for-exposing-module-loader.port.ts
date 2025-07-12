@@ -1,4 +1,3 @@
-import type { LoadRemoteModule } from "lib/1.domain";
+import type { LoadRemoteModule } from 'lib/1.domain';
 
-
-export type ForExposingModuleLoader = () => Promise<LoadRemoteModule>
+export type ForExposingModuleLoader = () => Promise<LoadRemoteModule>;

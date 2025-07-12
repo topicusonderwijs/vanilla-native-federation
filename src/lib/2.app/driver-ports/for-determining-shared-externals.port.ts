@@ -1,1 +1,1 @@
-export type ForDeterminingSharedExternals = () => Promise<void>
+export type ForDeterminingSharedExternals = () => Promise<void>;
