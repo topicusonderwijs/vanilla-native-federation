@@ -1,6 +1,4 @@
-
-
 export const cachingProfile = {
-    latestSharedExternal: false,
-    skipCachedRemotes: true
-}
+  latestSharedExternal: false,
+  skipCachedRemotes: true,
+};

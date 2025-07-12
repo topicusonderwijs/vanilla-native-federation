@@ -1,9 +1,8 @@
-import {Scopes, Imports} from "@softarc/native-federation-runtime";
+import { Scopes, Imports } from '@softarc/native-federation-runtime';
 
 type ImportMap = {
-    imports: Imports,
-    scopes?: Scopes,
+  imports: Imports;
+  scopes?: Scopes;
+};
 
-}
-
-export { Scopes, Imports, ImportMap }
+export { Scopes, Imports, ImportMap };

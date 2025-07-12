@@ -4,7 +4,7 @@ describe('consoleLogger', () => {
   const originalConsole = {
     log: console.log,
     error: console.error,
-    warn: console.warn
+    warn: console.warn,
   };
 
   beforeEach(() => {
@@ -23,24 +23,33 @@ describe('consoleLogger', () => {
     consoleLogger.debug('test debug message');
     expect(console.log).toHaveBeenCalledWith('[DEBUG]: test debug message');
 
-    consoleLogger.debug('test debug message', new Error("Something went wrong"));
-    expect(console.log).toHaveBeenCalledWith('[DEBUG]: test debug message', new Error("Something went wrong"));
+    consoleLogger.debug('test debug message', new Error('Something went wrong'));
+    expect(console.log).toHaveBeenCalledWith(
+      '[DEBUG]: test debug message',
+      new Error('Something went wrong')
+    );
   });
 
   it('should log error messages with correct prefix', () => {
     consoleLogger.error('test error message');
     expect(console.error).toHaveBeenCalledWith('[NF]: test error message');
 
-    consoleLogger.error('test error message', new Error("Something went wrong"));
-    expect(console.error).toHaveBeenCalledWith('[NF]: test error message', new Error("Something went wrong"));
+    consoleLogger.error('test error message', new Error('Something went wrong'));
+    expect(console.error).toHaveBeenCalledWith(
+      '[NF]: test error message',
+      new Error('Something went wrong')
+    );
   });
 
   it('should log warning messages with correct prefix', () => {
     consoleLogger.warn('test warning message');
     expect(console.warn).toHaveBeenCalledWith('[NF]: test warning message');
 
-    consoleLogger.warn('test warning message', new Error("Something went wrong"));
-    expect(console.warn).toHaveBeenCalledWith('[NF]: test warning message', new Error("Something went wrong"));
+    consoleLogger.warn('test warning message', new Error('Something went wrong'));
+    expect(console.warn).toHaveBeenCalledWith(
+      '[NF]: test warning message',
+      new Error('Something went wrong')
+    );
   });
 
   it('should call appropriate console methods for each level', () => {
