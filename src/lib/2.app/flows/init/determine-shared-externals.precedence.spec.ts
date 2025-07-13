@@ -1,10 +1,10 @@
-import { ForDeterminingSharedExternals } from '../driver-ports/for-determining-shared-externals.port';
-import { DrivingContract } from '../driving-ports/driving.contract';
+import { ForDeterminingSharedExternals } from '../../driver-ports/init/for-determining-shared-externals.port';
+import { DrivingContract } from '../../driving-ports/driving.contract';
 import { createDetermineSharedExternals } from './determine-shared-externals';
 import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
 import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
-import { LoggingConfig } from '../config/log.contract';
-import { ModeConfig } from '../config/mode.contract';
+import { LoggingConfig } from '../../config/log.contract';
+import { ModeConfig } from '../../config/mode.contract';
 import { GLOBAL_SCOPE } from 'lib/1.domain';
 
 /**

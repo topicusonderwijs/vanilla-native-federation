@@ -1,17 +1,17 @@
 import type { RemoteEntry } from 'lib/1.domain/remote-entry/remote-entry.contract';
 import type { RemoteEntryUrl } from 'lib/1.domain/remote-entry/manifest.contract';
 import type { RemoteName } from 'lib/1.domain/remote/remote-info.contract';
-import type { DrivingContract } from '../driving-ports/driving.contract';
-import type { LoggingConfig } from '../config/log.contract';
+import type { DrivingContract } from '../../driving-ports/driving.contract';
+import type { LoggingConfig } from '../../config/log.contract';
 import { NFError } from 'lib/native-federation.error';
-import type { ModeConfig } from '../config/mode.contract';
-import type { HostConfig } from '../config/host.contract';
-import type { ForGettingDynamicRemoteEntry } from '../driver-ports/for-getting-dynamic-remote-entry.port';
+import type { ModeConfig } from '../../config/mode.contract';
+import type { HostConfig } from '../../config/host.contract';
+import type { ForGettingRemoteEntry } from '../../driver-ports/dynamic-init/for-getting-remote-entry.port';
 
 export function createGetDynamicRemoteEntry(
   config: LoggingConfig & ModeConfig & HostConfig,
   ports: Pick<DrivingContract, 'remoteEntryProvider' | 'manifestProvider' | 'remoteInfoRepo'>
-): ForGettingDynamicRemoteEntry {
+): ForGettingRemoteEntry {
   return async (remoteEntryUrl: RemoteEntryUrl, remoteName?: RemoteName) => {
     if (!!remoteName && shouldSkipCachedRemote(remoteName)) {
       config.log.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);

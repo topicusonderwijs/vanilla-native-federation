@@ -1,12 +1,12 @@
 import type { RemoteEntry } from 'lib/1.domain/remote-entry/remote-entry.contract';
 import type { Manifest, RemoteEntryUrl } from 'lib/1.domain/remote-entry/manifest.contract';
 import type { RemoteName } from 'lib/1.domain/remote/remote-info.contract';
-import type { ForGettingRemoteEntries } from '../driver-ports/for-getting-remote-entries.port';
-import type { DrivingContract } from '../driving-ports/driving.contract';
-import type { LoggingConfig } from '../config/log.contract';
+import type { ForGettingRemoteEntries } from '../../driver-ports/init/for-getting-remote-entries.port';
+import type { DrivingContract } from '../../driving-ports/driving.contract';
+import type { LoggingConfig } from '../../config/log.contract';
 import { NFError } from 'lib/native-federation.error';
-import type { ModeConfig } from '../config/mode.contract';
-import type { HostConfig } from '../config/host.contract';
+import type { ModeConfig } from '../../config/mode.contract';
+import type { HostConfig } from '../../config/host.contract';
 
 export function createGetRemoteEntries(
   config: LoggingConfig & ModeConfig & HostConfig,

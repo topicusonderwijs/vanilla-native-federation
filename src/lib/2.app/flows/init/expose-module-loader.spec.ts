@@ -1,9 +1,9 @@
-import { ForExposingModuleLoader } from '../driver-ports/for-exposing-module-loader.port';
-import { DrivingContract } from '../driving-ports/driving.contract';
+import { ForExposingModuleLoader } from '../../driver-ports/init/for-exposing-module-loader.port';
+import { DrivingContract } from '../../driving-ports/driving.contract';
 import { createExposeModuleLoader } from './expose-module-loader';
 import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
 import { mockBrowser } from 'lib/6.mocks/adapters/browser.mock';
-import { LoggingConfig } from '../config/log.contract';
+import { LoggingConfig } from '../../config/log.contract';
 import { Optional } from 'lib/utils/optional';
 import { NFError } from 'lib/native-federation.error';
 

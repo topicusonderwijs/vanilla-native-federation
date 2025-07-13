@@ -1,7 +1,6 @@
 import type { RemoteEntry } from 'lib/1.domain/remote-entry/remote-entry.contract';
-import type { Manifest } from 'lib/1.domain/remote-entry/manifest.contract';
 
-export type ForGettingDynamicRemoteEntry = (
+export type ForGettingRemoteEntry = (
   remoteEntryUrl: string,
   remoteName?: string
 ) => Promise<RemoteEntry[]>;
