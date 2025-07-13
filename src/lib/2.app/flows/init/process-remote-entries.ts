@@ -56,30 +56,41 @@ export function createProcessRemoteEntries(
         return;
       }
       if (external.singleton) {
-        addSharedExternal(scopeUrl, external, remoteEntry.host);
+        addSharedExternal(scopeUrl, external, remoteEntry);
       } else {
         addScopedExternal(scopeUrl, external);
       }
     });
   }
 
-  function addSharedExternal(scope: string, sharedInfo: SharedInfo, isHostVersion?: boolean): void {
+  function addSharedExternal(
+    scope: string,
+    sharedInfo: SharedInfo,
+    remoteEntry?: RemoteEntry
+  ): void {
     const cached: SharedVersion[] = ports.sharedExternalsRepo
       .tryGetVersions(sharedInfo.packageName, sharedInfo.sharedScope)
       .orElse([]);
 
+    if (remoteEntry?.dynamic && ~cached.findIndex(c => c.cached)) {
+      config.log.debug(
+        `[remote] Could not append external version '${sharedInfo.packageName}@${sharedInfo.version}' to cache, because it is already loaded.`
+      );
+      return;
+    }
+
     const matchingVersionIDX = cached.findIndex(c => c.version === sharedInfo.version);
 
     if (~matchingVersionIDX) {
-      if (cached[matchingVersionIDX]!.host || !isHostVersion) {
+      if (cached[matchingVersionIDX]!.host || !remoteEntry?.host) {
         config.log.debug(
-          `[${isHostVersion ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, skipping version.`
+          `[${remoteEntry?.host ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, skipping version.`
         );
         return;
       }
       cached.splice(matchingVersionIDX, 1);
       config.log.debug(
-        `[${isHostVersion ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, replacing version.`
+        `[${remoteEntry?.host ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, replacing version.`
       );
     }
 
@@ -88,7 +99,7 @@ export function createProcessRemoteEntries(
       file: _path.join(scope, sharedInfo.outFileName),
       requiredVersion: sharedInfo.requiredVersion,
       strictVersion: sharedInfo.strictVersion,
-      host: !!isHostVersion,
+      host: !!remoteEntry?.host,
       cached: false,
       action: 'skip',
     } as SharedVersion);
