@@ -1,12 +1,12 @@
 import type { ConfigContract, NFOptions } from './2.app/config/config.contract';
-import type { DriversContract } from './2.app/driver-ports/init/drivers.contract';
+import type { InitDriversContract } from './2.app/driver-ports/init/drivers.contract';
 import type { DrivingContract } from './2.app/driving-ports/driving.contract';
 import { createConfigHandlers } from './5.di/config.factory';
 import { createInitDrivers } from './5.di/init-drivers.factory';
 import { createDriving } from './5.di/driving.factory';
 
 export type NF_APP = {
-  app: DriversContract;
+  app: InitDriversContract;
   adapters: DrivingContract;
   config: ConfigContract;
 };

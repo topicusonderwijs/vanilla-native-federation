@@ -15,16 +15,15 @@ export function createGetDynamicRemoteEntry(
   return async (remoteEntryUrl: RemoteEntryUrl, remoteName?: RemoteName) => {
     if (!!remoteName && shouldSkipCachedRemote(remoteName)) {
       config.log.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
-      return [];
+      throw new NFError('remoteEntry already exists in cache.');
     }
 
     try {
       const remoteEntry = await ports.remoteEntryProvider.provide(remoteEntryUrl);
-      return [processRemoteEntry(remoteEntry, remoteName)];
+      return processRemoteEntry(remoteEntry, remoteName);
     } catch (error) {
       config.log.warn('Failed to fetch (dynamic) remoteEntry.', error);
-      if (config.strict) throw new NFError('Could not fetch remoteEntry.');
-      return [];
+      throw new NFError('Could not fetch remoteEntry.');
     }
   };
 

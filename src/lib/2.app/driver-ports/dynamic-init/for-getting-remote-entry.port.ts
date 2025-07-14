@@ -3,4 +3,4 @@ import type { RemoteEntry } from 'lib/1.domain/remote-entry/remote-entry.contrac
 export type ForGettingRemoteEntry = (
   remoteEntryUrl: string,
   remoteName?: string
-) => Promise<RemoteEntry[]>;
+) => Promise<RemoteEntry>;
