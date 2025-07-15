@@ -33,7 +33,6 @@ export function createGetDynamicRemoteEntry(
 
   function processRemoteEntry(remoteEntry: RemoteEntry, expectedRemoteName?: string): RemoteEntry {
     remoteEntry.host = false;
-    remoteEntry.dynamic = true;
 
     config.log.debug(
       `Fetched (dynamic) '${remoteEntry.name}' from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`

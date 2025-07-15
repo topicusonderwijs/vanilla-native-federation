@@ -72,13 +72,6 @@ export function createProcessRemoteEntries(
       .tryGetVersions(sharedInfo.packageName, sharedInfo.sharedScope)
       .orElse([]);
 
-    if (remoteEntry?.dynamic && ~cached.findIndex(c => c.cached)) {
-      config.log.debug(
-        `[remote] Could not append external version '${sharedInfo.packageName}@${sharedInfo.version}' to cache, because it is already loaded.`
-      );
-      return;
-    }
-
     const matchingVersionIDX = cached.findIndex(c => c.version === sharedInfo.version);
 
     if (~matchingVersionIDX) {
