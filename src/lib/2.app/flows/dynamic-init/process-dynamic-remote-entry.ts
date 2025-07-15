@@ -48,7 +48,7 @@ export function createProcessDynamicRemoteEntry(
       }
       if (external.singleton) {
         const { action } = addSharedExternal(scopeUrl, external);
-        if (action === 'skip') remoteEntry.shared.splice(idx, 1);
+        if (action === 'skip' && !external.sharedScope) remoteEntry.shared.splice(idx, 1);
       } else {
         addScopedExternal(scopeUrl, external);
       }
@@ -99,7 +99,7 @@ export function createProcessDynamicRemoteEntry(
       requiredVersion: remoteEntryVersion.requiredVersion,
       strictVersion: remoteEntryVersion.strictVersion,
       host: false,
-      cached: false,
+      cached: action !== 'skip',
       action: action,
     } as SharedVersion);
 
