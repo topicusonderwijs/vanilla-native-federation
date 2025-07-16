@@ -5,6 +5,7 @@ import type {
 } from './1.domain/init-federation.contract';
 import type { NFOptions } from './2.app/config/config.contract';
 import { CREATE_NF_APP } from './create-nf-app';
+import { NFError } from './native-federation.error';
 
 const initFederation = (
   remotesOrManifestUrl: string | Record<string, string>,
@@ -38,6 +39,12 @@ const initFederation = (
           .then(dynamicInit.processRemoteEntries)
           .then(dynamicInit.convertToImportMap)
           .then(init.commitChanges)
+          .catch(e => {
+            config.log.debug('Dynamic init failed:', e);
+            if (config.strict) throw new NFError('Failed to initialize remote entry.');
+            else console.warn('Failed to initialize remote entry.');
+            return Promise.resolve();
+          })
           .then(() => ({
             ...output,
             initRemoteEntry,

@@ -62,11 +62,6 @@ describe('createGetRemoteEntry', () => {
       await expect(
         getRemoteEntry(`${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`)
       ).rejects.toThrow('Could not fetch remoteEntry.');
-
-      expect(mockConfig.log.warn).toHaveBeenCalledWith(
-        'Failed to dynamically fetch remoteEntry.',
-        expect.any(Error)
-      );
     });
 
     it('should skip fetching remote if it exists in repository and skipCachedRemotes is true', async () => {

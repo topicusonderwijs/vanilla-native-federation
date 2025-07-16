@@ -27,9 +27,8 @@ export function createGetRemoteEntry(
         );
       }
       return remoteEntry;
-    } catch (error) {
-      config.log.warn('Failed to dynamically fetch remoteEntry.', error);
-      throw new NFError('Could not fetch remoteEntry.');
+    } catch (error: unknown) {
+      throw new NFError('Could not fetch remoteEntry.', error as Error);
     }
   };
 
