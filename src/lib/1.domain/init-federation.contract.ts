@@ -16,6 +16,11 @@ export type InitFederationResult = {
   as: <TModule = unknown>() => { loadRemoteModule: LoadRemoteModule<TModule> };
 };
 
+export type InitRemoteEntry = (
+  remoteEntryUrl: string,
+  remoteName?: string
+) => Promise<LazyInitFederationResult>;
+
 export type LazyInitFederationResult = InitFederationResult & {
   initRemoteEntry: (
     remoteEntryUrl: string,

@@ -22,7 +22,7 @@ export function createProcessDynamicRemoteEntry(
 ): ForProcessingDynamicRemoteEntry {
   return remoteEntry => {
     addRemoteInfoToStorage(remoteEntry);
-    addExternalsToStorage(remoteEntry);
+    mergeExternalsIntoStorage(remoteEntry);
     return Promise.resolve(remoteEntry);
   };
 
@@ -36,9 +36,10 @@ export function createProcessDynamicRemoteEntry(
     } as RemoteInfo);
   }
 
-  function addExternalsToStorage(remoteEntry: RemoteEntry): void {
+  function mergeExternalsIntoStorage(remoteEntry: RemoteEntry): void {
     const scopeUrl = _path.getScope(remoteEntry.url);
 
+    const skipIndices: number[] = [];
     remoteEntry.shared.forEach((external, idx) => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
         config.log.warn(
@@ -48,11 +49,13 @@ export function createProcessDynamicRemoteEntry(
       }
       if (external.singleton) {
         const { action } = addSharedExternal(scopeUrl, external);
-        if (action === 'skip' && !external.sharedScope) remoteEntry.shared.splice(idx, 1);
+        if (action === 'skip' && !external.sharedScope) skipIndices.push(idx);
       } else {
         addScopedExternal(scopeUrl, external);
       }
     });
+
+    remoteEntry.shared = remoteEntry.shared.filter((_, idx) => !skipIndices.includes(idx));
   }
 
   function addSharedExternal(

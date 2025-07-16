@@ -7,14 +7,16 @@ import * as _path from 'lib/utils/path';
 import type { ForConvertingToImportMap } from 'lib/2.app/driver-ports/dynamic-init/for-converting-to-import-map';
 
 export function createConvertToImportMap(
-  _: LoggingConfig & ModeConfig,
+  { log }: LoggingConfig & ModeConfig,
   ports: Pick<DrivingContract, 'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo'>
 ): ForConvertingToImportMap {
   return (remoteEntry: RemoteEntry) => {
     const importMap: ImportMap = { imports: {} };
     try {
+      log.debug('Converting remote entry to import map:', remoteEntry);
       addExternals(remoteEntry, importMap);
       addRemoteInfos(remoteEntry, importMap);
+      log.debug('Final importMap:', importMap);
       return Promise.resolve(importMap);
     } catch (e) {
       return Promise.reject(e);
