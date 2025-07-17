@@ -27,10 +27,12 @@ export function createConvertToImportMap(
     if (!remoteEntry.shared) {
       return;
     }
+
+    const externalScope = _path.getScope(remoteEntry.url);
     remoteEntry.shared.forEach(external => {
       //  Global shared externals
       if (external.singleton && !external.sharedScope) {
-        importMap.imports[external.packageName] = _path.join(remoteEntry.url, external.outFileName);
+        importMap.imports[external.packageName] = _path.join(externalScope, external.outFileName);
         return;
       }
 
@@ -39,15 +41,14 @@ export function createConvertToImportMap(
         importMap.imports[external.packageName] = ports.sharedExternalsRepo
           .tryGetVersions(external.packageName, external.sharedScope)
           .map(v => v.find(c => c.cached)?.file)
-          .orElse(_path.join(remoteEntry.url, external.outFileName));
+          .orElse(_path.join(externalScope, external.outFileName));
         return;
       }
 
       // Scoped externals
-      const scope = _path.getScope(remoteEntry.url);
       importMap['scopes'] = importMap.scopes || {};
-      importMap.scopes[scope] = importMap.scopes[scope] || {};
-      importMap.scopes[scope][external.packageName] = _path.join(
+      importMap.scopes[externalScope] = importMap.scopes[externalScope] || {};
+      importMap.scopes[externalScope][external.packageName] = _path.join(
         remoteEntry.url,
         external.outFileName
       );
