@@ -41,7 +41,7 @@ export function createConvertToImportMap(
       importMap['scopes'] = importMap.scopes || {};
       importMap.scopes[externalScope] = importMap.scopes[externalScope] || {};
       importMap.scopes[externalScope][external.packageName] = _path.join(
-        remoteEntry.url,
+        externalScope,
         external.outFileName
       );
     });
