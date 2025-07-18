@@ -36,7 +36,8 @@ const initFederation = (
       const initRemoteEntry = (remoteEntryUrl: string, remoteName?: string) =>
         dynamicInit
           .getRemoteEntries(remoteEntryUrl, remoteName)
-          .then(dynamicInit.processRemoteEntries)
+          .then(dynamicInit.updateCache)
+          .then(dynamicInit.processRemoteEntry)
           .then(dynamicInit.convertToImportMap)
           .then(init.commitChanges)
           .catch(e => {

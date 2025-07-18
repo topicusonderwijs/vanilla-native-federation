@@ -6,12 +6,12 @@ import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-exter
 import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
 import { SharedVersion, Version } from 'lib/1.domain/externals/version.contract';
 import { Optional } from 'lib/utils/optional';
-import { ForProcessingDynamicRemoteEntry } from 'lib/2.app/driver-ports/dynamic-init/for-processing-dynamic-remote-entry';
-import { createProcessDynamicRemoteEntry } from './process-dynamic-remote-entry';
+import { ForUpdatingCache } from 'lib/2.app/driver-ports/dynamic-init/for-updating-cache';
+import { createUpdateCache } from './update-cache';
 import { ModeConfig } from 'lib/2.app/config/mode.contract';
 
 describe('createProcessDynamicRemoteEntry', () => {
-  let processRemoteEntry: ForProcessingDynamicRemoteEntry;
+  let updateCache: ForUpdatingCache;
   let mockConfig: LoggingConfig & ModeConfig;
   let mockAdapters: Pick<
     DrivingContract,
@@ -44,7 +44,7 @@ describe('createProcessDynamicRemoteEntry', () => {
       Optional.empty<SharedVersion[]>()
     );
 
-    processRemoteEntry = createProcessDynamicRemoteEntry(mockConfig, mockAdapters);
+    updateCache = createUpdateCache(mockConfig, mockAdapters);
   });
 
   describe('addRemoteInfoToStorage', () => {
@@ -56,19 +56,14 @@ describe('createProcessDynamicRemoteEntry', () => {
         shared: [],
       };
 
-      const actual = await processRemoteEntry(remoteEntry);
+      const actual = await updateCache(remoteEntry);
 
       expect(mockAdapters.remoteInfoRepo.addOrUpdate).toHaveBeenCalledTimes(1);
       expect(mockAdapters.remoteInfoRepo.addOrUpdate).toHaveBeenCalledWith('team/mfe1', {
         scopeUrl: 'http://my.service/mfe1/',
         exposes: [{ moduleName: './wc-comp-a', file: 'component-a.js' }],
       });
-      expect(actual).toEqual({
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
-        shared: [],
-      });
+      expect(actual.actions).toEqual({});
     });
   });
 
@@ -89,7 +84,7 @@ describe('createProcessDynamicRemoteEntry', () => {
           },
         ],
       };
-      const actual = await processRemoteEntry(remoteEntry);
+      const actual = await updateCache(remoteEntry);
 
       expect(mockAdapters.scopedExternalsRepo.addExternal).toHaveBeenCalledTimes(1);
       expect(mockAdapters.scopedExternalsRepo.addExternal).toHaveBeenCalledWith(
@@ -101,21 +96,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         } as Version
       );
 
-      expect(actual).toEqual({
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [],
-        shared: [
-          {
-            version: '1.2.3',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            singleton: false,
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-          },
-        ],
-      });
+      expect(actual.actions).toEqual({});
     });
 
     it('should skip a version with a bad version', async () => {
@@ -135,7 +116,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         ],
       };
 
-      await processRemoteEntry(remoteEntry);
+      await updateCache(remoteEntry);
 
       expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
       expect(mockConfig.log.warn).toHaveBeenCalledWith(
@@ -166,7 +147,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         ],
       };
 
-      const actual = await processRemoteEntry(remoteEntry);
+      const actual = await updateCache(remoteEntry);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
 
@@ -192,20 +173,8 @@ describe('createProcessDynamicRemoteEntry', () => {
         undefined
       );
 
-      expect(actual).toEqual({
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [],
-        shared: [
-          {
-            version: '1.2.3',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            singleton: true,
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-          },
-        ],
+      expect(actual.actions).toEqual({
+        'dep-a': { action: 'share', override: undefined },
       });
     });
 
@@ -240,7 +209,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         ],
       };
 
-      const actual = await processRemoteEntry(remoteEntry);
+      const actual = await updateCache(remoteEntry);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
 
@@ -275,13 +244,8 @@ describe('createProcessDynamicRemoteEntry', () => {
         undefined
       );
 
-      expect(actual).toEqual({
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [],
-        shared: [
-          /* REMOVES SKIPPED VERSION */
-        ],
+      expect(actual.actions).toEqual({
+        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
       });
     });
 
@@ -316,7 +280,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         ],
       };
 
-      const actual = await processRemoteEntry(remoteEntry);
+      const actual = await updateCache(remoteEntry);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
 
@@ -351,11 +315,8 @@ describe('createProcessDynamicRemoteEntry', () => {
         undefined
       );
 
-      expect(actual).toEqual({
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [],
-        shared: [],
+      expect(actual.actions).toEqual({
+        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
       });
     });
 
@@ -390,7 +351,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         ],
       };
 
-      const actual = await processRemoteEntry(remoteEntry);
+      const actual = await updateCache(remoteEntry);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
 
@@ -425,20 +386,8 @@ describe('createProcessDynamicRemoteEntry', () => {
         undefined
       );
 
-      expect(actual).toEqual({
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [],
-        shared: [
-          {
-            version: '1.2.3',
-            requiredVersion: '~1.2.1',
-            strictVersion: true,
-            singleton: true,
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-          },
-        ],
+      expect(actual.actions).toEqual({
+        'dep-a': { action: 'scope', override: undefined },
       });
     });
 
@@ -475,7 +424,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         ],
       };
 
-      await expect(processRemoteEntry(remoteEntry)).rejects.toThrow(
+      await expect(updateCache(remoteEntry)).rejects.toThrow(
         `[dynamic][http://my.service/mfe1/][dep-a@1.2.3] Shared version 1.2.3 is not compatible with range '~2.2.1'`
       );
     });
@@ -512,7 +461,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         ],
       };
 
-      await processRemoteEntry(remoteEntry);
+      await updateCache(remoteEntry);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(0);
       expect(mockConfig.log.debug).toHaveBeenCalledWith(
@@ -537,7 +486,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         ],
       };
 
-      await processRemoteEntry(remoteEntry);
+      await updateCache(remoteEntry);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalled();
       expect(mockConfig.log.warn).toHaveBeenCalledWith(
@@ -545,10 +494,21 @@ describe('createProcessDynamicRemoteEntry', () => {
       );
     });
 
-    describe('mergeExternalsIntoStorage -  custom scopes', () => {
-      it('should add a shared external', async () => {
+    describe('mergeExternalsIntoStorage - shareScope', () => {
+      it('should add a shared external with shareScope', async () => {
         mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-          (): Optional<SharedVersion[]> => Optional.empty()
+          (): Optional<SharedVersion[]> =>
+            Optional.of([
+              {
+                version: '1.2.4',
+                file: 'http://my.service/mfe2/dep-a.js',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: true,
+                host: false,
+                action: 'share',
+              },
+            ])
         );
         const remoteEntry = {
           name: 'team/mfe1',
@@ -558,7 +518,7 @@ describe('createProcessDynamicRemoteEntry', () => {
             {
               version: '1.2.3',
               requiredVersion: '~1.2.1',
-              strictVersion: false,
+              strictVersion: true,
               sharedScope: 'custom-scope',
               singleton: true,
               packageName: 'dep-a',
@@ -567,7 +527,7 @@ describe('createProcessDynamicRemoteEntry', () => {
           ],
         };
 
-        await processRemoteEntry(remoteEntry);
+        const actual = await updateCache(remoteEntry);
 
         expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
         expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
@@ -576,22 +536,33 @@ describe('createProcessDynamicRemoteEntry', () => {
             dirty: false,
             versions: [
               {
-                version: '1.2.3',
-                file: 'http://my.service/mfe1/dep-a.js',
+                version: '1.2.4',
+                file: 'http://my.service/mfe2/dep-a.js',
                 requiredVersion: '~1.2.1',
                 strictVersion: false,
                 cached: true,
                 host: false,
                 action: 'share',
               } as SharedVersion,
+              {
+                version: '1.2.3',
+                file: 'http://my.service/mfe1/dep-a.js',
+                requiredVersion: '~1.2.1',
+                strictVersion: true,
+                cached: false,
+                host: false,
+                action: 'skip',
+              } as SharedVersion,
             ],
           },
           'custom-scope'
         );
-      });
-    });
 
-    describe('mergeExternalsIntoStorage - shareScope', () => {
+        expect(actual.actions).toEqual({
+          'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
+        });
+      });
+
       it('should add a shared external with shareScope', async () => {
         mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
           (): Optional<SharedVersion[]> => Optional.empty()
@@ -613,7 +584,7 @@ describe('createProcessDynamicRemoteEntry', () => {
           ],
         };
 
-        await processRemoteEntry(remoteEntry);
+        const actual = await updateCache(remoteEntry);
 
         expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
         expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
@@ -634,6 +605,10 @@ describe('createProcessDynamicRemoteEntry', () => {
           },
           'custom-scope'
         );
+
+        expect(actual.actions).toEqual({
+          'dep-a': { action: 'share', override: undefined },
+        });
       });
     });
   });

@@ -1,8 +1,9 @@
-import type { ForProcessingDynamicRemoteEntry } from '../../driver-ports/dynamic-init/for-processing-dynamic-remote-entry';
+import type { ForUpdatingCache } from '../../driver-ports/dynamic-init/for-updating-cache';
 import type {
   RemoteEntry,
   RemoteInfo,
   SharedInfo,
+  SharedInfoActions,
   SharedVersion,
   SharedVersionAction,
   Version,
@@ -13,24 +14,24 @@ import * as _path from 'lib/utils/path';
 import { NFError } from 'lib/native-federation.error';
 import type { ModeConfig } from 'lib/2.app/config/mode.contract';
 
-export function createProcessDynamicRemoteEntry(
+export function createUpdateCache(
   config: LoggingConfig & ModeConfig,
   ports: Pick<
     DrivingContract,
     'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
   >
-): ForProcessingDynamicRemoteEntry {
+): ForUpdatingCache {
   return remoteEntry => {
     try {
       addRemoteInfoToStorage(remoteEntry);
-      mergeExternalsIntoStorage(remoteEntry);
-      return Promise.resolve(remoteEntry);
+      const actions = mergeExternalsIntoStorage(remoteEntry);
+      return Promise.resolve({ entry: remoteEntry, actions });
     } catch (error) {
       return Promise.reject(error);
     }
   };
 
-  function addRemoteInfoToStorage({ name, url, exposes }: RemoteEntry): void {
+  function addRemoteInfoToStorage({ name, url, exposes }: RemoteEntry) {
     ports.remoteInfoRepo.addOrUpdate(name, {
       scopeUrl: _path.getScope(url),
       exposes: Object.values(exposes ?? []).map(m => ({
@@ -40,11 +41,11 @@ export function createProcessDynamicRemoteEntry(
     } as RemoteInfo);
   }
 
-  function mergeExternalsIntoStorage(remoteEntry: RemoteEntry): void {
+  function mergeExternalsIntoStorage(remoteEntry: RemoteEntry): SharedInfoActions {
     const scopeUrl = _path.getScope(remoteEntry.url);
 
-    const skipIndices: number[] = [];
-    remoteEntry.shared.forEach((external, idx) => {
+    const actions: SharedInfoActions = {};
+    remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
         config.log.warn(
           `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
@@ -52,20 +53,22 @@ export function createProcessDynamicRemoteEntry(
         return;
       }
       if (external.singleton) {
-        const { action } = addSharedExternal(scopeUrl, external);
-        if (action === 'skip' && !external.sharedScope) skipIndices.push(idx);
+        const { action, sharedVersion } = addSharedExternal(scopeUrl, external);
+        actions[external.packageName] = { action };
+        if (action === 'skip' && sharedVersion?.file) {
+          actions[external.packageName]!.override = _path.getScope(sharedVersion!.file);
+        }
       } else {
         addScopedExternal(scopeUrl, external);
       }
     });
-
-    remoteEntry.shared = remoteEntry.shared.filter((_, idx) => !skipIndices.includes(idx));
+    return actions;
   }
 
   function addSharedExternal(
     scope: string,
     remoteEntryVersion: SharedInfo
-  ): { action: SharedVersionAction } {
+  ): { action: SharedVersionAction; sharedVersion?: SharedVersion } {
     const cached: SharedVersion[] = ports.sharedExternalsRepo
       .tryGetVersions(remoteEntryVersion.packageName, remoteEntryVersion.sharedScope)
       .orElse([]);
@@ -119,7 +122,7 @@ export function createProcessDynamicRemoteEntry(
       remoteEntryVersion.sharedScope
     );
 
-    return { action };
+    return { action, sharedVersion };
   }
 
   function addScopedExternal(scope: string, sharedInfo: SharedInfo): void {

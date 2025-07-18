@@ -1,12 +1,14 @@
 import type { ConfigContract } from 'lib/2.app/config';
 import type { ForConvertingToImportMap } from './for-converting-to-import-map';
 import type { ForGettingRemoteEntry } from './for-getting-remote-entry.port';
-import type { ForProcessingDynamicRemoteEntry } from './for-processing-dynamic-remote-entry';
+import type { ForUpdatingCache } from './for-updating-cache';
 import type { DrivingContract } from 'lib/2.app/driving-ports/driving.contract';
+import type { ForProcessingRemoteEntry } from './for-processing-remote-entry';
 
 export type DynamicInitDriversContract = {
   getRemoteEntries: ForGettingRemoteEntry;
-  processRemoteEntries: ForProcessingDynamicRemoteEntry;
+  updateCache: ForUpdatingCache;
+  processRemoteEntry: ForProcessingRemoteEntry;
   convertToImportMap: ForConvertingToImportMap;
 };
 
