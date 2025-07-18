@@ -21,9 +21,13 @@ export function createProcessDynamicRemoteEntry(
   >
 ): ForProcessingDynamicRemoteEntry {
   return remoteEntry => {
-    addRemoteInfoToStorage(remoteEntry);
-    mergeExternalsIntoStorage(remoteEntry);
-    return Promise.resolve(remoteEntry);
+    try {
+      addRemoteInfoToStorage(remoteEntry);
+      mergeExternalsIntoStorage(remoteEntry);
+      return Promise.resolve(remoteEntry);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   };
 
   function addRemoteInfoToStorage({ name, url, exposes }: RemoteEntry): void {
@@ -74,25 +78,25 @@ export function createProcessDynamicRemoteEntry(
       return { action: 'skip' };
     }
 
-    const cachedVersion = cached.find(c => c.cached);
+    const sharedVersion = cached.find(c => c.action === 'share');
     const isCompabible =
-      !cachedVersion ||
-      ports.versionCheck.isCompatible(cachedVersion.version, remoteEntryVersion.requiredVersion);
+      !sharedVersion ||
+      ports.versionCheck.isCompatible(sharedVersion.version, remoteEntryVersion.requiredVersion);
 
     if (!isCompabible && remoteEntryVersion.strictVersion) {
       if (config.strict) {
         throw new NFError(
-          `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Shared version ${remoteEntryVersion.version} is not compatible with range '${cachedVersion!.requiredVersion}'`
+          `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Shared version ${remoteEntryVersion.version} is not compatible with range '${sharedVersion!.requiredVersion}'`
         );
       }
       config.log.warn(
-        `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Shared version ${remoteEntryVersion.version} is not compatible with range '${cachedVersion!.requiredVersion}'`
+        `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Shared version ${remoteEntryVersion.version} is not compatible with range '${sharedVersion!.requiredVersion}'`
       );
     }
 
-    const action = !cachedVersion
+    const action = !sharedVersion
       ? 'share'
-      : !remoteEntryVersion.strictVersion || isCompabible
+      : isCompabible || !remoteEntryVersion.strictVersion
         ? 'skip'
         : 'scope';
 
