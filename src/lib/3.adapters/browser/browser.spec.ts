@@ -43,7 +43,7 @@ describe('createBrowser', () => {
       expect(document.head.appendChild).toHaveBeenCalled();
     });
 
-    it('should remove existing import map scripts', () => {
+    it('should not remove existing import map scripts but append to the end by default', () => {
       const existingScript = document.createElement('script');
       existingScript.type = 'importmap';
       existingScript.innerHTML = JSON.stringify({ imports: { test: 'test.js' } });
@@ -53,6 +53,22 @@ describe('createBrowser', () => {
 
       const importMap = MOCK_IMPORT_MAP();
       browser.setImportMap(importMap);
+
+      const scripts = document.head.querySelectorAll('script[type="importmap"]');
+      expect(scripts.length).toBe(2);
+      expect(scripts[1]!.innerHTML).toBe(JSON.stringify(importMap));
+    });
+
+    it('should remove existing import map scripts if override is true', () => {
+      const existingScript = document.createElement('script');
+      existingScript.type = 'importmap';
+      existingScript.innerHTML = JSON.stringify({ imports: { test: 'test.js' } });
+      document.head.appendChild(existingScript);
+
+      expect(document.head.querySelectorAll('script[type="importmap"]').length).toBe(1);
+
+      const importMap = MOCK_IMPORT_MAP();
+      browser.setImportMap(importMap, { override: true });
 
       const scripts = document.head.querySelectorAll('script[type="importmap"]');
       expect(scripts.length).toBe(1);
@@ -96,7 +112,7 @@ describe('createBrowser', () => {
       expect(document.head.querySelectorAll('script[type="importmap"]').length).toBe(3);
 
       const importMap = MOCK_IMPORT_MAP();
-      browser.setImportMap(importMap);
+      browser.setImportMap(importMap, { override: true });
 
       const scripts = document.head.querySelectorAll('script[type="importmap"]');
       expect(scripts.length).toBe(1);
