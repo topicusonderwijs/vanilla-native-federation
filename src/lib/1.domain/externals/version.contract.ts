@@ -5,7 +5,7 @@ export type Version = {
   file: string;
 };
 
-export type SharedVersionAction = 'skip' | 'scope' | 'share';
+export type SharedVersionAction = 'skip' | 'scope' | 'share' | 'override';
 
 export type SharedVersion = Version & {
   requiredVersion: string;

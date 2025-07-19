@@ -31,13 +31,18 @@ export function createDetermineSharedExternals(
   return () => {
     for (const sharedScope of ports.sharedExternalsRepo.getScopes()) {
       const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
+
       try {
         Object.entries(sharedExternals)
           .filter(([_, e]) => e.dirty)
           .forEach(([name, external]) =>
             ports.sharedExternalsRepo.addOrUpdate(
               name,
-              setVersionActions(name, external),
+              setVersionActions(
+                name,
+                external,
+                ports.sharedExternalsRepo.isGlobalScope(sharedScope)
+              ),
               sharedScope
             )
           );
@@ -54,7 +59,11 @@ export function createDetermineSharedExternals(
     return Promise.resolve();
   };
 
-  function setVersionActions(externalName: string, external: SharedExternal) {
+  function setVersionActions(
+    externalName: string,
+    external: SharedExternal,
+    isGlobalScope: boolean
+  ) {
     if (external.versions.length === 1) {
       external.versions[0]!.action = 'share';
       external.dirty = false;
@@ -89,7 +98,7 @@ export function createDetermineSharedExternals(
     // Determine action of other versions based on chosen sharedVersion
     external.versions.forEach(v => {
       if (ports.versionCheck.isCompatible(sharedVersion!.version, v.requiredVersion)) {
-        v.action = 'skip';
+        v.action = isGlobalScope ? 'skip' : 'override';
         return;
       }
 

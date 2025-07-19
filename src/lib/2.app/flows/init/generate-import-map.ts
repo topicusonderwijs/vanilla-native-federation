@@ -74,19 +74,25 @@ export function createGenerateImportMap(
     const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
 
     for (const [externalName, external] of Object.entries(sharedExternals)) {
-      const override = findOverride(external, sharedScope, externalName);
+      let override: SharedVersion | undefined | 'NOT_AVAILABLE' = undefined;
 
       for (const version of external.versions) {
-        if (!override || version.action === 'scope') {
-          addToScope(importMap, _path.getScope(version.file), { [externalName]: version.file });
-          version.cached = true;
-        } else if (override) {
-          // skip and share both get the same override
-          addToScope(importMap, _path.getScope(version.file), { [externalName]: override.file });
-          if (version.file === override.file) {
-            version.cached = true;
+        if (version.action === 'skip') continue;
+
+        let targetFile: string = version.file;
+        version.cached = true;
+
+        if (version.action === 'override') {
+          if (!override) {
+            override = findOverride(external, sharedScope, externalName) ?? 'NOT_AVAILABLE';
+          }
+          if (override !== 'NOT_AVAILABLE') {
+            targetFile = override.file;
+            version.cached = version.file === override.file;
           }
         }
+
+        addToScope(importMap, _path.getScope(version.file), { [externalName]: targetFile });
       }
       ports.sharedExternalsRepo.addOrUpdate(externalName, external, sharedScope);
     }
@@ -94,19 +100,23 @@ export function createGenerateImportMap(
 
   function findOverride(
     external: SharedExternal,
-    scope: string,
+    sharedScope: string,
     externalName: string
   ): SharedVersion | undefined {
     const sharedVersions = external.versions.filter(v => v.action === 'share');
-
-    const scopedExternalName = `${scope}.${externalName}`;
+    const scopedExternalName = `${sharedScope}.${externalName}`;
 
     if (sharedVersions.length > 1) {
       handleMultipleSharedVersions(scopedExternalName);
     }
 
     if (sharedVersions.length < 1) {
-      config.log.warn(`ShareScope external ${scopedExternalName} has no shared versions.`);
+      if (config.strict) {
+        throw new NFError(
+          `[${sharedScope}][${externalName}] shareScope has no override version, scoping override versions.`
+        );
+      }
+      config.log.warn(`[${sharedScope}][${externalName}] shareScope has no override version.`);
     }
 
     return sharedVersions[0];

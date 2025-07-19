@@ -5,6 +5,7 @@ export type ForSharedExternalsStorage = {
   tryGetVersions: (external: string, sharedScope?: string) => Optional<SharedVersion[]>;
   getAll: (sharedScope?: string) => SharedScope;
   getScopes: (o?: { includeGlobal: boolean }) => string[];
+  isGlobalScope: (sharedScope?: string) => boolean;
   addOrUpdate: (
     name: string,
     external: SharedExternal,

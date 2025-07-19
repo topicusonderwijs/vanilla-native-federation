@@ -30,6 +30,9 @@ const createSharedExternalsRepository = (config: StorageConfig): ForSharedExtern
       if (o.includeGlobal) return Object.keys(_cache);
       return Object.keys(_cache).filter(s => s !== GLOBAL_SCOPE);
     },
+    isGlobalScope: function (sharedScope?: string) {
+      return sharedScope === GLOBAL_SCOPE || sharedScope === undefined;
+    },
     tryGetVersions: function (external: string, sharedScope?: string) {
       return Optional.of(_cache[sharedScope ?? GLOBAL_SCOPE]?.[external]?.versions);
     },

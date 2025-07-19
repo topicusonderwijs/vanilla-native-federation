@@ -86,6 +86,26 @@ describe('createSharedExternalsRepository', () => {
     });
   });
 
+  describe('isGlobalScope', () => {
+    it('should return true for global scope', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      expect(externalsRepo.isGlobalScope(GLOBAL_SCOPE)).toBe(true);
+    });
+
+    it('should return true for undefined scope', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      expect(externalsRepo.isGlobalScope(undefined)).toBe(true);
+    });
+
+    it('should return false for custom scopes', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      expect(externalsRepo.isGlobalScope('custom-scope')).toBe(false);
+    });
+  });
+
   describe('tryGetVersions', () => {
     it('should return the versions', () => {
       const { externalsRepo } = setupWithCache({

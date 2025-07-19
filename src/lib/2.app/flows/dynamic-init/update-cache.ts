@@ -57,8 +57,7 @@ export function createUpdateCache(
         const { action, sharedVersion } = addSharedExternal(scopeUrl, external);
         actions[external.packageName] = { action };
 
-        if (action === 'skip' && external.sharedScope && sharedVersion?.file) {
-          actions[external.packageName]!.action = 'scope';
+        if (action === 'override' && external.sharedScope && sharedVersion?.file) {
           actions[external.packageName]!.override = _path.getScope(sharedVersion!.file);
         }
       } else {
@@ -72,11 +71,11 @@ export function createUpdateCache(
     scope: string,
     remoteEntryVersion: SharedInfo
   ): { action: SharedVersionAction; sharedVersion?: SharedVersion } {
-    const cached: SharedVersion[] = ports.sharedExternalsRepo
+    const cachedVersions: SharedVersion[] = ports.sharedExternalsRepo
       .tryGetVersions(remoteEntryVersion.packageName, remoteEntryVersion.sharedScope)
       .orElse([]);
 
-    if (~cached.findIndex(cache => cache.version === remoteEntryVersion.version)) {
+    if (~cachedVersions.findIndex(cache => cache.version === remoteEntryVersion.version)) {
       config.log.debug(
         `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Shared version already exists, skipping version.`
       );
@@ -84,7 +83,7 @@ export function createUpdateCache(
       return { action: 'skip' };
     }
 
-    const sharedVersion = cached.find(c => c.action === 'share');
+    const sharedVersion = cachedVersions.find(c => c.action === 'share');
     const isCompabible =
       !sharedVersion ||
       ports.versionCheck.isCompatible(sharedVersion.version, remoteEntryVersion.requiredVersion);
@@ -100,27 +99,36 @@ export function createUpdateCache(
       );
     }
 
-    const action = !sharedVersion
-      ? 'share'
-      : isCompabible || !remoteEntryVersion.strictVersion
-        ? 'skip'
-        : 'scope';
+    let action: SharedVersionAction = 'share';
+    let cached = true;
+    const file = _path.join(scope, remoteEntryVersion.outFileName);
 
-    cached.push({
+    if (sharedVersion) {
+      action =
+        isCompabible || !remoteEntryVersion.strictVersion
+          ? ports.sharedExternalsRepo.isGlobalScope(scope)
+            ? 'skip'
+            : 'override'
+          : 'scope';
+
+      cached = action !== 'skip' && (action !== 'override' || sharedVersion.file === file);
+    }
+
+    cachedVersions.push({
       version: remoteEntryVersion.version!,
-      file: _path.join(scope, remoteEntryVersion.outFileName),
       requiredVersion: remoteEntryVersion.requiredVersion,
       strictVersion: remoteEntryVersion.strictVersion,
       host: false,
-      cached: action !== 'skip',
-      action: action,
+      file,
+      cached,
+      action,
     } as SharedVersion);
 
     ports.sharedExternalsRepo.addOrUpdate(
       remoteEntryVersion.packageName,
       {
         dirty: false,
-        versions: cached.sort((a, b) => ports.versionCheck.compare(b.version, a.version)),
+        versions: cachedVersions.sort((a, b) => ports.versionCheck.compare(b.version, a.version)),
       },
       remoteEntryVersion.sharedScope
     );
