@@ -1,13 +1,10 @@
 import type { ImportMap } from 'lib/1.domain/import-map/import-map.contract';
 import type { RemoteEntry } from 'lib/1.domain';
 import type { LoggingConfig } from '../../config/log.contract';
-import type { ModeConfig } from '../../config/mode.contract';
 import * as _path from 'lib/utils/path';
 import type { ForConvertingToImportMap } from 'lib/2.app/driver-ports/dynamic-init/for-converting-to-import-map';
 
-export function createConvertToImportMap({
-  log,
-}: LoggingConfig & ModeConfig): ForConvertingToImportMap {
+export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingToImportMap {
   return (remoteEntry: RemoteEntry) => {
     const importMap: ImportMap = { imports: {} };
     try {
@@ -37,8 +34,8 @@ export function createConvertToImportMap({
 
       // Scoped externals
       importMap['scopes'] = importMap.scopes || {};
-      importMap.scopes[externalScope] = importMap.scopes[externalScope] || {};
-      importMap.scopes[externalScope][external.packageName] = _path.join(
+      importMap.scopes[remoteEntryScope] = importMap.scopes[remoteEntryScope] || {};
+      importMap.scopes[remoteEntryScope][external.packageName] = _path.join(
         externalScope,
         external.outFileName
       );
