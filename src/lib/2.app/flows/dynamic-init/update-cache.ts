@@ -25,6 +25,7 @@ export function createUpdateCache(
     try {
       addRemoteInfoToStorage(remoteEntry);
       const actions = mergeExternalsIntoStorage(remoteEntry);
+
       return Promise.resolve({ entry: remoteEntry, actions });
     } catch (error) {
       return Promise.reject(error);
@@ -48,14 +49,16 @@ export function createUpdateCache(
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
         config.log.warn(
-          `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
+          `[dynamic][${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
         );
         return;
       }
       if (external.singleton) {
         const { action, sharedVersion } = addSharedExternal(scopeUrl, external);
         actions[external.packageName] = { action };
-        if (action === 'skip' && sharedVersion?.file) {
+
+        if (action === 'skip' && external.sharedScope && sharedVersion?.file) {
+          actions[external.packageName]!.action = 'scope';
           actions[external.packageName]!.override = _path.getScope(sharedVersion!.file);
         }
       } else {
@@ -89,11 +92,11 @@ export function createUpdateCache(
     if (!isCompabible && remoteEntryVersion.strictVersion) {
       if (config.strict) {
         throw new NFError(
-          `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Shared version ${remoteEntryVersion.version} is not compatible with range '${sharedVersion!.requiredVersion}'`
+          `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Is not compatible with range '${sharedVersion!.requiredVersion}'`
         );
       }
       config.log.warn(
-        `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Shared version ${remoteEntryVersion.version} is not compatible with range '${sharedVersion!.requiredVersion}'`
+        `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Is not compatible with range '${sharedVersion!.requiredVersion}'`
       );
     }
 

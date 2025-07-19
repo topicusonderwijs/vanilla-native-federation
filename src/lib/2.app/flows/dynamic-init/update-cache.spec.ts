@@ -120,7 +120,7 @@ describe('createProcessDynamicRemoteEntry', () => {
 
       expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
       expect(mockConfig.log.warn).toHaveBeenCalledWith(
-        "[team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
+        "[dynamic][team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
       );
     });
   });
@@ -245,7 +245,7 @@ describe('createProcessDynamicRemoteEntry', () => {
       );
 
       expect(actual.actions).toEqual({
-        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
+        'dep-a': { action: 'skip' },
       });
     });
 
@@ -316,7 +316,7 @@ describe('createProcessDynamicRemoteEntry', () => {
       );
 
       expect(actual.actions).toEqual({
-        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
+        'dep-a': { action: 'skip' },
       });
     });
 
@@ -425,7 +425,7 @@ describe('createProcessDynamicRemoteEntry', () => {
       };
 
       await expect(updateCache(remoteEntry)).rejects.toThrow(
-        `[dynamic][http://my.service/mfe1/][dep-a@1.2.3] Shared version 1.2.3 is not compatible with range '~2.2.1'`
+        `[dynamic][http://my.service/mfe1/][dep-a@1.2.3] Is not compatible with range '~2.2.1'`
       );
     });
 
@@ -490,7 +490,7 @@ describe('createProcessDynamicRemoteEntry', () => {
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalled();
       expect(mockConfig.log.warn).toHaveBeenCalledWith(
-        "[team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
+        "[dynamic][team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
       );
     });
 
@@ -559,7 +559,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         );
 
         expect(actual.actions).toEqual({
-          'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
+          'dep-a': { action: 'scope', override: 'http://my.service/mfe2/' },
         });
       });
 

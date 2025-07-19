@@ -4,12 +4,10 @@ import type { LoggingConfig } from '../../config/log.contract';
 import type { ModeConfig } from '../../config/mode.contract';
 import * as _path from 'lib/utils/path';
 import type { ForConvertingToImportMap } from 'lib/2.app/driver-ports/dynamic-init/for-converting-to-import-map';
-import type { DrivingContract } from 'lib/2.app/driving-ports/driving.contract';
 
-export function createConvertToImportMap(
-  { log }: LoggingConfig & ModeConfig,
-  _drivers: DrivingContract
-): ForConvertingToImportMap {
+export function createConvertToImportMap({
+  log,
+}: LoggingConfig & ModeConfig): ForConvertingToImportMap {
   return (remoteEntry: RemoteEntry) => {
     const importMap: ImportMap = { imports: {} };
     try {

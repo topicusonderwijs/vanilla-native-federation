@@ -1,25 +1,20 @@
-import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { RemoteEntry, SharedInfo, SharedInfoActions } from 'lib/1.domain';
 import type { LoggingConfig } from '../../config/log.contract';
-import type { ModeConfig } from '../../config/mode.contract';
 import * as _path from 'lib/utils/path';
 import type { ForProcessingRemoteEntry } from 'lib/2.app/driver-ports/dynamic-init/for-processing-remote-entry';
 
-export function createProcessRemoteEntry(
-  { log }: LoggingConfig & ModeConfig,
-  _drivers: DrivingContract
-): ForProcessingRemoteEntry {
+export function createProcessRemoteEntry({ log }: LoggingConfig): ForProcessingRemoteEntry {
   return ({ entry, actions }) => {
     const processedEntry: RemoteEntry = {
       ...entry,
       shared: [],
       exposes: JSON.parse(JSON.stringify(entry.exposes)),
     };
+    log.debug(`[dynamic][${entry.name}] Processing actions:`, actions);
+    log.debug(`[dynamic][${entry.name}] Original remote entry:`, entry);
     try {
-      log.debug('Original remote entry:', entry);
-
       addExternals(processedEntry, entry.shared, actions);
-      log.debug('Processed remote entry:', processedEntry);
+      log.debug(`[dynamic][${entry.name}] Processed remote entry:`, processedEntry);
       return Promise.resolve(processedEntry);
     } catch (e) {
       return Promise.reject(e);
@@ -41,31 +36,22 @@ export function createProcessRemoteEntry(
 
       if (!actions[external.packageName]) {
         log.warn(
-          `No action found for shared external '${external.packageName}' in remote entry '${entry.name}'.`
+          `[dynamic][${entry.name}] No action found for shared external '${external.packageName}'.`
         );
         return;
       }
-      //  Globally shared externals
-      if (actions[external.packageName]!.action === 'share') {
-        entry.shared.push({ ...external });
-        return;
-      }
 
-      // Scoped globally shared externals
+      if (actions[external.packageName]!.action === 'skip') return;
+
+      const processedExternal = { ...external };
+
       if (actions[external.packageName]!.action === 'scope') {
-        entry.shared.push({ ...external, singleton: false });
-        return;
+        processedExternal.singleton = false;
+        if (actions[external.packageName]!.override)
+          processedExternal.scopeOverride = actions[external.packageName]!.override;
       }
 
-      // Shared shareScope externals
-      if (actions[external.packageName]!.action === 'skip' && external.sharedScope) {
-        entry.shared.push({
-          ...external,
-          singleton: false,
-          scopeOverride: actions[external.packageName]!.override,
-        });
-        return;
-      }
+      entry.shared.push(processedExternal);
     });
   }
 }
