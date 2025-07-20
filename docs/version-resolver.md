@@ -72,6 +72,7 @@ Import maps provide **scopes** and **shared scopes** as solutions for dependency
 ```
 
 **How it works**:
+
 - **Global sharing**: Most micro frontends use React 18.2.0 and UI Library 2.1.0
 - **Individual scoping**: Legacy MFE gets its own React 17.0.2
 - **Shared scope grouping**: Design system MFEs share UI Library 3.0.0 among themselves
@@ -83,33 +84,39 @@ Import maps provide **scopes** and **shared scopes** as solutions for dependency
 In the micro-frontend's metadata file (remoteEntry.json), dependencies are marked as "externals". Every external contains configuration that determines how it should be shared.
 
 ### Shared externals (singleton: true)
+
 Dependencies marked as `singleton: true` are candidates for sharing:
 
 ```json
 // In remoteEntry.json
 {
-  "shared": [{
-    "packageName": "react",
-    "singleton": true,
-    "version": "18.2.0",
-    "requiredVersion": "^18.0.0"
-  }]
+  "shared": [
+    {
+      "packageName": "react",
+      "singleton": true,
+      "version": "18.2.0",
+      "requiredVersion": "^18.0.0"
+    }
+  ]
 }
 ```
 
 **Result**: Grouped with other externals in the same shared scope for resolution (global scope if no sharedScope specified).
 
 ### Scoped externals (singleton: false)
+
 Dependencies with `singleton: false` are always scoped to their individual remote:
 
 ```json
-// In remoteEntry.json  
+// In remoteEntry.json
 {
-  "shared": [{
-    "packageName": "lodash-utils",
-    "singleton": false,
-    "version": "1.0.0"
-  }]
+  "shared": [
+    {
+      "packageName": "lodash-utils",
+      "singleton": false,
+      "version": "1.0.0"
+    }
+  ]
 }
 ```
 
@@ -133,10 +140,10 @@ The `sharedScope` property creates logical groups for dependency resolution. Dep
   }]
 }
 
-// Team B micro frontends - share UI components v2.x  
+// Team B micro frontends - share UI components v2.x
 {
   "shared": [{
-    "packageName": "ui-components", 
+    "packageName": "ui-components",
     "singleton": true,
     "sharedScope": "team-b",
     "version": "2.5.0",
@@ -156,6 +163,7 @@ The `sharedScope` property creates logical groups for dependency resolution. Dep
 ```
 
 **How shared scopes work:**
+
 1. **Resolution**: Dependencies with the same `sharedScope` are grouped and resolved together
 2. **Sharing**: The chosen version is shared among all micro frontends in that logical group
 3. **Import Map**: Each micro frontend gets the shared version added to its individual scope in the final import map
@@ -193,7 +201,7 @@ Global scope:
   ui-lib@3.1.0 (requires "^3.0.0", singleton: true, sharedScope: "team-a")
   ui-lib@3.0.5 (requires "^3.0.0", singleton: true, sharedScope: "team-a")
 
-"team-b" scope:  
+"team-b" scope:
   ui-lib@2.5.0 (requires "^2.0.0", singleton: true, sharedScope: "team-b")
 
 Individual scopes:
@@ -209,13 +217,13 @@ flowchart TD
     A[Dependencies grouped by scope] --> B[For each scope:]
     B --> C[Apply priority rules to choose shared version]
     C --> D[Assign actions to all other versions in scope]
-    
+
     C --> C1{Host version exists in scope?}
     C1 -->|Yes| C2[Choose host version]
     C1 -->|No| C3{latestSharedExternal enabled?}
     C3 -->|Yes| C4[Choose latest version in scope]
     C3 -->|No| C5[Choose version with least incompatibilities in scope]
-    
+
     D --> D1[For each remaining version in scope:]
     D1 --> D2{Compatible with chosen version?}
     D2 -->|Yes| D3[Action: SKIP<br/>Don't download]
@@ -235,141 +243,296 @@ flowchart LR
     B -->|Shared Scope + SHARE| D[Add to scope in *scopes* property]
     B -->|SCOPE| E[Add to individual scope in *scopes*]
     B -->|SKIP| F[Omit from map or get overridden by SHARE]
-    
+
     C --> G[Available to all micro frontends]
     D --> H[Available to micro frontends in shared scope]
     E --> I[Available only to specific micro frontend]
 ```
 
-## Complete Example: Multi-Scope Resolution
+## Dynamic Init
 
-### Input: Multiple Teams with Shared Scopes
+> **Important!:** This feature currently only works with the `use-import-shim` import-map type.
+
+Dynamic init is a runtime feature that allows loading additional micro frontends after the initial federation setup is complete. This is useful for lazy-loading micro frontends on demand or adding micro frontends based on user interactions or application state.
+
+### Key Characteristics/limitations
+
+**Additive Only**: Dynamic init can only **add** new dependencies to existing scopes - it cannot replace, modify, or remove dependencies that were resolved during the initial setup.
+
+**Non-Disruptive**: The dynamic init process preserves all existing dependency resolutions and import map entries. Cached dependencies from the initial setup remain unchanged.
+
+**Scope Aware**: Dynamic init respects the same scoping rules as the initial resolution process, adding new dependencies to their appropriate global, shared, or individual scopes.
+
+This is in line with the ideology behind import maps. [source](https://github.com/WICG/import-maps/blob/abc4c6b24e0cc9a764091be916c5057e83c30c23/README.md) | [Shopify article](https://shopify.engineering/resilient-import-maps#)
+
+### How Dynamic Init Works
+
+When you call `initRemoteEntry()` to dynamically load a micro frontend, the system follows these steps:
+
+```mermaid
+flowchart TD
+    A[Call initRemoteEntry] --> B[Fetch remoteEntry.json]
+    B --> C[Process new dependencies]
+    C --> D{Dependency already exists?}
+    D -->|Yes| E[Skip - use existing version]
+    D -->|No| F{Compatible with existing shared version?}
+    F -->|Yes, Global Scope| G[Skip - use existing shared version]
+    F -->|Yes, Shared Scope| H[Override - reuse shared version URL]
+    F -->|No + strictVersion: false| I[Skip + Warn - use existing]
+    F -->|No + strictVersion: true| J[Scope - individual download]
+    F -->|No existing version| K[Share - add to appropriate scope]
+
+    G --> L[Add additional import-map to DOM]
+    H --> L
+    I --> L
+    J --> L
+    K --> L
+```
+
+### Dynamic Init Actions
+
+Each new dependency gets one of these actions during dynamic init:
+
+| Action       | Description                                                            | Import Map Impact                      |
+| ------------ | ---------------------------------------------------------------------- | -------------------------------------- |
+| **SKIP**     | Version already exists or use existing shared version                  | No changes                             |
+| **SHARE**    | No compatible version exists, become the shared version for this scope | Add to scope's import map              |
+| **OVERRIDE** | Compatible version exists in shared scope, reuse same URL              | Add same URL to MFE's individual scope |
+| **SCOPE**    | Incompatible version with strictVersion: true                          | Add to individual MFE scope            |
+
+### Example: Dynamic Loading Scenario
+
+```javascript
+// Initial setup
+const { initRemoteEntry } = await initFederation({
+  'team/header': 'http://localhost:3000/remoteEntry.json',
+  'team/sidebar': 'http://localhost:4000/remoteEntry.json',
+});
+
+// Later, dynamically load a new micro frontend
+await initRemoteEntry('http://localhost:5000/remoteEntry.json', 'team/dashboard');
+
+// The dashboard MFE becomes available
+const DashboardComponent = await loadRemoteModule('team/dashboard', './Dashboard');
+```
+
+### Initial Setup Dependencies
 
 ```json
-// Global MFE - React for everyone
+// team/header - React 18.2.0 (global scope)
 {
   "shared": [{
     "packageName": "react",
     "version": "18.2.0",
-    "requiredVersion": "^18.0.0",
     "singleton": true
   }]
 }
 
-// Team A MFE 1 - Design system v3
+// team/sidebar - Design System 3.1.0 (team-a scope)
 {
   "shared": [{
     "packageName": "design-system",
     "version": "3.1.0",
-    "requiredVersion": "^3.0.0",
     "singleton": true,
     "sharedScope": "team-a"
-  }]
-}
-
-// Team A MFE 2 - Design system v3
-{
-  "shared": [{
-    "packageName": "design-system", 
-    "version": "3.0.5",
-    "requiredVersion": "^3.0.0",
-    "singleton": true,
-    "sharedScope": "team-a"
-  }]
-}
-
-// Team B MFE - Design system v2 (legacy)
-{
-  "shared": [{
-    "packageName": "design-system",
-    "version": "2.8.0",
-    "requiredVersion": "^2.0.0", 
-    "singleton": true,
-    "sharedScope": "team-b",
-    "strictVersion": true
-  }]
-}
-
-// Legacy MFE - Old React
-{
-  "shared": [{
-    "packageName": "react",
-    "version": "17.0.2",
-    "requiredVersion": "^17.0.0",
-    "singleton": true,
-    "strictVersion": true
   }]
 }
 ```
 
-### Resolution Process
+### Dynamic Init - New Dashboard MFE
+
+```json
+// team/dashboard - added dynamically
+{
+  "shared": [
+    {
+      "packageName": "react",
+      "version": "18.1.0",
+      "requiredVersion": "^18.0.0",
+      "singleton": true
+    },
+    {
+      "packageName": "design-system",
+      "version": "3.0.5",
+      "requiredVersion": "^3.0.0",
+      "singleton": true,
+      "sharedScope": "team-a"
+    },
+    {
+      "packageName": "charts-library",
+      "version": "2.4.0",
+      "singleton": true
+    }
+  ]
+}
+```
+
+### Resolution Results
 
 ```mermaid
-flowchart TD
-    A[Group by scope] --> B[Global: react versions]
-    A --> C[team-a: design-system versions]  
-    A --> D[team-b: design-system versions]
-    
-    B --> E[Choose React <br/> 18.2.0 → Shared globally <br/> 17.0.2 → individual scope]
-    C --> F[Choose design-system <br/> 3.1.0  → Shared for team-a<br/>3.0.5 → skip]
-    D --> G[Choose design-system <br/> 2.8.0 for team-b]
+flowchart LR
+    A[React 18.1.0] --> B[SKIP<br/>Use existing 18.2.0 globally]
+    C[Design System 3.0.5] --> D[OVERRIDE<br/>Use existing 3.1.0 URL from team-a]
+    E[Charts Library 2.4.0] --> F[SHARE<br/>Become shared version globally]
 ```
 
-### Output Import Map
+### Resulting Import Map Changes
+
+**Before Dynamic Init:**
 
 ```javascript
 {
   "imports": {
-    // Global shared - used by most micro frontends
-    "react": "https://mfe1.example.com/react@18.2.0.js"
+    "react": "http://localhost:3000/react@18.2.0.js"
   },
   "scopes": {
-    // Each Team A MFE gets the shared team-a version
-    "https://team-a-mfe1.example.com/": {
-      "design-system": "https://team-a-mfe1.example.com/design-system@3.1.0.js"
-    },
-    "https://team-a-mfe2.example.com/": {
-      "design-system": "https://team-a-mfe1.example.com/design-system@3.1.0.js"
-    },
-    
-    // Team B MFE gets its own version (different logical shared scope)
-    "https://team-b-mfe.example.com/": {
-      "design-system": "https://team-b-mfe.example.com/design-system@2.8.0.js"
-    },
-    
-    // Individual scope - incompatible React version
-    "https://legacy-mfe.example.com/": {
-      "react": "https://legacy-mfe.example.com/react@17.0.2.js"
+    "http://localhost:4000/": {
+      "design-system": "http://localhost:4000/design-system@3.1.0.js"
     }
   }
 }
 ```
 
-**Key insight**: Notice that both Team A MFEs reference the same URL (`https://team-a-mfe1.example.com/design-system@3.1.0.js`) even though they have different scope prefixes. This is how shared scopes work - the resolver picks one version from the logical group and all MFEs in that group use the same URL.
+**ImportMap that will be appended to the DOM:**
 
-### What Actually Downloads
+```javascript
 
-- **react@18.2.0**: Downloaded once, used by all compatible micro frontends
-- **react@17.0.2**: Downloaded separately for legacy MFE (incompatible, strict)
-- **design-system@3.1.0**: Downloaded once, shared between Team A MFEs (logical shared scope)
-- **design-system@3.0.5**: Not downloaded (uses team-a shared version URL instead)
-- **design-system@2.8.0**: Downloaded separately for Team B (different logical shared scope)
+{
+  "imports": {
+    "charts-library": "http://localhost:5000/charts-library@2.4.0.js"
+  },
+  "scopes": {
+    "http://localhost:5000/": {
+      "design-system": "http://localhost:4000/design-system@3.1.0.js"
+    }
+  }
+}
+```
+
+### Dynamic Init Constraints
+
+#### Cannot Replace Existing Dependencies
+
+If a dependency is already shared globally during the initial setup, dynamic init cannot replace it with a different version. For example, if React 18.2.0 is shared globally, dynamically loading React 17.0.0 with `strictVersion: false` will still use React 18.2.0 and show a warning. If `strictVersion: true` is used, the micro frontend will get its own scoped copy of React 17.0.0.
+
+#### Cannot Modify Scope Assignments
+
+Dynamic init cannot change the scope of a shared dependency. If a dependency like design-system@3.1.0 is shared in the "team-a" scope, it cannot be moved to the global scope or another shared scope during dynamic loading.
+
+#### Dirty Flag Always False
+
+Dynamic init sets `dirty: false` for all dependencies because it never modifies existing resolutions:
+
+```typescript
+// Dynamic init behavior
+ports.sharedExternalsRepo.addOrUpdate(packageName, {
+  dirty: false, // Always false - no re-resolution needed
+  versions: [...existingVersions, newVersion],
+});
+```
+
+### Best Practices for Dynamic Init
+
+#### 1. Design for Additive Loading
+
+Structure your application so dynamic MFEs complement rather than conflict with initial setup:
+
+```javascript
+// ✅ Good: Progressive enhancement
+Initial: Core navigation + basic React
+Dynamic: Dashboard with charts, analytics widgets
+
+// ❌ Problematic: Conflicting versions
+Initial: React 18.x + Modern UI library
+Dynamic: Legacy MFE requiring React 17.x + Old UI library
+```
+
+#### 2. Use Shared Scopes Strategically
+
+Group related MFEs in shared scopes to maximize reuse during dynamic loading:
+
+```javascript
+// ✅ Good: Team-based scopes
+"team-dashboard": { "ui-components": "3.x" }
+"team-reports": { "ui-components": "3.x" }
+
+// Later dynamic loading within same team reuses components
+```
+
+#### 3. Handle Loading Failures Gracefully
+
+```javascript
+try {
+  await initRemoteEntry('http://dashboard-team.com/remoteEntry.json', 'dashboard');
+  // Dashboard is now available
+} catch (error) {
+  console.warn('Dashboard MFE failed to load:', error);
+  // Application continues without dashboard features
+}
+```
+
+#### 4. Monitor Compatibility Warnings
+
+Dynamic init may produce warnings for version mismatches:
+
+```javascript
+// Enable logging to catch compatibility issues
+await initFederation(manifest, {
+  logLevel: 'warn',
+  logger: consoleLogger,
+});
+
+// Watch for warnings like:
+// "WARN: dashboard.react@18.1.0 using existing shared version 18.2.0"
+```
+
+### Use Cases for Dynamic Init
+
+#### Route-Based Loading
+
+```javascript
+// Load MFEs based on navigation
+router.on('/dashboard', async () => {
+  await initRemoteEntry('http://dashboard.com/remoteEntry.json', 'dashboard');
+  const Dashboard = await loadRemoteModule('dashboard', './Dashboard');
+});
+```
+
+#### Feature Flags
+
+```javascript
+// Load additional features based on user permissions
+if (user.hasFeature('advanced-analytics')) {
+  await initRemoteEntry('http://analytics.com/remoteEntry.json', 'analytics');
+}
+```
+
+#### A/B Testing
+
+```javascript
+// Load different versions for testing
+const variant = getABTestVariant();
+await initRemoteEntry(`http://variant-${variant}.com/remoteEntry.json`, 'test-mfe');
+```
 
 ## Understanding Scope Levels
 
 ### Global Scope (`__GLOBAL__`)
+
 - **Purpose**: Dependencies shared across all micro frontends
 - **Use case**: Core libraries like React, common utilities
 - **Configuration**: `singleton: true` without `sharedScope`
 - **Import map**: Added to the `imports` property
 
 ### Shared Scopes (custom names)
+
 - **Purpose**: Logical groupings for dependency resolution among specific micro frontends
 - **Use case**: Team-specific libraries, design systems, domain-specific tools
 - **Configuration**: `singleton: true` with `sharedScope: "scope-name"`
 - **Import map**: Resolved version URL is added to each MFE's individual scope
 
 ### Individual Scopes (per micro frontend)
+
 - **Purpose**: Dependencies used only by one micro frontend
 - **Use case**: Incompatible versions, micro frontend-specific libraries
 - **Configuration**: `singleton: false` or incompatible shared dependencies
@@ -384,10 +547,10 @@ sequenceDiagram
     participant Step2 as Step 2: Process RemoteEntries
     participant Storage as Storage
     participant Step3 as Step 3: Determine Versions
-    
+
     Step2->>Storage: Add react@18.2.0 to global scope
     Storage->>Storage: Mark global react as dirty: true
-    Step2->>Storage: Add ui-lib@3.1.0 to team-a scope  
+    Step2->>Storage: Add ui-lib@3.1.0 to team-a scope
     Storage->>Storage: Mark team-a ui-lib as dirty: true
     Step3->>Storage: Find all dirty dependencies in all scopes
     Storage-->>Step3: global react: dirty=true, team-a ui-lib: dirty=true
@@ -409,14 +572,14 @@ The user will be notified about the incompatible version, but the resolver will 
 // MFE needs ui-lib ~4.16.0, but team-a scope shares 4.17.0
 {
   "packageName": "ui-lib",
-  "version": "4.16.5", 
+  "version": "4.16.5",
   "requiredVersion": "~4.16.0",
   "singleton": true,
   "sharedScope": "team-a",
   "strictVersion": false
 }
 
-// Result: SKIP + WARNING  
+// Result: SKIP + WARNING
 // The MFE will use the shared 4.17.0 version URL from team-a scope
 // May cause runtime compatibility issues
 ```
@@ -430,12 +593,12 @@ The user will be notified about the incompatible version, but the resolver will 
   "version": "4.16.5",
   "requiredVersion": "~4.16.0",
   "singleton": true,
-  "sharedScope": "team-a", 
+  "sharedScope": "team-a",
   "strictVersion": true
 }
 
 // Result: SCOPE (individual)
-// The MFE gets its own ui-lib@4.16.5 download  
+// The MFE gets its own ui-lib@4.16.5 download
 // Guaranteed compatibility, but extra download
 ```
 
@@ -449,7 +612,7 @@ Host remoteEntry.json has the highest precedence within each scope. When an exte
 
 ```javascript
 await initFederation(manifest, {
-  hostRemoteEntry: { url: "./host-remoteEntry.json" }
+  hostRemoteEntry: { url: './host-remoteEntry.json' },
 });
 
 // If host specifies react@18.0.5 globally, it wins over:
@@ -467,7 +630,7 @@ Can be activated with the `profile.latestSharedExternal` hyperparameter. This ch
 
 ```javascript
 await initFederation(manifest, {
-  profile: { latestSharedExternal: true }
+  profile: { latestSharedExternal: true },
 });
 
 // Available versions in global scope: [18.1.0, 18.2.0, 18.0.5]
@@ -506,12 +669,12 @@ sequenceDiagram
     participant Resolver as Version Resolver
     participant Storage as Storage
     participant Page2 as Page Load 2
-    
+
     Page1->>Resolver: Process dependencies by scope
     Resolver->>Storage: Mark versions as cached per scope
     Note over Storage: Global: react@18.2.0: cached=true<br/>team-a: ui-lib@3.1.0: cached=true
-    
-    Page2->>Resolver: Process dependencies  
+
+    Page2->>Resolver: Process dependencies
     Resolver->>Storage: Check cached versions by scope
     Storage-->>Resolver: Cached versions found per scope
     Resolver->>Page2: Prioritize cached versions within scopes
@@ -526,8 +689,8 @@ Specify a host `remoteEntry.json` to control critical dependencies across all sc
 ```javascript
 await initFederation(manifest, {
   hostRemoteEntry: {
-    url: "./host-remoteEntry.json"
-  }
+    url: './host-remoteEntry.json',
+  },
 });
 ```
 
@@ -540,17 +703,17 @@ Hyperparameters to tweak the behavior of the version resolver across all scopes:
 ```javascript
 await initFederation(manifest, {
   // Use latest available versions in each scope
-  profile: { 
-    latestSharedExternal: true 
+  profile: {
+    latestSharedExternal: true,
   },
-  
+
   // Skip cached remotes for performance
-  profile: { 
-    skipCachedRemotes: true 
+  profile: {
+    skipCachedRemotes: true,
   },
-  
+
   // Fail on version conflicts in any scope
-  strict: true
+  strict: true,
 });
 ```
 
@@ -562,7 +725,7 @@ Choosing different storage allows the library to reuse cached externals across p
 // In-memory only (default) - fastest, lost on page reload
 storage: globalThisStorageEntry,
 
-// Single session only - survives page reloads, cleared when browser closes  
+// Single session only - survives page reloads, cleared when browser closes
 storage: sessionStorageEntry,
 
 // Persist across browser sessions - survives browser restarts
@@ -570,6 +733,7 @@ storage: localStorageEntry
 ```
 
 **When to use each**:
+
 - **globalThis**: Development or single-page visits where speed matters most
 - **sessionStorage**: Multi-page applications where users navigate between pages
 - **localStorage**: Frequently visited applications where long-term caching provides value
@@ -605,6 +769,7 @@ Warning: ShareScope external team-a.dep-a has no shared versions.
 ```
 
 **Common causes**:
+
 - All versions in the logical shared scope are incompatible with each other and have `strictVersion: true`
 - Misconfigured shared scope names leading to single-version groups
 - Version ranges that don't overlap within the logical group
@@ -613,11 +778,11 @@ Warning: ShareScope external team-a.dep-a has no shared versions.
 
 The resolver uses [standard semantic versioning rules](https://www.npmjs.com/package/semver) within each scope:
 
-| Range | Matches | Examples |
-|-------|---------|----------|
-| `^1.2.3` | Compatible changes | `1.2.4`, `1.3.0`, `1.9.9` |
-| `~1.2.3` | Patch-level changes | `1.2.4`, `1.2.9` |
-| `>=1.2.3` | Greater than or equal | `1.2.3`, `2.0.0` |
-| `1.2.3` | Exact version | `1.2.3` only |
+| Range     | Matches               | Examples                  |
+| --------- | --------------------- | ------------------------- |
+| `^1.2.3`  | Compatible changes    | `1.2.4`, `1.3.0`, `1.9.9` |
+| `~1.2.3`  | Patch-level changes   | `1.2.4`, `1.2.9`          |
+| `>=1.2.3` | Greater than or equal | `1.2.3`, `2.0.0`          |
+| `1.2.3`   | Exact version         | `1.2.3` only              |
 
 Pre-release versions are only compatible with the same pre-release range within the same scope.
