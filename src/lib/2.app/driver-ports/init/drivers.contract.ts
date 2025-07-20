@@ -5,7 +5,7 @@ import type { ForGeneratingImportMap } from './for-generating-import-map';
 import type { ForGettingRemoteEntries } from './for-getting-remote-entries.port';
 import type { ForProcessingRemoteEntries } from './for-processing-remote-entries.port';
 
-export type DriversContract = {
+export type InitDriversContract = {
   getRemoteEntries: ForGettingRemoteEntries;
   processRemoteEntries: ForProcessingRemoteEntries;
   determineSharedExternals: ForDeterminingSharedExternals;

@@ -8,7 +8,7 @@ import { SharedVersion } from 'lib/1.domain/externals/version.contract';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { Optional } from 'lib/utils/optional';
 import { MOCK_VERSION_II, MOCK_VERSION_III } from 'lib/6.mocks/domain/externals/version.mock';
-import { StorageConfig } from 'lib/2.app';
+import { StorageConfig } from 'lib/2.app/config';
 
 describe('createSharedExternalsRepository', () => {
   const setupWithCache = (storage: any) => {
@@ -83,6 +83,26 @@ describe('createSharedExternalsRepository', () => {
       const actual: SharedScope = externalsRepo.getAll();
 
       expect(actual).toEqual({ 'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] } });
+    });
+  });
+
+  describe('isGlobalScope', () => {
+    it('should return true for global scope', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      expect(externalsRepo.isGlobalScope(GLOBAL_SCOPE)).toBe(true);
+    });
+
+    it('should return true for undefined scope', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      expect(externalsRepo.isGlobalScope(undefined)).toBe(true);
+    });
+
+    it('should return false for custom scopes', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      expect(externalsRepo.isGlobalScope('custom-scope')).toBe(false);
     });
   });
 

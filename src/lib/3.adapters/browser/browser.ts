@@ -4,10 +4,15 @@ import type { ImportMapConfig } from 'lib/2.app/config/import-map.contract';
 
 const createBrowser = (config: ImportMapConfig): ForBrowserTasks => {
   return {
-    setImportMap: function (importMap: ImportMap) {
-      document.head
-        .querySelectorAll(`script[type="${config.importMapType}"]`)
-        .forEach(importMap => importMap.remove());
+    setImportMap: function (
+      importMap: ImportMap,
+      { override }: { override?: boolean } = {}
+    ): ImportMap {
+      if (override) {
+        document.head
+          .querySelectorAll(`script[type="${config.importMapType}"]`)
+          .forEach(importMap => importMap.remove());
+      }
 
       document.head.appendChild(
         Object.assign(document.createElement('script'), {

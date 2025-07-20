@@ -1,9 +1,9 @@
-import type { ForGeneratingImportMap } from './driver-ports/for-generating-import-map';
-import type { DrivingContract } from './driving-ports/driving.contract';
+import type { ForGeneratingImportMap } from '../../driver-ports/init/for-generating-import-map';
+import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { ImportMap, Imports } from 'lib/1.domain/import-map/import-map.contract';
 import type { ExternalsScope, RemoteInfo, SharedExternal, SharedVersion } from 'lib/1.domain';
-import type { LoggingConfig } from './config/log.contract';
-import type { ModeConfig } from './config/mode.contract';
+import type { LoggingConfig } from '../../config/log.contract';
+import type { ModeConfig } from '../../config/mode.contract';
 import * as _path from 'lib/utils/path';
 import { NFError } from 'lib/native-federation.error';
 
@@ -74,19 +74,25 @@ export function createGenerateImportMap(
     const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
 
     for (const [externalName, external] of Object.entries(sharedExternals)) {
-      const override = findOverride(external, sharedScope, externalName);
+      let override: SharedVersion | undefined | 'NOT_AVAILABLE' = undefined;
 
       for (const version of external.versions) {
-        if (!override || version.action === 'scope') {
-          addToScope(importMap, _path.getScope(version.file), { [externalName]: version.file });
-          version.cached = true;
-        } else if (override) {
-          // skip and share both get the same override
-          addToScope(importMap, _path.getScope(version.file), { [externalName]: override.file });
-          if (version.file === override.file) {
-            version.cached = true;
+        if (version.action === 'skip') continue;
+
+        let targetFile: string = version.file;
+        version.cached = true;
+
+        if (version.action === 'override') {
+          if (!override) {
+            override = findOverride(external, sharedScope, externalName) ?? 'NOT_AVAILABLE';
+          }
+          if (override !== 'NOT_AVAILABLE') {
+            targetFile = override.file;
+            version.cached = version.file === override.file;
           }
         }
+
+        addToScope(importMap, _path.getScope(version.file), { [externalName]: targetFile });
       }
       ports.sharedExternalsRepo.addOrUpdate(externalName, external, sharedScope);
     }
@@ -94,33 +100,40 @@ export function createGenerateImportMap(
 
   function findOverride(
     external: SharedExternal,
-    scope: string,
+    sharedScope: string,
     externalName: string
   ): SharedVersion | undefined {
     const sharedVersions = external.versions.filter(v => v.action === 'share');
-
-    const scopedExternalName = `${scope}.${externalName}`;
+    const scopedExternalName = `${sharedScope}.${externalName}`;
 
     if (sharedVersions.length > 1) {
       handleMultipleSharedVersions(scopedExternalName);
     }
 
     if (sharedVersions.length < 1) {
-      config.log.warn(`ShareScope external ${scopedExternalName} has no shared versions.`);
+      if (config.strict) {
+        config.log.debug(
+          `[4][${sharedScope}][${externalName}] shareScope has no override version.`
+        );
+        throw new NFError('Could not create ImportMap.');
+      }
+      config.log.debug(
+        `[4][${sharedScope}][${externalName}] shareScope has no override version, scoping override versions.`
+      );
     }
 
     return sharedVersions[0];
   }
 
   function handleMultipleSharedVersions(scopedExternalName: string): void {
-    const message = `ShareScope external ${scopedExternalName} has multiple shared versions.`;
-
     if (config.strict) {
-      config.log.error(message);
+      config.log.debug(
+        `[4][${scopedExternalName}] ShareScope external has multiple shared versions.`
+      );
       throw new NFError('Could not create ImportMap.');
     }
 
-    config.log.warn(message);
+    config.log.warn(`ShareScope external ${scopedExternalName} has multiple shared versions.`);
   }
 
   /**
@@ -153,14 +166,12 @@ export function createGenerateImportMap(
   }
 
   function handleDuplicateGlobalExternal(externalName: string): void {
-    const message = `Singleton external ${externalName} has multiple shared versions.`;
-
     if (config.strict) {
-      config.log.error(message);
+      config.log.debug(`[4][${externalName}] Shared external has multiple shared versions.`);
       throw new NFError('Could not create ImportMap.');
     }
 
-    config.log.warn(message);
+    config.log.warn(`Singleton external ${externalName} has multiple shared versions.`);
   }
 
   function addToScope(importMap: ImportMap, scope: string, imports: Imports): void {

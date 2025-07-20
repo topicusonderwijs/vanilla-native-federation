@@ -1,11 +1,11 @@
-import { ForGeneratingImportMap } from './driver-ports/for-generating-import-map';
-import { DrivingContract } from './driving-ports/driving.contract';
+import { ForGeneratingImportMap } from '../../driver-ports/init/for-generating-import-map';
+import { DrivingContract } from '../../driving-ports/driving.contract';
 import { createGenerateImportMap } from './generate-import-map';
 import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
 import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-externals.repository.mock';
 import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
-import { LoggingConfig } from './config/log.contract';
-import { ModeConfig } from './config/mode.contract';
+import { LoggingConfig } from '../../config/log.contract';
+import { ModeConfig } from '../../config/mode.contract';
 import { NFError } from 'lib/native-federation.error';
 
 describe('createGenerateImportMap (shared-externals)', () => {
@@ -27,7 +27,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
       strict: false,
       profile: {
         latestSharedExternal: false,
-        skipCachedRemotes: false,
+        skipCachedRemotes: 'never',
       },
     } as LoggingConfig & ModeConfig;
 
@@ -291,8 +291,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
     }));
 
     await expect(generateImportMap()).rejects.toEqual(new NFError('Could not create ImportMap.'));
-    expect(mockConfig.log.error).toHaveBeenCalledWith(
-      'Singleton external dep-a has multiple shared versions.'
+    expect(mockConfig.log.debug).toHaveBeenCalledWith(
+      '[4][dep-a] Shared external has multiple shared versions.'
     );
   });
 });

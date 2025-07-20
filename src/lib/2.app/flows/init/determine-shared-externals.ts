@@ -1,9 +1,9 @@
-import type { ForDeterminingSharedExternals } from './driver-ports/for-determining-shared-externals.port';
+import type { ForDeterminingSharedExternals } from '../../driver-ports/init/for-determining-shared-externals.port';
 import type { SharedExternal } from 'lib/1.domain';
 import { NFError } from 'lib/native-federation.error';
-import type { DrivingContract } from './driving-ports/driving.contract';
-import type { LoggingConfig } from './config/log.contract';
-import type { ModeConfig } from './config/mode.contract';
+import type { DrivingContract } from '../../driving-ports/driving.contract';
+import type { LoggingConfig } from '../../config/log.contract';
+import type { ModeConfig } from '../../config/mode.contract';
 
 export function createDetermineSharedExternals(
   config: LoggingConfig & ModeConfig,
@@ -31,30 +31,40 @@ export function createDetermineSharedExternals(
   return () => {
     for (const sharedScope of ports.sharedExternalsRepo.getScopes()) {
       const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
+
       try {
         Object.entries(sharedExternals)
           .filter(([_, e]) => e.dirty)
           .forEach(([name, external]) =>
             ports.sharedExternalsRepo.addOrUpdate(
               name,
-              setVersionActions(name, external),
+              setVersionActions(
+                name,
+                external,
+                ports.sharedExternalsRepo.isGlobalScope(sharedScope)
+              ),
               sharedScope
             )
           );
-        config.log.debug('Processed shared externals', sharedExternals);
-      } catch (err: unknown) {
-        config.log.error('Failed to determine shared externals in scope ' + sharedScope, err);
+        config.log.debug('[3] determined shared externals', sharedExternals);
+      } catch (err) {
         config.log.debug(
-          'Currently processed shared externals in scope ' + sharedScope,
+          `[3][ERR][${sharedScope}] failed to determine shared externals, state:`,
           sharedExternals
         );
-        return Promise.reject(new NFError('Failed to determine shared externals.'));
+        return Promise.reject(
+          new NFError(`Could not determine shared externals in scope ${sharedScope}.`, err as Error)
+        );
       }
     }
     return Promise.resolve();
   };
 
-  function setVersionActions(externalName: string, external: SharedExternal) {
+  function setVersionActions(
+    externalName: string,
+    external: SharedExternal,
+    isGlobalScope: boolean
+  ) {
     if (external.versions.length === 1) {
       external.versions[0]!.action = 'share';
       external.dirty = false;
@@ -89,19 +99,17 @@ export function createDetermineSharedExternals(
     // Determine action of other versions based on chosen sharedVersion
     external.versions.forEach(v => {
       if (ports.versionCheck.isCompatible(sharedVersion!.version, v.requiredVersion)) {
-        v.action = 'skip';
+        v.action = isGlobalScope ? 'skip' : 'override';
         return;
       }
 
-      if (config.strict && v.strictVersion) {
-        throw new NFError(
-          `[${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`
-        );
-      }
-
-      config.log.warn(
-        `[${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`
+      config.log.debug(
+        `[3][${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`
       );
+
+      if (config.strict && v.strictVersion) {
+        throw new NFError('Could not determine shared externals, incompatible version found.');
+      }
       v.action = v.strictVersion ? 'scope' : 'skip';
     });
 

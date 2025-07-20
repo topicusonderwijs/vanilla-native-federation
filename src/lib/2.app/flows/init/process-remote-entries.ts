@@ -1,11 +1,13 @@
-import type { ForProcessingRemoteEntries } from './driver-ports/for-processing-remote-entries.port';
+import type { ForProcessingRemoteEntries } from '../../driver-ports/init/for-processing-remote-entries.port';
 import type { RemoteEntry, RemoteInfo, SharedInfo, SharedVersion, Version } from 'lib/1.domain';
-import type { DrivingContract } from './driving-ports/driving.contract';
-import type { LoggingConfig } from './config/log.contract';
+import type { DrivingContract } from '../../driving-ports/driving.contract';
+import type { LoggingConfig } from '../../config/log.contract';
 import * as _path from 'lib/utils/path';
+import type { ModeConfig } from 'lib/2.app/config/mode.contract';
+import { NFError } from 'lib/native-federation.error';
 
 export function createProcessRemoteEntries(
-  config: LoggingConfig,
+  config: LoggingConfig & ModeConfig,
   ports: Pick<
     DrivingContract,
     'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
@@ -25,12 +27,14 @@ export function createProcessRemoteEntries(
    * @returns Promise<void>
    */
   return remoteEntries => {
-    if (config.log.level === 'debug') logStorageStatus('Storage: before processing remoteEntries');
+    if (config.log.level === 'debug')
+      logStorageStatus('[2] Storage: before processing remoteEntries');
     remoteEntries.forEach(remoteEntry => {
       addRemoteInfoToStorage(remoteEntry);
       addExternalsToStorage(remoteEntry);
     });
-    if (config.log.level === 'debug') logStorageStatus('Storage: after processing remoteEntries');
+    if (config.log.level === 'debug')
+      logStorageStatus('[2] Storage: after processing remoteEntries');
 
     return Promise.resolve();
   };
@@ -53,17 +57,23 @@ export function createProcessRemoteEntries(
         config.log.warn(
           `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
         );
+        if (config.strict)
+          throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
         return;
       }
       if (external.singleton) {
-        addSharedExternal(scopeUrl, external, remoteEntry.host);
+        addSharedExternal(scopeUrl, external, remoteEntry);
       } else {
         addScopedExternal(scopeUrl, external);
       }
     });
   }
 
-  function addSharedExternal(scope: string, sharedInfo: SharedInfo, isHostVersion?: boolean): void {
+  function addSharedExternal(
+    scope: string,
+    sharedInfo: SharedInfo,
+    remoteEntry?: RemoteEntry
+  ): void {
     const cached: SharedVersion[] = ports.sharedExternalsRepo
       .tryGetVersions(sharedInfo.packageName, sharedInfo.sharedScope)
       .orElse([]);
@@ -71,15 +81,12 @@ export function createProcessRemoteEntries(
     const matchingVersionIDX = cached.findIndex(c => c.version === sharedInfo.version);
 
     if (~matchingVersionIDX) {
-      if (cached[matchingVersionIDX]!.host || !isHostVersion) {
-        config.log.debug(
-          `[${isHostVersion ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, skipping version.`
-        );
+      if (cached[matchingVersionIDX]!.host || !remoteEntry?.host) {
         return;
       }
       cached.splice(matchingVersionIDX, 1);
       config.log.debug(
-        `[${isHostVersion ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}] Shared version '${sharedInfo.version}' already exists, replacing version.`
+        `[2][${remoteEntry?.host ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, replacing version.`
       );
     }
 
@@ -88,7 +95,7 @@ export function createProcessRemoteEntries(
       file: _path.join(scope, sharedInfo.outFileName),
       requiredVersion: sharedInfo.requiredVersion,
       strictVersion: sharedInfo.strictVersion,
-      host: !!isHostVersion,
+      host: !!remoteEntry?.host,
       cached: false,
       action: 'skip',
     } as SharedVersion);

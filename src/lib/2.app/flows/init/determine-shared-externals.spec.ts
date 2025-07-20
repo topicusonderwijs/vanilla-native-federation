@@ -1,12 +1,12 @@
-import { ForDeterminingSharedExternals } from './driver-ports/for-determining-shared-externals.port';
-import { DrivingContract } from './driving-ports/driving.contract';
+import { ForDeterminingSharedExternals } from '../../driver-ports/init/for-determining-shared-externals.port';
+import { DrivingContract } from '../../driving-ports/driving.contract';
 import { createDetermineSharedExternals } from './determine-shared-externals';
 import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
 import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
-import { LoggingConfig } from './config/log.contract';
-import { ModeConfig } from './config/mode.contract';
+import { LoggingConfig } from '../../config/log.contract';
+import { ModeConfig } from '../../config/mode.contract';
 import { NFError } from 'lib/native-federation.error';
-import { GLOBAL_SCOPE, SharedScope } from 'lib/1.domain';
+import { SharedScope } from 'lib/1.domain';
 
 describe('createDetermineSharedExternals', () => {
   let determineSharedExternals: ForDeterminingSharedExternals;
@@ -23,7 +23,7 @@ describe('createDetermineSharedExternals', () => {
       },
       profile: {
         latestSharedExternal: false,
-        skipCachedRemotes: false,
+        skipCachedRemotes: 'never',
       },
       strict: false,
     } as LoggingConfig & ModeConfig;
@@ -32,6 +32,7 @@ describe('createDetermineSharedExternals', () => {
       versionCheck: createVersionCheck(),
       sharedExternalsRepo: mockSharedExternalsRepository(),
     };
+    mockAdapters.sharedExternalsRepo.isGlobalScope = jest.fn(() => true);
     determineSharedExternals = createDetermineSharedExternals(mockConfig, mockAdapters);
   });
 
@@ -251,55 +252,44 @@ describe('createDetermineSharedExternals', () => {
       }));
 
       await expect(determineSharedExternals()).rejects.toEqual(
-        new NFError('Failed to determine shared externals.')
+        new NFError('Could not determine shared externals in scope __GLOBAL__.', expect.any(Error))
       );
     });
   });
 
   describe('Custom scope', () => {
-    it('should set only available version to share', async () => {
-      mockAdapters.sharedExternalsRepo.getScopes = jest.fn(
-        ({ includeGlobal } = { includeGlobal: true }) =>
-          includeGlobal ? [GLOBAL_SCOPE, 'custom-scope'] : ['custom-scope']
-      );
-      mockAdapters.sharedExternalsRepo.getAll = jest.fn((sharedScope?: string): SharedScope => {
-        if (sharedScope === GLOBAL_SCOPE) {
-          return {
-            'dep-a': {
-              dirty: true,
-              versions: [
-                {
-                  version: '1.2.3',
-                  file: 'http://my.service/mfe1/dep-a.js',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
-                  host: false,
-                  action: 'skip',
-                },
-              ],
-            },
-          };
-        }
-        if (sharedScope === 'custom-scope') {
-          return {
-            'dep-b': {
-              dirty: true,
-              versions: [
-                {
-                  version: '4.5.6',
-                  file: 'http://my.service/mfe1/dep-b.js',
-                  requiredVersion: '~4.5.1',
-                  strictVersion: false,
-                  cached: false,
-                  host: false,
-                  action: 'skip',
-                },
-              ],
-            },
-          };
-        }
-        return {};
+    beforeEach(() => {
+      mockAdapters.sharedExternalsRepo.getScopes = jest.fn(() => ['custom-scope']);
+      mockAdapters.sharedExternalsRepo.isGlobalScope = jest.fn(() => false);
+    });
+
+    it('should set only one version to share when compatible, the rest to override', async () => {
+      mockAdapters.sharedExternalsRepo.getAll = jest.fn((): SharedScope => {
+        return {
+          'dep-a': {
+            dirty: true,
+            versions: [
+              {
+                version: '4.5.7',
+                file: 'http://my.service/mfe1/dep-a.js',
+                requiredVersion: '~4.5.1',
+                strictVersion: false,
+                cached: false,
+                host: false,
+                action: 'skip',
+              },
+              {
+                version: '4.5.6',
+                file: 'http://my.service/mfe2/dep-a.js',
+                requiredVersion: '~4.5.1',
+                strictVersion: false,
+                cached: false,
+                host: false,
+                action: 'skip',
+              },
+            ],
+          },
+        };
       });
 
       await determineSharedExternals();
@@ -310,32 +300,22 @@ describe('createDetermineSharedExternals', () => {
           dirty: false,
           versions: [
             {
-              version: '1.2.3',
+              version: '4.5.7',
               file: 'http://my.service/mfe1/dep-a.js',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: false,
-              host: false,
-              action: 'share',
-            },
-          ],
-        },
-        '__GLOBAL__'
-      );
-
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
-        'dep-b',
-        {
-          dirty: false,
-          versions: [
-            {
-              version: '4.5.6',
-              file: 'http://my.service/mfe1/dep-b.js',
               requiredVersion: '~4.5.1',
               strictVersion: false,
               cached: false,
               host: false,
               action: 'share',
+            },
+            {
+              version: '4.5.6',
+              file: 'http://my.service/mfe2/dep-a.js',
+              requiredVersion: '~4.5.1',
+              strictVersion: false,
+              cached: false,
+              host: false,
+              action: 'override',
             },
           ],
         },

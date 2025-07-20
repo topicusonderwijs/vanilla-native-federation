@@ -1,17 +1,18 @@
 import { createProcessRemoteEntries } from './process-remote-entries';
-import { ForProcessingRemoteEntries } from './driver-ports/for-processing-remote-entries.port';
-import { DrivingContract } from './driving-ports/driving.contract';
-import { LoggingConfig } from './config/log.contract';
+import { ForProcessingRemoteEntries } from '../../driver-ports/init/for-processing-remote-entries.port';
+import { DrivingContract } from '../../driving-ports/driving.contract';
+import { LoggingConfig } from '../../config/log.contract';
 import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
 import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
 import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-externals.repository.mock';
 import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
 import { SharedVersion, Version } from 'lib/1.domain/externals/version.contract';
 import { Optional } from 'lib/utils/optional';
+import { ModeConfig } from 'lib/2.app/config/mode.contract';
 
 describe('createProcessRemoteEntries', () => {
   let processRemoteEntries: ForProcessingRemoteEntries;
-  let mockConfig: LoggingConfig;
+  let mockConfig: LoggingConfig & ModeConfig;
   let mockAdapters: Pick<
     DrivingContract,
     'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
@@ -25,7 +26,12 @@ describe('createProcessRemoteEntries', () => {
         error: jest.fn(),
         level: 'debug',
       },
-    } as LoggingConfig;
+      profile: {
+        latestSharedExternal: false,
+        skipCachedRemotes: 'never',
+      },
+      strict: false,
+    } as LoggingConfig & ModeConfig;
 
     mockAdapters = {
       remoteInfoRepo: mockRemoteInfoRepository(),
@@ -286,9 +292,6 @@ describe('createProcessRemoteEntries', () => {
       await processRemoteEntries(remoteEntries);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalledTimes(1);
-      expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        "[remote][http://my.service/mfe1/][dep-a] Shared version '1.2.3' already exists, skipping version."
-      );
     });
 
     it('should not skip shared external if in cache, but new version is from host remoteEntry', async () => {
@@ -387,9 +390,6 @@ describe('createProcessRemoteEntries', () => {
       await processRemoteEntries(remoteEntries);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalledTimes(1);
-      expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        "[host][http://my.service/mfe1/][dep-a] Shared version '1.2.3' already exists, skipping version."
-      );
     });
   });
 
