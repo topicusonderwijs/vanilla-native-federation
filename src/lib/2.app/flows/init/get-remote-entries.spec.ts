@@ -52,8 +52,8 @@ describe('createGetRemoteEntries', () => {
   });
 
   describe('fetching remote entries', () => {
-    it('should fetch host and remote entries when given a manifest', async () => {
-      const result = await getRemoteEntries(MOCK_MANIFEST());
+    it('should fetch remote entries when given a manifest', async () => {
+      const actual = await getRemoteEntries(MOCK_MANIFEST());
 
       expect(mockAdapters.manifestProvider.provide).toHaveBeenCalledWith(MOCK_MANIFEST());
       expect(mockAdapters.remoteEntryProvider.provide).toHaveBeenCalledWith(
@@ -63,28 +63,11 @@ describe('createGetRemoteEntries', () => {
         `${MOCK_REMOTE_ENTRY_SCOPE_II_URL()}remoteEntry.json`
       );
 
-      expect(result).toEqual([MOCK_REMOTE_ENTRY_I(), MOCK_REMOTE_ENTRY_II()]);
-    });
-
-    it('should return a list of remoteEntry objects', async () => {
-      const result = await getRemoteEntries(MOCK_MANIFEST());
-
-      expect(result).toEqual([MOCK_REMOTE_ENTRY_I(), MOCK_REMOTE_ENTRY_II()]);
-    });
-
-    it('should fetch manifest from URL when given a string', async () => {
-      const manifestUrl = 'http://my.service/manifest.json';
-
-      const result = await getRemoteEntries(manifestUrl);
-
-      expect(mockAdapters.manifestProvider.provide).toHaveBeenCalledWith(manifestUrl);
-
-      expect(result).toEqual([MOCK_REMOTE_ENTRY_I(), MOCK_REMOTE_ENTRY_II()]);
+      expect(actual).toEqual([MOCK_REMOTE_ENTRY_I(), MOCK_REMOTE_ENTRY_II()]);
     });
 
     it('should use empty manifest when no argument is provided', async () => {
       await getRemoteEntries(undefined as any);
-
       expect(mockAdapters.manifestProvider.provide).toHaveBeenCalledWith({});
     });
 
@@ -93,47 +76,57 @@ describe('createGetRemoteEntries', () => {
 
       expect(mockConfig.log.debug).toHaveBeenNthCalledWith(
         1,
-        `Fetched 'team/mfe1' from 'http://my.service/mfe1/remoteEntry.json', exposing: [{"key":"./wc-comp-a","outFileName":"component-a.js"}]`
+        `[1] Fetched 'team/mfe1' from 'http://my.service/mfe1/remoteEntry.json', exposing: [{"key":"./wc-comp-a","outFileName":"component-a.js"}]`
       );
 
       expect(mockConfig.log.debug).toHaveBeenNthCalledWith(
         2,
-        `Fetched 'team/mfe2' from 'http://my.service/mfe2/remoteEntry.json', exposing: [{"key":"./wc-comp-b","outFileName":"component-b.js"},{"key":"./wc-comp-c","outFileName":"component-c.js"}]`
+        `[1] Fetched 'team/mfe2' from 'http://my.service/mfe2/remoteEntry.json', exposing: [{"key":"./wc-comp-b","outFileName":"component-b.js"},{"key":"./wc-comp-c","outFileName":"component-c.js"}]`
       );
+    });
+
+    it('should fetch manifest from URL when given a string', async () => {
+      const manifestUrl = 'http://my.service/manifest.json';
+
+      const actual = await getRemoteEntries(manifestUrl);
+
+      expect(mockAdapters.manifestProvider.provide).toHaveBeenCalledWith(manifestUrl);
+
+      expect(actual).toEqual([MOCK_REMOTE_ENTRY_I(), MOCK_REMOTE_ENTRY_II()]);
     });
   });
 
-  describe('with host remoteEntry', () => {
+  describe('inclusion of host remoteEntry', () => {
     it('should process hostRemoteEntry if defined in config', async () => {
       mockConfig.hostRemoteEntry = {
         name: 'host',
         url: `${MOCK_HOST_REMOTE_ENTRY_SCOPE_URL()}remoteEntry.json`,
       };
-      const result = await getRemoteEntries(MOCK_MANIFEST());
+      const actual = await getRemoteEntries(MOCK_MANIFEST());
 
-      expect(result).toEqual([
+      expect(actual).toEqual([
         MOCK_REMOTE_ENTRY_I(),
         MOCK_REMOTE_ENTRY_II(),
         MOCK_HOST_REMOTE_ENTRY(),
       ]);
-      expect(result[0]!.host).toBeUndefined();
-      expect(result[1]!.host).toBeUndefined();
-      expect(result[2]!.host).toBe(true);
+      expect(actual[0]!.host).toBeUndefined();
+      expect(actual[1]!.host).toBeUndefined();
+      expect(actual[2]!.host).toBe(true);
     });
 
-    it('should process hostRemoteEntry with cacheTag if defined in config', async () => {
+    it('should add a cacheTag if defined in config', async () => {
       mockConfig.hostRemoteEntry = {
         name: 'host',
         url: `${MOCK_HOST_REMOTE_ENTRY_SCOPE_URL()}remoteEntry.json`,
         cacheTag: '123abc',
       };
-      const result = await getRemoteEntries(MOCK_MANIFEST());
+      const actual = await getRemoteEntries(MOCK_MANIFEST());
 
       expect(mockAdapters.remoteEntryProvider.provide).toHaveBeenCalledWith(
         `${MOCK_HOST_REMOTE_ENTRY_SCOPE_URL()}remoteEntry.json?cacheTag=123abc`
       );
 
-      expect(result).toEqual([
+      expect(actual).toEqual([
         MOCK_REMOTE_ENTRY_I(),
         MOCK_REMOTE_ENTRY_II(),
         MOCK_HOST_REMOTE_ENTRY(),
@@ -145,22 +138,24 @@ describe('createGetRemoteEntries', () => {
         name: 'newHostName',
         url: `${MOCK_HOST_REMOTE_ENTRY_SCOPE_URL()}remoteEntry.json`,
       };
-      const result = await getRemoteEntries({});
+      const actual = await getRemoteEntries({});
 
-      expect(result).toEqual([{ ...MOCK_HOST_REMOTE_ENTRY(), name: 'newHostName' }]);
+      expect(actual).toEqual([{ ...MOCK_HOST_REMOTE_ENTRY(), name: 'newHostName' }]);
     });
   });
 
   describe('handling existing remotes', () => {
     it('should not skip fetching remotes that exist in the repository when disabled in config', async () => {
+      mockConfig.profile.skipCachedRemotes = false;
+
       // Setup storage to contain one of the remotes
       mockAdapters.remoteInfoRepo.contains = jest
         .fn()
         .mockImplementation(name => name === 'team/mfe1');
 
-      const result = await getRemoteEntries(MOCK_MANIFEST());
+      const actual = await getRemoteEntries(MOCK_MANIFEST());
 
-      expect(result).toEqual([MOCK_REMOTE_ENTRY_I(), MOCK_REMOTE_ENTRY_II()]);
+      expect(actual).toEqual([MOCK_REMOTE_ENTRY_I(), MOCK_REMOTE_ENTRY_II()]);
     });
 
     it('should skip fetching remotes that exist in the repository when enabled in config', async () => {
@@ -170,9 +165,9 @@ describe('createGetRemoteEntries', () => {
         .fn()
         .mockImplementation(name => name === 'team/mfe1');
 
-      const result = await getRemoteEntries(MOCK_MANIFEST());
+      const actual = await getRemoteEntries(MOCK_MANIFEST());
 
-      expect(result).toEqual([MOCK_REMOTE_ENTRY_II()]);
+      expect(actual).toEqual([MOCK_REMOTE_ENTRY_II()]);
 
       expect(mockConfig.log.debug).toHaveBeenCalledWith(
         expect.stringContaining("Found remote 'team/mfe1' in storage, omitting fetch.")
@@ -192,12 +187,12 @@ describe('createGetRemoteEntries', () => {
         return Promise.reject(new NFError(`Failed to fetch remoteEntry from ${url}`));
       });
 
-      const result = await getRemoteEntries(MOCK_MANIFEST());
+      const actual = await getRemoteEntries(MOCK_MANIFEST());
 
-      expect(result).toEqual([MOCK_REMOTE_ENTRY_I()]);
+      expect(actual).toEqual([MOCK_REMOTE_ENTRY_I()]);
 
-      expect(mockConfig.log.warn).toHaveBeenCalledWith(
-        'Failed to fetch remoteEntry.',
+      expect(mockConfig.log.debug).toHaveBeenCalledWith(
+        '[init][ERR] Failed to fetch remoteEntry.',
         expect.any(NFError)
       );
     });
@@ -216,8 +211,8 @@ describe('createGetRemoteEntries', () => {
         new NFError('Could not fetch remoteEntry.')
       );
 
-      expect(mockConfig.log.warn).toHaveBeenCalledWith(
-        'Failed to fetch remoteEntry.',
+      expect(mockConfig.log.debug).toHaveBeenCalledWith(
+        '[init][ERR] Failed to fetch remoteEntry.',
         expect.any(NFError)
       );
     });
@@ -231,8 +226,8 @@ describe('createGetRemoteEntries', () => {
         new NFError('Could not fetch manifest.')
       );
 
-      expect(mockConfig.log.warn).toHaveBeenCalledWith(
-        'Failed to fetch manifest.',
+      expect(mockConfig.log.debug).toHaveBeenCalledWith(
+        '[1][ERR] Failed to fetch manifest.',
         expect.any(NFError)
       );
     });

@@ -291,8 +291,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
     }));
 
     await expect(generateImportMap()).rejects.toEqual(new NFError('Could not create ImportMap.'));
-    expect(mockConfig.log.error).toHaveBeenCalledWith(
-      'Singleton external dep-a has multiple shared versions.'
+    expect(mockConfig.log.debug).toHaveBeenCalledWith(
+      '[4][dep-a] Shared external has multiple shared versions.'
     );
   });
 });

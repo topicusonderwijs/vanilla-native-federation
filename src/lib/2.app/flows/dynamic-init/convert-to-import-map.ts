@@ -10,7 +10,7 @@ export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingT
     try {
       addExternals(remoteEntry, importMap);
       addRemoteInfos(remoteEntry, importMap);
-      log.debug('Updated importMap:', importMap);
+      log.debug('[10] Updated importMap:', importMap);
       return Promise.resolve(importMap);
     } catch (e) {
       return Promise.reject(e);

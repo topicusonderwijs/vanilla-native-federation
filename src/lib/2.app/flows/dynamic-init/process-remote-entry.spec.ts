@@ -207,8 +207,8 @@ describe('processRemoteEntry', () => {
 
     const actual = await processRemoteEntry({ entry: remoteEntryIn, actions });
 
-    expect(mockConfig.log.warn).toHaveBeenCalledWith(
-      `[dynamic][team/mfe1] No action found for shared external 'dep-a'.`
+    expect(mockConfig.log.debug).toHaveBeenCalledWith(
+      `[9][team/mfe1] No action found for shared external 'dep-a'.`
     );
     expect(actual).toEqual(remoteEntryOut);
   });

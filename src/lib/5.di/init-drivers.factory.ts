@@ -16,6 +16,6 @@ export const createInitDrivers = (
   processRemoteEntries: createProcessRemoteEntries(config, adapters),
   determineSharedExternals: createDetermineSharedExternals(config, adapters),
   generateImportMap: createGenerateImportMap(config, adapters),
-  commitChanges: createCommitChanges(adapters),
+  commitChanges: createCommitChanges(config, adapters),
   exposeModuleLoader: createExposeModuleLoader(config, adapters),
 });

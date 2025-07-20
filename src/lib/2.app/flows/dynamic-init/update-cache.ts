@@ -89,14 +89,14 @@ export function createUpdateCache(
       ports.versionCheck.isCompatible(sharedVersion.version, remoteEntryVersion.requiredVersion);
 
     if (!isCompabible && remoteEntryVersion.strictVersion) {
+      config.log.debug(
+        `[8][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Is not compatible with existing [${remoteEntryVersion.packageName}@${sharedVersion!.version}] requiredRange '${sharedVersion!.requiredVersion}'`
+      );
       if (config.strict) {
         throw new NFError(
-          `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Is not compatible with range '${sharedVersion!.requiredVersion}'`
+          `${scope}.${remoteEntryVersion.packageName}@${remoteEntryVersion.version} Is not compatible.`
         );
       }
-      config.log.warn(
-        `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Is not compatible with range '${sharedVersion!.requiredVersion}'`
-      );
     }
 
     let action: SharedVersionAction = 'share';

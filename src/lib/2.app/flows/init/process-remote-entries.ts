@@ -25,12 +25,14 @@ export function createProcessRemoteEntries(
    * @returns Promise<void>
    */
   return remoteEntries => {
-    if (config.log.level === 'debug') logStorageStatus('Storage: before processing remoteEntries');
+    if (config.log.level === 'debug')
+      logStorageStatus('[2] Storage: before processing remoteEntries');
     remoteEntries.forEach(remoteEntry => {
       addRemoteInfoToStorage(remoteEntry);
       addExternalsToStorage(remoteEntry);
     });
-    if (config.log.level === 'debug') logStorageStatus('Storage: after processing remoteEntries');
+    if (config.log.level === 'debug')
+      logStorageStatus('[2] Storage: after processing remoteEntries');
 
     return Promise.resolve();
   };
@@ -77,13 +79,13 @@ export function createProcessRemoteEntries(
     if (~matchingVersionIDX) {
       if (cached[matchingVersionIDX]!.host || !remoteEntry?.host) {
         config.log.debug(
-          `[${remoteEntry?.host ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, skipping version.`
+          `[2][${remoteEntry?.host ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, skipping version.`
         );
         return;
       }
       cached.splice(matchingVersionIDX, 1);
       config.log.debug(
-        `[${remoteEntry?.host ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, replacing version.`
+        `[2][${remoteEntry?.host ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, replacing version.`
       );
     }
 

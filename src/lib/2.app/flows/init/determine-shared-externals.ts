@@ -46,14 +46,15 @@ export function createDetermineSharedExternals(
               sharedScope
             )
           );
-        config.log.debug('Processed shared externals', sharedExternals);
-      } catch (err: unknown) {
-        config.log.error('Failed to determine shared externals in scope ' + sharedScope, err);
+        config.log.debug('[3] determined shared externals', sharedExternals);
+      } catch (err) {
         config.log.debug(
-          'Currently processed shared externals in scope ' + sharedScope,
+          `[3][ERR][${sharedScope}] failed to determine shared externals, state:`,
           sharedExternals
         );
-        return Promise.reject(new NFError('Failed to determine shared externals.'));
+        return Promise.reject(
+          new NFError(`Could not determine shared externals in scope ${sharedScope}.`, err as Error)
+        );
       }
     }
     return Promise.resolve();
@@ -102,15 +103,13 @@ export function createDetermineSharedExternals(
         return;
       }
 
-      if (config.strict && v.strictVersion) {
-        throw new NFError(
-          `[${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`
-        );
-      }
-
-      config.log.warn(
-        `[${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`
+      config.log.debug(
+        `[3][${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`
       );
+
+      if (config.strict && v.strictVersion) {
+        throw new NFError('Could not determine shared externals, incompatible version found.');
+      }
       v.action = v.strictVersion ? 'scope' : 'skip';
     });
 

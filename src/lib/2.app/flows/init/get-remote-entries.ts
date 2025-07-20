@@ -27,7 +27,7 @@ export function createGetRemoteEntries(
     ports.manifestProvider
       .provide(remotesOrManifestUrl)
       .catch(err => {
-        config.log.warn(`Failed to fetch manifest.`, err);
+        config.log.debug(`[1][ERR] Failed to fetch manifest.`, err);
         return Promise.reject(new NFError(`Could not fetch manifest.`));
       })
       .then(addHostRemoteEntry)
@@ -61,7 +61,7 @@ export function createGetRemoteEntries(
     remoteEntryUrl: RemoteEntryUrl
   ): Promise<RemoteEntry | false> {
     if (shouldSkipCachedRemote(remoteName)) {
-      config.log.debug(`Found remote '${remoteName}' in storage, omitting fetch.`);
+      config.log.debug(`[1] Found remote '${remoteName}' in storage, omitting fetch.`);
       return false;
     }
 
@@ -84,7 +84,7 @@ export function createGetRemoteEntries(
     }
 
     config.log.debug(
-      `Fetched '${remoteEntry.name}' from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`
+      `[1] Fetched '${remoteEntry.name}' from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`
     );
     validateRemoteEntryName(remoteEntry, expectedRemoteName);
 
@@ -94,13 +94,13 @@ export function createGetRemoteEntries(
   function validateRemoteEntryName(remoteEntry: RemoteEntry, expectedName: string): void {
     if (remoteEntry.name !== expectedName) {
       config.log.warn(
-        `Fetched remote '${remoteEntry.name}' does not match requested '${expectedName}'.`
+        `[1] Fetched remote '${remoteEntry.name}' does not match requested '${expectedName}'.`
       );
     }
   }
 
   async function handleRemoteEntryFetchError(error: unknown): Promise<false> {
-    config.log.warn('Failed to fetch remoteEntry.', error);
+    config.log.debug('[init][ERR] Failed to fetch remoteEntry.', error);
 
     if (config.strict) {
       throw new NFError('Could not fetch remoteEntry.');

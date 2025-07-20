@@ -5,15 +5,26 @@ import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repos
 import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
 import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-externals.repository.mock';
 import { mockBrowser } from 'lib/6.mocks/adapters/browser.mock';
+import { LoggingConfig } from '.';
 
 describe('createCommitChanges', () => {
   let commitChanges: ForCommittingChanges;
+  let mockConfig: LoggingConfig;
   let mockAdapters: Pick<
     DrivingContract,
     'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo' | 'browser'
   >;
 
   beforeEach(() => {
+    mockConfig = {
+      log: {
+        debug: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+        level: 'debug',
+      },
+    } as LoggingConfig;
+
     mockAdapters = {
       remoteInfoRepo: mockRemoteInfoRepository(),
       sharedExternalsRepo: mockSharedExternalsRepository(),
@@ -21,7 +32,7 @@ describe('createCommitChanges', () => {
       browser: mockBrowser(),
     };
 
-    commitChanges = createCommitChanges(mockAdapters);
+    commitChanges = createCommitChanges(mockConfig, mockAdapters);
   });
 
   it('should persist all made changes in the repositories', async () => {

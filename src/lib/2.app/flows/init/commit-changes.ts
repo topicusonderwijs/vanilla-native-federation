@@ -1,8 +1,10 @@
 import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { ForCommittingChanges } from '../../driver-ports/init/for-committing-changes.port';
 import type { ImportMap } from 'lib/1.domain/import-map/import-map.contract';
+import type { LoggingConfig } from 'lib/2.app/config';
 
 export function createCommitChanges(
+  config: LoggingConfig,
   ports: Pick<
     DrivingContract,
     'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo' | 'browser'
@@ -24,6 +26,7 @@ export function createCommitChanges(
 
   function addToBrowser(importMap: ImportMap) {
     ports.browser.setImportMap(importMap);
+    config.log.debug('[5] Added import map to browser.', importMap);
     return importMap;
   }
 

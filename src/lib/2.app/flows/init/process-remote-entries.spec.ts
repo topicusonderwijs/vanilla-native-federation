@@ -287,7 +287,7 @@ describe('createProcessRemoteEntries', () => {
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalledTimes(1);
       expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        '[remote][http://my.service/mfe1/][dep-a@1.2.3] Shared version already exists, skipping version.'
+        '[2][remote][http://my.service/mfe1/][dep-a@1.2.3] Shared version already exists, skipping version.'
       );
     });
 
@@ -388,7 +388,7 @@ describe('createProcessRemoteEntries', () => {
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalledTimes(1);
       expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        '[host][http://my.service/mfe1/][dep-a@1.2.3] Shared version already exists, skipping version.'
+        '[2][host][http://my.service/mfe1/][dep-a@1.2.3] Shared version already exists, skipping version.'
       );
     });
   });

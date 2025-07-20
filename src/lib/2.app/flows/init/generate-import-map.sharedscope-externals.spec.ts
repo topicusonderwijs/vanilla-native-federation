@@ -429,8 +429,8 @@ describe('createGenerateImportMap (sharedScope-externals)', () => {
     });
 
     await expect(generateImportMap()).rejects.toEqual(new NFError('Could not create ImportMap.'));
-    expect(mockConfig.log.error).toHaveBeenCalledWith(
-      'ShareScope external custom-scope.dep-a has multiple shared versions.'
+    expect(mockConfig.log.debug).toHaveBeenCalledWith(
+      '[4][custom-scope.dep-a] ShareScope external has multiple shared versions.'
     );
   });
 
@@ -480,8 +480,8 @@ describe('createGenerateImportMap (sharedScope-externals)', () => {
         },
       },
     });
-    expect(mockConfig.log.warn).toHaveBeenCalledWith(
-      '[custom-scope][dep-a] shareScope has no override version.'
+    expect(mockConfig.log.debug).toHaveBeenCalledWith(
+      '[4][custom-scope][dep-a] shareScope has no override version, scoping override versions.'
     );
   });
 });

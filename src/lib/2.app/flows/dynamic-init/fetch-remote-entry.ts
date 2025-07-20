@@ -19,15 +19,17 @@ export function createGetRemoteEntry(
       const remoteEntry = await ports.remoteEntryProvider.provide(remoteEntryUrl);
 
       config.log.debug(
-        `[dynamic][${remoteEntry.name}] Fetched from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`
+        `[7][${remoteEntry.name}] Fetched from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`
       );
       if (!!remoteName && remoteEntry.name !== remoteName) {
-        config.log.warn(`[dynamic][${remoteEntry.name}] Does not match expected '${remoteName}'.`);
+        config.log.warn(
+          `remoteEntry '${remoteEntry.name}' Does not match expected '${remoteName}'.`
+        );
       }
       return remoteEntry;
     } catch (error: unknown) {
       throw new NFError(
-        `[dynamic][${remoteName ?? remoteEntryUrl}] Could not fetch remoteEntry.`,
+        `[${remoteName ?? remoteEntryUrl}] Could not fetch remoteEntry.`,
         error as Error
       );
     }

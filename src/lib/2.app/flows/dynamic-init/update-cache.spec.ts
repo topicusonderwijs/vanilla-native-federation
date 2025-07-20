@@ -428,7 +428,7 @@ describe('createProcessDynamicRemoteEntry', () => {
       };
 
       await expect(updateCache(remoteEntry)).rejects.toThrow(
-        `[dynamic][http://my.service/mfe1/][dep-a@1.2.3] Is not compatible with range '~2.2.1'`
+        `http://my.service/mfe1/.dep-a@1.2.3 Is not compatible.`
       );
     });
 

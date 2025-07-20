@@ -252,7 +252,7 @@ describe('createDetermineSharedExternals', () => {
       }));
 
       await expect(determineSharedExternals()).rejects.toEqual(
-        new NFError('Failed to determine shared externals.')
+        new NFError('Could not determine shared externals in scope __GLOBAL__.', expect.any(Error))
       );
     });
   });

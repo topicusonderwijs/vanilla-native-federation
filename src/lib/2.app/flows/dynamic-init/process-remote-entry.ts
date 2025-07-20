@@ -10,11 +10,11 @@ export function createProcessRemoteEntry({ log }: LoggingConfig): ForProcessingR
       shared: [],
       exposes: JSON.parse(JSON.stringify(entry.exposes)),
     };
-    log.debug(`[dynamic][${entry.name}] Processing actions:`, actions);
-    log.debug(`[dynamic][${entry.name}] Original remote entry:`, entry);
+    log.debug(`[8][${entry.name}] Processing actions:`, actions);
+    log.debug(`[8][${entry.name}] Original remote entry:`, entry);
     try {
       addExternals(processedEntry, entry.shared, actions);
-      log.debug(`[dynamic][${entry.name}] Processed remote entry:`, processedEntry);
+      log.debug(`[8][${entry.name}] Processed remote entry:`, processedEntry);
       return Promise.resolve(processedEntry);
     } catch (e) {
       return Promise.reject(e);
@@ -35,8 +35,8 @@ export function createProcessRemoteEntry({ log }: LoggingConfig): ForProcessingR
       }
 
       if (!actions[external.packageName]) {
-        log.warn(
-          `[dynamic][${entry.name}] No action found for shared external '${external.packageName}'.`
+        log.debug(
+          `[9][${entry.name}] No action found for shared external '${external.packageName}'.`
         );
         return;
       }
