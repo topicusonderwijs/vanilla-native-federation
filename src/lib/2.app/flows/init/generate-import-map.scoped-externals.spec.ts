@@ -26,7 +26,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
       strict: false,
       profile: {
         latestSharedExternal: false,
-        skipCachedRemotes: false,
+        skipCachedRemotes: 'never',
       },
     } as LoggingConfig & ModeConfig;
 

@@ -3,6 +3,7 @@ import type {
   LazyInitFederationResult,
   LoadRemoteModule,
 } from './1.domain/init-federation.contract';
+import type { RemoteEntry } from './1.domain/remote-entry/remote-entry.contract';
 import type { NFOptions } from './2.app/config/config.contract';
 import { CREATE_NF_APP } from './create-nf-app';
 import { NFError } from './native-federation.error';
@@ -33,23 +34,30 @@ const initFederation = (
         }),
       };
 
-      const initRemoteEntry = (remoteEntryUrl: string, remoteName?: string) =>
+      const processDynamicRemoteEntry = async (remoteEntry: RemoteEntry) => {
         dynamicInit
-          .getRemoteEntries(remoteEntryUrl, remoteName)
-          .then(dynamicInit.updateCache)
+          .updateCache(remoteEntry)
           .then(dynamicInit.processRemoteEntry)
           .then(dynamicInit.convertToImportMap)
-          .then(init.commitChanges)
+          .then(init.commitChanges);
+      };
+
+      const initRemoteEntry = async (
+        remoteEntryUrl: string,
+        remoteName?: string
+      ): Promise<LazyInitFederationResult> =>
+        dynamicInit
+          .getRemoteEntry(remoteEntryUrl, remoteName)
+          .then(entry => entry.map(processDynamicRemoteEntry).orElse(Promise.resolve()))
           .catch(e => {
             config.log.debug('Dynamic init failed:', e);
             if (config.strict) throw new NFError('Failed to initialize remote entry.');
-            else console.warn('Failed to initialize remote entry.');
-            return Promise.resolve();
+            else config.log.warn('Failed to initialize remote entry, continuing anyway.');
           })
           .then(() => ({
             ...output,
             initRemoteEntry,
-          })) as Promise<LazyInitFederationResult>;
+          }));
 
       return {
         ...output,

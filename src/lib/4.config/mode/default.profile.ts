@@ -1,4 +1,6 @@
-export const defaultProfile = {
+import type { ModeProfileConfig } from 'lib/2.app/config/mode.contract';
+
+export const defaultProfile: ModeProfileConfig = {
   latestSharedExternal: false,
-  skipCachedRemotes: false,
+  skipCachedRemotes: 'dynamic-only',
 };

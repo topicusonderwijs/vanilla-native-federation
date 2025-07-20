@@ -324,7 +324,7 @@ await initFederation(manifest, {
   // Custom profile
   profile: {
     latestSharedExternal: true, // Always use latest dependency versions
-    skipCachedRemotes: true, // Skip re-fetching known micro frontends
+    skipCachedRemotes: 'always', // Skip re-fetching known micro frontends
   },
 });
 ```

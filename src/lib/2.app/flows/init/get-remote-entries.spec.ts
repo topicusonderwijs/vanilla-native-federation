@@ -36,7 +36,7 @@ describe('createGetRemoteEntries', () => {
       },
       profile: {
         latestSharedExternal: false,
-        skipCachedRemotes: false,
+        skipCachedRemotes: 'never',
       },
       hostRemoteEntry: false,
       strict: false,
@@ -146,7 +146,7 @@ describe('createGetRemoteEntries', () => {
 
   describe('handling existing remotes', () => {
     it('should not skip fetching remotes that exist in the repository when disabled in config', async () => {
-      mockConfig.profile.skipCachedRemotes = false;
+      mockConfig.profile.skipCachedRemotes = 'never';
 
       // Setup storage to contain one of the remotes
       mockAdapters.remoteInfoRepo.contains = jest
@@ -159,7 +159,7 @@ describe('createGetRemoteEntries', () => {
     });
 
     it('should skip fetching remotes that exist in the repository when enabled in config', async () => {
-      mockConfig.profile.skipCachedRemotes = true;
+      mockConfig.profile.skipCachedRemotes = 'always';
 
       mockAdapters.remoteInfoRepo.contains = jest
         .fn()

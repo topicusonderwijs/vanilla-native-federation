@@ -135,11 +135,11 @@ export type ModeConfig = {
 
 ### Options:
 
-| Option                       | Default | Description                                                                                                                                                                                                                                           |
-| ---------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| strict                       | `false` | When enabled, the init function will throw an error if a remoteEntry could not be fetched or a version incompatibility within a shared external occurs.                                                                                               |
-| profile.latestSharedExternal | `false` | When enabled, the version resolver will prioritize using the latest version of a shared external over the most optimal version.                                                                                                                       |
-| profile.skipCachedRemotes    | `false` | When enabled, the library will skip the download/processing of remoteEntry of remotes that have already been cached. This can optimize the process but will prevent the library from updating the cache if a change was performed in the remoteEntry. |
+| Option                       | Default        | Description                                                                                                                                                                                                                                                                                                      |
+| ---------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| strict                       | `false`        | When enabled, the init function will throw an error if a remoteEntry could not be fetched or a version incompatibility within a shared external occurs.                                                                                                                                                          |
+| profile.latestSharedExternal | `false`        | When enabled, the version resolver will prioritize using the latest version of a shared external over the most optimal version.                                                                                                                                                                                  |
+| profile.skipCachedRemotes    | `dynamic-only` | When enabled, the library will skip the download/processing of remoteEntry of remotes that have already been cached. This can optimize the process but will prevent the library from updating the cache if a change was performed in the remoteEntry. Available options are `never`, `dynamic-only` and `always` |
 
 ### Example
 
@@ -149,7 +149,7 @@ import { noopLogger, consoleLogger } from 'vanilla-native-federation/options';
 
 initFederation('http://example.org/manifest.json', {
   strict: true,
-  profile: cachingProfile, // { latestShareExternal: false, skipCachedRemotes: true }
+  profile: cachingProfile, // { latestShareExternal: false, skipCachedRemotes: 'dynamic-only' }
 });
 ```
 

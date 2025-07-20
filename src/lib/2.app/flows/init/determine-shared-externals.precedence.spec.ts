@@ -25,7 +25,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
       },
       profile: {
         latestSharedExternal: false,
-        skipCachedRemotes: false,
+        skipCachedRemotes: 'never',
       },
       strict: false,
     } as LoggingConfig & ModeConfig;

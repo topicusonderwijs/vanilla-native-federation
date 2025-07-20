@@ -5,6 +5,8 @@ import type { LoggingConfig } from '../../config/log.contract';
 import { NFError } from 'lib/native-federation.error';
 import type { ModeConfig } from '../../config/mode.contract';
 import type { ForGettingRemoteEntry } from '../../driver-ports/dynamic-init/for-getting-remote-entry.port';
+import { Optional } from 'lib/utils/optional';
+import type { RemoteEntry } from 'lib/1.domain';
 
 export function createGetRemoteEntry(
   config: LoggingConfig & ModeConfig,
@@ -12,7 +14,8 @@ export function createGetRemoteEntry(
 ): ForGettingRemoteEntry {
   return async (remoteEntryUrl: RemoteEntryUrl, remoteName?: RemoteName) => {
     if (!!remoteName && shouldSkipCachedRemote(remoteName)) {
-      throw new NFError(`Found remote '${remoteName}' in storage, omitting fetch.`);
+      config.log.debug(`[7][${remoteName}] Skipped initialization of cached remote.`);
+      return Optional.empty<RemoteEntry>();
     }
 
     try {
@@ -26,7 +29,7 @@ export function createGetRemoteEntry(
           `remoteEntry '${remoteEntry.name}' Does not match expected '${remoteName}'.`
         );
       }
-      return remoteEntry;
+      return Optional.of(remoteEntry);
     } catch (error: unknown) {
       throw new NFError(
         `[${remoteName ?? remoteEntryUrl}] Could not fetch remoteEntry.`,
@@ -36,6 +39,8 @@ export function createGetRemoteEntry(
   };
 
   function shouldSkipCachedRemote(remoteName: RemoteName): boolean {
-    return config.profile.skipCachedRemotes && ports.remoteInfoRepo.contains(remoteName);
+    return (
+      config.profile.skipCachedRemotes !== 'never' && ports.remoteInfoRepo.contains(remoteName)
+    );
   }
 }

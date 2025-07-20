@@ -709,7 +709,7 @@ await initFederation(manifest, {
 
   // Skip cached remotes for performance
   profile: {
-    skipCachedRemotes: true,
+    skipCachedRemotes: 'always',
   },
 
   // Fail on version conflicts in any scope

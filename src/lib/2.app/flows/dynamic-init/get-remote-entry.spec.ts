@@ -1,4 +1,4 @@
-import { createGetRemoteEntry } from './fetch-remote-entry';
+import { createGetRemoteEntry } from './get-remote-entry';
 import { DrivingContract } from '../../driving-ports/driving.contract';
 import { mockRemoteEntryProvider } from 'lib/6.mocks/adapters/remote-entry-provider.mock';
 import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
@@ -26,7 +26,7 @@ describe('createGetRemoteEntry', () => {
       },
       profile: {
         latestSharedExternal: false,
-        skipCachedRemotes: false,
+        skipCachedRemotes: 'never',
       },
       hostRemoteEntry: false,
       strict: false,
@@ -51,7 +51,7 @@ describe('createGetRemoteEntry', () => {
         `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`
       );
 
-      expect(result).toEqual(MOCK_REMOTE_ENTRY_I());
+      expect(result.get()).toEqual(MOCK_REMOTE_ENTRY_I());
     });
 
     it('should throw error if remoteEntryProvider fails', async () => {
@@ -64,15 +64,19 @@ describe('createGetRemoteEntry', () => {
       ).rejects.toThrow('Could not fetch remoteEntry.');
     });
 
-    it('should skip fetching remote if it exists in repository and skipCachedRemotes is true', async () => {
-      mockConfig.profile.skipCachedRemotes = true;
+    it('should skip fetching remote if it exists in repository and skipCachedRemotes is always', async () => {
+      mockConfig.profile.skipCachedRemotes = 'always';
       mockAdapters.remoteInfoRepo.contains = jest.fn().mockReturnValue(true);
 
-      await expect(
-        getRemoteEntry(`${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`, 'team/mfe1')
-      ).rejects.toThrow(`Found remote 'team/mfe1' in storage, omitting fetch.`);
+      const result = await getRemoteEntry(
+        `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`,
+        'team/mfe1'
+      );
+      expect(mockAdapters.remoteInfoRepo.contains).toHaveBeenCalledWith('team/mfe1');
 
       expect(mockAdapters.remoteEntryProvider.provide).not.toHaveBeenCalled();
+
+      expect(result.isPresent()).toBe(false);
     });
 
     it('should log a warning if fetched remote name does not match requested name', async () => {
@@ -82,7 +86,7 @@ describe('createGetRemoteEntry', () => {
       );
 
       expect(mockConfig.log.warn).toHaveBeenCalledWith(
-        `remoteEntry '${result.name}' Does not match expected 'team/mfe2'.`
+        `remoteEntry '${result.get()?.name}' Does not match expected 'team/mfe2'.`
       );
     });
   });

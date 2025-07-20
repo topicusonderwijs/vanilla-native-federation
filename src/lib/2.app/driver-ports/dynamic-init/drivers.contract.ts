@@ -6,7 +6,7 @@ import type { DrivingContract } from 'lib/2.app/driving-ports/driving.contract';
 import type { ForProcessingRemoteEntry } from './for-processing-remote-entry';
 
 export type DynamicInitDriversContract = {
-  getRemoteEntries: ForGettingRemoteEntry;
+  getRemoteEntry: ForGettingRemoteEntry;
   updateCache: ForUpdatingCache;
   processRemoteEntry: ForProcessingRemoteEntry;
   convertToImportMap: ForConvertingToImportMap;

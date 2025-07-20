@@ -74,7 +74,9 @@ export function createGetRemoteEntries(
   }
 
   function shouldSkipCachedRemote(remoteName: RemoteName): boolean {
-    return config.profile.skipCachedRemotes && ports.remoteInfoRepo.contains(remoteName);
+    return (
+      config.profile.skipCachedRemotes === 'always' && ports.remoteInfoRepo.contains(remoteName)
+    );
   }
 
   function processRemoteEntry(remoteEntry: RemoteEntry, expectedRemoteName: string): RemoteEntry {
