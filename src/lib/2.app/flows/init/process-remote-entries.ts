@@ -3,9 +3,11 @@ import type { RemoteEntry, RemoteInfo, SharedInfo, SharedVersion, Version } from
 import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { LoggingConfig } from '../../config/log.contract';
 import * as _path from 'lib/utils/path';
+import type { ModeConfig } from 'lib/2.app/config/mode.contract';
+import { NFError } from 'lib/native-federation.error';
 
 export function createProcessRemoteEntries(
-  config: LoggingConfig,
+  config: LoggingConfig & ModeConfig,
   ports: Pick<
     DrivingContract,
     'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
@@ -55,6 +57,8 @@ export function createProcessRemoteEntries(
         config.log.warn(
           `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
         );
+        if (config.strict)
+          throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
         return;
       }
       if (external.singleton) {
@@ -78,9 +82,6 @@ export function createProcessRemoteEntries(
 
     if (~matchingVersionIDX) {
       if (cached[matchingVersionIDX]!.host || !remoteEntry?.host) {
-        config.log.debug(
-          `[2][${remoteEntry?.host ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, skipping version.`
-        );
         return;
       }
       cached.splice(matchingVersionIDX, 1);

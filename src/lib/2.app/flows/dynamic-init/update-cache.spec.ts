@@ -119,8 +119,8 @@ describe('createProcessDynamicRemoteEntry', () => {
       await updateCache(remoteEntry);
 
       expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
-      expect(mockConfig.log.warn).toHaveBeenCalledWith(
-        "[dynamic][team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
+      expect(mockConfig.log.debug).toHaveBeenCalledWith(
+        "[8][team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
       );
     });
   });
@@ -467,9 +467,6 @@ describe('createProcessDynamicRemoteEntry', () => {
       await updateCache(remoteEntry);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(0);
-      expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        '[dynamic][http://my.service/mfe1/][dep-a@1.2.3] Shared version already exists, skipping version.'
-      );
     });
 
     it('should skip a version with a bad version', async () => {
@@ -492,8 +489,8 @@ describe('createProcessDynamicRemoteEntry', () => {
       await updateCache(remoteEntry);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalled();
-      expect(mockConfig.log.warn).toHaveBeenCalledWith(
-        "[dynamic][team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
+      expect(mockConfig.log.debug).toHaveBeenCalledWith(
+        "[8][team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
       );
     });
   });

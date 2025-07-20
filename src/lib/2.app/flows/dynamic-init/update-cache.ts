@@ -48,9 +48,12 @@ export function createUpdateCache(
     const actions: SharedInfoActions = {};
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
-        config.log.warn(
-          `[dynamic][${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
+        config.log.debug(
+          `[8][${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
         );
+        if (config.strict)
+          throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
+
         return;
       }
       if (external.singleton) {
@@ -76,10 +79,6 @@ export function createUpdateCache(
       .orElse([]);
 
     if (~cachedVersions.findIndex(cache => cache.version === remoteEntryVersion.version)) {
-      config.log.debug(
-        `[dynamic][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Shared version already exists, skipping version.`
-      );
-
       return { action: 'skip' };
     }
 
