@@ -5,8 +5,6 @@ on:
 
 jobs:
   verify:
-    permissions:
-      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,9 +18,4 @@ jobs:
       - name: Code quality OK
         run: npm run lint
       - name: Tests OK
-        run: npm run test-ci
-      - name: Generating coverage badges
-        uses: jpb06/coverage-badges-action@latest
-        with:
-          branches: main
-          badges-icon: jest
+        run: npm run test

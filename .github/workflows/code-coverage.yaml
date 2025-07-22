@@ -1,0 +1,31 @@
+name: Generate code-coverage badge
+on:
+  push:
+    branches:
+      - main
+jobs:
+  generate-badges-on-custom-branch:
+    name: Generate badges on the badges branch
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+      - name: Dependencies
+        run: npm ci
+      - name: Delete remote badges branch
+        run: git push origin --delete badges
+      - name: Create badges branch
+        run: git checkout -b badges
+      - name: Tests
+        run: npm run test-ci
+      - name: Generating coverage badges
+        uses: jpb06/coverage-badges-action@latest
+        with:
+          branches: 'main'
+          target-branch: badges
+      - name: Push badges branch
+        run: git push origin badges
