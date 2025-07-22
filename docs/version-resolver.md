@@ -60,7 +60,8 @@ Import maps provide **scopes** and **shared scopes** as solutions for dependency
     "https://legacy-mfe.example.com/": {
       "react": "https://legacy-mfe.example.com/react@17.0.2.js"
     },
-    // Shared scope for a group of related micro frontends
+
+    // Linking multiple scopes to the same external can create a more fine-grained sharing of externals between a specific selectiion of remotes.
     "mfe1.example.com/": {
       "ui-library": "mfe1.example.com/ui-lib@3.0.0.js"
     },
@@ -75,9 +76,11 @@ Import maps provide **scopes** and **shared scopes** as solutions for dependency
 
 - **Global sharing**: Most micro frontends use React 18.2.0 and UI Library 2.1.0
 - **Individual scoping**: Legacy MFE gets its own React 17.0.2
-- **Shared scope grouping**: Design system MFEs share UI Library 3.0.0 among themselves
+- **sharedScope grouping**: Design system MFEs share UI Library 3.0.0.
 
-**The trade-off**: Each additional scope requires separate downloads, but shared scopes allow optimization within groups.
+**Specificity**:
+
+The order of precedence is based on the specificity of the scope, with the global import having the lowest precedence.
 
 ## Shared vs Scoped Dependencies
 
@@ -101,7 +104,7 @@ Dependencies marked as `singleton: true` are candidates for sharing:
 }
 ```
 
-**Result**: Grouped with other externals in the same shared scope for resolution (global scope if no sharedScope specified).
+**Result**: This dependency is a candidate to be placed in the imports object (in the importmap).
 
 ### Scoped externals (singleton: false)
 
@@ -120,7 +123,7 @@ Dependencies with `singleton: false` are always scoped to their individual remot
 }
 ```
 
-**Result**: Each micro frontend gets its own copy, no sharing occurs.
+**Result**: This external is placed in the scope of its remote. And therefore only available to that specific remote.
 
 ### Shared Scope Configuration
 
@@ -165,8 +168,8 @@ The `sharedScope` property creates logical groups for dependency resolution. Dep
 **How shared scopes work:**
 
 1. **Resolution**: Dependencies with the same `sharedScope` are grouped and resolved together
-2. **Sharing**: The chosen version is shared among all micro frontends in that logical group
-3. **Import Map**: Each micro frontend gets the shared version added to its individual scope in the final import map
+2. **Sharing**: The version within a logical group that is deemed to be most optimal for sharing is shared among all micro frontends in that logical group
+3. **Import Map**: Each micro frontend within the logical group gets the shared version added to its individual scope in the final import map
 
 ## Resolution Process
 

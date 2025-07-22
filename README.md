@@ -17,7 +17,7 @@ A lightweight **runtime orchestrator** for implementing micro frontends in non-S
 
 ### How it works
 
-The library runs in the browser to orchestrate the integration of micro frontends into plain HTML pages. While the main application can be server-rendered, the micro frontends are loaded dynamically as ES modules at runtime, providing the benefits of micro frontend architecture without requiring a full SPA framework for the host.
+The library runs in the browser to orchestrate the integration of micro frontends into plain HTML pages. While the main application can be server-rendered, the micro frontends are loaded as ES modules at runtime, providing the benefits of micro frontend architecture without requiring a full SPA framework for the host.
 
 ### Extends the Native Federation Ecosystem
 
@@ -57,7 +57,7 @@ Get up and running in under 2 minutes:
     </script>
 
     <!-- Include the runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@0.14.1/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@0.15.0/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -80,12 +80,12 @@ Your micro frontends are now loaded and ready to use. The runtime handles:
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@0.14.1/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.15.0/quickstart.mjs"></script>
 ```
 
 ## Advanced Usage
 
-The quickstart is intended for experimenting. For production environments it is recommended to use a custom orchestrator based on the vnf library, this gives more control over the initialization process and allows for custom logging implementations like Bugsnag or Sentry rather than the default consoleLogger:
+The quickstart is intended for experimenting. For production environments it is recommended to use a custom orchestrator based on the vnf library, this gives more control over the initialization process and allows for custom logging implementations like Bugsnag or Sentry rather than the default `consoleLogger`:
 
 ```javascript
 import { initFederation } from 'vanilla-native-federation';
@@ -122,9 +122,7 @@ const HeaderComponent = await loadRemoteModule('team/mfe2', './Header');
 
 ## Native Federation Ecosystem
 
-This library is part of the broader native federation ecosystem:
-
-| Package                                                                                                      | Purpose             | Best For                            |
+| This library is part of the broader native federation ecosystem:                                             | Purpose             | Best For                            |
 | ------------------------------------------------------------------------------------------------------------ | ------------------- | ----------------------------------- |
 | [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation)                       | Build toolchain     | Creating federated applications     |
 | [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime)       | SPA runtime         | React, Angular, Vue applications    |
@@ -133,8 +131,20 @@ This library is part of the broader native federation ecosystem:
 
 > 🔗 **Full compatibility** with standard remoteEntry.json format ensures seamless interoperability
 
+## Alternative orchestrators
+
+While this orchestrator focusses on compatibility and native-federation support. There are other orchestrators out there that provide support for other use cases:
+
+| Package                                                                                                | EcoSystem                                      | Description                                                                |
+| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------- | -------------------------------------------------------------------------- |
+| [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime) | Native federation                              | The default provided orchestrator for native federation                    |
+| [picard](https://github.com/picardjs/picard)                                                           | native-federation, module-federation and Piral | An agnostic orchestrator that focusses on compatibility between ecosystems |
+| [@module-federation/runtime](https://www.npmjs.com/package/@module-federation/runtime)                 | module federation                              | The orchestrator specifically for module federation                        |
+
 ## Browser Support
 
 - ✅ **Modern browsers**: Native import map support
-- ✅ **Legacy browsers**: Automatic polyfill with [es-module-shims](https://www.npmjs.com/package/es-module-shims)
-- ✅ **Framework agnostic**: Accepts React, Angular, Vue, Svelte, etc. _It is recommended to use webcomponents as remote modules to ensure maximum compatibility._
+- ✅ **Legacy browsers**: Available polyfils using [es-module-shims](https://www.npmjs.com/package/es-module-shims)
+- ✅ **Framework agnostic**: Accepts React, Angular, Vue, Svelte, etc.
+
+_It is recommended to use webcomponents as remote modules to ensure maximum compatibility._
