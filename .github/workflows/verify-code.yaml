@@ -1,7 +1,7 @@
 name: Verify library
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -13,8 +13,13 @@ jobs:
       - name: Dependencies OK
         run: npm ci
       - name: Library builds
-        run: npm run build 
+        run: npm run build
       - name: Code quality OK
         run: npm run lint
       - name: Tests OK
-        run: npm run test
+        run: npm run test-ci
+      - name: ⚙️ Generating coverage badges
+        uses: jpb06/coverage-badges-action@latest
+        with:
+          branches: main
+          badges-icon: jest

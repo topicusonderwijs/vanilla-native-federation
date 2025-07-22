@@ -1,17 +1,14 @@
 # vanilla-native-federation
 
-[![Verify library](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml/badge.svg)](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml)
-
-```
-$ npm install vanilla-native-federation
-```
-
 A lightweight **runtime orchestrator** for implementing micro frontends in non-SPA applications using native federation. This is an alternative runtime to [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), specifically designed for integrating micro frontends with minimal effort into traditional web applications built with technologies like PHP, ASP.NET, JSF, JSP, Ruby on Rails, or Django.
+
+[![Verify library](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml/badge.svg)](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml)
+![Coverage total](./badges/coverage-total.svg)
 
 ## Key Features
 
-- ✨ **Zero Framework Dependencies** - Works with any frontend/backend technology  
-- 🚀 **Simple Drop-in Integration** - Add micro frontends with a single script tag  
+- ✨ **Zero Framework Dependencies** - Works with any frontend/backend technology
+- 🚀 **Simple Drop-in Integration** - Add micro frontends with a single script tag
 - 💾 **Advanced Caching** - Optimized for page-reload scenarios with flexible storage options like localStorage and sessionStorage
 - 🔄 **Smart Dependency Resolution** - Automatic version conflict resolution and sharing based on the module federation mental model.
 - 🌐 **Full Ecosystem Compatibility** - Works with standard remoteEntry.json format.
@@ -35,40 +32,45 @@ Get up and running in under 2 minutes:
 ```html
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>My Application</title>
-        
-        <!-- Define your micro frontends -->
-        <script type="application/json" id="mfe-manifest">
-            {
-                "team/mfe1": "http://localhost:3000/remoteEntry.json",
-                "team/mfe2": "http://localhost:4000/remoteEntry.json"
-            }
-        </script>
-        
-        <!-- Handle loaded modules -->
-        <script>
-            window.addEventListener('mfe-loader-available', (e) => {
-                // Load your micro frontends
-                e.detail.loadRemoteModule("team/mfe1", "./Button");
-                e.detail.loadRemoteModule("team/mfe2", "./Header");
-            }, {once: true});
-        </script>
-        
-        <!-- Include the runtime -->
-        <script src="https://unpkg.com/vanilla-native-federation@0.14.1/quickstart.mjs"></script>
-    </head>
-    <body>
-        <!-- Use your loaded components -->
-        <my-header></my-header>
-        <my-button>Click me!</my-button>
-    </body>
+  <head>
+    <title>My Application</title>
+
+    <!-- Define your micro frontends -->
+    <script type="application/json" id="mfe-manifest">
+      {
+        "team/mfe1": "http://localhost:3000/remoteEntry.json",
+        "team/mfe2": "http://localhost:4000/remoteEntry.json"
+      }
+    </script>
+
+    <!-- Handle loaded modules -->
+    <script>
+      window.addEventListener(
+        'mfe-loader-available',
+        e => {
+          // Load your micro frontends
+          e.detail.loadRemoteModule('team/mfe1', './Button');
+          e.detail.loadRemoteModule('team/mfe2', './Header');
+        },
+        { once: true }
+      );
+    </script>
+
+    <!-- Include the runtime -->
+    <script src="https://unpkg.com/vanilla-native-federation@0.14.1/quickstart.mjs"></script>
+  </head>
+  <body>
+    <!-- Use your loaded components -->
+    <my-header></my-header>
+    <my-button>Click me!</my-button>
+  </body>
 </html>
 ```
 
 ### 2. That's it! 🎉
 
 Your micro frontends are now loaded and ready to use. The runtime handles:
+
 - ✅ Fetching and processing of remoteEntry.json files
 - ✅ Resolving and reuse of shared dependencies
 - ✅ Generating an optimized import map based on cached dependencies
@@ -83,21 +85,24 @@ Your micro frontends are now loaded and ready to use. The runtime handles:
 
 ## Advanced Usage
 
- The quickstart is intended for experimenting. For production environments it is recommended to use a custom orchestrator based on the vnf library, this gives more control over the initialization process and allows for custom logging implementations like Bugsnag or Sentry rather than the default consoleLogger:
+The quickstart is intended for experimenting. For production environments it is recommended to use a custom orchestrator based on the vnf library, this gives more control over the initialization process and allows for custom logging implementations like Bugsnag or Sentry rather than the default consoleLogger:
 
 ```javascript
 import { initFederation } from 'vanilla-native-federation';
 import { consoleLogger, localStorageEntry } from 'vanilla-native-federation/options';
 
-const { loadRemoteModule } = await initFederation({
-    "team/mfe1": "http://localhost:3000/remoteEntry.json",
-    "team/mfe2": "http://localhost:4000/remoteEntry.json"
-}, {
-    logLevel: "error",
+const { loadRemoteModule } = await initFederation(
+  {
+    'team/mfe1': 'http://localhost:3000/remoteEntry.json',
+    'team/mfe2': 'http://localhost:4000/remoteEntry.json',
+  },
+  {
+    logLevel: 'error',
     logger: consoleLogger,
     storage: localStorageEntry,
     // ... see docs for all available options
-});
+  }
+);
 
 // Load specific modules
 const ButtonComponent = await loadRemoteModule('team/mfe1', './Button');
@@ -108,23 +113,23 @@ const HeaderComponent = await loadRemoteModule('team/mfe2', './Header');
 
 ## Documentation
 
-| Guide | Description |
-|-------|-------------|
-| [🚀 Getting Started](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/getting-started.md) | Detailed setup instructions and examples |
-| [🏗️ Architecture](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/architecture.md) | Understanding the native federation domain |
-| [⚙️ Configuration](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/config.md) | Complete configuration reference |
-| [🔄 Version Resolution](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/version-resolver.md) | How dependency conflicts are resolved |
+| Guide                                                                                                                     | Description                                |
+| ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| [🚀 Getting Started](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/getting-started.md)     | Detailed setup instructions and examples   |
+| [🏗️ Architecture](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/architecture.md)           | Understanding the native federation domain |
+| [⚙️ Configuration](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/config.md)                | Complete configuration reference           |
+| [🔄 Version Resolution](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/version-resolver.md) | How dependency conflicts are resolved      |
 
 ## Native Federation Ecosystem
 
 This library is part of the broader native federation ecosystem:
 
-| Package | Purpose | Best For |
-|---------|---------|----------|
-| [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation) | Build toolchain | Creating federated applications |
-| [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime) | SPA runtime | React, Angular, Vue applications |
-| **vanilla-native-federation** | Alternative runtime | PHP, ASP.NET, JSF, JSP applications |
-| [@angular-architects/native-federation](https://www.npmjs.com/package/@angular-architects/native-federation) | Angular integration | Angular-specific features |
+| Package                                                                                                      | Purpose             | Best For                            |
+| ------------------------------------------------------------------------------------------------------------ | ------------------- | ----------------------------------- |
+| [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation)                       | Build toolchain     | Creating federated applications     |
+| [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime)       | SPA runtime         | React, Angular, Vue applications    |
+| **vanilla-native-federation**                                                                                | Alternative runtime | PHP, ASP.NET, JSF, JSP applications |
+| [@angular-architects/native-federation](https://www.npmjs.com/package/@angular-architects/native-federation) | Angular integration | Angular-specific features           |
 
 > 🔗 **Full compatibility** with standard remoteEntry.json format ensures seamless interoperability
 

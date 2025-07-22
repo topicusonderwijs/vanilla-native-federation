@@ -2,6 +2,7 @@ module.exports = {
   verbose: true,
   rootDir: '.',
   roots: ['<rootDir>/src'],
+  coverageReporters: ["json-summary"],
   testEnvironment: 'jsdom',
   testMatch: [
       '**/*.spec.ts'
