@@ -1,9 +1,12 @@
-name: Verify library
+name: Code checks
 on:
   push:
     branches: [main]
+
 jobs:
   verify:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +21,7 @@ jobs:
         run: npm run lint
       - name: Tests OK
         run: npm run test-ci
-      - name: ⚙️ Generating coverage badges
+      - name: Generating coverage badges
         uses: jpb06/coverage-badges-action@latest
         with:
           branches: main
