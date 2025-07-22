@@ -3,7 +3,7 @@
 A lightweight **runtime orchestrator** for implementing micro frontends in non-SPA applications using native federation. This is an alternative runtime to [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), specifically designed for integrating micro frontends with minimal effort into traditional web applications built with technologies like PHP, ASP.NET, JSF, JSP, Ruby on Rails, or Django.
 
 [![Verify library](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml/badge.svg)](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml)
-![Coverage total](./badges/coverage-total.svg)
+![Coverage total](https://raw.githubusercontent.com/topicusonderwijs/vanilla-native-federation/badges/badges/coverage-total.svg)
 
 ## Key Features
 
