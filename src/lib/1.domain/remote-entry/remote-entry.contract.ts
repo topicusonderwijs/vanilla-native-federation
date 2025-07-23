@@ -9,7 +9,7 @@ type SharedInfo = {
   version?: string;
   packageName: string;
   outFileName: string;
-  sharedScope?: string;
+  shareScope?: string;
   scopeOverride?: string;
   dev?: {
     entryPoint: string;

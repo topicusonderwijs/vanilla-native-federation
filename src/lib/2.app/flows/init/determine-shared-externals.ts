@@ -29,8 +29,8 @@ export function createDetermineSharedExternals(
    * @returns
    */
   return () => {
-    for (const sharedScope of ports.sharedExternalsRepo.getScopes()) {
-      const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
+    for (const shareScope of ports.sharedExternalsRepo.getScopes()) {
+      const sharedExternals = ports.sharedExternalsRepo.getAll(shareScope);
 
       try {
         Object.entries(sharedExternals)
@@ -41,19 +41,19 @@ export function createDetermineSharedExternals(
               setVersionActions(
                 name,
                 external,
-                ports.sharedExternalsRepo.isGlobalScope(sharedScope)
+                ports.sharedExternalsRepo.isGlobalScope(shareScope)
               ),
-              sharedScope
+              shareScope
             )
           );
         config.log.debug('[3] determined shared externals', sharedExternals);
       } catch (err) {
         config.log.debug(
-          `[3][ERR][${sharedScope}] failed to determine shared externals, state:`,
+          `[3][ERR][${shareScope}] failed to determine shared externals, state:`,
           sharedExternals
         );
         return Promise.reject(
-          new NFError(`Could not determine shared externals in scope ${sharedScope}.`, err as Error)
+          new NFError(`Could not determine shared externals in scope ${shareScope}.`, err as Error)
         );
       }
     }

@@ -21,7 +21,7 @@ export function createGenerateImportMap(
     const importMap: ImportMap = { imports: {} };
     try {
       addScopedExternals(importMap);
-      addSharedScopeExternals(importMap);
+      addshareScopeExternals(importMap);
       addGlobalSharedExternals(importMap);
       addRemoteInfos(importMap);
       return Promise.resolve(importMap);
@@ -60,18 +60,18 @@ export function createGenerateImportMap(
    * @param importMap
    * @returns
    */
-  function addSharedScopeExternals(importMap: ImportMap): ImportMap {
-    const sharedScopes = ports.sharedExternalsRepo.getScopes({ includeGlobal: false });
+  function addshareScopeExternals(importMap: ImportMap): ImportMap {
+    const shareScopes = ports.sharedExternalsRepo.getScopes({ includeGlobal: false });
 
-    for (const sharedScope of sharedScopes) {
-      processSharedScope(importMap, sharedScope);
+    for (const shareScope of shareScopes) {
+      processshareScope(importMap, shareScope);
     }
 
     return importMap;
   }
 
-  function processSharedScope(importMap: ImportMap, sharedScope: string): void {
-    const sharedExternals = ports.sharedExternalsRepo.getAll(sharedScope);
+  function processshareScope(importMap: ImportMap, shareScope: string): void {
+    const sharedExternals = ports.sharedExternalsRepo.getAll(shareScope);
 
     for (const [externalName, external] of Object.entries(sharedExternals)) {
       let override: SharedVersion | undefined | 'NOT_AVAILABLE' = undefined;
@@ -84,7 +84,7 @@ export function createGenerateImportMap(
 
         if (version.action === 'override') {
           if (!override) {
-            override = findOverride(external, sharedScope, externalName) ?? 'NOT_AVAILABLE';
+            override = findOverride(external, shareScope, externalName) ?? 'NOT_AVAILABLE';
           }
           if (override !== 'NOT_AVAILABLE') {
             targetFile = override.file;
@@ -94,17 +94,17 @@ export function createGenerateImportMap(
 
         addToScope(importMap, _path.getScope(version.file), { [externalName]: targetFile });
       }
-      ports.sharedExternalsRepo.addOrUpdate(externalName, external, sharedScope);
+      ports.sharedExternalsRepo.addOrUpdate(externalName, external, shareScope);
     }
   }
 
   function findOverride(
     external: SharedExternal,
-    sharedScope: string,
+    shareScope: string,
     externalName: string
   ): SharedVersion | undefined {
     const sharedVersions = external.versions.filter(v => v.action === 'share');
-    const scopedExternalName = `${sharedScope}.${externalName}`;
+    const scopedExternalName = `${shareScope}.${externalName}`;
 
     if (sharedVersions.length > 1) {
       handleMultipleSharedVersions(scopedExternalName);
@@ -112,13 +112,11 @@ export function createGenerateImportMap(
 
     if (sharedVersions.length < 1) {
       if (config.strict) {
-        config.log.debug(
-          `[4][${sharedScope}][${externalName}] shareScope has no override version.`
-        );
+        config.log.debug(`[4][${shareScope}][${externalName}] shareScope has no override version.`);
         throw new NFError('Could not create ImportMap.');
       }
       config.log.debug(
-        `[4][${sharedScope}][${externalName}] shareScope has no override version, scoping override versions.`
+        `[4][${shareScope}][${externalName}] shareScope has no override version, scoping override versions.`
       );
     }
 

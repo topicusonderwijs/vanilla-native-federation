@@ -221,7 +221,7 @@ describe('createProcessRemoteEntries', () => {
               version: '1.2.3',
               requiredVersion: '~1.2.1',
               strictVersion: false,
-              sharedScope: 'custom-scope',
+              shareScope: 'custom-scope',
               singleton: true,
               packageName: 'dep-a',
               outFileName: 'dep-a.js',

@@ -2,7 +2,7 @@ import { createSharedExternalsRepository } from './shared-externals.repository';
 import {
   GLOBAL_SCOPE,
   SharedExternals,
-  SharedScope,
+  shareScope,
 } from 'lib/1.domain/externals/external.contract';
 import { SharedVersion } from 'lib/1.domain/externals/version.contract';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
@@ -50,7 +50,7 @@ describe('createSharedExternalsRepository', () => {
     it('should return empty object if no shared deps', () => {
       const { externalsRepo } = setupWithCache({});
 
-      const actual: SharedScope = externalsRepo.getAll();
+      const actual: shareScope = externalsRepo.getAll();
 
       expect(actual).toEqual({});
     });
@@ -65,7 +65,7 @@ describe('createSharedExternalsRepository', () => {
         },
       });
 
-      const actual: SharedScope = externalsRepo.getAll('custom-scope');
+      const actual: shareScope = externalsRepo.getAll('custom-scope');
 
       expect(actual).toEqual({ 'dep-b': { dirty: false, versions: [MOCK_VERSION_III()] } });
     });
@@ -80,7 +80,7 @@ describe('createSharedExternalsRepository', () => {
         },
       });
 
-      const actual: SharedScope = externalsRepo.getAll();
+      const actual: shareScope = externalsRepo.getAll();
 
       expect(actual).toEqual({ 'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] } });
     });

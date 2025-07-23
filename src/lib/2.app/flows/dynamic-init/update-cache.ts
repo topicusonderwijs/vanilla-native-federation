@@ -60,7 +60,7 @@ export function createUpdateCache(
         const { action, sharedVersion } = addSharedExternal(scopeUrl, external);
         actions[external.packageName] = { action };
 
-        if (action === 'override' && external.sharedScope && sharedVersion?.file) {
+        if (action === 'override' && external.shareScope && sharedVersion?.file) {
           actions[external.packageName]!.override = _path.getScope(sharedVersion!.file);
         }
       } else {
@@ -75,7 +75,7 @@ export function createUpdateCache(
     remoteEntryVersion: SharedInfo
   ): { action: SharedVersionAction; sharedVersion?: SharedVersion } {
     const cachedVersions: SharedVersion[] = ports.sharedExternalsRepo
-      .tryGetVersions(remoteEntryVersion.packageName, remoteEntryVersion.sharedScope)
+      .tryGetVersions(remoteEntryVersion.packageName, remoteEntryVersion.shareScope)
       .orElse([]);
 
     if (~cachedVersions.findIndex(cache => cache.version === remoteEntryVersion.version)) {
@@ -129,7 +129,7 @@ export function createUpdateCache(
         dirty: false,
         versions: cachedVersions.sort((a, b) => ports.versionCheck.compare(b.version, a.version)),
       },
-      remoteEntryVersion.sharedScope
+      remoteEntryVersion.shareScope
     );
 
     return { action, sharedVersion };
