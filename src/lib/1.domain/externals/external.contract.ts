@@ -11,8 +11,8 @@ export type SharedExternal = {
   versions: SharedVersion[];
 };
 
-export type SharedScope = Record<string, SharedExternal>;
+export type shareScope = Record<string, SharedExternal>;
 
-export type SharedExternals = Record<string, SharedScope> & { [GLOBAL_SCOPE]: SharedScope };
+export type SharedExternals = Record<string, shareScope> & { [GLOBAL_SCOPE]: shareScope };
 
 export type ExternalsScope = Record<string, Version>;

@@ -75,7 +75,7 @@ export function createProcessRemoteEntries(
     remoteEntry?: RemoteEntry
   ): void {
     const cached: SharedVersion[] = ports.sharedExternalsRepo
-      .tryGetVersions(sharedInfo.packageName, sharedInfo.sharedScope)
+      .tryGetVersions(sharedInfo.packageName, sharedInfo.shareScope)
       .orElse([]);
 
     const matchingVersionIDX = cached.findIndex(c => c.version === sharedInfo.version);
@@ -106,7 +106,7 @@ export function createProcessRemoteEntries(
         dirty: true,
         versions: cached.sort((a, b) => ports.versionCheck.compare(b.version, a.version)),
       },
-      sharedInfo.sharedScope
+      sharedInfo.shareScope
     );
   }
 

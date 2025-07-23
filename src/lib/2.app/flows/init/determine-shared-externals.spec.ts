@@ -6,7 +6,7 @@ import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
 import { LoggingConfig } from '../../config/log.contract';
 import { ModeConfig } from '../../config/mode.contract';
 import { NFError } from 'lib/native-federation.error';
-import { SharedScope } from 'lib/1.domain';
+import { shareScope } from 'lib/1.domain';
 
 describe('createDetermineSharedExternals', () => {
   let determineSharedExternals: ForDeterminingSharedExternals;
@@ -264,7 +264,7 @@ describe('createDetermineSharedExternals', () => {
     });
 
     it('should set only one version to share when compatible, the rest to override', async () => {
-      mockAdapters.sharedExternalsRepo.getAll = jest.fn((): SharedScope => {
+      mockAdapters.sharedExternalsRepo.getAll = jest.fn((): shareScope => {
         return {
           'dep-a': {
             dirty: true,

@@ -76,7 +76,7 @@ Import maps provide **scopes** and **shared scopes** as solutions for dependency
 
 - **Global sharing**: Most micro frontends use React 18.2.0 and UI Library 2.1.0
 - **Individual scoping**: Legacy MFE gets its own React 17.0.2
-- **sharedScope grouping**: Design system MFEs share UI Library 3.0.0.
+- **shareScope grouping**: Design system MFEs share UI Library 3.0.0.
 
 **Specificity**:
 
@@ -127,7 +127,7 @@ Dependencies with `singleton: false` are always scoped to their individual remot
 
 ### Shared Scope Configuration
 
-The `sharedScope` property creates logical groups for dependency resolution. Dependencies with the same shared scope are resolved together, but the final import map still uses individual micro frontend scopes:
+The `shareScope` property creates logical groups for dependency resolution. Dependencies with the same shared scope are resolved together, but the final import map still uses individual micro frontend scopes:
 
 > Shared scope groups don't exist in import maps, therefore it is only popssible through using the same URL in multiple specific scopes.
 
@@ -137,7 +137,7 @@ The `sharedScope` property creates logical groups for dependency resolution. Dep
   "shared": [{
     "packageName": "ui-components",
     "singleton": true,
-    "sharedScope": "team-a",
+    "shareScope": "team-a",
     "version": "3.1.0",
     "requiredVersion": "^3.0.0"
   }]
@@ -148,7 +148,7 @@ The `sharedScope` property creates logical groups for dependency resolution. Dep
   "shared": [{
     "packageName": "ui-components",
     "singleton": true,
-    "sharedScope": "team-b",
+    "shareScope": "team-b",
     "version": "2.5.0",
     "requiredVersion": "^2.0.0"
   }]
@@ -167,7 +167,7 @@ The `sharedScope` property creates logical groups for dependency resolution. Dep
 
 **How shared scopes work:**
 
-1. **Resolution**: Dependencies with the same `sharedScope` are grouped and resolved together
+1. **Resolution**: Dependencies with the same `shareScope` are grouped and resolved together
 2. **Sharing**: The version within a logical group that is deemed to be most optimal for sharing is shared among all micro frontends in that logical group
 3. **Import Map**: Each micro frontend within the logical group gets the shared version added to its individual scope in the final import map
 
@@ -180,7 +180,7 @@ The resolver creates an import map based on the provided metadata (remoteEntry.j
 ```mermaid
 flowchart LR
     A[Process remoteEntry.json] --> B{singleton: true?}
-    B -->|Yes| C{Has sharedScope?}
+    B -->|Yes| C{Has shareScope?}
     B -->|No| D[Add to individual scoped externals]
     C -->|Yes| E[Add to shared scope externals]
     C -->|No| F[Add to global shared externals]
@@ -201,11 +201,11 @@ Global scope:
   react@18.1.0 (requires "^18.0.0", singleton: true)
 
 "team-a" scope:
-  ui-lib@3.1.0 (requires "^3.0.0", singleton: true, sharedScope: "team-a")
-  ui-lib@3.0.5 (requires "^3.0.0", singleton: true, sharedScope: "team-a")
+  ui-lib@3.1.0 (requires "^3.0.0", singleton: true, shareScope: "team-a")
+  ui-lib@3.0.5 (requires "^3.0.0", singleton: true, shareScope: "team-a")
 
 "team-b" scope:
-  ui-lib@2.5.0 (requires "^2.0.0", singleton: true, sharedScope: "team-b")
+  ui-lib@2.5.0 (requires "^2.0.0", singleton: true, shareScope: "team-b")
 
 Individual scopes:
   lodash@4.17.21 (singleton: false)
@@ -337,7 +337,7 @@ const DashboardComponent = await loadRemoteModule('team/dashboard', './Dashboard
     "packageName": "design-system",
     "version": "3.1.0",
     "singleton": true,
-    "sharedScope": "team-a"
+    "shareScope": "team-a"
   }]
 }
 ```
@@ -359,7 +359,7 @@ const DashboardComponent = await loadRemoteModule('team/dashboard', './Dashboard
       "version": "3.0.5",
       "requiredVersion": "^3.0.0",
       "singleton": true,
-      "sharedScope": "team-a"
+      "shareScope": "team-a"
     },
     {
       "packageName": "charts-library",
@@ -524,14 +524,14 @@ await initRemoteEntry(`http://variant-${variant}.com/remoteEntry.json`, 'test-mf
 
 - **Purpose**: Dependencies shared across all micro frontends
 - **Use case**: Core libraries like React, common utilities
-- **Configuration**: `singleton: true` without `sharedScope`
+- **Configuration**: `singleton: true` without `shareScope`
 - **Import map**: Added to the `imports` property
 
 ### Shared Scopes (custom names)
 
 - **Purpose**: Logical groupings for dependency resolution among specific micro frontends
 - **Use case**: Team-specific libraries, design systems, domain-specific tools
-- **Configuration**: `singleton: true` with `sharedScope: "scope-name"`
+- **Configuration**: `singleton: true` with `shareScope: "scope-name"`
 - **Import map**: Resolved version URL is added to each MFE's individual scope
 
 ### Individual Scopes (per micro frontend)
@@ -578,7 +578,7 @@ The user will be notified about the incompatible version, but the resolver will 
   "version": "4.16.5",
   "requiredVersion": "~4.16.0",
   "singleton": true,
-  "sharedScope": "team-a",
+  "shareScope": "team-a",
   "strictVersion": false
 }
 
@@ -596,7 +596,7 @@ The user will be notified about the incompatible version, but the resolver will 
   "version": "4.16.5",
   "requiredVersion": "~4.16.0",
   "singleton": true,
-  "sharedScope": "team-a",
+  "shareScope": "team-a",
   "strictVersion": true
 }
 
@@ -697,7 +697,7 @@ await initFederation(manifest, {
 });
 ```
 
-Host dependencies can specify `sharedScope` to control specific logical shared scopes, or omit it to control global sharing. Host versions always take precedence within their respective scope.
+Host dependencies can specify `shareScope` to control specific logical shared scopes, or omit it to control global sharing. Host versions always take precedence within their respective scope.
 
 ### Resolution Strategy
 

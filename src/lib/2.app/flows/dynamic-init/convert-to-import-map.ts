@@ -27,7 +27,7 @@ export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingT
       const externalScope = external.scopeOverride || remoteEntryScope;
 
       //  Shared externals
-      if (external.singleton && !external.sharedScope) {
+      if (external.singleton && !external.shareScope) {
         importMap.imports[external.packageName] = _path.join(externalScope, external.outFileName);
         return;
       }

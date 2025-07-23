@@ -18,23 +18,23 @@ const createSharedExternalsRepository = (config: StorageConfig): ForSharedExtern
   const _cache: SharedExternals = STORAGE.get()!;
 
   return {
-    getAll: function (sharedScope?: string) {
-      return { ..._cache[sharedScope ?? GLOBAL_SCOPE] };
+    getAll: function (shareScope?: string) {
+      return { ..._cache[shareScope ?? GLOBAL_SCOPE] };
     },
-    addOrUpdate: function (externalName: string, external: SharedExternal, sharedScope?: string) {
-      if (!_cache[sharedScope ?? GLOBAL_SCOPE]) _cache[sharedScope ?? GLOBAL_SCOPE] = {};
-      _cache[sharedScope ?? GLOBAL_SCOPE]![externalName] = external;
+    addOrUpdate: function (externalName: string, external: SharedExternal, shareScope?: string) {
+      if (!_cache[shareScope ?? GLOBAL_SCOPE]) _cache[shareScope ?? GLOBAL_SCOPE] = {};
+      _cache[shareScope ?? GLOBAL_SCOPE]![externalName] = external;
       return this;
     },
     getScopes: function (o = { includeGlobal: true }) {
       if (o.includeGlobal) return Object.keys(_cache);
       return Object.keys(_cache).filter(s => s !== GLOBAL_SCOPE);
     },
-    isGlobalScope: function (sharedScope?: string) {
-      return sharedScope === GLOBAL_SCOPE || sharedScope === undefined;
+    isGlobalScope: function (shareScope?: string) {
+      return shareScope === GLOBAL_SCOPE || shareScope === undefined;
     },
-    tryGetVersions: function (external: string, sharedScope?: string) {
-      return Optional.of(_cache[sharedScope ?? GLOBAL_SCOPE]?.[external]?.versions);
+    tryGetVersions: function (external: string, shareScope?: string) {
+      return Optional.of(_cache[shareScope ?? GLOBAL_SCOPE]?.[external]?.versions);
     },
     commit: function () {
       STORAGE.set(_cache);

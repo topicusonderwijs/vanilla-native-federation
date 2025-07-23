@@ -6,10 +6,10 @@ import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-exter
 import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
 import { LoggingConfig } from '../../config/log.contract';
 import { ModeConfig } from '../../config/mode.contract';
-import { GLOBAL_SCOPE, SharedScope } from 'lib/1.domain';
+import { GLOBAL_SCOPE, shareScope } from 'lib/1.domain';
 import { NFError } from 'lib/native-federation.error';
 
-describe('createGenerateImportMap (sharedScope-externals)', () => {
+describe('createGenerateImportMap (shareScope-externals)', () => {
   let generateImportMap: ForGeneratingImportMap;
   let mockAdapters: Pick<
     DrivingContract,
@@ -51,7 +51,7 @@ describe('createGenerateImportMap (sharedScope-externals)', () => {
   });
 
   it('should add the scoped externals to the right scope.', async () => {
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): SharedScope => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -97,7 +97,7 @@ describe('createGenerateImportMap (sharedScope-externals)', () => {
   });
 
   it('should skip externals with the action skip.', async () => {
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): SharedScope => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -140,7 +140,7 @@ describe('createGenerateImportMap (sharedScope-externals)', () => {
   });
 
   it('should override the skipped externals to the right scope.', async () => {
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): SharedScope => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -186,7 +186,7 @@ describe('createGenerateImportMap (sharedScope-externals)', () => {
   });
 
   it('should not override a scoped version.', async () => {
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): SharedScope => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -244,7 +244,7 @@ describe('createGenerateImportMap (sharedScope-externals)', () => {
   });
 
   it('should mark the used versions as cached.', async () => {
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): SharedScope => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -326,7 +326,7 @@ describe('createGenerateImportMap (sharedScope-externals)', () => {
   it('should warn the user about 2 shared versions and choose the most recent one if in non-strict mode.', async () => {
     mockConfig.strict = false;
 
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): SharedScope => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -389,7 +389,7 @@ describe('createGenerateImportMap (sharedScope-externals)', () => {
   it('should throw error if 2 shared versions and in strict mode when attempting an override.', async () => {
     mockConfig.strict = true;
 
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): SharedScope => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -437,7 +437,7 @@ describe('createGenerateImportMap (sharedScope-externals)', () => {
   it('should warn the user about 0 shared versions and scope all if in non-strict mode.', async () => {
     mockConfig.strict = false;
 
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): SharedScope => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {

@@ -9,6 +9,7 @@
 **Problem**: Server-side rendered applications (PHP, Ruby, Java, ASP.NET) need to integrate micro frontends that are built and deployed independently by different teams, while optimizing shared dependencies and avoiding version conflicts.
 
 **Solution**: `vanilla-native-federation` provides a runtime system that:
+
 - Discovers available micro frontends through manifest files
 - Resolves dependency conflicts automatically using semantic versioning
 - Generates optimized import maps for efficient browser loading
@@ -38,6 +39,7 @@ sequenceDiagram
 ```
 
 **In simple terms:**
+
 1. Your website asks "What micro frontends can I use?"
 2. Each micro frontend says "Here's what I offer and what I need"
 3. Your website figures out the most efficient way to load everything
@@ -51,13 +53,14 @@ The **manifest** serves as a registry that maps micro frontend names to their me
 
 ```json
 {
-    "shopping-cart": "https://ecommerce-team.com/remoteEntry.json",
-    "user-profile": "https://user-team.com/remoteEntry.json",
-    "payment-widget": "https://payments-team.com/remoteEntry.json"
+  "shopping-cart": "https://ecommerce-team.com/remoteEntry.json",
+  "user-profile": "https://user-team.com/remoteEntry.json",
+  "payment-widget": "https://payments-team.com/remoteEntry.json"
 }
 ```
 
 **Function:**
+
 - Maps logical names to remote entry endpoints
 - Enables decentralized deployment and discovery
 - Supports runtime composition of micro frontends
@@ -68,23 +71,24 @@ Each micro frontend provides a **remoteEntry.json** file that describes its avai
 
 ```json
 {
-    "name": "shopping-cart",
-    "exposes": [
-        {"key": "./CartButton", "outFileName": "cart-button.js"},
-        {"key": "./CartSummary", "outFileName": "cart-summary.js"}
-    ],
-    "shared": [
-        {
-            "packageName": "react",
-            "version": "18.2.0",
-            "requiredVersion": "^18.0.0",
-            "singleton": true
-        }
-    ]
+  "name": "shopping-cart",
+  "exposes": [
+    { "key": "./CartButton", "outFileName": "cart-button.js" },
+    { "key": "./CartSummary", "outFileName": "cart-summary.js" }
+  ],
+  "shared": [
+    {
+      "packageName": "react",
+      "version": "18.2.0",
+      "requiredVersion": "^18.0.0",
+      "singleton": true
+    }
+  ]
 }
 ```
 
 **Specification:**
+
 - **name**: The name of the remote
 - **exposes**: Available components for consumption
 - **shared**: Dependencies that can be shared with other micro frontends, also referred to as "externals".
@@ -94,7 +98,7 @@ Each micro frontend provides a **remoteEntry.json** file that describes its avai
 The system optimizes dependency sharing across multiple remotes/micro frontends. Consider three teams with React requirements:
 
 - **Team A**: Requires React 18.2.0
-- **Team B**: Requires React 18.1.0  
+- **Team B**: Requires React 18.1.0
 - **Team C**: Requires React 17.0.0 (legacy system)
 
 The resolution process:
@@ -114,14 +118,14 @@ The following sections detail the specific data formats and structures used thro
 ```mermaid
 graph TD
     A[**Manifest**<br />manifest.json] --> B[**Remote 1**<br />remoteEntry.json]
-    A --> C[**Remote 2**<br />remoteEntry.json] 
-    
+    A --> C[**Remote 2**<br />remoteEntry.json]
+
     B --> E[Component A]
     B --> F[Component B]
-    
+
     C --> G[Component C]
     C --> H[Component D]
-    
+
     B --> J[Dependencies]
     C --> K[Dependencies]
 
@@ -133,8 +137,8 @@ The manifest serves as the entry point, mapping micro frontend names to their me
 
 ```json
 {
-    "team/mfe1": "https://example.org/mfe1/remoteEntry.json",
-    "team/mfe2": "https://example.org/mfe2/remoteEntry.json" 
+  "team/mfe1": "https://example.org/mfe1/remoteEntry.json",
+  "team/mfe2": "https://example.org/mfe2/remoteEntry.json"
 }
 ```
 
@@ -163,7 +167,7 @@ classDiagram
         singleton: boolean
         strictVersion: boolean
         requiredVersion: string
-        sharedScope?: string
+        shareScope?: string
         version?: string
         packageName: string
         outFileName: string
@@ -174,42 +178,40 @@ classDiagram
 
 ```json
 {
-    "name": "team/remote1",
-    "exposes": [
-        { "key": "./comp-a",  "outFileName": "component-a.js" }
-    ],
-    "shared": [
-        {
-            "version": "1.2.3", 
-            "requiredVersion": "~1.2.1", 
-            "strictVersion": false,
-            "singleton": true,
-            "packageName": "dep-a",
-            "outFileName": "dep-a.js"
-        },
-        {
-            "version": "4.5.6", 
-            "requiredVersion": "^4.1.1", 
-            "strictVersion": true,
-            "singleton": false,
-            "packageName": "dep-b",
-            "outFileName": "dep-b.js"
-        }
-    ]
+  "name": "team/remote1",
+  "exposes": [{ "key": "./comp-a", "outFileName": "component-a.js" }],
+  "shared": [
+    {
+      "version": "1.2.3",
+      "requiredVersion": "~1.2.1",
+      "strictVersion": false,
+      "singleton": true,
+      "packageName": "dep-a",
+      "outFileName": "dep-a.js"
+    },
+    {
+      "version": "4.5.6",
+      "requiredVersion": "^4.1.1",
+      "strictVersion": true,
+      "singleton": false,
+      "packageName": "dep-b",
+      "outFileName": "dep-b.js"
+    }
+  ]
 }
 ```
 
 #### Shared External Properties
 
-| Property | Description |
-| --- | --- |
-| version | The actual version of the dependency provided by this micro frontend |
-| requiredVersion | Version range this micro frontend is compatible with (enables clustering) | 
-| strictVersion | Will make sure the remote receives a compatible version when the external is shared, even if that means loading multiple versions of the dependency |
-| singleton | Allows the dependency to be shared and used by other remotes that need it. |
-| sharedScope | Allows for sharing dependencies in a specific group instead of globally, allowing for clusters of shared externals |
-| packageName | Dependency identifier for resolution |
-| outFileName | File path relative to the micro frontend's scope |
+| Property        | Description                                                                                                                                         |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| version         | The actual version of the dependency provided by this micro frontend                                                                                |
+| requiredVersion | Version range this micro frontend is compatible with (enables clustering)                                                                           |
+| strictVersion   | Will make sure the remote receives a compatible version when the external is shared, even if that means loading multiple versions of the dependency |
+| singleton       | Allows the dependency to be shared and used by other remotes that need it.                                                                          |
+| shareScope      | Allows for sharing dependencies in a specific group instead of globally, allowing for clusters of shared externals                                  |
+| packageName     | Dependency identifier for resolution                                                                                                                |
+| outFileName     | File path relative to the micro frontend's scope                                                                                                    |
 
 ### Understanding the stored remoteEntries
 
@@ -218,19 +220,19 @@ After processing the remoteEntry.json files, the library stores the shared compo
 #### Remote Information Cache
 
 ```mermaid
-classDiagram 
+classDiagram
     Remotes *-- RemoteInfo
     RemoteInfo *-- RemoteModule
 
     class Remotes {
         Map<.string, RemoteInfo>
-    } 
-    
+    }
+
     class RemoteInfo {
         scopeUrl: string
-        exposes: RemoteModule[] 
+        exposes: RemoteModule[]
     }
-    
+
     class RemoteModule{
         moduleName: string
         file: string
@@ -260,16 +262,16 @@ Dependencies are categorized into two types based on their singleton property. `
 
 ```mermaid
 classDiagram
-    SharedExternals *-- SharedScope
-    SharedScope *-- SharedExternal
+    SharedExternals *-- shareScope
+    shareScope *-- SharedExternal
     SharedExternal *-- SharedVersion
     ScopedExternals *-- ExternalsScope
     ExternalsScope *-- Version
 
     class SharedExternals {
-        Map<.string, SharedScope>
+        Map<.string, shareScope>
     }
-    class SharedScope {
+    class shareScope {
         Map<.string, SharedExternal>
     }
     class SharedExternal {
@@ -284,13 +286,13 @@ classDiagram
         cached: boolean
         host: boolean
         action: 'skip'|'scope'|'share'
-    }  
+    }
     class ScopedExternals {
         Map<.string, ExternalsScope>
-    } 
+    }
     class ExternalsScope {
         Map<.string, Version>
-    } 
+    }
     class Version{
         version: string
         file: string
@@ -303,67 +305,66 @@ The action field is calculated during the dependency resolution phase:
 
 ```json
 {
-    "shared-externals": {
-        "__GLOBAL__": {
-            "dep-a": {
-                "dirty": false,
-                "versions": [
-                    {
-                        "version": "1.2.3", 
-                        "file":"https://example.org/mfe1/dep-a.js",
-                        "requiredVersion": "~1.2.1", 
-                        "strictVersion": false,                
-                        "action": "share",
-                        "host": false,
-                        "cached": true
-                    },
-                    {
-                        "version":"1.2.2", 
-                        "file":"https://example.org/mfe2/dep-a.js",
-                        "requiredVersion": "^1.2.1", 
-                        "strictVersion": true, 
-                        "action": "skip",
-                        "host": false,
-                        "cached": false
-                    }
-                ]
-            }
-        },
-        "custom-scope": {
-            "dep-c": {
-                "dirty": false,
-                "versions": [
-                    {
-                        "version": "1.2.4", 
-                        "file":"https://example.org/mfe1/dep-c.js",
-                        "requiredVersion": "~1.2.1", 
-                        "strictVersion": false,                
-                        "action": "share",
-                        "host": false,
-                        "cached": true
-                    },
-                    {
-                        "version": "1.2.3", 
-                        "file":"https://example.org/mfe2/dep-c.js",
-                        "requiredVersion": "~1.2.1", 
-                        "strictVersion": false,                
-                        "action": "skip",
-                        "host": false,
-                        "cached": false
-                    }
-                ]
-            }
-        }
-        
+  "shared-externals": {
+    "__GLOBAL__": {
+      "dep-a": {
+        "dirty": false,
+        "versions": [
+          {
+            "version": "1.2.3",
+            "file": "https://example.org/mfe1/dep-a.js",
+            "requiredVersion": "~1.2.1",
+            "strictVersion": false,
+            "action": "share",
+            "host": false,
+            "cached": true
+          },
+          {
+            "version": "1.2.2",
+            "file": "https://example.org/mfe2/dep-a.js",
+            "requiredVersion": "^1.2.1",
+            "strictVersion": true,
+            "action": "skip",
+            "host": false,
+            "cached": false
+          }
+        ]
+      }
     },
-    "scoped-externals": {
-        "https://example.org/mfe1/": {
-            "dep-b": {
-                "version": "4.5.6", 
-                "file":"dep-b.js"
-            }
-        }
+    "custom-scope": {
+      "dep-c": {
+        "dirty": false,
+        "versions": [
+          {
+            "version": "1.2.4",
+            "file": "https://example.org/mfe1/dep-c.js",
+            "requiredVersion": "~1.2.1",
+            "strictVersion": false,
+            "action": "share",
+            "host": false,
+            "cached": true
+          },
+          {
+            "version": "1.2.3",
+            "file": "https://example.org/mfe2/dep-c.js",
+            "requiredVersion": "~1.2.1",
+            "strictVersion": false,
+            "action": "skip",
+            "host": false,
+            "cached": false
+          }
+        ]
+      }
     }
+  },
+  "scoped-externals": {
+    "https://example.org/mfe1/": {
+      "dep-b": {
+        "version": "4.5.6",
+        "file": "dep-b.js"
+      }
+    }
+  }
 }
 ```
 
@@ -373,31 +374,32 @@ The final import map provides the browser with optimized module resolution instr
 
 ```json
 {
-    "imports": {
-        // Shared components
-        "shopping-cart/./CartButton": "https://ecommerce-team.com/cart-button.js",
-        "shopping-cart/./CartSummary": "https://ecommerce-team.com/cart-summary.js",
-        
-        // Shared externals
-        "dep-a": "https://example.org/mfe1/dep-a.js"
+  "imports": {
+    // Shared components
+    "shopping-cart/./CartButton": "https://ecommerce-team.com/cart-button.js",
+    "shopping-cart/./CartSummary": "https://ecommerce-team.com/cart-summary.js",
+
+    // Shared externals
+    "dep-a": "https://example.org/mfe1/dep-a.js"
+  },
+  "scopes": {
+    // Scoped externals
+    "https://example.org/mfe1/": {
+      "dep-b": "https://example.org/mfe1/dep-b.js",
+      "dep-c": "https://example.org/mfe1/dep-c.js"
     },
-    "scopes": {
-        // Scoped externals
-        "https://example.org/mfe1/": {
-            "dep-b": "https://example.org/mfe1/dep-b.js",
-            "dep-c": "https://example.org/mfe1/dep-c.js"
-        },
-        "https://example.org/mfe1/": {
-            "dep-c": "https://example.org/mfe1/dep-c.js"
-        }
+    "https://example.org/mfe1/": {
+      "dep-c": "https://example.org/mfe1/dep-c.js"
     }
+  }
 }
 ```
 
 This structure enables:
+
 - **Global sharing** via the imports object (dep-a downloads once, used everywhere compatible)
 - **Scoped isolation** via the scopes object (dep-b only loads for its specific micro frontend)
-- **Grouped externals** Reusing compatible externals with the same `shareScope` to minimize downloads even more! 
+- **Grouped externals** Reusing compatible externals with the same `shareScope` to minimize downloads even more!
 - **Optimal caching** through strategic version selection and reuse
 
 ## Caching and Performance
@@ -406,11 +408,11 @@ This structure enables:
 
 If configured, the browser can remember and prioritize shared externals utilizing browser storage options:
 
-| Storage Type | Lifetime | Best For |
-|--------------|----------|----------|
-| **Memory** (default) | Single page load | Development, testing |
-| **Session Storage** | Browser session | Multi-page websites |
-| **Local Storage** | Persistent | Aggressive caching over multiple browser sessions |
+| Storage Type         | Lifetime         | Best For                                          |
+| -------------------- | ---------------- | ------------------------------------------------- |
+| **Memory** (default) | Single page load | Development, testing                              |
+| **Session Storage**  | Browser session  | Multi-page websites                               |
+| **Local Storage**    | Persistent       | Aggressive caching over multiple browser sessions |
 
 ### Optimization Strategies
 
@@ -428,11 +430,11 @@ Consider an e-commerce site with distributed team ownership:
 ```html
 <!-- Your main page -->
 <script type="application/json" id="mfe-manifest">
-{
+  {
     "product-catalog": "https://catalog-team.com/remoteEntry.json",
-    "shopping-cart": "https://cart-team.com/remoteEntry.json", 
+    "shopping-cart": "https://cart-team.com/remoteEntry.json",
     "user-account": "https://account-team.com/remoteEntry.json"
-}
+  }
 </script>
 ```
 
@@ -445,6 +447,7 @@ Consider an e-commerce site with distributed team ownership:
 5. **Runtime**: Components become available via `loadRemoteModule()` and can be imported on demand (lazy).
 
 **Architectural Benefits:**
+
 - ✅ Independent team deployment cycles
 - ✅ Shared dependencies download once
 - ✅ Minimal inter-team coordination required
@@ -462,7 +465,7 @@ Different configuration options change how the system behaves:
     storage: sessionStorage          // Remember across pages
 }
 
-// Aggressive approach - maximize performance  
+// Aggressive approach - maximize performance
 {
     strict: false,                   // Warn but continue on conflicts
     profile: { latestSharedExternal: true },  // Always use latest versions
@@ -472,57 +475,68 @@ Different configuration options change how the system behaves:
 
 > Read more about configuration options [here](./config.md)
 
-
 ## Understanding the process
 
 The library follows a 6-step process:
 
 ### Step 1: Gather Information
+
 ```
 Input: Manifest URL or object
 Output: List of remoteEntry.json files to fetch
 ```
+
 - Fetches the manifest to know which micro frontends exist
 - Prepares to collect metadata from each one
 
 ### Step 2: Collect Metadata
+
 ```
 Input: List of remoteEntry.json URLs
 Output: Processed remote information and dependencies
 ```
+
 - Downloads each remoteEntry.json file
 - Extracts components and dependency information
 - Stores everything in memory for processing
 
 ### Step 3: Resolve Dependencies
+
 ```
 Input: All dependency requirements
 Output: Optimized dependency resolution plan
 ```
+
 - Finds the best way to share common dependencies
 - Decides which versions to download once vs. separately
 - Handles version conflicts intelligently
 
 ### Step 4: Generate Import Map
+
 ```
 Input: Resolved dependencies and components
 Output: Browser-compatible import map
 ```
+
 - Creates a map telling the browser where to find each module
 - Optimizes for minimal downloads and maximum sharing
 
 ### Step 5: Commit Changes
+
 ```
 Input: Final import map
 Output: Updated browser and persistent storage
 ```
+
 - Applies the import map to the browser
 - Saves optimization decisions for future page loads
 
 ### Step 6: Expose Module Loader
+
 ```
 Input: Configured system
 Output: loadRemoteModule function
 ```
+
 - Provides the function you use to load components
 - Handles all the complexity behind a simple API
