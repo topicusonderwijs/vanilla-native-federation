@@ -59,7 +59,7 @@ export function createUpdateCache(
         const { action, sharedVersion } = addSharedExternal(remoteEntry.name, external);
         actions[external.packageName] = { action };
 
-        if (action === 'override' && external.shareScope && sharedVersion?.file) {
+        if (action === 'skip' && external.shareScope && sharedVersion?.file) {
           actions[external.packageName]!.override = ports.remoteInfoRepo
             .tryGetScope(sharedVersion.remote)
             .orThrow(() => {
@@ -95,10 +95,7 @@ export function createUpdateCache(
         remoteEntryVersion.shareScope
       );
       return {
-        action:
-          ports.sharedExternalsRepo.scopeType(remoteEntryVersion.shareScope) === 'global'
-            ? 'skip'
-            : 'override',
+        action: 'skip',
         sharedVersion: cachedVersions[matchingVersionIDX],
       };
     }
@@ -124,14 +121,9 @@ export function createUpdateCache(
     const file = remoteEntryVersion.outFileName;
 
     if (sharedVersion) {
-      action =
-        isCompabible || !remoteEntryVersion.strictVersion
-          ? ports.sharedExternalsRepo.scopeType(remoteEntryVersion.shareScope) === 'global'
-            ? 'skip'
-            : 'override'
-          : 'scope';
+      action = isCompabible || !remoteEntryVersion.strictVersion ? 'skip' : 'scope';
 
-      cached = action !== 'skip' && action !== 'override';
+      cached = action !== 'skip';
     }
 
     cachedVersions.push({

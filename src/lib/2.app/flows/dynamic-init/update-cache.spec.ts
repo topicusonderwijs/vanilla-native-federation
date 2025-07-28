@@ -581,7 +581,7 @@ describe('createProcessDynamicRemoteEntry', () => {
               strictVersion: true,
               cached: false,
               host: false,
-              action: 'override',
+              action: 'skip',
             } as SharedVersion,
           ],
         },
@@ -589,7 +589,7 @@ describe('createProcessDynamicRemoteEntry', () => {
       );
 
       expect(actual.actions).toEqual({
-        'dep-a': { action: 'override', override: 'http://my.service/mfe2/' },
+        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
       });
     });
 
@@ -636,7 +636,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         'custom-scope'
       );
       expect(result.actions).toEqual({
-        'dep-a': { action: 'override', override: 'http://my.service/mfe2/' },
+        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
       });
     });
 

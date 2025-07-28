@@ -332,7 +332,7 @@ describe('createDetermineSharedExternals', () => {
               strictVersion: false,
               cached: false,
               host: false,
-              action: 'override',
+              action: 'skip',
             },
           ],
         },

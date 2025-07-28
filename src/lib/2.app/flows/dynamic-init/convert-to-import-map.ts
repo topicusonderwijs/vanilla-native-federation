@@ -1,45 +1,92 @@
 import type { ImportMap } from 'lib/1.domain/import-map/import-map.contract';
-import type { RemoteEntry } from 'lib/1.domain';
+import type { RemoteEntry, SharedInfoActions } from 'lib/1.domain';
 import type { LoggingConfig } from '../../config/log.contract';
 import * as _path from 'lib/utils/path';
 import type { ForConvertingToImportMap } from 'lib/2.app/driver-ports/dynamic-init/for-converting-to-import-map';
 
 export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingToImportMap {
-  return (remoteEntry: RemoteEntry) => {
+  return ({ entry, actions }) => {
     const importMap: ImportMap = { imports: {} };
     try {
-      addExternals(remoteEntry, importMap);
-      addRemoteInfos(remoteEntry, importMap);
-      log.debug('[10] Updated importMap:', importMap);
+      log.debug(`[9][${entry.name}] Processing actions:`, actions);
+      addExternals(entry, actions, importMap);
+      addRemoteInfos(entry, importMap);
+      log.debug('[9] Updated importMap:', importMap);
       return Promise.resolve(importMap);
     } catch (e) {
       return Promise.reject(e);
     }
   };
 
-  function addExternals(remoteEntry: RemoteEntry, importMap: ImportMap): void {
+  function addExternals(
+    remoteEntry: RemoteEntry,
+    actions: SharedInfoActions,
+    importMap: ImportMap
+  ): void {
     if (!remoteEntry.shared) {
       return;
     }
 
     const remoteEntryScope = _path.getScope(remoteEntry.url);
     remoteEntry.shared.forEach(external => {
-      const externalScope = external.scopeOverride || remoteEntryScope;
-
-      //  Shared externals
-      if (external.singleton && !external.shareScope) {
-        importMap.imports[external.packageName] = _path.join(externalScope, external.outFileName);
+      // Scoped externals
+      if (!external.singleton) {
+        addToScopes(
+          remoteEntryScope,
+          external.packageName,
+          _path.join(remoteEntryScope, external.outFileName),
+          importMap
+        );
         return;
       }
 
-      // Scoped externals
-      importMap['scopes'] = importMap.scopes || {};
-      importMap.scopes[remoteEntryScope] = importMap.scopes[remoteEntryScope] || {};
-      importMap.scopes[remoteEntryScope][external.packageName] = _path.join(
-        externalScope,
-        external.outFileName
-      );
+      if (!actions[external.packageName]) {
+        log.debug(
+          `[9][${remoteEntry.name}] No action found for shared external '${external.packageName}'.`
+        );
+        return;
+      }
+
+      // Skipped shared externals
+      if (actions[external.packageName]!.action === 'skip') {
+        if (!external.shareScope) return;
+
+        if (actions[external.packageName]!.override) {
+          addToScopes(
+            remoteEntryScope,
+            external.packageName,
+            _path.join(actions[external.packageName]!.override!, external.outFileName),
+            importMap
+          );
+          return;
+        }
+      }
+
+      //  Scoped shared externals
+      if (actions[external.packageName]!.action === 'scope') {
+        addToScopes(
+          remoteEntryScope,
+          external.packageName,
+          _path.join(remoteEntryScope, external.outFileName),
+          importMap
+        );
+        return;
+      }
+
+      // Default case: shared globally
+      importMap.imports[external.packageName] = _path.join(remoteEntryScope, external.outFileName);
     });
+  }
+
+  function addToScopes(
+    scope: string,
+    packageName: string,
+    url: string,
+    importMap: ImportMap
+  ): void {
+    if (!importMap.scopes) importMap.scopes = {};
+    if (!importMap.scopes[scope]) importMap.scopes[scope] = {};
+    importMap.scopes[scope][packageName] = url;
   }
 
   function addRemoteInfos(remoteEntry: RemoteEntry, importMap: ImportMap): void {

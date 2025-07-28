@@ -37,7 +37,6 @@ const initFederation = (
       const processDynamicRemoteEntry = async (remoteEntry: RemoteEntry) => {
         dynamicInit
           .updateCache(remoteEntry)
-          .then(dynamicInit.processRemoteEntry)
           .then(dynamicInit.convertToImportMap)
           .then(init.commitChanges);
       };

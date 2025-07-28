@@ -7,7 +7,7 @@ export type Version = {
   file: string;
 };
 
-export type SharedVersionAction = 'skip' | 'scope' | 'share' | 'override';
+export type SharedVersionAction = 'skip' | 'scope' | 'share';
 
 export const FALLBACK_VERSION = '0.0.0';
 

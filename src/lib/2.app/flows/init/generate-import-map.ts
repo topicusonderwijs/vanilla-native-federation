@@ -83,20 +83,21 @@ export function createGenerateImportMap(
 
   function processshareScope(importMap: ImportMap, shareScope: string): void {
     const sharedExternals = ports.sharedExternalsRepo.getAll(shareScope);
+    const scopeType = ports.sharedExternalsRepo.scopeType(shareScope);
 
     for (const [externalName, external] of Object.entries(sharedExternals)) {
       let override: SharedVersion | undefined | 'NOT_AVAILABLE' = undefined;
       let overrideScope: string | undefined = undefined;
 
       for (const version of external.versions) {
-        if (version.action === 'skip') continue;
+        if (version.action === 'skip' && scopeType === 'global') continue;
 
         const scope = getScope(externalName, shareScope, version.remote);
 
         let targetFileUrl: string = _path.join(scope, version.file);
         version.cached = true;
 
-        if (version.action === 'override') {
+        if (version.action === 'skip') {
           if (!override) {
             override = findOverride(external, shareScope, externalName) ?? 'NOT_AVAILABLE';
           }
@@ -165,7 +166,7 @@ export function createGenerateImportMap(
 
     for (const [externalName, external] of Object.entries(sharedExternals)) {
       for (const version of external.versions) {
-        if (version.action === 'override' || version.action === 'skip') continue;
+        if (version.action === 'skip') continue;
         const scope = getScope(externalName, GLOBAL_SCOPE, version.remote);
         if (version.action === 'scope') {
           addToScope(importMap, scope, { [externalName]: _path.join(scope, version.file) });
