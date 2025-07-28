@@ -128,6 +128,28 @@ describe('createRemoteInfoRepository', () => {
       expect(result).toBe(remoteInfoRepo);
     });
   });
+  describe('tryGetModule', () => {
+    it('should return the scopeUrl', () => {
+      const { remoteInfoRepo } = setupWithCache({
+        'team/mfe1': MOCK_REMOTE_INFO_I(),
+      });
+
+      const actual: Optional<string> = remoteInfoRepo.tryGetScope('team/mfe1');
+
+      expect(actual.isPresent()).toBe(true);
+      expect(actual.get()).toEqual(MOCK_REMOTE_ENTRY_SCOPE_I_URL());
+    });
+
+    it('should return an empty optional if the remote is not registered.', () => {
+      const { remoteInfoRepo } = setupWithCache({
+        'team/mfe1': MOCK_REMOTE_INFO_I(),
+      });
+
+      const actual: Optional<string> = remoteInfoRepo.tryGetScope('team/mfe2');
+
+      expect(actual.isPresent()).toBe(false);
+    });
+  });
 
   describe('tryGetModule', () => {
     it('should return the exposed module', () => {

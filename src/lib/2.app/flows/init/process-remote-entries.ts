@@ -1,5 +1,13 @@
 import type { ForProcessingRemoteEntries } from '../../driver-ports/init/for-processing-remote-entries.port';
-import type { RemoteEntry, RemoteInfo, SharedInfo, SharedVersion, Version } from 'lib/1.domain';
+import {
+  type RemoteName,
+  STRICT_SCOPE,
+  type RemoteEntry,
+  type RemoteInfo,
+  type SharedInfo,
+  type SharedVersion,
+  type Version,
+} from 'lib/1.domain';
 import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { LoggingConfig } from '../../config/log.contract';
 import * as _path from 'lib/utils/path';
@@ -50,8 +58,6 @@ export function createProcessRemoteEntries(
   }
 
   function addExternalsToStorage(remoteEntry: RemoteEntry): void {
-    const scopeUrl = _path.getScope(remoteEntry.url);
-
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
         config.log.warn(
@@ -62,15 +68,15 @@ export function createProcessRemoteEntries(
         return;
       }
       if (external.singleton) {
-        addSharedExternal(scopeUrl, external, remoteEntry);
+        addSharedExternal(remoteEntry.name, external, remoteEntry);
       } else {
-        addScopedExternal(scopeUrl, external);
+        addScopedExternal(remoteEntry.name, external);
       }
     });
   }
 
   function addSharedExternal(
-    scope: string,
+    remoteName: RemoteName,
     sharedInfo: SharedInfo,
     remoteEntry?: RemoteEntry
   ): void {
@@ -86,24 +92,27 @@ export function createProcessRemoteEntries(
       }
       cached.splice(matchingVersionIDX, 1);
       config.log.debug(
-        `[2][${remoteEntry?.host ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, replacing version.`
+        `[2][${remoteEntry?.host ? 'host' : 'remote'}][${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, replacing version.`
       );
     }
+    const action =
+      sharedInfo.shareScope && sharedInfo.shareScope === STRICT_SCOPE ? 'strict' : 'skip';
 
     cached.push({
       version: sharedInfo.version!,
-      file: _path.join(scope, sharedInfo.outFileName),
+      file: sharedInfo.outFileName,
+      remote: remoteName,
       requiredVersion: sharedInfo.requiredVersion,
       strictVersion: sharedInfo.strictVersion,
       host: !!remoteEntry?.host,
       cached: false,
-      action: 'skip',
+      action: action,
     } as SharedVersion);
 
     ports.sharedExternalsRepo.addOrUpdate(
       sharedInfo.packageName,
       {
-        dirty: true,
+        dirty: action !== 'strict',
         versions: cached.sort((a, b) => ports.versionCheck.compare(b.version, a.version)),
       },
       sharedInfo.shareScope

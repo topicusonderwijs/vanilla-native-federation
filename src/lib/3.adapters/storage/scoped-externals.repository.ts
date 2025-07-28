@@ -1,7 +1,7 @@
 import type { ScopedExternals } from 'lib/1.domain/externals/external.contract';
 import type { StorageConfig, StorageEntry } from 'lib/2.app/config/storage.contract';
 import type { ForScopedExternalsStorage } from 'lib/2.app/driving-ports/for-scoped-externals-storage.port';
-import type { Version } from 'lib/1.domain';
+import type { RemoteName, Version } from 'lib/1.domain';
 
 const createScopedExternalsRepository = (config: StorageConfig): ForScopedExternalsStorage => {
   const STORAGE: StorageEntry<ScopedExternals> = config.storage('scoped-externals', {});
@@ -11,9 +11,9 @@ const createScopedExternalsRepository = (config: StorageConfig): ForScopedExtern
   const _cache: ScopedExternals = STORAGE.get() ?? {};
 
   return {
-    addExternal: function (scope: string, external: string, version: Version) {
-      if (!_cache[scope]) _cache[scope] = {};
-      _cache[scope][external] = version;
+    addExternal: function (remoteName: RemoteName, external: string, version: Version) {
+      if (!_cache[remoteName]) _cache[remoteName] = {};
+      _cache[remoteName][external] = version;
       return this;
     },
     getAll: function () {

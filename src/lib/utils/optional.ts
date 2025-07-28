@@ -30,8 +30,9 @@ export class Optional<T> {
     return this.isPresent() ? (this.item as NonNullable<T>) : (other as NonNullable<T>);
   }
 
-  public orThrow(error: Error | string): NonNullable<T> {
+  public orThrow(error: Error | string | (() => Error)): NonNullable<T> {
     if (this.isPresent()) return this.item as NonNullable<T>;
+    if (typeof error === 'function') throw error();
     throw typeof error === 'string' ? new Error(error) : error;
   }
 

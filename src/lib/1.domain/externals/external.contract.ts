@@ -6,6 +6,8 @@ export type ScopedExternals = Record<string, ExternalsScope>;
 
 export const GLOBAL_SCOPE = '__GLOBAL__';
 
+export const STRICT_SCOPE = 'strict';
+
 export type SharedExternal = {
   dirty: boolean;
   versions: SharedVersion[];

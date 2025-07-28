@@ -2,6 +2,7 @@ import type { ForUpdatingCache } from '../../driver-ports/dynamic-init/for-updat
 import type {
   RemoteEntry,
   RemoteInfo,
+  RemoteName,
   SharedInfo,
   SharedInfoActions,
   SharedVersion,
@@ -43,8 +44,6 @@ export function createUpdateCache(
   }
 
   function mergeExternalsIntoStorage(remoteEntry: RemoteEntry): SharedInfoActions {
-    const scopeUrl = _path.getScope(remoteEntry.url);
-
     const actions: SharedInfoActions = {};
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
@@ -57,21 +56,28 @@ export function createUpdateCache(
         return;
       }
       if (external.singleton) {
-        const { action, sharedVersion } = addSharedExternal(scopeUrl, external);
+        const { action, sharedVersion } = addSharedExternal(remoteEntry.name, external);
         actions[external.packageName] = { action };
 
         if (action === 'override' && external.shareScope && sharedVersion?.file) {
-          actions[external.packageName]!.override = _path.getScope(sharedVersion!.file);
+          actions[external.packageName]!.override = ports.remoteInfoRepo
+            .tryGetScope(sharedVersion.remote)
+            .orThrow(() => {
+              config.log.debug(
+                `[8][${remoteEntry.name}][${external.packageName}@${external.version}][override] Remote name not found in cache.`
+              );
+              return new NFError(`Could not find override url from remote ${sharedVersion.remote}`);
+            });
         }
       } else {
-        addScopedExternal(scopeUrl, external);
+        addScopedExternal(remoteEntry.name, external);
       }
     });
     return actions;
   }
 
   function addSharedExternal(
-    scope: string,
+    remoteName: RemoteName,
     remoteEntryVersion: SharedInfo
   ): { action: SharedVersionAction; sharedVersion?: SharedVersion } {
     const cachedVersions: SharedVersion[] = ports.sharedExternalsRepo
@@ -89,32 +95,33 @@ export function createUpdateCache(
 
     if (!isCompabible && remoteEntryVersion.strictVersion) {
       config.log.debug(
-        `[8][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Is not compatible with existing [${remoteEntryVersion.packageName}@${sharedVersion!.version}] requiredRange '${sharedVersion!.requiredVersion}'`
+        `[8][${remoteName}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Is not compatible with existing [${remoteEntryVersion.packageName}@${sharedVersion!.version}] requiredRange '${sharedVersion!.requiredVersion}'`
       );
       if (config.strict) {
         throw new NFError(
-          `${scope}.${remoteEntryVersion.packageName}@${remoteEntryVersion.version} Is not compatible.`
+          `${remoteEntryVersion.packageName}@${remoteEntryVersion.version} from remote ${remoteName} is not compatible with ${sharedVersion.remote}.`
         );
       }
     }
 
     let action: SharedVersionAction = 'share';
     let cached = true;
-    const file = _path.join(scope, remoteEntryVersion.outFileName);
+    const file = remoteEntryVersion.outFileName;
 
     if (sharedVersion) {
       action =
         isCompabible || !remoteEntryVersion.strictVersion
-          ? ports.sharedExternalsRepo.isGlobalScope(scope)
+          ? ports.sharedExternalsRepo.isGlobalScope(remoteEntryVersion.shareScope)
             ? 'skip'
             : 'override'
           : 'scope';
 
-      cached = action !== 'skip' && (action !== 'override' || sharedVersion.file === file);
+      cached = action !== 'skip' && action !== 'override';
     }
 
     cachedVersions.push({
       version: remoteEntryVersion.version!,
+      remote: remoteName,
       requiredVersion: remoteEntryVersion.requiredVersion,
       strictVersion: remoteEntryVersion.strictVersion,
       host: false,
@@ -135,8 +142,8 @@ export function createUpdateCache(
     return { action, sharedVersion };
   }
 
-  function addScopedExternal(scope: string, sharedInfo: SharedInfo): void {
-    ports.scopedExternalsRepo.addExternal(scope, sharedInfo.packageName, {
+  function addScopedExternal(remoteName: RemoteName, sharedInfo: SharedInfo): void {
+    ports.scopedExternalsRepo.addExternal(remoteName, sharedInfo.packageName, {
       version: sharedInfo.version!,
       file: sharedInfo.outFileName,
     } as Version);

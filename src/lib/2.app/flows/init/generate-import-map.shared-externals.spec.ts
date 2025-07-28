@@ -7,6 +7,7 @@ import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repos
 import { LoggingConfig } from '../../config/log.contract';
 import { ModeConfig } from '../../config/mode.contract';
 import { NFError } from 'lib/native-federation.error';
+import { Optional } from 'lib/utils/optional';
 
 describe('createGenerateImportMap (shared-externals)', () => {
   let generateImportMap: ForGeneratingImportMap;
@@ -40,6 +41,12 @@ describe('createGenerateImportMap (shared-externals)', () => {
     mockAdapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
     mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
     mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
+    mockAdapters.remoteInfoRepo.tryGetScope = jest.fn(remote => {
+      if (remote === 'host') return Optional.of('http://my.service/host/');
+      if (remote === 'team/mfe1') return Optional.of('http://my.service/mfe1/');
+      if (remote === 'team/mfe2') return Optional.of('http://my.service/mfe2/');
+      return Optional.empty<string>();
+    });
 
     generateImportMap = createGenerateImportMap(mockConfig, mockAdapters);
   });
@@ -51,7 +58,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
         versions: [
           {
             version: '1.2.3',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -78,7 +86,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
         versions: [
           {
             version: '1.2.3',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -87,7 +96,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
           },
           {
             version: '1.2.2',
-            file: 'http://my.service/host/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'host',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -96,7 +106,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
           },
           {
             version: '1.2.1',
-            file: 'http://my.service/mfe3/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -123,7 +134,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
         versions: [
           {
             version: '19.0.2',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~19.0.1',
             strictVersion: false,
             cached: false,
@@ -132,7 +144,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
           },
           {
             version: '19.0.2',
-            file: 'http://my.service/mfe2/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe3',
             requiredVersion: '~19.0.1',
             strictVersion: false,
             cached: false,
@@ -141,7 +154,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
           },
           {
             version: '18.0.1',
-            file: 'http://my.service/mfe3/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~18.0.1',
             strictVersion: false,
             cached: false,
@@ -159,8 +173,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
         'dep-a': 'http://my.service/mfe1/dep-a.js',
       },
       scopes: {
-        'http://my.service/mfe3/': {
-          'dep-a': 'http://my.service/mfe3/dep-a.js',
+        'http://my.service/mfe2/': {
+          'dep-a': 'http://my.service/mfe2/dep-a.js',
         },
       },
     });
@@ -173,7 +187,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
         versions: [
           {
             version: '1.2.3',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -182,7 +197,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
           },
           {
             version: '1.2.2',
-            file: 'http://my.service/mfe2/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -200,7 +216,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
       versions: [
         {
           version: '1.2.3',
-          file: 'http://my.service/mfe1/dep-a.js',
+          file: 'dep-a.js',
+          remote: 'team/mfe1',
           requiredVersion: '~1.2.1',
           strictVersion: false,
           cached: true,
@@ -209,7 +226,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
         },
         {
           version: '1.2.2',
-          file: 'http://my.service/mfe2/dep-a.js',
+          file: 'dep-a.js',
+          remote: 'team/mfe2',
           requiredVersion: '~1.2.1',
           strictVersion: false,
           cached: false,
@@ -229,7 +247,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
         versions: [
           {
             version: '1.2.3',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -238,7 +257,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
           },
           {
             version: '1.2.2',
-            file: 'http://my.service/mfe2/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -270,7 +290,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
         versions: [
           {
             version: '1.2.3',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -279,7 +300,8 @@ describe('createGenerateImportMap (shared-externals)', () => {
           },
           {
             version: '1.2.2',
-            file: 'http://my.service/mfe2/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -293,6 +315,31 @@ describe('createGenerateImportMap (shared-externals)', () => {
     await expect(generateImportMap()).rejects.toEqual(new NFError('Could not create ImportMap.'));
     expect(mockConfig.log.debug).toHaveBeenCalledWith(
       '[4][dep-a] Shared external has multiple shared versions.'
+    );
+  });
+
+  it('should throw an error if the remote doesnt exist', async () => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+      'dep-a': {
+        dirty: false,
+        versions: [
+          {
+            version: '1.2.3',
+            file: 'dep-a.js',
+            remote: 'team/mfe3',
+            requiredVersion: '~1.2.1',
+            strictVersion: false,
+            cached: false,
+            host: false,
+            action: 'share',
+          },
+        ],
+      },
+    }));
+
+    await expect(generateImportMap()).rejects.toThrow('Could not create ImportMap.');
+    expect(mockConfig.log.debug).toHaveBeenCalledWith(
+      '[4][__GLOBAL__][team/mfe3][dep-a@1.2.3] Remote name not found in cache.'
     );
   });
 });

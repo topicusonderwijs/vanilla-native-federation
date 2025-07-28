@@ -39,7 +39,11 @@ describe('createProcessDynamicRemoteEntry', () => {
       scopedExternalsRepo: mockScopedExternalsRepository(),
       versionCheck: createVersionCheck(),
     };
-
+    mockAdapters.remoteInfoRepo.tryGetScope = jest.fn(remote => {
+      if (remote === 'team/mfe1') return Optional.of('http://my.service/mfe1/');
+      if (remote === 'team/mfe2') return Optional.of('http://my.service/mfe2/');
+      return Optional.empty<string>();
+    });
     mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(_e =>
       Optional.empty<SharedVersion[]>()
     );
@@ -88,7 +92,7 @@ describe('createProcessDynamicRemoteEntry', () => {
 
       expect(mockAdapters.scopedExternalsRepo.addExternal).toHaveBeenCalledTimes(1);
       expect(mockAdapters.scopedExternalsRepo.addExternal).toHaveBeenCalledWith(
-        'http://my.service/mfe1/',
+        'team/mfe1',
         'dep-a',
         {
           version: '1.2.3',
@@ -164,7 +168,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -187,7 +192,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           Optional.of([
             {
               version: '1.2.4',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -226,7 +232,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           versions: [
             {
               version: '1.2.4',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -235,7 +242,8 @@ describe('createProcessDynamicRemoteEntry', () => {
             } as SharedVersion,
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
@@ -258,7 +266,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           Optional.of([
             {
               version: '2.2.3',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~2.2.1',
               strictVersion: false,
               cached: true,
@@ -297,7 +306,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           versions: [
             {
               version: '2.2.3',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~2.2.1',
               strictVersion: false,
               cached: true,
@@ -306,7 +316,8 @@ describe('createProcessDynamicRemoteEntry', () => {
             } as SharedVersion,
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
@@ -329,7 +340,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           Optional.of([
             {
               version: '2.2.3',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~2.2.1',
               strictVersion: false,
               cached: true,
@@ -368,7 +380,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           versions: [
             {
               version: '2.2.3',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~2.2.1',
               strictVersion: false,
               cached: true,
@@ -377,7 +390,8 @@ describe('createProcessDynamicRemoteEntry', () => {
             } as SharedVersion,
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: true,
               cached: true,
@@ -402,7 +416,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           Optional.of([
             {
               version: '2.2.3',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~2.2.1',
               strictVersion: false,
               cached: true,
@@ -428,7 +443,7 @@ describe('createProcessDynamicRemoteEntry', () => {
       };
 
       await expect(updateCache(remoteEntry)).rejects.toThrow(
-        `http://my.service/mfe1/.dep-a@1.2.3 Is not compatible.`
+        `dep-a@1.2.3 from remote team/mfe1 is not compatible with team/mfe2.`
       );
     });
 
@@ -438,7 +453,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           Optional.of([
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -504,7 +520,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           Optional.of([
             {
               version: '1.2.4',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -540,7 +557,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           versions: [
             {
               version: '1.2.4',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -549,7 +567,8 @@ describe('createProcessDynamicRemoteEntry', () => {
             } as SharedVersion,
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: true,
               cached: false,
@@ -572,7 +591,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           Optional.of([
             {
               version: '2.2.4',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~2.2.1',
               strictVersion: false,
               cached: true,
@@ -608,7 +628,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           versions: [
             {
               version: '2.2.4',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~2.2.1',
               strictVersion: false,
               cached: true,
@@ -617,7 +638,8 @@ describe('createProcessDynamicRemoteEntry', () => {
             } as SharedVersion,
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: true,
               cached: true,
@@ -665,7 +687,8 @@ describe('createProcessDynamicRemoteEntry', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,

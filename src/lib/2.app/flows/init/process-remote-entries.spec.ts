@@ -92,7 +92,7 @@ describe('createProcessRemoteEntries', () => {
 
       expect(mockAdapters.scopedExternalsRepo.addExternal).toHaveBeenCalledTimes(1);
       expect(mockAdapters.scopedExternalsRepo.addExternal).toHaveBeenCalledWith(
-        'http://my.service/mfe1/',
+        'team/mfe1',
         'dep-a',
         {
           version: '1.2.3',
@@ -162,7 +162,8 @@ describe('createProcessRemoteEntries', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
@@ -240,7 +241,8 @@ describe('createProcessRemoteEntries', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
@@ -261,7 +263,8 @@ describe('createProcessRemoteEntries', () => {
           Optional.of([
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -300,7 +303,8 @@ describe('createProcessRemoteEntries', () => {
           Optional.of([
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -339,7 +343,8 @@ describe('createProcessRemoteEntries', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
@@ -358,7 +363,8 @@ describe('createProcessRemoteEntries', () => {
           Optional.of([
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -400,7 +406,8 @@ describe('createProcessRemoteEntries', () => {
           Optional.of([
             {
               version: '1.2.4',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -409,8 +416,9 @@ describe('createProcessRemoteEntries', () => {
             },
             {
               version: '1.2.2',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
               requiredVersion: '~1.2.1',
+              remote: 'team/mfe3',
               strictVersion: false,
               cached: false,
               host: false,
@@ -421,8 +429,8 @@ describe('createProcessRemoteEntries', () => {
 
       const remoteEntries = [
         {
-          name: 'team/mfe1',
-          url: 'http://my.service/mfe1/remoteEntry.json',
+          name: 'team/mfe2',
+          url: 'http://my.service/mfe2/remoteEntry.json',
           exposes: [],
           host: true,
           shared: [
@@ -448,8 +456,9 @@ describe('createProcessRemoteEntries', () => {
           versions: [
             {
               version: '1.2.4',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
               requiredVersion: '~1.2.1',
+              remote: 'team/mfe1',
               strictVersion: false,
               cached: true,
               host: false,
@@ -457,8 +466,9 @@ describe('createProcessRemoteEntries', () => {
             },
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
               requiredVersion: '~1.2.1',
+              remote: 'team/mfe2',
               strictVersion: false,
               cached: false,
               host: true,
@@ -466,7 +476,8 @@ describe('createProcessRemoteEntries', () => {
             },
             {
               version: '1.2.2',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe3',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
