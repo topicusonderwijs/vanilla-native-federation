@@ -55,7 +55,7 @@ export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingT
           addToScopes(
             remoteEntryScope,
             external.packageName,
-            _path.join(actions[external.packageName]!.override!, external.outFileName),
+            actions[external.packageName]!.override!,
             importMap
           );
           return;
@@ -64,6 +64,17 @@ export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingT
 
       //  Scoped shared externals
       if (actions[external.packageName]!.action === 'scope') {
+        addToScopes(
+          remoteEntryScope,
+          external.packageName,
+          _path.join(remoteEntryScope, external.outFileName),
+          importMap
+        );
+        return;
+      }
+
+      // Shared externals with shareScope
+      if (external.shareScope) {
         addToScopes(
           remoteEntryScope,
           external.packageName,

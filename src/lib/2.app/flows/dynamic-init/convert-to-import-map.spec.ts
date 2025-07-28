@@ -173,7 +173,7 @@ describe('createConvertToImportMap', () => {
         shared: [
           {
             packageName: 'dep-a',
-            outFileName: 'dep-a.js',
+            outFileName: 'dep-a-xyz.js',
             singleton: true,
             strictVersion: true,
             requiredVersion: '1.0.0',
@@ -183,7 +183,7 @@ describe('createConvertToImportMap', () => {
         exposes: [],
       };
       const actions: SharedInfoActions = {
-        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
+        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/dep-a-abc.js' },
       };
 
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
@@ -191,7 +191,7 @@ describe('createConvertToImportMap', () => {
         imports: {},
         scopes: {
           'http://my.service/mfe1/': {
-            'dep-a': 'http://my.service/mfe2/dep-a.js',
+            'dep-a': 'http://my.service/mfe2/dep-a-abc.js',
           },
         },
       });
@@ -218,6 +218,38 @@ describe('createConvertToImportMap', () => {
         'dep-a': { action: 'scope' },
       };
 
+      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+      expect(importMap).toEqual({
+        imports: {},
+        scopes: {
+          'http://my.service/mfe1/': {
+            'dep-a': 'http://my.service/mfe1/dep-a.js',
+          },
+        },
+      });
+    });
+  });
+
+  describe('Shared Externals - Singleton shareScope with "share" action', () => {
+    it('should add the shared external to the specific scope when shareScope is defined', async () => {
+      const remoteEntry: RemoteEntry = {
+        url: 'http://my.service/mfe1/remoteEntry.json',
+        name: 'remote',
+        shared: [
+          {
+            packageName: 'dep-a',
+            outFileName: 'dep-a.js',
+            singleton: true,
+            strictVersion: true,
+            requiredVersion: '1.0.0',
+            shareScope: 'custom-scope',
+          },
+        ],
+        exposes: [],
+      };
+      const actions: SharedInfoActions = {
+        'dep-a': { action: 'share' },
+      };
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
       expect(importMap).toEqual({
         imports: {},

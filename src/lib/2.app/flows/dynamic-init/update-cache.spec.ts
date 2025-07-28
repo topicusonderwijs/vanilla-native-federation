@@ -528,7 +528,7 @@ describe('createProcessDynamicRemoteEntry', () => {
           Optional.of([
             {
               version: '1.2.4',
-              file: 'dep-a.js',
+              file: 'dep-a-abc.js',
               remote: 'team/mfe2',
               requiredVersion: '~1.2.1',
               strictVersion: false,
@@ -550,7 +550,7 @@ describe('createProcessDynamicRemoteEntry', () => {
             shareScope: 'custom-scope',
             singleton: true,
             packageName: 'dep-a',
-            outFileName: 'dep-a.js',
+            outFileName: 'dep-a-xyz.js',
           },
         ],
       };
@@ -565,7 +565,7 @@ describe('createProcessDynamicRemoteEntry', () => {
           versions: [
             {
               version: '1.2.4',
-              file: 'dep-a.js',
+              file: 'dep-a-abc.js',
               remote: 'team/mfe2',
               requiredVersion: '~1.2.1',
               strictVersion: false,
@@ -575,7 +575,7 @@ describe('createProcessDynamicRemoteEntry', () => {
             } as SharedVersion,
             {
               version: '1.2.3',
-              file: 'dep-a.js',
+              file: 'dep-a-xyz.js',
               remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: true,
@@ -589,7 +589,77 @@ describe('createProcessDynamicRemoteEntry', () => {
       );
 
       expect(actual.actions).toEqual({
-        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
+        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/dep-a-abc.js' },
+      });
+    });
+
+    it('should directly share a shareScope strict version', async () => {
+      mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'strict');
+
+      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
+        (): Optional<SharedVersion[]> =>
+          Optional.of([
+            {
+              version: '1.2.3',
+              file: 'dep-a-abc.js',
+              remote: 'team/mfe2',
+              requiredVersion: '1.2.3',
+              strictVersion: false,
+              cached: true,
+              host: false,
+              action: 'share',
+            },
+          ])
+      );
+      const remoteEntry = {
+        name: 'team/mfe1',
+        url: 'http://my.service/mfe1/remoteEntry.json',
+        exposes: [],
+        shared: [
+          {
+            version: '1.2.2',
+            requiredVersion: '1.2.2',
+            strictVersion: true,
+            shareScope: 'strict',
+            singleton: true,
+            packageName: 'dep-a',
+            outFileName: 'dep-a-xyz.js',
+          },
+        ],
+      };
+      const actual = await updateCache(remoteEntry);
+      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+        'dep-a',
+        {
+          dirty: false,
+          versions: [
+            {
+              version: '1.2.3',
+              file: 'dep-a-abc.js',
+              remote: 'team/mfe2',
+              requiredVersion: '1.2.3',
+              strictVersion: false,
+              cached: true,
+              host: false,
+              action: 'share',
+            } as SharedVersion,
+            {
+              version: '1.2.2',
+              file: 'dep-a-xyz.js',
+              remote: 'team/mfe1',
+              requiredVersion: '1.2.2',
+              strictVersion: true,
+              cached: true,
+              host: false,
+              action: 'share',
+            } as SharedVersion,
+          ],
+        },
+        'strict'
+      );
+
+      expect(actual.actions).toEqual({
+        'dep-a': { action: 'share' },
       });
     });
 
@@ -599,7 +669,7 @@ describe('createProcessDynamicRemoteEntry', () => {
           Optional.of([
             {
               version: '1.2.3',
-              file: 'dep-a.js',
+              file: 'dep-a-abc.js',
               remote: 'team/mfe2',
               requiredVersion: '~1.2.1',
               strictVersion: false,
@@ -622,7 +692,7 @@ describe('createProcessDynamicRemoteEntry', () => {
             singleton: true,
             packageName: 'dep-a',
             shareScope: 'custom-scope',
-            outFileName: 'dep-a.js',
+            outFileName: 'dep-a-xyz.js',
           },
         ],
       };
@@ -636,7 +706,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         'custom-scope'
       );
       expect(result.actions).toEqual({
-        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/' },
+        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/dep-a-abc.js' },
       });
     });
 

@@ -101,6 +101,11 @@ export function createProcessRemoteEntries(
       }
 
       usedBy = [cached[matchingVersionIDX]!.remote];
+      if (cached[matchingVersionIDX]!.usedBy) {
+        cached[matchingVersionIDX]!.usedBy.filter(u => usedBy!.includes(u)).forEach(u =>
+          usedBy!.push(u)
+        );
+      }
       cached.splice(matchingVersionIDX, 1);
       config.log.debug(
         `[2][${remoteEntry?.host ? 'host' : 'remote'}][${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, replacing version.`

@@ -164,7 +164,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               versions: [
                 {
                   version: '1.2.3',
-                  file: 'dep-a.js',
+                  file: 'dep-a-abc.js',
                   remote: 'team/mfe1',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
@@ -174,7 +174,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
                 },
                 {
                   version: '1.2.2',
-                  file: 'dep-a.js',
+                  file: 'dep-a-xyz.js',
                   remote: 'team/mfe2',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
@@ -193,10 +193,10 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
       imports: {},
       scopes: {
         'http://my.service/mfe1/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+          'dep-a': 'http://my.service/mfe1/dep-a-abc.js',
         },
         'http://my.service/mfe2/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+          'dep-a': 'http://my.service/mfe1/dep-a-abc.js',
         },
       },
     });

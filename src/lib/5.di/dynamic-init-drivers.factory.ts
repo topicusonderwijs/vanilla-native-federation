@@ -4,7 +4,6 @@ import { createGetRemoteEntry } from 'lib/2.app/flows/dynamic-init/get-remote-en
 import type { DynamicInitDriversContract } from 'lib/2.app/driver-ports/dynamic-init/drivers.contract';
 import { createUpdateCache } from 'lib/2.app/flows/dynamic-init/update-cache';
 import { createConvertToImportMap } from 'lib/2.app/flows/dynamic-init/convert-to-import-map';
-import { createProcessRemoteEntry } from 'lib/2.app/flows/dynamic-init/process-remote-entry';
 
 export const createDynamicInitDrivers = (
   config: ConfigContract,
@@ -12,6 +11,5 @@ export const createDynamicInitDrivers = (
 ): DynamicInitDriversContract => ({
   getRemoteEntry: createGetRemoteEntry(config, adapters),
   updateCache: createUpdateCache(config, adapters),
-  processRemoteEntry: createProcessRemoteEntry(config),
   convertToImportMap: createConvertToImportMap(config),
 });
