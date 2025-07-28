@@ -1,7 +1,6 @@
 import { createScopedExternalsRepository } from './scoped-externals.repository';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { MOCK_EXTERNALS_SCOPE } from 'lib/6.mocks/domain/externals/external.mock';
-import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
 import { Version } from 'lib/1.domain/externals/version.contract';
 import { MOCK_VERSION_I } from 'lib/6.mocks/domain/externals/version.mock';
 import { StorageConfig } from 'lib/2.app/config';
@@ -28,7 +27,7 @@ describe('createScopedExternalsRepository', () => {
     it('should reset cache when in config', () => {
       const mockStorage = {
         'scoped-externals': {
-          [MOCK_REMOTE_ENTRY_SCOPE_I_URL()]: MOCK_EXTERNALS_SCOPE(),
+          ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
         },
       };
       const mockStorageEntry = createStorageHandlerMock(mockStorage);
@@ -44,41 +43,41 @@ describe('createScopedExternalsRepository', () => {
   describe('addExternal', () => {
     it('should not add external to scope if no commit', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
-        [MOCK_REMOTE_ENTRY_SCOPE_I_URL()]: {},
+        ['team/mfe1']: {},
       });
       const newVersion = (): Version => ({
         version: '9.9.9',
         file: 'dep-x.js',
       });
 
-      externalsRepo.addExternal(MOCK_REMOTE_ENTRY_SCOPE_I_URL(), 'dep-x', newVersion());
+      externalsRepo.addExternal('team/mfe1', 'dep-x', newVersion());
 
-      expect(mockStorage['scoped-externals'][MOCK_REMOTE_ENTRY_SCOPE_I_URL()]).toEqual({});
+      expect(mockStorage['scoped-externals']['team/mfe1']).toEqual({});
     });
 
     it('should add external to scope after commit', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
-        [MOCK_REMOTE_ENTRY_SCOPE_I_URL()]: {},
+        ['team/mfe1']: {},
       });
       const newVersion = (): Version => ({
         version: '9.9.9',
         file: 'dep-x.js',
       });
 
-      externalsRepo.addExternal(MOCK_REMOTE_ENTRY_SCOPE_I_URL(), 'dep-x', newVersion());
+      externalsRepo.addExternal('team/mfe1', 'dep-x', newVersion());
 
-      expect(mockStorage['scoped-externals'][MOCK_REMOTE_ENTRY_SCOPE_I_URL()]).toEqual({});
+      expect(mockStorage['scoped-externals']['team/mfe1']).toEqual({});
 
       externalsRepo.commit();
 
-      expect(mockStorage['scoped-externals'][MOCK_REMOTE_ENTRY_SCOPE_I_URL()]).toEqual({
+      expect(mockStorage['scoped-externals']['team/mfe1']).toEqual({
         'dep-x': newVersion(),
       });
     });
 
     it('should add external to a new scope', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
-        [MOCK_REMOTE_ENTRY_SCOPE_I_URL()]: MOCK_EXTERNALS_SCOPE(),
+        ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
       });
       const newVersion = (): Version => ({
         version: '9.9.9',
@@ -95,7 +94,7 @@ describe('createScopedExternalsRepository', () => {
 
     it('should add multiple externals to a new scope', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
-        [MOCK_REMOTE_ENTRY_SCOPE_I_URL()]: MOCK_EXTERNALS_SCOPE(),
+        ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
       });
       const newVersionI = (): Version => ({
         version: '8.8.8',
@@ -124,15 +123,13 @@ describe('createScopedExternalsRepository', () => {
       });
 
       const { externalsRepo, mockStorage } = setupWithCache({
-        [MOCK_REMOTE_ENTRY_SCOPE_I_URL()]: MOCK_EXTERNALS_SCOPE(),
+        ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
       });
 
-      externalsRepo.addExternal(MOCK_REMOTE_ENTRY_SCOPE_I_URL(), 'dep-a', newVersion());
+      externalsRepo.addExternal('team/mfe1', 'dep-a', newVersion());
       externalsRepo.commit();
 
-      expect(mockStorage['scoped-externals'][MOCK_REMOTE_ENTRY_SCOPE_I_URL()]['dep-a']).toEqual(
-        newVersion()
-      );
+      expect(mockStorage['scoped-externals']['team/mfe1']['dep-a']).toEqual(newVersion());
     });
 
     it('should return the repository instance for chaining', () => {

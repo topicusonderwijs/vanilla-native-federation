@@ -2,6 +2,7 @@ import {
   type SharedExternal,
   type SharedExternals,
   GLOBAL_SCOPE,
+  STRICT_SCOPE,
 } from 'lib/1.domain/externals/external.contract';
 import type { StorageConfig, StorageEntry } from 'lib/2.app/config/storage.contract';
 import type { ForSharedExternalsStorage } from 'lib/2.app/driving-ports/for-shared-externals-storage.port';
@@ -30,11 +31,41 @@ const createSharedExternalsRepository = (config: StorageConfig): ForSharedExtern
       if (o.includeGlobal) return Object.keys(_cache);
       return Object.keys(_cache).filter(s => s !== GLOBAL_SCOPE);
     },
-    isGlobalScope: function (shareScope?: string) {
-      return shareScope === GLOBAL_SCOPE || shareScope === undefined;
+    scopeType: function (shareScope?: string) {
+      switch (shareScope) {
+        case GLOBAL_SCOPE:
+        case null:
+        case undefined:
+          return 'global';
+        case STRICT_SCOPE:
+          return 'strict';
+        default:
+          return 'shareScope';
+      }
     },
     tryGetVersions: function (external: string, shareScope?: string) {
       return Optional.of(_cache[shareScope ?? GLOBAL_SCOPE]?.[external]?.versions);
+    },
+    markVersionAsUsedBy: function (
+      externalName: string,
+      versionIDX: number,
+      remoteName: string,
+      shareScope?: string
+    ) {
+      const scope = shareScope ?? GLOBAL_SCOPE;
+      const external = _cache[scope]?.[externalName];
+
+      if (!external) return false;
+
+      const matchingVersion = external.versions[versionIDX];
+      if (!matchingVersion) return false;
+
+      if (!matchingVersion.usedBy) matchingVersion.usedBy = [];
+      if (!matchingVersion.usedBy.includes(remoteName)) {
+        matchingVersion.usedBy.push(remoteName);
+      }
+
+      return true;
     },
     commit: function () {
       STORAGE.set(_cache);

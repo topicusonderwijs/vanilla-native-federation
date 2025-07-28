@@ -1,9 +1,4 @@
 import { SharedVersion, Version } from 'lib/1.domain';
-import {
-  MOCK_HOST_REMOTE_ENTRY_SCOPE_URL,
-  MOCK_REMOTE_ENTRY_SCOPE_I_URL,
-  MOCK_REMOTE_ENTRY_SCOPE_II_URL,
-} from '../remote-entry/remote-entry.mock';
 
 /**
  * --------------------------------------
@@ -22,7 +17,8 @@ export const MOCK_VERSION_I = (): Version => ({
  */
 export const MOCK_VERSION_II = (): SharedVersion => ({
   version: '4.5.6',
-  file: `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}dep-b.js`,
+  file: 'dep-b.js',
+  remote: 'team/mfe1',
   requiredVersion: '^4.1.1',
   strictVersion: true,
   host: false,
@@ -32,7 +28,8 @@ export const MOCK_VERSION_II = (): SharedVersion => ({
 
 export const MOCK_VERSION_III = (): SharedVersion => ({
   version: '7.8.9',
-  file: `${MOCK_REMOTE_ENTRY_SCOPE_II_URL()}dep-c.js`,
+  file: `dep-c.js`,
+  remote: 'team/mfe2',
   requiredVersion: '~7.0.0',
   strictVersion: true,
   host: false,
@@ -42,7 +39,8 @@ export const MOCK_VERSION_III = (): SharedVersion => ({
 
 export const MOCK_VERSION_IV = (): SharedVersion => ({
   version: '2.2.2',
-  file: `${MOCK_REMOTE_ENTRY_SCOPE_II_URL()}dep-d.js`,
+  file: `dep-d.js`,
+  remote: 'team/mfe2',
   requiredVersion: '^2.0.0',
   strictVersion: true,
   host: false,
@@ -52,7 +50,8 @@ export const MOCK_VERSION_IV = (): SharedVersion => ({
 
 export const MOCK_VERSION_V = (): SharedVersion => ({
   version: '7.8.8',
-  file: `${MOCK_HOST_REMOTE_ENTRY_SCOPE_URL()}dep-c.js`,
+  file: 'dep-c.js',
+  remote: 'host',
   requiredVersion: '~7.0.0',
   strictVersion: true,
   host: true,
@@ -62,7 +61,8 @@ export const MOCK_VERSION_V = (): SharedVersion => ({
 
 export const MOCK_VERSION_VI = (): SharedVersion => ({
   version: '3.0.0',
-  file: `${MOCK_HOST_REMOTE_ENTRY_SCOPE_URL()}dep-d.js`,
+  file: 'dep-d.js',
+  remote: 'host',
   requiredVersion: '~3.0.0',
   strictVersion: true,
   host: true,

@@ -1,7 +1,11 @@
-import type { ScopedExternals, Version } from 'lib/1.domain';
+import type { RemoteName, ScopedExternals, Version } from 'lib/1.domain';
 
 export type ForScopedExternalsStorage = {
-  addExternal: (scope: string, external: string, version: Version) => ForScopedExternalsStorage;
+  addExternal: (
+    remoteName: RemoteName,
+    external: string,
+    version: Version
+  ) => ForScopedExternalsStorage;
   getAll: () => ScopedExternals;
   commit: () => ForScopedExternalsStorage;
 };

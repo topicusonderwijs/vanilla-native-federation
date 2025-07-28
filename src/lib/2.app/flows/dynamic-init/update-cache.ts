@@ -1,12 +1,14 @@
 import type { ForUpdatingCache } from '../../driver-ports/dynamic-init/for-updating-cache';
-import type {
-  RemoteEntry,
-  RemoteInfo,
-  SharedInfo,
-  SharedInfoActions,
-  SharedVersion,
-  SharedVersionAction,
-  Version,
+import {
+  FALLBACK_VERSION,
+  type RemoteEntry,
+  type RemoteInfo,
+  type RemoteName,
+  type SharedInfo,
+  type SharedInfoActions,
+  type SharedVersion,
+  type SharedVersionAction,
+  type Version,
 } from 'lib/1.domain';
 import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { LoggingConfig } from '../../config/log.contract';
@@ -43,86 +45,220 @@ export function createUpdateCache(
   }
 
   function mergeExternalsIntoStorage(remoteEntry: RemoteEntry): SharedInfoActions {
-    const scopeUrl = _path.getScope(remoteEntry.url);
-
     const actions: SharedInfoActions = {};
-    remoteEntry.shared.forEach(external => {
-      if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
-        config.log.debug(
-          `[8][${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
-        );
-        if (config.strict)
-          throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
 
+    remoteEntry.shared.forEach(external => {
+      if (!isValidExternalVersion(external, remoteEntry.name)) {
         return;
       }
-      if (external.singleton) {
-        const { action, sharedVersion } = addSharedExternal(scopeUrl, external);
-        actions[external.packageName] = { action };
 
-        if (action === 'override' && external.shareScope && sharedVersion?.file) {
-          actions[external.packageName]!.override = _path.getScope(sharedVersion!.file);
-        }
+      if (external.singleton) {
+        handleSharedExternal(remoteEntry, external, actions);
       } else {
-        addScopedExternal(scopeUrl, external);
+        addScopedExternal(remoteEntry.name, external);
       }
     });
+
     return actions;
   }
 
+  function isValidExternalVersion(external: SharedInfo, remoteName: string): boolean {
+    if (external.version && ports.versionCheck.isValidSemver(external.version)) {
+      return true;
+    }
+
+    config.log.debug(
+      `[8][${remoteName}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
+    );
+
+    if (config.strict) {
+      throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
+    }
+
+    return false;
+  }
+
+  function handleSharedExternal(
+    remoteEntry: RemoteEntry,
+    external: SharedInfo,
+    actions: SharedInfoActions
+  ): void {
+    const { action, sharedVersion } = addSharedExternal(remoteEntry.name, external);
+    actions[external.packageName] = { action };
+
+    if (action === 'skip' && !!external.shareScope && !!sharedVersion?.file) {
+      actions[external.packageName]!.override = getOverrideUrl(
+        sharedVersion!,
+        remoteEntry.name,
+        external
+      );
+    }
+  }
+
+  function getOverrideUrl(
+    sharedVersion: SharedVersion,
+    remoteName: string,
+    external: SharedInfo
+  ): string {
+    return ports.remoteInfoRepo
+      .tryGetScope(sharedVersion.remote)
+      .map(scope => _path.join(scope, sharedVersion.file))
+      .orThrow(() => {
+        config.log.debug(
+          `[8][${remoteName}][${external.packageName}@${external.version}][override] Remote name not found in cache.`
+        );
+        return new NFError(`Could not find override url from remote ${sharedVersion.remote}`);
+      });
+  }
+
   function addSharedExternal(
-    scope: string,
+    remoteName: RemoteName,
     remoteEntryVersion: SharedInfo
   ): { action: SharedVersionAction; sharedVersion?: SharedVersion } {
     const cachedVersions: SharedVersion[] = ports.sharedExternalsRepo
       .tryGetVersions(remoteEntryVersion.packageName, remoteEntryVersion.shareScope)
       .orElse([]);
 
-    if (~cachedVersions.findIndex(cache => cache.version === remoteEntryVersion.version)) {
-      return { action: 'skip' };
+    const existingVersionIndex = cachedVersions.findIndex(
+      cache => cache.version === remoteEntryVersion.version
+    );
+    if (existingVersionIndex !== -1) {
+      return handleExistingVersion(
+        remoteEntryVersion,
+        existingVersionIndex,
+        remoteName,
+        cachedVersions
+      );
     }
 
+    if (ports.sharedExternalsRepo.scopeType(remoteEntryVersion.shareScope) === 'strict') {
+      return handleStrictScopeVersion(remoteName, remoteEntryVersion, cachedVersions);
+    }
+
+    return handleNormalScopeVersion(remoteName, remoteEntryVersion, cachedVersions);
+  }
+
+  function handleExistingVersion(
+    remoteEntryVersion: SharedInfo,
+    versionIndex: number,
+    remoteName: RemoteName,
+    cachedVersions: SharedVersion[]
+  ): { action: SharedVersionAction; sharedVersion: SharedVersion } {
+    const existingVersion = cachedVersions[versionIndex]!; // Safe because index was found
+
+    ports.sharedExternalsRepo.markVersionAsUsedBy(
+      remoteEntryVersion.packageName,
+      versionIndex,
+      remoteName,
+      remoteEntryVersion.shareScope
+    );
+
+    return {
+      action: 'skip',
+      sharedVersion: existingVersion,
+    };
+  }
+
+  function handleStrictScopeVersion(
+    remoteName: RemoteName,
+    remoteEntryVersion: SharedInfo,
+    cachedVersions: SharedVersion[]
+  ): { action: SharedVersionAction } {
+    const newVersion = createSharedVersion(remoteName, remoteEntryVersion, {
+      action: 'share',
+      cached: true,
+    });
+
+    cachedVersions.push(newVersion);
+    updateSharedExternalsRepo(remoteEntryVersion, cachedVersions);
+
+    return { action: 'share' };
+  }
+
+  function handleNormalScopeVersion(
+    remoteName: RemoteName,
+    remoteEntryVersion: SharedInfo,
+    cachedVersions: SharedVersion[]
+  ): { action: SharedVersionAction; sharedVersion?: SharedVersion } {
     const sharedVersion = cachedVersions.find(c => c.action === 'share');
-    const isCompabible =
+    const isCompatible =
       !sharedVersion ||
       ports.versionCheck.isCompatible(sharedVersion.version, remoteEntryVersion.requiredVersion);
 
-    if (!isCompabible && remoteEntryVersion.strictVersion) {
-      config.log.debug(
-        `[8][${scope}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Is not compatible with existing [${remoteEntryVersion.packageName}@${sharedVersion!.version}] requiredRange '${sharedVersion!.requiredVersion}'`
+    if (!isCompatible && remoteEntryVersion.strictVersion) {
+      handleIncompatibleVersion(remoteName, remoteEntryVersion, sharedVersion);
+    }
+
+    const { action, cached } = determineActionAndCaching(
+      sharedVersion,
+      isCompatible,
+      remoteEntryVersion
+    );
+
+    const newVersion = createSharedVersion(remoteName, remoteEntryVersion, {
+      action,
+      cached,
+    });
+
+    cachedVersions.push(newVersion);
+    updateSharedExternalsRepo(remoteEntryVersion, cachedVersions);
+
+    return { action, sharedVersion };
+  }
+
+  function handleIncompatibleVersion(
+    remoteName: RemoteName,
+    remoteEntryVersion: SharedInfo,
+    sharedVersion: SharedVersion | undefined
+  ): void {
+    config.log.debug(
+      `[8][${remoteName}][${remoteEntryVersion.packageName}@${remoteEntryVersion.version}] Is not compatible with existing [${remoteEntryVersion.packageName}@${sharedVersion!.version}] requiredRange '${sharedVersion!.requiredVersion}'`
+    );
+
+    if (config.strict) {
+      throw new NFError(
+        `${remoteEntryVersion.packageName}@${remoteEntryVersion.version} from remote ${remoteName} is not compatible with ${sharedVersion!.remote}.`
       );
-      if (config.strict) {
-        throw new NFError(
-          `${scope}.${remoteEntryVersion.packageName}@${remoteEntryVersion.version} Is not compatible.`
-        );
-      }
+    }
+  }
+
+  function determineActionAndCaching(
+    sharedVersion: SharedVersion | undefined,
+    isCompatible: boolean,
+    remoteEntryVersion: SharedInfo
+  ): { action: SharedVersionAction; cached: boolean } {
+    if (!sharedVersion) {
+      return { action: 'share', cached: true };
     }
 
-    let action: SharedVersionAction = 'share';
-    let cached = true;
-    const file = _path.join(scope, remoteEntryVersion.outFileName);
+    const action: SharedVersionAction =
+      isCompatible || !remoteEntryVersion.strictVersion ? 'skip' : 'scope';
 
-    if (sharedVersion) {
-      action =
-        isCompabible || !remoteEntryVersion.strictVersion
-          ? ports.sharedExternalsRepo.isGlobalScope(scope)
-            ? 'skip'
-            : 'override'
-          : 'scope';
+    return { action, cached: action !== 'skip' };
+  }
 
-      cached = action !== 'skip' && (action !== 'override' || sharedVersion.file === file);
-    }
-
-    cachedVersions.push({
+  function createSharedVersion(
+    remoteName: RemoteName,
+    remoteEntryVersion: SharedInfo,
+    options: { action: SharedVersionAction; cached: boolean }
+  ): SharedVersion {
+    return {
       version: remoteEntryVersion.version!,
-      requiredVersion: remoteEntryVersion.requiredVersion,
+      remote: remoteName,
+      requiredVersion:
+        remoteEntryVersion.requiredVersion ?? remoteEntryVersion.version ?? FALLBACK_VERSION,
       strictVersion: remoteEntryVersion.strictVersion,
       host: false,
-      file,
-      cached,
-      action,
-    } as SharedVersion);
+      file: remoteEntryVersion.outFileName,
+      cached: options.cached,
+      action: options.action,
+    } as SharedVersion;
+  }
 
+  function updateSharedExternalsRepo(
+    remoteEntryVersion: SharedInfo,
+    cachedVersions: SharedVersion[]
+  ): void {
     ports.sharedExternalsRepo.addOrUpdate(
       remoteEntryVersion.packageName,
       {
@@ -131,12 +267,10 @@ export function createUpdateCache(
       },
       remoteEntryVersion.shareScope
     );
-
-    return { action, sharedVersion };
   }
 
-  function addScopedExternal(scope: string, sharedInfo: SharedInfo): void {
-    ports.scopedExternalsRepo.addExternal(scope, sharedInfo.packageName, {
+  function addScopedExternal(remoteName: RemoteName, sharedInfo: SharedInfo): void {
+    ports.scopedExternalsRepo.addExternal(remoteName, sharedInfo.packageName, {
       version: sharedInfo.version!,
       file: sharedInfo.outFileName,
     } as Version);

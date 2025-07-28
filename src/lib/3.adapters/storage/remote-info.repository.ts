@@ -18,6 +18,9 @@ const createRemoteInfoRepository = (config: StorageConfig): ForRemoteInfoStorage
       _cache[remoteName] = remote;
       return this;
     },
+    tryGetScope: function (remoteName: RemoteName) {
+      return Optional.of(_cache[remoteName]?.scopeUrl);
+    },
     tryGetModule: function (remoteName: RemoteName, exposedModule: string) {
       return Optional.of(_cache[remoteName]?.exposes.find(m => m.moduleName === exposedModule)).map(
         m => _path.join(_cache[remoteName]!.scopeUrl, m.file)

@@ -1,5 +1,14 @@
 import type { ForProcessingRemoteEntries } from '../../driver-ports/init/for-processing-remote-entries.port';
-import type { RemoteEntry, RemoteInfo, SharedInfo, SharedVersion, Version } from 'lib/1.domain';
+import {
+  type RemoteName,
+  type RemoteEntry,
+  type RemoteInfo,
+  type SharedInfo,
+  type SharedVersion,
+  type Version,
+  FALLBACK_VERSION,
+  type SharedVersionAction,
+} from 'lib/1.domain';
 import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { LoggingConfig } from '../../config/log.contract';
 import * as _path from 'lib/utils/path';
@@ -50,8 +59,6 @@ export function createProcessRemoteEntries(
   }
 
   function addExternalsToStorage(remoteEntry: RemoteEntry): void {
-    const scopeUrl = _path.getScope(remoteEntry.url);
-
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
         config.log.warn(
@@ -62,18 +69,20 @@ export function createProcessRemoteEntries(
         return;
       }
       if (external.singleton) {
-        addSharedExternal(scopeUrl, external, remoteEntry);
+        addSharedExternal(remoteEntry.name, external, remoteEntry);
       } else {
-        addScopedExternal(scopeUrl, external);
+        addScopedExternal(remoteEntry.name, external);
       }
     });
   }
 
   function addSharedExternal(
-    scope: string,
+    remoteName: RemoteName,
     sharedInfo: SharedInfo,
     remoteEntry?: RemoteEntry
   ): void {
+    let usedBy: string[] | undefined = undefined;
+
     const cached: SharedVersion[] = ports.sharedExternalsRepo
       .tryGetVersions(sharedInfo.packageName, sharedInfo.shareScope)
       .orElse([]);
@@ -82,28 +91,58 @@ export function createProcessRemoteEntries(
 
     if (~matchingVersionIDX) {
       if (cached[matchingVersionIDX]!.host || !remoteEntry?.host) {
+        ports.sharedExternalsRepo.markVersionAsUsedBy(
+          sharedInfo.packageName,
+          matchingVersionIDX,
+          remoteName,
+          sharedInfo.shareScope
+        );
         return;
+      }
+
+      usedBy = [cached[matchingVersionIDX]!.remote];
+      if (cached[matchingVersionIDX]!.usedBy) {
+        cached[matchingVersionIDX]!.usedBy.filter(u => usedBy!.includes(u)).forEach(u =>
+          usedBy!.push(u)
+        );
       }
       cached.splice(matchingVersionIDX, 1);
       config.log.debug(
-        `[2][${remoteEntry?.host ? 'host' : 'remote'}][${scope}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, replacing version.`
+        `[2][${remoteEntry?.host ? 'host' : 'remote'}][${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Shared version already exists, replacing version.`
       );
     }
 
+    const scopeType = ports.sharedExternalsRepo.scopeType(sharedInfo.shareScope);
+
+    let action: SharedVersionAction = 'skip';
+    let dirty = true;
+    let requiredVersion = sharedInfo.requiredVersion;
+    const version = sharedInfo.version ?? FALLBACK_VERSION;
+
+    if (scopeType !== 'global') {
+      if (scopeType === 'strict') {
+        dirty = false;
+        action = 'share';
+        requiredVersion = version;
+      }
+    }
+
     cached.push({
-      version: sharedInfo.version!,
-      file: _path.join(scope, sharedInfo.outFileName),
-      requiredVersion: sharedInfo.requiredVersion,
+      file: sharedInfo.outFileName,
+      remote: remoteName,
       strictVersion: sharedInfo.strictVersion,
       host: !!remoteEntry?.host,
       cached: false,
-      action: 'skip',
+      usedBy,
+      version,
+      requiredVersion,
+      action,
     } as SharedVersion);
 
     ports.sharedExternalsRepo.addOrUpdate(
       sharedInfo.packageName,
       {
-        dirty: true,
+        dirty,
         versions: cached.sort((a, b) => ports.versionCheck.compare(b.version, a.version)),
       },
       sharedInfo.shareScope

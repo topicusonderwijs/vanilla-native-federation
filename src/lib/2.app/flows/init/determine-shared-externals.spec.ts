@@ -32,7 +32,7 @@ describe('createDetermineSharedExternals', () => {
       versionCheck: createVersionCheck(),
       sharedExternalsRepo: mockSharedExternalsRepository(),
     };
-    mockAdapters.sharedExternalsRepo.isGlobalScope = jest.fn(() => true);
+    mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'global');
     determineSharedExternals = createDetermineSharedExternals(mockConfig, mockAdapters);
   });
 
@@ -44,7 +44,8 @@ describe('createDetermineSharedExternals', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
@@ -64,7 +65,8 @@ describe('createDetermineSharedExternals', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
@@ -84,7 +86,8 @@ describe('createDetermineSharedExternals', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
@@ -111,7 +114,8 @@ describe('createDetermineSharedExternals', () => {
           versions: [
             {
               version: '19.0.1',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~19.0.1',
               strictVersion: false,
               cached: false,
@@ -120,7 +124,8 @@ describe('createDetermineSharedExternals', () => {
             },
             {
               version: '18.0.1',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~18.0.1',
               strictVersion: false,
               cached: false,
@@ -140,7 +145,8 @@ describe('createDetermineSharedExternals', () => {
           versions: [
             {
               version: '19.0.1',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~19.0.1',
               strictVersion: false,
               cached: false,
@@ -149,7 +155,8 @@ describe('createDetermineSharedExternals', () => {
             },
             {
               version: '18.0.1',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~18.0.1',
               strictVersion: false,
               cached: false,
@@ -171,7 +178,8 @@ describe('createDetermineSharedExternals', () => {
           versions: [
             {
               version: '19.0.1',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~19.0.1',
               strictVersion: true,
               cached: false,
@@ -180,7 +188,8 @@ describe('createDetermineSharedExternals', () => {
             },
             {
               version: '18.0.1',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~18.0.1',
               strictVersion: true,
               cached: false,
@@ -200,7 +209,8 @@ describe('createDetermineSharedExternals', () => {
           versions: [
             {
               version: '19.0.1',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~19.0.1',
               strictVersion: true,
               cached: false,
@@ -209,7 +219,8 @@ describe('createDetermineSharedExternals', () => {
             },
             {
               version: '18.0.1',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~18.0.1',
               strictVersion: true,
               cached: false,
@@ -231,7 +242,8 @@ describe('createDetermineSharedExternals', () => {
           versions: [
             {
               version: '19.0.1',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~19.0.1',
               strictVersion: true,
               cached: false,
@@ -240,7 +252,8 @@ describe('createDetermineSharedExternals', () => {
             },
             {
               version: '18.0.1',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~18.0.1',
               strictVersion: true,
               cached: false,
@@ -260,7 +273,7 @@ describe('createDetermineSharedExternals', () => {
   describe('Custom scope', () => {
     beforeEach(() => {
       mockAdapters.sharedExternalsRepo.getScopes = jest.fn(() => ['custom-scope']);
-      mockAdapters.sharedExternalsRepo.isGlobalScope = jest.fn(() => false);
+      mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'shareScope');
     });
 
     it('should set only one version to share when compatible, the rest to override', async () => {
@@ -271,7 +284,8 @@ describe('createDetermineSharedExternals', () => {
             versions: [
               {
                 version: '4.5.7',
-                file: 'http://my.service/mfe1/dep-a.js',
+                file: 'dep-a.js',
+                remote: 'team/mfe1',
                 requiredVersion: '~4.5.1',
                 strictVersion: false,
                 cached: false,
@@ -280,7 +294,8 @@ describe('createDetermineSharedExternals', () => {
               },
               {
                 version: '4.5.6',
-                file: 'http://my.service/mfe2/dep-a.js',
+                file: 'dep-a.js',
+                remote: 'team/mfe2',
                 requiredVersion: '~4.5.1',
                 strictVersion: false,
                 cached: false,
@@ -301,7 +316,8 @@ describe('createDetermineSharedExternals', () => {
           versions: [
             {
               version: '4.5.7',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~4.5.1',
               strictVersion: false,
               cached: false,
@@ -310,12 +326,13 @@ describe('createDetermineSharedExternals', () => {
             },
             {
               version: '4.5.6',
-              file: 'http://my.service/mfe2/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~4.5.1',
               strictVersion: false,
               cached: false,
               host: false,
-              action: 'override',
+              action: 'skip',
             },
           ],
         },

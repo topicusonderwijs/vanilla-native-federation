@@ -10,7 +10,6 @@ type SharedInfo = {
   packageName: string;
   outFileName: string;
   shareScope?: string;
-  scopeOverride?: string;
   dev?: {
     entryPoint: string;
   };

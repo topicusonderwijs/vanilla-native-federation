@@ -1,3 +1,5 @@
+import type { RemoteName } from '../remote/remote-info.contract';
+
 export type VersionName = string;
 
 export type Version = {
@@ -5,12 +7,16 @@ export type Version = {
   file: string;
 };
 
-export type SharedVersionAction = 'skip' | 'scope' | 'share' | 'override';
+export type SharedVersionAction = 'skip' | 'scope' | 'share';
+
+export const FALLBACK_VERSION = '0.0.0';
 
 export type SharedVersion = Version & {
   requiredVersion: string;
   strictVersion: boolean;
   cached: boolean;
   host: boolean;
+  remote: RemoteName;
+  usedBy?: string[];
   action: SharedVersionAction;
 };

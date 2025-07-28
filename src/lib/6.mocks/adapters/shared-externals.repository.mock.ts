@@ -5,7 +5,8 @@ export const mockSharedExternalsRepository = (): jest.Mocked<ForSharedExternalsS
   addOrUpdate: jest.fn(),
   getAll: jest.fn(),
   commit: jest.fn(),
-  isGlobalScope: jest.fn(),
+  scopeType: jest.fn(),
   getScopes: jest.fn((o = { includeGlobal: true }) => (o.includeGlobal ? [GLOBAL_SCOPE] : [])),
   tryGetVersions: jest.fn(),
+  markVersionAsUsedBy: jest.fn(),
 });

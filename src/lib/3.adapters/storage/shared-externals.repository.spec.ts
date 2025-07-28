@@ -3,6 +3,7 @@ import {
   GLOBAL_SCOPE,
   SharedExternals,
   shareScope,
+  STRICT_SCOPE,
 } from 'lib/1.domain/externals/external.contract';
 import { SharedVersion } from 'lib/1.domain/externals/version.contract';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
@@ -86,23 +87,29 @@ describe('createSharedExternalsRepository', () => {
     });
   });
 
-  describe('isGlobalScope', () => {
-    it('should return true for global scope', () => {
+  describe('scopeType', () => {
+    it('should return "global" for global scope', () => {
       const { externalsRepo } = setupWithCache({});
 
-      expect(externalsRepo.isGlobalScope(GLOBAL_SCOPE)).toBe(true);
+      expect(externalsRepo.scopeType(GLOBAL_SCOPE)).toBe('global');
     });
 
-    it('should return true for undefined scope', () => {
+    it('should return "global" for undefined scope', () => {
       const { externalsRepo } = setupWithCache({});
 
-      expect(externalsRepo.isGlobalScope(undefined)).toBe(true);
+      expect(externalsRepo.scopeType(undefined)).toBe('global');
+    });
+
+    it('should return "strict" for strict scope', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      expect(externalsRepo.scopeType(STRICT_SCOPE)).toBe('strict');
     });
 
     it('should return false for custom scopes', () => {
       const { externalsRepo } = setupWithCache({});
 
-      expect(externalsRepo.isGlobalScope('custom-scope')).toBe(false);
+      expect(externalsRepo.scopeType('custom-scope')).toBe('shareScope');
     });
   });
 
@@ -372,6 +379,60 @@ describe('createSharedExternalsRepository', () => {
       const actual = externalsRepo.getScopes({ includeGlobal: false });
 
       expect(actual).toEqual(['custom-scope', 'other-custom-scope']);
+    });
+  });
+
+  describe('markVersionAsUsedBy', () => {
+    it('should mark a version as used by a remote', () => {
+      const { externalsRepo } = setupWithCache({
+        [GLOBAL_SCOPE]: {
+          'dep-a': {
+            dirty: false,
+            versions: [{ ...MOCK_VERSION_II() }],
+          },
+        },
+      });
+
+      const result = externalsRepo.markVersionAsUsedBy('dep-a', 0, 'remote-a');
+
+      expect(result).toBe(true);
+      expect(externalsRepo.tryGetVersions('dep-a').get()![0]!.usedBy).toEqual(['remote-a']);
+    });
+
+    it('should return false if the external does not exist', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      const result = externalsRepo.markVersionAsUsedBy('dep-a', 0, 'remote-a');
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if the version index is out of bounds', () => {
+      const { externalsRepo } = setupWithCache({
+        [GLOBAL_SCOPE]: {
+          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
+        },
+      });
+
+      const result = externalsRepo.markVersionAsUsedBy('dep-a', 1, 'remote-a');
+
+      expect(result).toBe(false);
+    });
+
+    it('should not add duplicate remotes to usedBy array', () => {
+      const { externalsRepo } = setupWithCache({
+        [GLOBAL_SCOPE]: {
+          'dep-a': {
+            dirty: false,
+            versions: [{ ...MOCK_VERSION_II(), usedBy: ['remote-a'] }],
+          },
+        },
+      });
+
+      const result = externalsRepo.markVersionAsUsedBy('dep-a', 0, 'remote-a');
+
+      expect(result).toBe(true);
+      expect(externalsRepo.tryGetVersions('dep-a').get()![0]!.usedBy).toEqual(['remote-a']);
     });
   });
 });

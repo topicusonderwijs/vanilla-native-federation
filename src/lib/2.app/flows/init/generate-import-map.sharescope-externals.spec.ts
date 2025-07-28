@@ -8,6 +8,7 @@ import { LoggingConfig } from '../../config/log.contract';
 import { ModeConfig } from '../../config/mode.contract';
 import { GLOBAL_SCOPE, shareScope } from 'lib/1.domain';
 import { NFError } from 'lib/native-federation.error';
+import { Optional } from 'lib/utils/optional';
 
 describe('createGenerateImportMap (shareScope-externals)', () => {
   let generateImportMap: ForGeneratingImportMap;
@@ -46,6 +47,13 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
       ({ includeGlobal } = { includeGlobal: true }) =>
         includeGlobal ? [GLOBAL_SCOPE, 'custom-scope'] : ['custom-scope']
     );
+    mockAdapters.remoteInfoRepo.tryGetScope = jest.fn(remote => {
+      if (remote === 'team/mfe1') return Optional.of('http://my.service/mfe1/');
+      if (remote === 'team/mfe2') return Optional.of('http://my.service/mfe2/');
+      if (remote === 'team/mfe3') return Optional.of('http://my.service/mfe3/');
+
+      return Optional.empty<string>();
+    });
 
     generateImportMap = createGenerateImportMap(mockConfig, mockAdapters);
   });
@@ -60,7 +68,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               versions: [
                 {
                   version: '1.2.3',
-                  file: 'http://my.service/mfe1/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -69,7 +78,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
                 },
                 {
                   version: '1.2.2',
-                  file: 'http://my.service/mfe2/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe2',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -96,7 +106,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
     });
   });
 
-  it('should skip externals with the action skip.', async () => {
+  it('should fallback to scope with the action skip and no shared externals.', async () => {
     mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
@@ -106,7 +116,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               versions: [
                 {
                   version: '1.2.3',
-                  file: 'http://my.service/mfe1/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -115,7 +126,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
                 },
                 {
                   version: '1.2.2',
-                  file: 'http://my.service/mfe2/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe2',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -135,6 +147,9 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
         'http://my.service/mfe1/': {
           'dep-a': 'http://my.service/mfe1/dep-a.js',
         },
+        'http://my.service/mfe2/': {
+          'dep-a': 'http://my.service/mfe2/dep-a.js',
+        },
       },
     });
   });
@@ -149,7 +164,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               versions: [
                 {
                   version: '1.2.3',
-                  file: 'http://my.service/mfe1/dep-a.js',
+                  file: 'dep-a-abc.js',
+                  remote: 'team/mfe1',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -158,12 +174,13 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
                 },
                 {
                   version: '1.2.2',
-                  file: 'http://my.service/mfe2/dep-a.js',
+                  file: 'dep-a-xyz.js',
+                  remote: 'team/mfe2',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
                   host: true,
-                  action: 'override',
+                  action: 'skip',
                 },
               ],
             },
@@ -176,13 +193,77 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
       imports: {},
       scopes: {
         'http://my.service/mfe1/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+          'dep-a': 'http://my.service/mfe1/dep-a-abc.js',
         },
         'http://my.service/mfe2/': {
+          'dep-a': 'http://my.service/mfe1/dep-a-abc.js',
+        },
+      },
+    });
+  });
+
+  it('should scope a shared version if no override version is available.', async () => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+      return !scope || scope === GLOBAL_SCOPE
+        ? {}
+        : {
+            'dep-a': {
+              dirty: false,
+              versions: [
+                {
+                  version: '1.2.3',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: false,
+                  host: false,
+                  action: 'skip',
+                },
+              ],
+            },
+          };
+    });
+    const actual = await generateImportMap();
+
+    expect(actual).toEqual({
+      imports: {},
+      scopes: {
+        'http://my.service/mfe1/': {
           'dep-a': 'http://my.service/mfe1/dep-a.js',
         },
       },
     });
+  });
+
+  it('should throw an error if no override version is available and strict.', async () => {
+    mockConfig.strict = true;
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+      return !scope || scope === GLOBAL_SCOPE
+        ? {}
+        : {
+            'dep-a': {
+              dirty: false,
+              versions: [
+                {
+                  version: '1.2.3',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: false,
+                  host: false,
+                  action: 'skip',
+                },
+              ],
+            },
+          };
+    });
+
+    expect(generateImportMap()).rejects.toThrow('Could not create ImportMap.');
+    expect(mockConfig.log.debug).toHaveBeenCalledWith(
+      '[4][custom-scope][dep-a] shareScope has no override version.'
+    );
   });
 
   it('should not override a scoped version.', async () => {
@@ -195,7 +276,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               versions: [
                 {
                   version: '1.2.3',
-                  file: 'http://my.service/mfe1/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -204,16 +286,18 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
                 },
                 {
                   version: '1.2.2',
-                  file: 'http://my.service/mfe2/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe2',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
                   host: true,
-                  action: 'override',
+                  action: 'skip',
                 },
                 {
                   version: '1.2.1',
-                  file: 'http://my.service/mfe3/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe3',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -253,7 +337,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               versions: [
                 {
                   version: '1.2.3',
-                  file: 'http://my.service/mfe1/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -262,16 +347,18 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
                 },
                 {
                   version: '1.2.2',
-                  file: 'http://my.service/mfe2/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe2',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
                   host: true,
-                  action: 'override',
+                  action: 'skip',
                 },
                 {
                   version: '1.2.1',
-                  file: 'http://my.service/mfe3/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe3',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -292,7 +379,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
         versions: [
           {
             version: '1.2.3',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: true,
@@ -301,16 +389,18 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
           },
           {
             version: '1.2.2',
-            file: 'http://my.service/mfe2/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
             host: true,
-            action: 'override',
+            action: 'skip',
           },
           {
             version: '1.2.1',
-            file: 'http://my.service/mfe3/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe3',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: true,
@@ -335,7 +425,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               versions: [
                 {
                   version: '1.2.3',
-                  file: 'http://my.service/mfe1/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -344,7 +435,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
                 },
                 {
                   version: '1.2.2',
-                  file: 'http://my.service/mfe2/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe2',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -353,12 +445,13 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
                 },
                 {
                   version: '1.2.1',
-                  file: 'http://my.service/mfe3/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe3',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
                   host: true,
-                  action: 'override',
+                  action: 'skip',
                 },
               ],
             },
@@ -398,7 +491,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               versions: [
                 {
                   version: '1.2.3',
-                  file: 'http://my.service/mfe1/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -407,7 +501,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
                 },
                 {
                   version: '1.2.2',
-                  file: 'http://my.service/mfe2/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe2',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
@@ -416,12 +511,13 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
                 },
                 {
                   version: '1.2.1',
-                  file: 'http://my.service/mfe2/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe3',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
                   host: true,
-                  action: 'override',
+                  action: 'skip',
                 },
               ],
             },
@@ -446,21 +542,23 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               versions: [
                 {
                   version: '1.2.3',
-                  file: 'http://my.service/mfe1/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
                   host: false,
-                  action: 'override',
+                  action: 'skip',
                 },
                 {
                   version: '1.2.2',
-                  file: 'http://my.service/mfe2/dep-a.js',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe2',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: false,
                   host: true,
-                  action: 'override',
+                  action: 'skip',
                 },
               ],
             },
@@ -483,5 +581,121 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
     expect(mockConfig.log.debug).toHaveBeenCalledWith(
       '[4][custom-scope][dep-a] shareScope has no override version, scoping override versions.'
     );
+  });
+
+  it('should throw an error if the remote doesnt exist', async () => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+      'dep-a': {
+        dirty: false,
+        versions: [
+          {
+            version: '1.2.3',
+            file: 'dep-a.js',
+            remote: 'team/mfe4',
+            requiredVersion: '~1.2.1',
+            strictVersion: false,
+            cached: false,
+            host: false,
+            action: 'share',
+          },
+        ],
+      },
+    }));
+
+    await expect(generateImportMap()).rejects.toThrow('Could not create ImportMap.');
+    expect(mockConfig.log.debug).toHaveBeenCalledWith(
+      '[4][custom-scope][dep-a][team/mfe4] Remote name not found in cache.'
+    );
+  });
+
+  it('shoud add a usedBy entry from a shared version to the importMap.', async () => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+      return !scope || scope === GLOBAL_SCOPE
+        ? {}
+        : {
+            'dep-a': {
+              dirty: false,
+              versions: [
+                {
+                  version: '1.2.3',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: true,
+                  host: false,
+                  usedBy: ['team/mfe2'],
+                  action: 'share',
+                },
+              ],
+            },
+          };
+    });
+
+    const actual = await generateImportMap();
+
+    expect(actual).toEqual({
+      imports: {},
+      scopes: {
+        'http://my.service/mfe1/': {
+          'dep-a': 'http://my.service/mfe1/dep-a.js',
+        },
+        'http://my.service/mfe2/': {
+          'dep-a': 'http://my.service/mfe1/dep-a.js',
+        },
+      },
+    });
+  });
+
+  it('shoud add a usedBy entry from override version to the importMap.', async () => {
+    mockAdapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+      return !scope || scope === GLOBAL_SCOPE
+        ? {}
+        : {
+            'dep-a': {
+              dirty: false,
+              versions: [
+                {
+                  version: '1.2.3',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: true,
+                  host: false,
+                  action: 'share',
+                },
+                {
+                  version: '1.2.3',
+                  file: 'dep-a.js',
+                  remote: 'team/mfe2',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: false,
+                  host: false,
+                  usedBy: ['team/mfe3'],
+                  action: 'skip',
+                },
+              ],
+            },
+          };
+    });
+
+    const actual = await generateImportMap();
+
+    expect(actual).toEqual({
+      imports: {},
+      scopes: {
+        'http://my.service/mfe1/': {
+          'dep-a': 'http://my.service/mfe1/dep-a.js',
+        },
+        'http://my.service/mfe2/': {
+          'dep-a': 'http://my.service/mfe1/dep-a.js',
+        },
+        'http://my.service/mfe3/': {
+          'dep-a': 'http://my.service/mfe1/dep-a.js',
+        },
+      },
+    });
   });
 });

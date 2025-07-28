@@ -35,7 +35,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
       sharedExternalsRepo: mockSharedExternalsRepository(),
     };
     mockAdapters.sharedExternalsRepo.getScopes = jest.fn(() => [GLOBAL_SCOPE]);
-    mockAdapters.sharedExternalsRepo.isGlobalScope = jest.fn(() => true);
+    mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'global');
     determineSharedExternals = createDetermineSharedExternals(mockConfig, mockAdapters);
   });
 
@@ -46,7 +46,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
         versions: [
           {
             version: '1.2.3',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -55,7 +56,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '1.2.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -75,7 +77,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
         versions: [
           {
             version: '1.2.3',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -84,7 +87,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '1.2.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -104,7 +108,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
         versions: [
           {
             version: '1.2.3',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -113,7 +118,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '1.2.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -133,7 +139,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
         versions: [
           {
             version: '1.2.3',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -142,7 +149,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '1.2.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~1.2.1',
             strictVersion: false,
             cached: false,
@@ -164,7 +172,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
         versions: [
           {
             version: '19.0.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~19.0.1',
             strictVersion: true,
             cached: false,
@@ -173,7 +182,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '18.0.2',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~18.0.1',
             strictVersion: true,
             cached: false,
@@ -182,7 +192,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '18.0.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe3',
             requiredVersion: '~18.0.1',
             strictVersion: true,
             cached: false,
@@ -202,7 +213,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
         versions: [
           {
             version: '19.0.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~19.0.1',
             strictVersion: true,
             cached: false,
@@ -211,7 +223,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '18.0.2',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~18.0.1',
             strictVersion: true,
             cached: false,
@@ -220,7 +233,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '18.0.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe3',
             requiredVersion: '~18.0.1',
             strictVersion: true,
             cached: false,
@@ -243,7 +257,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
         versions: [
           {
             version: '19.0.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~19.0.1',
             strictVersion: true,
             cached: false,
@@ -252,7 +267,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '18.0.2',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~18.0.1',
             strictVersion: true,
             cached: false,
@@ -261,7 +277,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '18.0.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe3',
             requiredVersion: '~18.0.1',
             strictVersion: true,
             cached: false,
@@ -281,7 +298,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
         versions: [
           {
             version: '19.0.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe1',
             requiredVersion: '~19.0.1',
             strictVersion: true,
             cached: false,
@@ -290,7 +308,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '18.0.2',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe2',
             requiredVersion: '~18.0.1',
             strictVersion: true,
             cached: false,
@@ -299,7 +318,8 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
           },
           {
             version: '18.0.1',
-            file: 'http://my.service/mfe1/dep-a.js',
+            file: 'dep-a.js',
+            remote: 'team/mfe3',
             requiredVersion: '~18.0.1',
             strictVersion: true,
             cached: false,

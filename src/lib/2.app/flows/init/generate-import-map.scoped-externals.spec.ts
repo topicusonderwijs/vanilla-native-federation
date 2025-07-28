@@ -6,6 +6,7 @@ import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-exter
 import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
 import { LoggingConfig } from '../../config/log.contract';
 import { ModeConfig } from '../../config/mode.contract';
+import { Optional } from 'lib/utils/optional';
 
 describe('createGenerateImportMap (scoped-externals)', () => {
   let generateImportMap: ForGeneratingImportMap;
@@ -39,13 +40,18 @@ describe('createGenerateImportMap (scoped-externals)', () => {
     mockAdapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
     mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
     mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
+    mockAdapters.remoteInfoRepo.tryGetScope = jest.fn(remote => {
+      if (remote === 'team/mfe1') return Optional.of('http://my.service/mfe1/');
+      if (remote === 'team/mfe2') return Optional.of('http://my.service/mfe2/');
+      return Optional.empty<string>();
+    });
 
     generateImportMap = createGenerateImportMap(mockConfig, mockAdapters);
   });
 
   it('should add a scoped externals to its respective scope.', async () => {
     mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
-      'http://my.service/mfe1/': {
+      'team/mfe1': {
         'dep-a': {
           version: '1.2.3',
           file: 'dep-a.js',
@@ -67,13 +73,13 @@ describe('createGenerateImportMap (scoped-externals)', () => {
 
   it('should handle multiple scopes.', async () => {
     mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
-      'http://my.service/mfe1/': {
+      'team/mfe1': {
         'dep-a': {
           version: '1.2.3',
           file: 'dep-a.js',
         },
       },
-      'http://my.service/mfe2/': {
+      'team/mfe2': {
         'dep-b': {
           version: '1.2.3',
           file: 'dep-b.js',
@@ -98,7 +104,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
 
   it('should handle multiple externals in 1 scope.', async () => {
     mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
-      'http://my.service/mfe1/': {
+      'team/mfe1': {
         'dep-a': {
           version: '1.2.3',
           file: 'dep-a.js',
@@ -121,5 +127,21 @@ describe('createGenerateImportMap (scoped-externals)', () => {
         },
       },
     });
+  });
+
+  it('should throw an error if the remote doesnt exist', async () => {
+    mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
+      'team/mfe3': {
+        'dep-a': {
+          version: '1.2.3',
+          file: 'dep-a.js',
+        },
+      },
+    }));
+
+    await expect(generateImportMap()).rejects.toThrow('Could not create ImportMap.');
+    expect(mockConfig.log.debug).toHaveBeenCalledWith(
+      '[4][scoped][team/mfe3] Remote name not found in cache.'
+    );
   });
 });

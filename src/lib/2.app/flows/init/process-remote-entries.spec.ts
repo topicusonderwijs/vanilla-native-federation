@@ -92,7 +92,7 @@ describe('createProcessRemoteEntries', () => {
 
       expect(mockAdapters.scopedExternalsRepo.addExternal).toHaveBeenCalledTimes(1);
       expect(mockAdapters.scopedExternalsRepo.addExternal).toHaveBeenCalledWith(
-        'http://my.service/mfe1/',
+        'team/mfe1',
         'dep-a',
         {
           version: '1.2.3',
@@ -162,7 +162,8 @@ describe('createProcessRemoteEntries', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
@@ -240,7 +241,8 @@ describe('createProcessRemoteEntries', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
@@ -255,13 +257,14 @@ describe('createProcessRemoteEntries', () => {
   });
 
   describe('process shared externals - Handle version collisions', () => {
-    it('should skip shared external if exact version already exists in cache', async () => {
+    it('should mark remote if exact version already exists in cache', async () => {
       mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
         (): Optional<SharedVersion[]> =>
           Optional.of([
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -273,8 +276,8 @@ describe('createProcessRemoteEntries', () => {
 
       const remoteEntries = [
         {
-          name: 'team/mfe1',
-          url: 'http://my.service/mfe1/remoteEntry.json',
+          name: 'team/mfe2',
+          url: 'http://my.service/mfe2/remoteEntry.json',
           exposes: [],
           shared: [
             {
@@ -291,7 +294,12 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalledTimes(1);
+      expect(mockAdapters.sharedExternalsRepo.markVersionAsUsedBy).toHaveBeenCalledWith(
+        'dep-a',
+        0,
+        'team/mfe2',
+        undefined
+      );
     });
 
     it('should not skip shared external if in cache, but new version is from host remoteEntry', async () => {
@@ -300,7 +308,8 @@ describe('createProcessRemoteEntries', () => {
           Optional.of([
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -312,8 +321,8 @@ describe('createProcessRemoteEntries', () => {
 
       const remoteEntries = [
         {
-          name: 'team/mfe1',
-          url: 'http://my.service/mfe1/remoteEntry.json',
+          name: 'team/mfe2',
+          url: 'http://my.service/mfe2/remoteEntry.json',
           exposes: [],
           host: true,
           shared: [
@@ -339,12 +348,14 @@ describe('createProcessRemoteEntries', () => {
           versions: [
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
               host: true,
               action: 'skip',
+              usedBy: ['team/mfe1'],
             } as SharedVersion,
           ],
         },
@@ -352,13 +363,14 @@ describe('createProcessRemoteEntries', () => {
       );
     });
 
-    it('should skip shared external if in cache and both are host version', async () => {
+    it('should mark shared external if in cache and both are host version', async () => {
       mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
         (): Optional<SharedVersion[]> =>
           Optional.of([
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -389,7 +401,12 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalledTimes(1);
+      expect(mockAdapters.sharedExternalsRepo.markVersionAsUsedBy).toHaveBeenCalledWith(
+        'dep-a',
+        0,
+        'team/mfe1',
+        undefined
+      );
     });
   });
 
@@ -400,7 +417,8 @@ describe('createProcessRemoteEntries', () => {
           Optional.of([
             {
               version: '1.2.4',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe1',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: true,
@@ -409,8 +427,9 @@ describe('createProcessRemoteEntries', () => {
             },
             {
               version: '1.2.2',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
               requiredVersion: '~1.2.1',
+              remote: 'team/mfe3',
               strictVersion: false,
               cached: false,
               host: false,
@@ -421,8 +440,8 @@ describe('createProcessRemoteEntries', () => {
 
       const remoteEntries = [
         {
-          name: 'team/mfe1',
-          url: 'http://my.service/mfe1/remoteEntry.json',
+          name: 'team/mfe2',
+          url: 'http://my.service/mfe2/remoteEntry.json',
           exposes: [],
           host: true,
           shared: [
@@ -448,8 +467,9 @@ describe('createProcessRemoteEntries', () => {
           versions: [
             {
               version: '1.2.4',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
               requiredVersion: '~1.2.1',
+              remote: 'team/mfe1',
               strictVersion: false,
               cached: true,
               host: false,
@@ -457,8 +477,9 @@ describe('createProcessRemoteEntries', () => {
             },
             {
               version: '1.2.3',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
               requiredVersion: '~1.2.1',
+              remote: 'team/mfe2',
               strictVersion: false,
               cached: false,
               host: true,
@@ -466,7 +487,8 @@ describe('createProcessRemoteEntries', () => {
             },
             {
               version: '1.2.2',
-              file: 'http://my.service/mfe1/dep-a.js',
+              file: 'dep-a.js',
+              remote: 'team/mfe3',
               requiredVersion: '~1.2.1',
               strictVersion: false,
               cached: false,
