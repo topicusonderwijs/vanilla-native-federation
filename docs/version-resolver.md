@@ -374,12 +374,11 @@ flowchart TD
 
 Each new dependency gets one of these actions during dynamic init:
 
-| Action       | Description                                                            | Import Map Impact                      |
-| ------------ | ---------------------------------------------------------------------- | -------------------------------------- |
-| **SKIP**     | Version already exists or use existing shared version                  | No changes                             |
-| **SHARE**    | No compatible version exists, become the shared version for this scope | Add to scope's import map              |
-| **OVERRIDE** | Compatible version exists in shared scope, reuse same URL              | Add same URL to MFE's individual scope |
-| **SCOPE**    | Incompatible version with strictVersion: true                          | Add to individual MFE scope            |
+| Action    | Description                                                                                                                                                                                          |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SKIP**  | Version already exists or use existing shared version, in a shareScope context this action is used for overriding by skipping the provided external and loading a compatible cached version instead. |
+| **SHARE** | No compatible version exists (yet), become the shared version for this scope                                                                                                                         |
+| **SCOPE** | Incompatible version with strictVersion: true                                                                                                                                                        |
 
 ### Example: Dynamic Loading Scenario
 
@@ -453,7 +452,7 @@ const DashboardComponent = await loadRemoteModule('team/dashboard', './Dashboard
 ```mermaid
 flowchart LR
     A[React 18.1.0] --> B[SKIP<br/>Use existing 18.2.0 globally]
-    C[Design System 3.0.5] --> D[OVERRIDE<br/>Use existing 3.1.0 URL from team-a]
+    C[Design System 3.0.5] --> D[SKIP<br/>Use existing 3.1.0 URL from team-a]
     E[Charts Library 2.4.0] --> F[SHARE<br/>Become shared version globally]
 ```
 
