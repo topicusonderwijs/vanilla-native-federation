@@ -125,11 +125,13 @@ Dependencies with `singleton: false` are always scoped to their individual remot
 
 **Result**: This external is placed in the scope of its remote. And therefore only available to that specific remote.
 
-### Shared Scope Configuration
+### Shared scopes
 
-The `shareScope` property creates logical groups for dependency resolution. Dependencies with the same shared scope are resolved together, but the final import map still uses individual micro frontend scopes:
+By default, dependencies with the `singleton: true` property are shared globally between all remotes. The `shareScope` property can be used for externals that should only be shared over a select group of remotes. The `shareScope` property creates a logical group for dependency resolution. Externals with the same shared scope are resolved together in isolation from other share scopes.
 
-> Shared scope groups don't exist in import maps, therefore it is only popssible through using the same URL in multiple specific scopes.
+This can be useful e.g. if some legacy remotes are still dependent on a previous major of a framework:
+
+> Internally, shared "scope groups" don't exist in import maps, therefore it is only possible through overriding the specific scopes with 'the same url'.
 
 ```json
 // Team A micro frontends - share UI components v3.x
@@ -171,6 +173,74 @@ The `shareScope` property creates logical groups for dependency resolution. Depe
 2. **Sharing**: The version within a logical group that is deemed to be most optimal for sharing is shared among all micro frontends in that logical group
 3. **Import Map**: Each micro frontend within the logical group gets the shared version added to its individual scope in the final import map
 
+### The "strict" shareScope
+
+The special `shareScope: "strict"` shareScope enables exact version matching instead of semantic version range compatibility. This is useful when you need precise version control and want to share multiple specific versions of the same dependency.
+
+```json
+// Strict sharing - only exact versions are matched
+{
+  "shared": [
+    {
+      "packageName": "ui-library",
+      "singleton": true,
+      "shareScope": "strict",
+      "version": "2.1.1",
+      "requiredVersion": "^2.1.0" // Will be replaced with exact version 2.1.1
+    }
+  ]
+}
+```
+
+**Differences compared to regular "share scopes":**
+
+While a regular shareScope (including "global") shares only the most compatible version and scopes the rest of the provided incompatible versions. The "strict" shareScope will share _all_ provided versions. The shared versions will be stripped of their requiredVersion range and exposed as exact versions. This way, remotes can still share dependencies while receiving their own exact provided version. This is good for externals that have many breaking updates or incompatibilities between (patch) versions.
+
+**Example: Multiple exact versions sharing**
+
+```json
+// Team A - Angular 15.2.1
+{
+  "shared": [{
+    "packageName": "@angular/core",
+    "singleton": true,
+    "shareScope": "strict",
+    "version": "15.2.1",
+    "requiredVersion": "15.2.1"  // Exact version required
+  }]
+}
+
+// Team B - Angular 15.2.3
+{
+  "shared": [{
+    "packageName": "@angular/core",
+    "singleton": true,
+    "shareScope": "strict",
+    "version": "15.2.3",
+    "requiredVersion": "15.2.3"  // Different patch, potential incompatibility
+  }]
+}
+
+// Result: Both teams get their exact Angular version
+// No runtime compatibility issues from mismatched compiled code
+```
+
+This prevents the runtime errors that occur when Angular's AOT-compiled code expects specific internal APIs that may have changed between patch versions.
+
+**When to use strict shareScope:**
+
+- **Compiled Frameworks**: @angular/\* related packages, where patch versions can break compatibility due to AOT compilation
+- **Breaking Changes**: When minor/patch versions introduce breaking changes despite semantic versioning
+- **Multiple Teams**: Teams needing different exact versions of shared libraries
+- **Legacy Support**: Supporting specific legacy versions alongside newer ones
+- **API Contracts**: When exact version matching is required for API compatibility
+
+**Limitations:**
+
+- No automatic version resolution - each MFE gets exactly what it specifies
+- Potential for more downloads compared to compatible version ranges
+- Requires careful coordination between teams, especially when using angular modules as remote modules. This feature does not fix an incompatibility between remotes.
+
 ## Resolution Process
 
 The resolver creates an import map based on the provided metadata (remoteEntry.json) files, processing dependencies at multiple scope levels.
@@ -207,32 +277,38 @@ Global scope:
 "team-b" scope:
   ui-lib@2.5.0 (requires "^2.0.0", singleton: true, shareScope: "team-b")
 
+"strict" scope:
+  design-tokens@2.1.0 (requires "2.1.0", singleton: true, shareScope: "strict")
+  design-tokens@2.2.0 (requires "2.2.0", singleton: true, shareScope: "strict")
+
 Individual scopes:
   lodash@4.17.21 (singleton: false)
 ```
 
 ### Step 3: Resolution Algorithm
 
-For each scope (global, shared scopes, individual), the resolver determines one version to share:
+For each scope (global, shared scopes, strict, individual), the resolver determines one or more versions to share:
 
 ```mermaid
 flowchart TD
     A[Dependencies grouped by scope] --> B[For each scope:]
-    B --> C[Apply priority rules to choose shared version]
-    C --> D[Assign actions to all other versions in scope]
+    B --> C{Scope type?}
+    C -->|Strict scope| D[All exact versions get 'share' action]
+    C -->|Other scopes| E[Apply priority rules to choose shared version]
+    E --> F[Assign actions to all other versions in scope]
 
-    C --> C1{Host version exists in scope?}
-    C1 -->|Yes| C2[Choose host version]
-    C1 -->|No| C3{latestSharedExternal enabled?}
-    C3 -->|Yes| C4[Choose latest version in scope]
-    C3 -->|No| C5[Choose version with least incompatibilities in scope]
+    E --> E1{Host version exists in scope?}
+    E1 -->|Yes| E2[Choose host version]
+    E1 -->|No| E3{latestSharedExternal enabled?}
+    E3 -->|Yes| E4[Choose latest version in scope]
+    E3 -->|No| E5[Choose version with least incompatibilities in scope]
 
-    D --> D1[For each remaining version in scope:]
-    D1 --> D2{Compatible with chosen version?}
-    D2 -->|Yes| D3[Action: SKIP<br/>Don't download]
-    D2 -->|No| D4{strictVersion: true?}
-    D4 -->|Yes| D5[Action: SCOPE<br/>Download individually]
-    D4 -->|No| D6[Action: SKIP + WARN<br/>Risk compatibility issues]
+    F --> F1[For each remaining version in scope:]
+    F1 --> F2{Compatible with chosen version?}
+    F2 -->|Yes| F3[Action: SKIP<br/>Don't download]
+    F2 -->|No| F4{strictVersion: true?}
+    F4 -->|Yes| F5[Action: SCOPE<br/>Download individually]
+    F4 -->|No| F6[Action: SKIP + WARN<br/>Risk compatibility issues]
 ```
 
 ### Step 4: Generate Import Map
@@ -244,12 +320,14 @@ flowchart LR
     A[Resolution Results] --> B{Scope Type}
     B -->|Global Scope + SHARE| C[Add to *imports* property]
     B -->|Shared Scope + SHARE| D[Add to scope in *scopes* property]
-    B -->|SCOPE| E[Add to individual scope in *scopes*]
-    B -->|SKIP| F[Omit from map or get overridden by SHARE]
+    B -->|Strict Scope + SHARE| E[Add to individual MFE scope in *scopes*]
+    B -->|SCOPE| F[Add to individual scope in *scopes*]
+    B -->|SKIP| G[Omit from map or get overridden by SHARE]
 
-    C --> G[Available to all micro frontends]
-    D --> H[Available to micro frontends in shared scope]
-    E --> I[Available only to specific micro frontend]
+    C --> H[Available to all micro frontends]
+    D --> I[Available to micro frontends in shared scope]
+    E --> J[Available to specific requesting micro frontend]
+    F --> K[Available only to specific micro frontend]
 ```
 
 ## Dynamic Init
@@ -534,6 +612,14 @@ await initRemoteEntry(`http://variant-${variant}.com/remoteEntry.json`, 'test-mf
 - **Configuration**: `singleton: true` with `shareScope: "scope-name"`
 - **Import map**: Resolved version URL is added to each MFE's individual scope
 
+### Strict Scope (`"strict"`)
+
+- **Purpose**: Exact version matching without semantic version compatibility checking
+- **Use case**: Multiple exact versions of the same dependency, legacy support, breaking changes
+- **Configuration**: `singleton: true` with `shareScope: "strict"`
+- **Import map**: Each exact version URL is added to requesting MFE's individual scope
+- **Unique behavior**: Multiple versions can have the "share" action simultaneously
+
 ### Individual Scopes (per micro frontend)
 
 - **Purpose**: Dependencies used only by one micro frontend
@@ -759,6 +845,7 @@ NFError: ShareScope external team-a.dep-a has multiple shared versions.
 // 2. Use host override for the dependency in the specific scope
 // 3. Disable strict mode
 // 4. Move conflicting dependencies to different shared scopes
+// 5. Use strict shareScope for exact version control
 ```
 
 ### Shared Scope Issues
@@ -776,6 +863,30 @@ Warning: ShareScope external team-a.dep-a has no shared versions.
 - All versions in the logical shared scope are incompatible with each other and have `strictVersion: true`
 - Misconfigured shared scope names leading to single-version groups
 - Version ranges that don't overlap within the logical group
+
+### Strict Scope Considerations
+
+```
+// Multiple exact versions in strict scope
+Info: Strict scope external design-tokens has multiple shared versions: 2.1.0, 2.2.0
+
+// This is expected behavior - each exact version gets its own download
+// Consider if version consolidation is possible to reduce bundle size
+```
+
+**Best practices for strict scopes**:
+
+- Use sparingly to avoid version sprawl
+- Consider if regular shareScopes with looser version ranges could work
+- Document exact version requirements clearly for your team
+- Monitor bundle size impact of multiple exact versions
+
+**Common scenarios requiring strict scopes**:
+
+- **Angular applications**: Patch versions can break compatibility due to AOT compilation
+- **Compiled frameworks**: Any framework with compilation steps that create version-specific artifacts
+- **Binary dependencies**: Native modules or WebAssembly that require exact version matching
+- **Legacy migrations**: Gradually migrating from old to new versions without compatibility risks
 
 ## Semver Compatibility
 
