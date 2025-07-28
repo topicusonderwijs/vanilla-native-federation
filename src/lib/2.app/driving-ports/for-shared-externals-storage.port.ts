@@ -11,5 +11,11 @@ export type ForSharedExternalsStorage = {
     external: SharedExternal,
     shareScope?: string
   ) => ForSharedExternalsStorage;
+  markVersionAsUsedBy: (
+    externalName: string,
+    versionIDX: number,
+    remoteName: string,
+    shareScope?: string
+  ) => boolean;
   commit: () => ForSharedExternalsStorage;
 };

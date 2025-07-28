@@ -482,24 +482,10 @@ describe('createProcessDynamicRemoteEntry', () => {
 
       const result = await updateCache(remoteEntry);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      expect(mockAdapters.sharedExternalsRepo.markVersionAsUsedBy).toHaveBeenCalledWith(
         'dep-a',
-        {
-          dirty: false,
-          versions: [
-            {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-              usedBy: ['team/mfe1'],
-            } as SharedVersion,
-          ],
-        },
+        0,
+        'team/mfe1',
         undefined
       );
       expect(result.actions).toEqual({
@@ -643,24 +629,10 @@ describe('createProcessDynamicRemoteEntry', () => {
 
       const result = await updateCache(remoteEntry);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      expect(mockAdapters.sharedExternalsRepo.markVersionAsUsedBy).toHaveBeenCalledWith(
         'dep-a',
-        {
-          dirty: false,
-          versions: [
-            {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-              usedBy: ['team/mfe1'],
-            } as SharedVersion,
-          ],
-        },
+        0,
+        'team/mfe1',
         'custom-scope'
       );
       expect(result.actions).toEqual({

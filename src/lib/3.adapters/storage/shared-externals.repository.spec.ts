@@ -381,4 +381,58 @@ describe('createSharedExternalsRepository', () => {
       expect(actual).toEqual(['custom-scope', 'other-custom-scope']);
     });
   });
+
+  describe('markVersionAsUsedBy', () => {
+    it('should mark a version as used by a remote', () => {
+      const { externalsRepo } = setupWithCache({
+        [GLOBAL_SCOPE]: {
+          'dep-a': {
+            dirty: false,
+            versions: [{ ...MOCK_VERSION_II() }],
+          },
+        },
+      });
+
+      const result = externalsRepo.markVersionAsUsedBy('dep-a', 0, 'remote-a');
+
+      expect(result).toBe(true);
+      expect(externalsRepo.tryGetVersions('dep-a').get()![0]!.usedBy).toEqual(['remote-a']);
+    });
+
+    it('should return false if the external does not exist', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      const result = externalsRepo.markVersionAsUsedBy('dep-a', 0, 'remote-a');
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if the version index is out of bounds', () => {
+      const { externalsRepo } = setupWithCache({
+        [GLOBAL_SCOPE]: {
+          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
+        },
+      });
+
+      const result = externalsRepo.markVersionAsUsedBy('dep-a', 1, 'remote-a');
+
+      expect(result).toBe(false);
+    });
+
+    it('should not add duplicate remotes to usedBy array', () => {
+      const { externalsRepo } = setupWithCache({
+        [GLOBAL_SCOPE]: {
+          'dep-a': {
+            dirty: false,
+            versions: [{ ...MOCK_VERSION_II(), usedBy: ['remote-a'] }],
+          },
+        },
+      });
+
+      const result = externalsRepo.markVersionAsUsedBy('dep-a', 0, 'remote-a');
+
+      expect(result).toBe(true);
+      expect(externalsRepo.tryGetVersions('dep-a').get()![0]!.usedBy).toEqual(['remote-a']);
+    });
+  });
 });

@@ -88,17 +88,10 @@ export function createUpdateCache(
       cache => cache.version === remoteEntryVersion.version
     );
     if (~matchingVersionIDX) {
-      if (!cachedVersions[matchingVersionIDX]!.usedBy)
-        cachedVersions[matchingVersionIDX]!.usedBy = [];
-      if (!cachedVersions[matchingVersionIDX]!.usedBy.includes(remoteName))
-        cachedVersions[matchingVersionIDX]!.usedBy.push(remoteName);
-
-      ports.sharedExternalsRepo.addOrUpdate(
+      ports.sharedExternalsRepo.markVersionAsUsedBy(
         remoteEntryVersion.packageName,
-        {
-          dirty: false,
-          versions: cachedVersions,
-        },
+        matchingVersionIDX,
+        remoteName,
         remoteEntryVersion.shareScope
       );
       return {

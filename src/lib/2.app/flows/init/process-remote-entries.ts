@@ -91,16 +91,10 @@ export function createProcessRemoteEntries(
 
     if (~matchingVersionIDX) {
       if (cached[matchingVersionIDX]!.host || !remoteEntry?.host) {
-        if (!cached[matchingVersionIDX]!.usedBy) cached[matchingVersionIDX]!.usedBy = [];
-        if (!cached[matchingVersionIDX]!.usedBy.includes(remoteName))
-          cached[matchingVersionIDX]!.usedBy.push(remoteName);
-
-        ports.sharedExternalsRepo.addOrUpdate(
+        ports.sharedExternalsRepo.markVersionAsUsedBy(
           sharedInfo.packageName,
-          {
-            dirty: false,
-            versions: cached,
-          },
+          matchingVersionIDX,
+          remoteName,
           sharedInfo.shareScope
         );
         return;

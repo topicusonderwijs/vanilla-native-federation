@@ -294,24 +294,10 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      expect(mockAdapters.sharedExternalsRepo.markVersionAsUsedBy).toHaveBeenCalledWith(
         'dep-a',
-        {
-          dirty: false,
-          versions: [
-            {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-              usedBy: ['team/mfe2'],
-            } as SharedVersion,
-          ],
-        },
+        0,
+        'team/mfe2',
         undefined
       );
     });
@@ -415,24 +401,10 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      expect(mockAdapters.sharedExternalsRepo.markVersionAsUsedBy).toHaveBeenCalledWith(
         'dep-a',
-        {
-          dirty: false,
-          versions: [
-            {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
-              host: true,
-              action: 'share',
-              usedBy: ['team/mfe1'],
-            } as SharedVersion,
-          ],
-        },
+        0,
+        'team/mfe1',
         undefined
       );
     });
