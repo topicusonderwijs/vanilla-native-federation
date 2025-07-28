@@ -84,8 +84,30 @@ export function createUpdateCache(
       .tryGetVersions(remoteEntryVersion.packageName, remoteEntryVersion.shareScope)
       .orElse([]);
 
-    if (~cachedVersions.findIndex(cache => cache.version === remoteEntryVersion.version)) {
-      return { action: 'skip' };
+    const matchingVersionIDX = cachedVersions.findIndex(
+      cache => cache.version === remoteEntryVersion.version
+    );
+    if (~matchingVersionIDX) {
+      if (!cachedVersions[matchingVersionIDX]!.usedBy)
+        cachedVersions[matchingVersionIDX]!.usedBy = [];
+      if (!cachedVersions[matchingVersionIDX]!.usedBy.includes(remoteName))
+        cachedVersions[matchingVersionIDX]!.usedBy.push(remoteName);
+
+      ports.sharedExternalsRepo.addOrUpdate(
+        remoteEntryVersion.packageName,
+        {
+          dirty: false,
+          versions: cachedVersions,
+        },
+        remoteEntryVersion.shareScope
+      );
+      return {
+        action:
+          ports.sharedExternalsRepo.scopeType(remoteEntryVersion.shareScope) === 'global'
+            ? 'skip'
+            : 'override',
+        sharedVersion: cachedVersions[matchingVersionIDX],
+      };
     }
 
     const sharedVersion = cachedVersions.find(c => c.action === 'share');
@@ -111,7 +133,7 @@ export function createUpdateCache(
     if (sharedVersion) {
       action =
         isCompabible || !remoteEntryVersion.strictVersion
-          ? ports.sharedExternalsRepo.isGlobalScope(remoteEntryVersion.shareScope)
+          ? ports.sharedExternalsRepo.scopeType(remoteEntryVersion.shareScope) === 'global'
             ? 'skip'
             : 'override'
           : 'scope';

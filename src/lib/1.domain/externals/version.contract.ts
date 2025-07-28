@@ -7,7 +7,9 @@ export type Version = {
   file: string;
 };
 
-export type SharedVersionAction = 'skip' | 'scope' | 'share' | 'override' | 'strict';
+export type SharedVersionAction = 'skip' | 'scope' | 'share' | 'override';
+
+export const FALLBACK_VERSION = '0.0.0';
 
 export type SharedVersion = Version & {
   requiredVersion: string;
@@ -15,6 +17,6 @@ export type SharedVersion = Version & {
   cached: boolean;
   host: boolean;
   remote: RemoteName;
-  // usedBy?: [];
+  usedBy?: string[];
   action: SharedVersionAction;
 };

@@ -41,7 +41,7 @@ export function createDetermineSharedExternals(
               setVersionActions(
                 name,
                 external,
-                ports.sharedExternalsRepo.isGlobalScope(shareScope)
+                ports.sharedExternalsRepo.scopeType(shareScope) === 'global'
               ),
               shareScope
             )
@@ -94,12 +94,14 @@ export function createDetermineSharedExternals(
       });
     }
 
-    if (!sharedVersion) throw new NFError(`[${externalName}] Could not determine shared version!`);
+    if (!sharedVersion) {
+      throw new NFError(`[${externalName}] Could not determine shared version!`);
+    }
 
     // Determine action of other versions based on chosen sharedVersion
     external.versions.forEach(v => {
       if (ports.versionCheck.isCompatible(sharedVersion!.version, v.requiredVersion)) {
-        v.action = isGlobalScope ? 'skip' : 'override';
+        v.action = !isGlobalScope ? 'override' : 'skip';
         return;
       }
 

@@ -32,7 +32,7 @@ describe('createDetermineSharedExternals', () => {
       versionCheck: createVersionCheck(),
       sharedExternalsRepo: mockSharedExternalsRepository(),
     };
-    mockAdapters.sharedExternalsRepo.isGlobalScope = jest.fn(() => true);
+    mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'global');
     determineSharedExternals = createDetermineSharedExternals(mockConfig, mockAdapters);
   });
 
@@ -273,7 +273,7 @@ describe('createDetermineSharedExternals', () => {
   describe('Custom scope', () => {
     beforeEach(() => {
       mockAdapters.sharedExternalsRepo.getScopes = jest.fn(() => ['custom-scope']);
-      mockAdapters.sharedExternalsRepo.isGlobalScope = jest.fn(() => false);
+      mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'shareScope');
     });
 
     it('should set only one version to share when compatible, the rest to override', async () => {

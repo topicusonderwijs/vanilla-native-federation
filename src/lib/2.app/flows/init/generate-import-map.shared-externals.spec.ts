@@ -339,7 +339,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
 
     await expect(generateImportMap()).rejects.toThrow('Could not create ImportMap.');
     expect(mockConfig.log.debug).toHaveBeenCalledWith(
-      '[4][__GLOBAL__][team/mfe3][dep-a@1.2.3] Remote name not found in cache.'
+      '[4][__GLOBAL__][dep-a][team/mfe3] Remote name not found in cache.'
     );
   });
 });

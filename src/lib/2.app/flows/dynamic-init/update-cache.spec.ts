@@ -131,7 +131,7 @@ describe('createProcessDynamicRemoteEntry', () => {
 
   describe('mergeExternalsIntoStorage - shared', () => {
     beforeEach(() => {
-      mockAdapters.sharedExternalsRepo.isGlobalScope = jest.fn(() => true);
+      mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'global');
     });
     it('should add a shared external to empty list', async () => {
       mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
@@ -447,7 +447,7 @@ describe('createProcessDynamicRemoteEntry', () => {
       );
     });
 
-    it('should not add a shared external to list with same version', async () => {
+    it('should skip a shared external to list with same version', async () => {
       mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
         (): Optional<SharedVersion[]> =>
           Optional.of([
@@ -480,9 +480,31 @@ describe('createProcessDynamicRemoteEntry', () => {
         ],
       };
 
-      await updateCache(remoteEntry);
+      const result = await updateCache(remoteEntry);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(0);
+      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+        'dep-a',
+        {
+          dirty: false,
+          versions: [
+            {
+              version: '1.2.3',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
+              requiredVersion: '~1.2.1',
+              strictVersion: false,
+              cached: true,
+              host: false,
+              action: 'share',
+              usedBy: ['team/mfe1'],
+            } as SharedVersion,
+          ],
+        },
+        undefined
+      );
+      expect(result.actions).toEqual({
+        'dep-a': { action: 'skip' },
+      });
     });
 
     it('should skip a version with a bad version', async () => {
@@ -512,7 +534,7 @@ describe('createProcessDynamicRemoteEntry', () => {
   });
   describe('mergeExternalsIntoStorage - shareScope', () => {
     beforeEach(() => {
-      mockAdapters.sharedExternalsRepo.isGlobalScope = jest.fn(() => false);
+      mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'shareScope');
     });
     it('should add an override external if shared compatible external exists', async () => {
       mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
@@ -581,6 +603,67 @@ describe('createProcessDynamicRemoteEntry', () => {
       );
 
       expect(actual.actions).toEqual({
+        'dep-a': { action: 'override', override: 'http://my.service/mfe2/' },
+      });
+    });
+
+    it('should override a shared external to list with same version when shareScope', async () => {
+      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
+        (): Optional<SharedVersion[]> =>
+          Optional.of([
+            {
+              version: '1.2.3',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
+              requiredVersion: '~1.2.1',
+              strictVersion: false,
+              cached: true,
+              host: false,
+              action: 'share',
+            },
+          ])
+      );
+
+      const remoteEntry = {
+        name: 'team/mfe1',
+        url: 'http://my.service/mfe1/remoteEntry.json',
+        exposes: [],
+        shared: [
+          {
+            version: '1.2.3',
+            requiredVersion: '~1.2.1',
+            strictVersion: false,
+            singleton: true,
+            packageName: 'dep-a',
+            shareScope: 'custom-scope',
+            outFileName: 'dep-a.js',
+          },
+        ],
+      };
+
+      const result = await updateCache(remoteEntry);
+
+      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+        'dep-a',
+        {
+          dirty: false,
+          versions: [
+            {
+              version: '1.2.3',
+              file: 'dep-a.js',
+              remote: 'team/mfe2',
+              requiredVersion: '~1.2.1',
+              strictVersion: false,
+              cached: true,
+              host: false,
+              action: 'share',
+              usedBy: ['team/mfe1'],
+            } as SharedVersion,
+          ],
+        },
+        'custom-scope'
+      );
+      expect(result.actions).toEqual({
         'dep-a': { action: 'override', override: 'http://my.service/mfe2/' },
       });
     });

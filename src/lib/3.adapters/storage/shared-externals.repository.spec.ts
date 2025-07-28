@@ -3,6 +3,7 @@ import {
   GLOBAL_SCOPE,
   SharedExternals,
   shareScope,
+  STRICT_SCOPE,
 } from 'lib/1.domain/externals/external.contract';
 import { SharedVersion } from 'lib/1.domain/externals/version.contract';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
@@ -86,23 +87,29 @@ describe('createSharedExternalsRepository', () => {
     });
   });
 
-  describe('isGlobalScope', () => {
-    it('should return true for global scope', () => {
+  describe('scopeType', () => {
+    it('should return "global" for global scope', () => {
       const { externalsRepo } = setupWithCache({});
 
-      expect(externalsRepo.isGlobalScope(GLOBAL_SCOPE)).toBe(true);
+      expect(externalsRepo.scopeType(GLOBAL_SCOPE)).toBe('global');
     });
 
-    it('should return true for undefined scope', () => {
+    it('should return "global" for undefined scope', () => {
       const { externalsRepo } = setupWithCache({});
 
-      expect(externalsRepo.isGlobalScope(undefined)).toBe(true);
+      expect(externalsRepo.scopeType(undefined)).toBe('global');
+    });
+
+    it('should return "strict" for strict scope', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      expect(externalsRepo.scopeType(STRICT_SCOPE)).toBe('strict');
     });
 
     it('should return false for custom scopes', () => {
       const { externalsRepo } = setupWithCache({});
 
-      expect(externalsRepo.isGlobalScope('custom-scope')).toBe(false);
+      expect(externalsRepo.scopeType('custom-scope')).toBe('shareScope');
     });
   });
 

@@ -35,7 +35,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
       sharedExternalsRepo: mockSharedExternalsRepository(),
     };
     mockAdapters.sharedExternalsRepo.getScopes = jest.fn(() => [GLOBAL_SCOPE]);
-    mockAdapters.sharedExternalsRepo.isGlobalScope = jest.fn(() => true);
+    mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'global');
     determineSharedExternals = createDetermineSharedExternals(mockConfig, mockAdapters);
   });
 
