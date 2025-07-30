@@ -1,7 +1,7 @@
 import { createScopedExternalsRepository } from './scoped-externals.repository';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { MOCK_EXTERNALS_SCOPE } from 'lib/6.mocks/domain/externals/external.mock';
-import { Version } from 'lib/1.domain/externals/version.contract';
+import { ScopedVersion } from 'lib/1.domain/externals/version.contract';
 import { MOCK_VERSION_I } from 'lib/6.mocks/domain/externals/version.mock';
 import { StorageConfig } from 'lib/2.app/config';
 
@@ -45,8 +45,8 @@ describe('createScopedExternalsRepository', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
         ['team/mfe1']: {},
       });
-      const newVersion = (): Version => ({
-        version: '9.9.9',
+      const newVersion = (): ScopedVersion => ({
+        tag: '9.9.9',
         file: 'dep-x.js',
       });
 
@@ -59,8 +59,8 @@ describe('createScopedExternalsRepository', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
         ['team/mfe1']: {},
       });
-      const newVersion = (): Version => ({
-        version: '9.9.9',
+      const newVersion = (): ScopedVersion => ({
+        tag: '9.9.9',
         file: 'dep-x.js',
       });
 
@@ -79,8 +79,8 @@ describe('createScopedExternalsRepository', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
         ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
       });
-      const newVersion = (): Version => ({
-        version: '9.9.9',
+      const newVersion = (): ScopedVersion => ({
+        tag: '9.9.9',
         file: 'dep-x.js',
       });
 
@@ -96,12 +96,12 @@ describe('createScopedExternalsRepository', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
         ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
       });
-      const newVersionI = (): Version => ({
-        version: '8.8.8',
+      const newVersionI = (): ScopedVersion => ({
+        tag: '8.8.8',
         file: 'dep-a.js',
       });
-      const newVersionII = (): Version => ({
-        version: '9.9.9',
+      const newVersionII = (): ScopedVersion => ({
+        tag: '9.9.9',
         file: 'dep-b.js',
       });
 
@@ -117,8 +117,8 @@ describe('createScopedExternalsRepository', () => {
     });
 
     it('should overwrite an existing external in a scope', () => {
-      const newVersion = (): Version => ({
-        version: '8.8.8',
+      const newVersion = (): ScopedVersion => ({
+        tag: '8.8.8',
         file: 'new-dep-a.js',
       });
 

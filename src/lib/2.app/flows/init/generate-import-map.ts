@@ -92,29 +92,27 @@ export function createGenerateImportMap(
       for (const version of external.versions) {
         if (version.action === 'skip' && scopeType === 'global') continue;
 
-        const scope = getScope(externalName, shareScope, version.remote);
+        const scope = getScope(externalName, shareScope, version.remotes[0]!.name);
 
-        let targetFileUrl: string = _path.join(scope, version.file);
-        version.cached = true;
+        let targetFileUrl: string = _path.join(scope, version.remotes[0]!.file);
+        version.remotes[0]!.cached = true;
 
         if (version.action === 'skip') {
           if (!override) {
             override = findOverride(external, shareScope, externalName) ?? 'NOT_AVAILABLE';
           }
           if (override !== 'NOT_AVAILABLE') {
-            if (!overrideScope) overrideScope = getScope(externalName, shareScope, override.remote);
-            targetFileUrl = _path.join(overrideScope, override.file);
-            override.cached = true;
-            version.cached = false;
+            if (!overrideScope)
+              overrideScope = getScope(externalName, shareScope, override.remotes[0]!.name);
+            targetFileUrl = _path.join(overrideScope, override.remotes[0]!.file);
+            override.remotes[0]!.cached = true;
+            version.remotes[0]!.cached = false;
           }
         }
-        addToScope(importMap, scope, { [externalName]: targetFileUrl });
-        if (!!version.usedBy) {
-          version.usedBy.forEach(remoteName => {
-            const scope = getScope(externalName, shareScope, remoteName);
-            addToScope(importMap, scope, { [externalName]: targetFileUrl });
-          });
-        }
+        version.remotes.forEach(r => {
+          const scope = getScope(externalName, shareScope, r.name);
+          addToScope(importMap, scope, { [externalName]: targetFileUrl });
+        });
       }
       ports.sharedExternalsRepo.addOrUpdate(externalName, external, shareScope);
     }
@@ -167,10 +165,12 @@ export function createGenerateImportMap(
     for (const [externalName, external] of Object.entries(sharedExternals)) {
       for (const version of external.versions) {
         if (version.action === 'skip') continue;
-        const scope = getScope(externalName, GLOBAL_SCOPE, version.remote);
+        const scope = getScope(externalName, GLOBAL_SCOPE, version.remotes[0]!.name);
         if (version.action === 'scope') {
-          addToScope(importMap, scope, { [externalName]: _path.join(scope, version.file) });
-          version.cached = true;
+          addToScope(importMap, scope, {
+            [externalName]: _path.join(scope, version.remotes[0]!.file),
+          });
+          version.remotes[0]!.cached = true;
           continue;
         }
 
@@ -179,8 +179,8 @@ export function createGenerateImportMap(
           continue;
         }
 
-        addToGlobal(importMap, { [externalName]: _path.join(scope, version.file) });
-        version.cached = true;
+        addToGlobal(importMap, { [externalName]: _path.join(scope, version.remotes[0]!.file) });
+        version.remotes[0]!.cached = true;
       }
       ports.sharedExternalsRepo.addOrUpdate(externalName, external);
     }

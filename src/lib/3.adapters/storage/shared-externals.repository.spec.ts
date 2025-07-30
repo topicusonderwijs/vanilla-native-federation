@@ -1,11 +1,11 @@
 import { createSharedExternalsRepository } from './shared-externals.repository';
 import {
   GLOBAL_SCOPE,
+  SharedExternal,
   SharedExternals,
   shareScope,
   STRICT_SCOPE,
 } from 'lib/1.domain/externals/external.contract';
-import { SharedVersion } from 'lib/1.domain/externals/version.contract';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { Optional } from 'lib/utils/optional';
 import { MOCK_VERSION_II, MOCK_VERSION_III } from 'lib/6.mocks/domain/externals/version.mock';
@@ -113,7 +113,7 @@ describe('createSharedExternalsRepository', () => {
     });
   });
 
-  describe('tryGetVersions', () => {
+  describe('tryGet', () => {
     it('should return the versions', () => {
       const { externalsRepo } = setupWithCache({
         [GLOBAL_SCOPE]: {
@@ -121,16 +121,16 @@ describe('createSharedExternalsRepository', () => {
         },
       });
 
-      const actual: Optional<SharedVersion[]> = externalsRepo.tryGetVersions('dep-a');
+      const actual: Optional<SharedExternal> = externalsRepo.tryGet('dep-a');
 
       expect(actual.isPresent()).toBe(true);
-      expect(actual.get()).toEqual([MOCK_VERSION_II()]);
+      expect(actual.get()).toEqual({ dirty: false, versions: [MOCK_VERSION_II()] });
     });
 
     it('should return empty optional if version doesnt exist', () => {
       const { externalsRepo } = setupWithCache({});
 
-      const actual: Optional<SharedVersion[]> = externalsRepo.tryGetVersions('dep-a');
+      const actual: Optional<SharedExternal> = externalsRepo.tryGet('dep-a');
 
       expect(actual.isPresent()).toBe(false);
       expect(actual.get()).toEqual(undefined);
@@ -143,7 +143,7 @@ describe('createSharedExternalsRepository', () => {
         },
       });
 
-      const actual: Optional<SharedVersion[]> = externalsRepo.tryGetVersions('dep-b');
+      const actual: Optional<SharedExternal> = externalsRepo.tryGet('dep-b');
 
       expect(actual.isPresent()).toBe(false);
       expect(actual.get()).toEqual(undefined);
@@ -158,13 +158,10 @@ describe('createSharedExternalsRepository', () => {
           'dep-b': { dirty: false, versions: [MOCK_VERSION_III()] },
         },
       });
-      const actual: Optional<SharedVersion[]> = externalsRepo.tryGetVersions(
-        'dep-b',
-        'custom-scope'
-      );
+      const actual: Optional<SharedExternal> = externalsRepo.tryGet('dep-b', 'custom-scope');
 
       expect(actual.isPresent()).toBe(true);
-      expect(actual.get()).toEqual([MOCK_VERSION_III()]);
+      expect(actual.get()).toEqual({ dirty: false, versions: [MOCK_VERSION_III()] });
     });
 
     it('should not return an external from a different scope', () => {
@@ -176,10 +173,7 @@ describe('createSharedExternalsRepository', () => {
           'dep-b': { dirty: false, versions: [MOCK_VERSION_III()] },
         },
       });
-      const actual: Optional<SharedVersion[]> = externalsRepo.tryGetVersions(
-        'dep-a',
-        'custom-scope'
-      );
+      const actual: Optional<SharedExternal> = externalsRepo.tryGet('dep-a', 'custom-scope');
 
       expect(actual.isPresent()).toBe(false);
       expect(actual.get()).toEqual(undefined);
@@ -379,60 +373,6 @@ describe('createSharedExternalsRepository', () => {
       const actual = externalsRepo.getScopes({ includeGlobal: false });
 
       expect(actual).toEqual(['custom-scope', 'other-custom-scope']);
-    });
-  });
-
-  describe('markVersionAsUsedBy', () => {
-    it('should mark a version as used by a remote', () => {
-      const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': {
-            dirty: false,
-            versions: [{ ...MOCK_VERSION_II() }],
-          },
-        },
-      });
-
-      const result = externalsRepo.markVersionAsUsedBy('dep-a', 0, 'remote-a');
-
-      expect(result).toBe(true);
-      expect(externalsRepo.tryGetVersions('dep-a').get()![0]!.usedBy).toEqual(['remote-a']);
-    });
-
-    it('should return false if the external does not exist', () => {
-      const { externalsRepo } = setupWithCache({});
-
-      const result = externalsRepo.markVersionAsUsedBy('dep-a', 0, 'remote-a');
-
-      expect(result).toBe(false);
-    });
-
-    it('should return false if the version index is out of bounds', () => {
-      const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
-      });
-
-      const result = externalsRepo.markVersionAsUsedBy('dep-a', 1, 'remote-a');
-
-      expect(result).toBe(false);
-    });
-
-    it('should not add duplicate remotes to usedBy array', () => {
-      const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': {
-            dirty: false,
-            versions: [{ ...MOCK_VERSION_II(), usedBy: ['remote-a'] }],
-          },
-        },
-      });
-
-      const result = externalsRepo.markVersionAsUsedBy('dep-a', 0, 'remote-a');
-
-      expect(result).toBe(true);
-      expect(externalsRepo.tryGetVersions('dep-a').get()![0]!.usedBy).toEqual(['remote-a']);
     });
   });
 });

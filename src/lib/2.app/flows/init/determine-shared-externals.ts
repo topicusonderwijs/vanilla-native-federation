@@ -75,9 +75,9 @@ export function createDetermineSharedExternals(
       external.versions.forEach(vA => {
         const extraDownloads = external.versions.filter(
           vB =>
-            !vB.cached &&
-            vB.strictVersion &&
-            !ports.versionCheck.isCompatible(vA.version, vB.requiredVersion)
+            !vB.remotes[0]!.cached &&
+            vB.remotes[0]!.strictVersion &&
+            !ports.versionCheck.isCompatible(vA.tag, vB.remotes[0]!.requiredVersion)
         ).length;
         if (extraDownloads < leastExtraDownloads) {
           leastExtraDownloads = extraDownloads;
@@ -92,19 +92,19 @@ export function createDetermineSharedExternals(
 
     // Determine action of other versions based on chosen sharedVersion
     external.versions.forEach(v => {
-      if (ports.versionCheck.isCompatible(sharedVersion!.version, v.requiredVersion)) {
+      if (ports.versionCheck.isCompatible(sharedVersion!.tag, v.remotes[0]!.requiredVersion)) {
         v.action = 'skip';
         return;
       }
 
       config.log.debug(
-        `[3][${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`
+        `[3][${externalName}] Shared version ${sharedVersion!.tag} is not compatible with range '${v.remotes[0]!.requiredVersion}'`
       );
 
-      if (config.strict && v.strictVersion) {
+      if (config.strict && v.remotes[0]!.strictVersion) {
         throw new NFError('Could not determine shared externals, incompatible version found.');
       }
-      v.action = v.strictVersion ? 'scope' : 'skip';
+      v.action = v.remotes[0]!.strictVersion ? 'scope' : 'skip';
     });
 
     sharedVersion.action = 'share';

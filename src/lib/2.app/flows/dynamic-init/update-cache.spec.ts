@@ -9,6 +9,7 @@ import { Optional } from 'lib/utils/optional';
 import { ForUpdatingCache } from 'lib/2.app/driver-ports/dynamic-init/for-updating-cache';
 import { createUpdateCache } from './update-cache';
 import { ModeConfig } from 'lib/2.app/config/mode.contract';
+import { SharedExternal } from 'lib/1.domain';
 
 describe('createProcessDynamicRemoteEntry', () => {
   let updateCache: ForUpdatingCache;
@@ -44,9 +45,7 @@ describe('createProcessDynamicRemoteEntry', () => {
       if (remote === 'team/mfe2') return Optional.of('http://my.service/mfe2/');
       return Optional.empty<string>();
     });
-    mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(_e =>
-      Optional.empty<SharedVersion[]>()
-    );
+    mockAdapters.sharedExternalsRepo.tryGet = jest.fn(_e => Optional.empty<SharedExternal>());
 
     updateCache = createUpdateCache(mockConfig, mockAdapters);
   });
@@ -95,7 +94,7 @@ describe('createProcessDynamicRemoteEntry', () => {
         'team/mfe1',
         'dep-a',
         {
-          version: '1.2.3',
+          tag: '1.2.3',
           file: 'dep-a.js',
         } as Version
       );
@@ -134,10 +133,11 @@ describe('createProcessDynamicRemoteEntry', () => {
       mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'global');
     });
     it('should add a shared external to empty list', async () => {
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> => Optional.empty()
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> => Optional.empty()
       );
 
+      console.log('test');
       const remoteEntry = {
         name: 'team/mfe1',
         url: 'http://my.service/mfe1/remoteEntry.json',
@@ -167,12 +167,17 @@ describe('createProcessDynamicRemoteEntry', () => {
           dirty: false,
           versions: [
             {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
+              tag: '1.2.3',
+              remotes: [
+                {
+                  name: 'team/mfe1',
+                  file: 'dep-a.js',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
+
               host: false,
               action: 'share',
             } as SharedVersion,
@@ -187,20 +192,27 @@ describe('createProcessDynamicRemoteEntry', () => {
     });
 
     it('should add a shared external to list with compatible version', async () => {
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> =>
-          Optional.of([
-            {
-              version: '1.2.4',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-            },
-          ])
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> =>
+          Optional.of({
+            dirty: false,
+            versions: [
+              {
+                tag: '1.2.4',
+                host: false,
+                action: 'share',
+                remotes: [
+                  {
+                    file: 'dep-a.js',
+                    name: 'team/mfe2',
+                    requiredVersion: '~1.2.1',
+                    strictVersion: false,
+                    cached: true,
+                  },
+                ],
+              },
+            ],
+          })
       );
       const remoteEntry = {
         name: 'team/mfe1',
@@ -231,24 +243,32 @@ describe('createProcessDynamicRemoteEntry', () => {
           dirty: false,
           versions: [
             {
-              version: '1.2.4',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
+              tag: '1.2.4',
               host: false,
               action: 'share',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
             } as SharedVersion,
             {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: false,
+              tag: '1.2.3',
               host: false,
               action: 'skip',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
             } as SharedVersion,
           ],
         },
@@ -261,20 +281,27 @@ describe('createProcessDynamicRemoteEntry', () => {
     });
 
     it('should add and skip shared external to list with incompatible version and not strictVersion', async () => {
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> =>
-          Optional.of([
-            {
-              version: '2.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~2.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-            },
-          ])
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> =>
+          Optional.of({
+            dirty: false,
+            versions: [
+              {
+                tag: '2.2.3',
+                host: false,
+                action: 'share',
+                remotes: [
+                  {
+                    file: 'dep-a.js',
+                    name: 'team/mfe2',
+                    requiredVersion: '~2.2.1',
+                    strictVersion: false,
+                    cached: true,
+                  },
+                ],
+              },
+            ],
+          })
       );
       const remoteEntry = {
         name: 'team/mfe1',
@@ -305,24 +332,32 @@ describe('createProcessDynamicRemoteEntry', () => {
           dirty: false,
           versions: [
             {
-              version: '2.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~2.2.1',
-              strictVersion: false,
-              cached: true,
+              tag: '2.2.3',
               host: false,
               action: 'share',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~2.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
             } as SharedVersion,
             {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: false,
+              tag: '1.2.3',
               host: false,
               action: 'skip',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
             } as SharedVersion,
           ],
         },
@@ -335,20 +370,27 @@ describe('createProcessDynamicRemoteEntry', () => {
     });
 
     it('should add and scope shared external to list with incompatible version and strictVersion', async () => {
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> =>
-          Optional.of([
-            {
-              version: '2.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~2.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-            },
-          ])
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> =>
+          Optional.of({
+            dirty: false,
+            versions: [
+              {
+                tag: '2.2.3',
+                host: false,
+                action: 'share',
+                remotes: [
+                  {
+                    file: 'dep-a.js',
+                    name: 'team/mfe2',
+                    requiredVersion: '~2.2.1',
+                    strictVersion: false,
+                    cached: true,
+                  },
+                ],
+              },
+            ],
+          })
       );
       const remoteEntry = {
         name: 'team/mfe1',
@@ -379,24 +421,32 @@ describe('createProcessDynamicRemoteEntry', () => {
           dirty: false,
           versions: [
             {
-              version: '2.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~2.2.1',
-              strictVersion: false,
-              cached: true,
+              tag: '2.2.3',
               host: false,
               action: 'share',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~2.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
             } as SharedVersion,
             {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: true,
-              cached: true,
+              tag: '1.2.3',
               host: false,
               action: 'scope',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: true,
+                  cached: true,
+                },
+              ],
             } as SharedVersion,
           ],
         },
@@ -411,20 +461,28 @@ describe('createProcessDynamicRemoteEntry', () => {
     it('should throw an error when shared externalwith incompatible version and strictVersion and strict', async () => {
       mockConfig.strict = true;
 
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> =>
-          Optional.of([
-            {
-              version: '2.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~2.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-            },
-          ])
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> =>
+          Optional.of({
+            dirty: false,
+            versions: [
+              {
+                tag: '2.2.3',
+                remotes: [
+                  {
+                    file: 'dep-a.js',
+                    name: 'team/mfe2',
+                    requiredVersion: '~2.2.1',
+                    strictVersion: false,
+                    cached: true,
+                  },
+                ],
+
+                host: false,
+                action: 'share',
+              },
+            ],
+          })
       );
       const remoteEntry = {
         name: 'team/mfe1',
@@ -448,20 +506,27 @@ describe('createProcessDynamicRemoteEntry', () => {
     });
 
     it('should skip a shared external to list with same version', async () => {
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> =>
-          Optional.of([
-            {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-            },
-          ])
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> =>
+          Optional.of({
+            dirty: false,
+            versions: [
+              {
+                tag: '1.2.3',
+                remotes: [
+                  {
+                    file: 'dep-a.js',
+                    name: 'team/mfe2',
+                    requiredVersion: '~1.2.1',
+                    strictVersion: false,
+                    cached: true,
+                  },
+                ],
+                host: false,
+                action: 'share',
+              },
+            ],
+          })
       );
 
       const remoteEntry = {
@@ -482,12 +547,6 @@ describe('createProcessDynamicRemoteEntry', () => {
 
       const result = await updateCache(remoteEntry);
 
-      expect(mockAdapters.sharedExternalsRepo.markVersionAsUsedBy).toHaveBeenCalledWith(
-        'dep-a',
-        0,
-        'team/mfe1',
-        undefined
-      );
       expect(result.actions).toEqual({
         'dep-a': { action: 'skip' },
       });
@@ -523,20 +582,27 @@ describe('createProcessDynamicRemoteEntry', () => {
       mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'shareScope');
     });
     it('should add an override external if shared compatible external exists', async () => {
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> =>
-          Optional.of([
-            {
-              version: '1.2.4',
-              file: 'dep-a-abc.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-            },
-          ])
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> =>
+          Optional.of({
+            dirty: false,
+            versions: [
+              {
+                tag: '1.2.4',
+                host: false,
+                action: 'share',
+                remotes: [
+                  {
+                    file: 'dep-a-abc.js',
+                    name: 'team/mfe2',
+                    requiredVersion: '~1.2.1',
+                    strictVersion: false,
+                    cached: true,
+                  },
+                ],
+              },
+            ],
+          })
       );
       const remoteEntry = {
         name: 'team/mfe1',
@@ -564,24 +630,32 @@ describe('createProcessDynamicRemoteEntry', () => {
           dirty: false,
           versions: [
             {
-              version: '1.2.4',
-              file: 'dep-a-abc.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
+              tag: '1.2.4',
               host: false,
               action: 'share',
+              remotes: [
+                {
+                  file: 'dep-a-abc.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
             } as SharedVersion,
             {
-              version: '1.2.3',
-              file: 'dep-a-xyz.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: true,
-              cached: false,
+              tag: '1.2.3',
               host: false,
               action: 'skip',
+              remotes: [
+                {
+                  file: 'dep-a-xyz.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: true,
+                  cached: false,
+                },
+              ],
             } as SharedVersion,
           ],
         },
@@ -596,20 +670,27 @@ describe('createProcessDynamicRemoteEntry', () => {
     it('should directly share a shareScope strict version', async () => {
       mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'strict');
 
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> =>
-          Optional.of([
-            {
-              version: '1.2.3',
-              file: 'dep-a-abc.js',
-              remote: 'team/mfe2',
-              requiredVersion: '1.2.3',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-            },
-          ])
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> =>
+          Optional.of({
+            dirty: false,
+            versions: [
+              {
+                tag: '1.2.3',
+                host: false,
+                action: 'share',
+                remotes: [
+                  {
+                    file: 'dep-a-abc.js',
+                    name: 'team/mfe2',
+                    requiredVersion: '1.2.3',
+                    strictVersion: false,
+                    cached: true,
+                  },
+                ],
+              },
+            ],
+          })
       );
       const remoteEntry = {
         name: 'team/mfe1',
@@ -634,24 +715,32 @@ describe('createProcessDynamicRemoteEntry', () => {
           dirty: false,
           versions: [
             {
-              version: '1.2.3',
-              file: 'dep-a-abc.js',
-              remote: 'team/mfe2',
-              requiredVersion: '1.2.3',
-              strictVersion: false,
-              cached: true,
+              tag: '1.2.3',
               host: false,
               action: 'share',
+              remotes: [
+                {
+                  file: 'dep-a-abc.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '1.2.3',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
             } as SharedVersion,
             {
-              version: '1.2.2',
-              file: 'dep-a-xyz.js',
-              remote: 'team/mfe1',
-              requiredVersion: '1.2.2',
-              strictVersion: true,
-              cached: true,
+              tag: '1.2.2',
               host: false,
               action: 'share',
+              remotes: [
+                {
+                  file: 'dep-a-xyz.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '1.2.2',
+                  strictVersion: true,
+                  cached: true,
+                },
+              ],
             } as SharedVersion,
           ],
         },
@@ -664,20 +753,27 @@ describe('createProcessDynamicRemoteEntry', () => {
     });
 
     it('should override a shared external to list with same version when shareScope', async () => {
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> =>
-          Optional.of([
-            {
-              version: '1.2.3',
-              file: 'dep-a-abc.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-            },
-          ])
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> =>
+          Optional.of({
+            dirty: false,
+            versions: [
+              {
+                tag: '1.2.3',
+                host: false,
+                action: 'share',
+                remotes: [
+                  {
+                    file: 'dep-a-abc.js',
+                    name: 'team/mfe2',
+                    requiredVersion: '~1.2.1',
+                    strictVersion: false,
+                    cached: true,
+                  },
+                ],
+              },
+            ],
+          })
       );
 
       const remoteEntry = {
@@ -699,32 +795,33 @@ describe('createProcessDynamicRemoteEntry', () => {
 
       const result = await updateCache(remoteEntry);
 
-      expect(mockAdapters.sharedExternalsRepo.markVersionAsUsedBy).toHaveBeenCalledWith(
-        'dep-a',
-        0,
-        'team/mfe1',
-        'custom-scope'
-      );
       expect(result.actions).toEqual({
         'dep-a': { action: 'skip', override: 'http://my.service/mfe2/dep-a-abc.js' },
       });
     });
 
     it('should add an scoped external if shared incompatible external exists', async () => {
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> =>
-          Optional.of([
-            {
-              version: '2.2.4',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~2.2.1',
-              strictVersion: false,
-              cached: true,
-              host: false,
-              action: 'share',
-            },
-          ])
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> =>
+          Optional.of({
+            dirty: false,
+            versions: [
+              {
+                tag: '2.2.4',
+                host: false,
+                action: 'share',
+                remotes: [
+                  {
+                    file: 'dep-a.js',
+                    name: 'team/mfe2',
+                    requiredVersion: '~2.2.1',
+                    strictVersion: false,
+                    cached: true,
+                  },
+                ],
+              },
+            ],
+          })
       );
       const remoteEntry = {
         name: 'team/mfe1',
@@ -752,24 +849,32 @@ describe('createProcessDynamicRemoteEntry', () => {
           dirty: false,
           versions: [
             {
-              version: '2.2.4',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~2.2.1',
-              strictVersion: false,
-              cached: true,
+              tag: '2.2.4',
               host: false,
               action: 'share',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~2.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
             } as SharedVersion,
             {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: true,
-              cached: true,
+              tag: '1.2.3',
               host: false,
               action: 'scope',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: true,
+                  cached: true,
+                },
+              ],
             } as SharedVersion,
           ],
         },
@@ -782,8 +887,8 @@ describe('createProcessDynamicRemoteEntry', () => {
     });
 
     it('should add a shared external if no shared version present.', async () => {
-      mockAdapters.sharedExternalsRepo.tryGetVersions = jest.fn(
-        (): Optional<SharedVersion[]> => Optional.empty()
+      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> => Optional.empty()
       );
       const remoteEntry = {
         name: 'team/mfe1',
@@ -811,14 +916,18 @@ describe('createProcessDynamicRemoteEntry', () => {
           dirty: false,
           versions: [
             {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: true,
+              tag: '1.2.3',
               host: false,
               action: 'share',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
             } as SharedVersion,
           ],
         },

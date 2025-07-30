@@ -43,29 +43,8 @@ const createSharedExternalsRepository = (config: StorageConfig): ForSharedExtern
           return 'shareScope';
       }
     },
-    tryGetVersions: function (external: string, shareScope?: string) {
-      return Optional.of(_cache[shareScope ?? GLOBAL_SCOPE]?.[external]?.versions);
-    },
-    markVersionAsUsedBy: function (
-      externalName: string,
-      versionIDX: number,
-      remoteName: string,
-      shareScope?: string
-    ) {
-      const scope = shareScope ?? GLOBAL_SCOPE;
-      const external = _cache[scope]?.[externalName];
-
-      if (!external) return false;
-
-      const matchingVersion = external.versions[versionIDX];
-      if (!matchingVersion) return false;
-
-      if (!matchingVersion.usedBy) matchingVersion.usedBy = [];
-      if (!matchingVersion.usedBy.includes(remoteName)) {
-        matchingVersion.usedBy.push(remoteName);
-      }
-
-      return true;
+    tryGet: function (external: string, shareScope?: string) {
+      return Optional.of(_cache[shareScope ?? GLOBAL_SCOPE]?.[external]);
     },
     commit: function () {
       STORAGE.set(_cache);

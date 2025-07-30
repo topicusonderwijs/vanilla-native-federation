@@ -43,12 +43,16 @@ describe('createDetermineSharedExternals', () => {
           dirty: true,
           versions: [
             {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: false,
+              tag: '1.2.3',
+              remotes: [
+                {
+                  name: 'team/mfe1',
+                  file: 'dep-a.js',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'skip',
             },
@@ -64,12 +68,16 @@ describe('createDetermineSharedExternals', () => {
           dirty: false,
           versions: [
             {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: false,
+              tag: '1.2.3',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'share',
             },
@@ -85,12 +93,16 @@ describe('createDetermineSharedExternals', () => {
           dirty: false,
           versions: [
             {
-              version: '1.2.3',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~1.2.1',
-              strictVersion: false,
-              cached: false,
+              tag: '1.2.3',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'skip',
             },
@@ -113,22 +125,31 @@ describe('createDetermineSharedExternals', () => {
           dirty: true,
           versions: [
             {
-              version: '19.0.1',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~19.0.1',
-              strictVersion: false,
-              cached: false,
+              tag: '19.0.1',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~19.0.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
+
               host: false,
               action: 'skip',
             },
             {
-              version: '18.0.1',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~18.0.1',
-              strictVersion: false,
-              cached: false,
+              tag: '18.0.1',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~18.0.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'skip',
             },
@@ -144,22 +165,30 @@ describe('createDetermineSharedExternals', () => {
           dirty: false,
           versions: [
             {
-              version: '19.0.1',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~19.0.1',
-              strictVersion: false,
-              cached: false,
+              tag: '19.0.1',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~19.0.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'share',
             },
             {
-              version: '18.0.1',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~18.0.1',
-              strictVersion: false,
-              cached: false,
+              tag: '18.0.1',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~18.0.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'skip',
             },
@@ -177,22 +206,30 @@ describe('createDetermineSharedExternals', () => {
           dirty: true,
           versions: [
             {
-              version: '19.0.1',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~19.0.1',
-              strictVersion: true,
-              cached: false,
+              tag: '19.0.1',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~19.0.1',
+                  strictVersion: true,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'skip',
             },
             {
-              version: '18.0.1',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~18.0.1',
-              strictVersion: true,
-              cached: false,
+              tag: '18.0.1',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~18.0.1',
+                  strictVersion: true,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'skip',
             },
@@ -208,22 +245,31 @@ describe('createDetermineSharedExternals', () => {
           dirty: false,
           versions: [
             {
-              version: '19.0.1',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~19.0.1',
-              strictVersion: true,
-              cached: false,
+              tag: '19.0.1',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~19.0.1',
+                  strictVersion: true,
+                  cached: false,
+                },
+              ],
+
               host: false,
               action: 'share',
             },
             {
-              version: '18.0.1',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~18.0.1',
-              strictVersion: true,
-              cached: false,
+              tag: '18.0.1',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~18.0.1',
+                  strictVersion: true,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'scope',
             },
@@ -241,22 +287,31 @@ describe('createDetermineSharedExternals', () => {
           dirty: true,
           versions: [
             {
-              version: '19.0.1',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~19.0.1',
-              strictVersion: true,
-              cached: false,
+              tag: '19.0.1',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~19.0.1',
+                  strictVersion: true,
+                  cached: false,
+                },
+              ],
+
               host: false,
               action: 'skip',
             },
             {
-              version: '18.0.1',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~18.0.1',
-              strictVersion: true,
-              cached: false,
+              tag: '18.0.1',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~18.0.1',
+                  strictVersion: true,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'skip',
             },
@@ -283,22 +338,31 @@ describe('createDetermineSharedExternals', () => {
             dirty: true,
             versions: [
               {
-                version: '4.5.7',
-                file: 'dep-a.js',
-                remote: 'team/mfe1',
-                requiredVersion: '~4.5.1',
-                strictVersion: false,
-                cached: false,
+                tag: '4.5.7',
+                remotes: [
+                  {
+                    file: 'dep-a.js',
+                    name: 'team/mfe1',
+                    requiredVersion: '~4.5.1',
+                    strictVersion: false,
+                    cached: false,
+                  },
+                ],
+
                 host: false,
                 action: 'skip',
               },
               {
-                version: '4.5.6',
-                file: 'dep-a.js',
-                remote: 'team/mfe2',
-                requiredVersion: '~4.5.1',
-                strictVersion: false,
-                cached: false,
+                tag: '4.5.6',
+                remotes: [
+                  {
+                    file: 'dep-a.js',
+                    name: 'team/mfe2',
+                    requiredVersion: '~4.5.1',
+                    strictVersion: false,
+                    cached: false,
+                  },
+                ],
                 host: false,
                 action: 'skip',
               },
@@ -315,22 +379,31 @@ describe('createDetermineSharedExternals', () => {
           dirty: false,
           versions: [
             {
-              version: '4.5.7',
-              file: 'dep-a.js',
-              remote: 'team/mfe1',
-              requiredVersion: '~4.5.1',
-              strictVersion: false,
-              cached: false,
+              tag: '4.5.7',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~4.5.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
+
               host: false,
               action: 'share',
             },
             {
-              version: '4.5.6',
-              file: 'dep-a.js',
-              remote: 'team/mfe2',
-              requiredVersion: '~4.5.1',
-              strictVersion: false,
-              cached: false,
+              tag: '4.5.6',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~4.5.1',
+                  strictVersion: false,
+                  cached: false,
+                },
+              ],
               host: false,
               action: 'skip',
             },

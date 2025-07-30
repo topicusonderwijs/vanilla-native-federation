@@ -53,7 +53,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
     mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
       'team/mfe1': {
         'dep-a': {
-          version: '1.2.3',
+          tag: '1.2.3',
           file: 'dep-a.js',
         },
       },
@@ -75,13 +75,13 @@ describe('createGenerateImportMap (scoped-externals)', () => {
     mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
       'team/mfe1': {
         'dep-a': {
-          version: '1.2.3',
+          tag: '1.2.3',
           file: 'dep-a.js',
         },
       },
       'team/mfe2': {
         'dep-b': {
-          version: '1.2.3',
+          tag: '1.2.3',
           file: 'dep-b.js',
         },
       },
@@ -106,11 +106,11 @@ describe('createGenerateImportMap (scoped-externals)', () => {
     mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
       'team/mfe1': {
         'dep-a': {
-          version: '1.2.3',
+          tag: '1.2.3',
           file: 'dep-a.js',
         },
         'dep-b': {
-          version: '1.2.3',
+          tag: '1.2.3',
           file: 'dep-b.js',
         },
       },
@@ -133,7 +133,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
     mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
       'team/mfe3': {
         'dep-a': {
-          version: '1.2.3',
+          tag: '1.2.3',
           file: 'dep-a.js',
         },
       },

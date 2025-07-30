@@ -67,22 +67,31 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: false,
                   action: 'scope',
                 },
                 {
-                  version: '1.2.2',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe2',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.2',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe2',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: true,
                   action: 'scope',
                 },
@@ -115,22 +124,30 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: false,
                   action: 'scope',
                 },
                 {
-                  version: '1.2.2',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe2',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.2',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe2',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: true,
                   action: 'skip',
                 },
@@ -163,22 +180,31 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a-abc.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a-abc.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: false,
                   action: 'share',
                 },
                 {
-                  version: '1.2.2',
-                  file: 'dep-a-xyz.js',
-                  remote: 'team/mfe2',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.2',
+                  remotes: [
+                    {
+                      file: 'dep-a-xyz.js',
+                      name: 'team/mfe2',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: true,
                   action: 'skip',
                 },
@@ -211,12 +237,17 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: false,
                   action: 'skip',
                 },
@@ -246,12 +277,17 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: false,
                   action: 'skip',
                 },
@@ -275,32 +311,47 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: false,
                   action: 'share',
                 },
                 {
-                  version: '1.2.2',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe2',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.2',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe2',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: true,
                   action: 'skip',
                 },
                 {
-                  version: '1.2.1',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe3',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.1',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe3',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: false,
                   action: 'scope',
                 },
@@ -336,32 +387,47 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: false,
                   action: 'share',
                 },
                 {
-                  version: '1.2.2',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe2',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.2',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe2',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: true,
                   action: 'skip',
                 },
                 {
-                  version: '1.2.1',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe3',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.1',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe3',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: false,
                   action: 'scope',
                 },
@@ -378,32 +444,44 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
         dirty: false,
         versions: [
           {
-            version: '1.2.3',
-            file: 'dep-a.js',
-            remote: 'team/mfe1',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: true,
+            tag: '1.2.3',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe1',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: true,
+              },
+            ],
             host: false,
             action: 'share',
           },
           {
-            version: '1.2.2',
-            file: 'dep-a.js',
-            remote: 'team/mfe2',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: false,
+            tag: '1.2.2',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe2',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
             host: true,
             action: 'skip',
           },
           {
-            version: '1.2.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe3',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: true,
+            tag: '1.2.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe3',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: true,
+              },
+            ],
             host: false,
             action: 'scope',
           },
@@ -424,32 +502,45 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
+
                   host: false,
                   action: 'share',
                 },
                 {
-                  version: '1.2.2',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe2',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.2',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe2',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: true,
                   action: 'share',
                 },
                 {
-                  version: '1.2.1',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe3',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.1',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe3',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: true,
                   action: 'skip',
                 },
@@ -490,32 +581,44 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: false,
                   action: 'share',
                 },
                 {
-                  version: '1.2.2',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe2',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.2',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe2',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: true,
                   action: 'share',
                 },
                 {
-                  version: '1.2.1',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe3',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.1',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe3',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: true,
                   action: 'skip',
                 },
@@ -541,22 +644,30 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: false,
                   action: 'skip',
                 },
                 {
-                  version: '1.2.2',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe2',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.2',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe2',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: true,
                   action: 'skip',
                 },
@@ -589,12 +700,16 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
         dirty: false,
         versions: [
           {
-            version: '1.2.3',
-            file: 'dep-a.js',
-            remote: 'team/mfe4',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: false,
+            tag: '1.2.3',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe4',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'share',
           },
@@ -617,14 +732,24 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: true,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a-abc.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: true,
+                    },
+                    {
+                      file: 'dep-a-def.js',
+                      name: 'team/mfe2',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: false,
-                  usedBy: ['team/mfe2'],
                   action: 'share',
                 },
               ],
@@ -638,10 +763,10 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
       imports: {},
       scopes: {
         'http://my.service/mfe1/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+          'dep-a': 'http://my.service/mfe1/dep-a-abc.js',
         },
         'http://my.service/mfe2/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+          'dep-a': 'http://my.service/mfe1/dep-a-abc.js',
         },
       },
     });
@@ -656,24 +781,38 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
               dirty: false,
               versions: [
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe1',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: true,
+                  tag: '1.2.3',
+                  remotes: [
+                    {
+                      file: 'dep-a-abc.js',
+                      name: 'team/mfe1',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: true,
+                    },
+                    {
+                      file: 'dep-a-def.js',
+                      name: 'team/mfe3',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: false,
                   action: 'share',
                 },
                 {
-                  version: '1.2.3',
-                  file: 'dep-a.js',
-                  remote: 'team/mfe2',
-                  requiredVersion: '~1.2.1',
-                  strictVersion: false,
-                  cached: false,
+                  tag: '1.2.2',
+                  remotes: [
+                    {
+                      file: 'dep-a.js',
+                      name: 'team/mfe2',
+                      requiredVersion: '~1.2.1',
+                      strictVersion: false,
+                      cached: false,
+                    },
+                  ],
                   host: false,
-                  usedBy: ['team/mfe3'],
                   action: 'skip',
                 },
               ],
@@ -687,13 +826,13 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
       imports: {},
       scopes: {
         'http://my.service/mfe1/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+          'dep-a': 'http://my.service/mfe1/dep-a-abc.js',
         },
         'http://my.service/mfe2/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+          'dep-a': 'http://my.service/mfe1/dep-a-abc.js',
         },
         'http://my.service/mfe3/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+          'dep-a': 'http://my.service/mfe1/dep-a-abc.js',
         },
       },
     });
