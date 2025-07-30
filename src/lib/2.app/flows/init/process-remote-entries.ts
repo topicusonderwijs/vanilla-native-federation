@@ -42,14 +42,6 @@ export function createProcessRemoteEntries(
       addExternalsToStorage(remoteEntry);
     });
 
-    config.log.debug('[2] Processed remote entries:', {
-      remotes: { ...ports.remoteInfoRepo.getAll() },
-      'shared-externals': ports.sharedExternalsRepo
-        .getScopes({ includeGlobal: true })
-        .reduce((acc, scope) => ({ ...acc, [scope]: ports.sharedExternalsRepo.getAll(scope) }), {}),
-      'scoped-externals': ports.scopedExternalsRepo.getAll(),
-    });
-
     return Promise.resolve();
   };
 
@@ -66,11 +58,18 @@ export function createProcessRemoteEntries(
   function addExternalsToStorage(remoteEntry: RemoteEntry): void {
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
+        if (config.strict) {
+          config.log.error(
+            2,
+            `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
+          );
+          throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
+        }
+
         config.log.warn(
+          2,
           `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
         );
-        if (config.strict)
-          throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
         return;
       }
       if (external.singleton) {
@@ -117,6 +116,7 @@ export function createProcessRemoteEntries(
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
         config.log.warn(
+          2,
           `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`
         );
       }

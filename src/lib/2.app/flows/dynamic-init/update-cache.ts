@@ -11,6 +11,7 @@ import {
   type SharedVersionAction,
   type SharedVersionMeta,
   type SharedExternal,
+  GLOBAL_SCOPE,
 } from 'lib/1.domain';
 import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { LoggingConfig } from '../../config/log.contract';
@@ -50,12 +51,17 @@ export function createUpdateCache(
     const actions: SharedInfoActions = {};
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
-        config.log.debug(
-          `[8][${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
-        );
-        if (config.strict)
+        if (config.strict) {
+          config.log.error(
+            8,
+            `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version.`
+          );
           throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
-
+        }
+        config.log.warn(
+          8,
+          `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
+        );
         return;
       }
 
@@ -68,8 +74,9 @@ export function createUpdateCache(
             .tryGetScope(sharedVersion.remotes[0]!.name)
             .map(scope => _path.join(scope, sharedVersion.remotes[0]!.file))
             .orThrow(() => {
-              config.log.debug(
-                `[8][${remoteEntry.name}][${external.packageName}@${external.version}][override] Remote name not found in cache.`
+              config.log.error(
+                8,
+                `[${external.shareScope ?? GLOBAL_SCOPE}][${remoteEntry.name}][${external.packageName}@${external.version}][override] Remote name not found in cache.`
               );
               return new NFError(
                 `Could not find override url from remote ${sharedVersion.remotes[0]!.name}`
@@ -114,13 +121,14 @@ export function createUpdateCache(
       !sharedVersion || ports.versionCheck.isCompatible(sharedVersion.tag, remote.requiredVersion);
 
     if (action === 'skip' && !isCompatible && remote.strictVersion) {
-      config.log.debug(
-        `[8][${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Is not compatible with existing [${sharedInfo.packageName}@${sharedVersion!.tag}] requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}'`
-      );
       action = 'scope';
       if (config.strict) {
+        config.log.error(
+          8,
+          `[${sharedInfo.shareScope ?? GLOBAL_SCOPE}][${remoteName}] ${sharedInfo.packageName}@${sharedInfo.version} Is not compatible with existing ${sharedInfo.packageName}@${sharedVersion!.tag} requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}'`
+        );
         throw new NFError(
-          `${sharedInfo.packageName}@${sharedInfo.version} from remote ${remoteName} is not compatible with ${sharedVersion.remotes[0]!.name}.`
+          `Remote ${remoteName} is not compatible with ${sharedVersion.remotes[0]!.name}.`
         );
       }
     }
@@ -133,7 +141,8 @@ export function createUpdateCache(
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
         config.log.warn(
-          `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`
+          8,
+          `[${sharedInfo.shareScope ?? GLOBAL_SCOPE}][${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`
         );
       }
       matchingVersion.remotes.push(remote);

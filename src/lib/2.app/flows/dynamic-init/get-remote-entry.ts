@@ -14,7 +14,7 @@ export function createGetRemoteEntry(
 ): ForGettingRemoteEntry {
   return async (remoteEntryUrl: RemoteEntryUrl, remoteName?: RemoteName) => {
     if (!!remoteName && shouldSkipCachedRemote(remoteName)) {
-      config.log.debug(`[7][${remoteName}] Skipped initialization of cached remote.`);
+      config.log.debug(7, `[${remoteName}] Skipped initialization of cached remote.`);
       return Optional.empty<RemoteEntry>();
     }
 
@@ -22,15 +22,21 @@ export function createGetRemoteEntry(
       const remoteEntry = await ports.remoteEntryProvider.provide(remoteEntryUrl);
 
       config.log.debug(
-        `[7][${remoteEntry.name}] Fetched from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`
+        7,
+        `[${remoteEntry.name}] Fetched from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`
       );
       if (!!remoteName && remoteEntry.name !== remoteName) {
         config.log.warn(
+          7,
           `remoteEntry '${remoteEntry.name}' Does not match expected '${remoteName}'.`
         );
       }
       return Optional.of(remoteEntry);
     } catch (error: unknown) {
+      config.log.error(
+        7,
+        `[${remoteName ?? 'unknown'}] Could not fetch remoteEntry from ${remoteEntryUrl}.`
+      );
       throw new NFError(
         `[${remoteName ?? remoteEntryUrl}] Could not fetch remoteEntry.`,
         error as Error

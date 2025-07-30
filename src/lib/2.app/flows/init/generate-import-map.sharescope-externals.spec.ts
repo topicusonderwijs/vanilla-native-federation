@@ -297,8 +297,9 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
     });
 
     expect(generateImportMap()).rejects.toThrow('Could not create ImportMap.');
-    expect(mockConfig.log.debug).toHaveBeenCalledWith(
-      '[4][custom-scope][dep-a] shareScope has no override version.'
+    expect(mockConfig.log.error).toHaveBeenCalledWith(
+      4,
+      '[custom-scope][dep-a] shareScope has no override version.'
     );
   });
 
@@ -566,6 +567,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
       },
     });
     expect(mockConfig.log.warn).toHaveBeenCalledWith(
+      4,
       'ShareScope external custom-scope.dep-a has multiple shared versions.'
     );
   });
@@ -628,8 +630,9 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
     });
 
     await expect(generateImportMap()).rejects.toEqual(new NFError('Could not create ImportMap.'));
-    expect(mockConfig.log.debug).toHaveBeenCalledWith(
-      '[4][custom-scope.dep-a] ShareScope external has multiple shared versions.'
+    expect(mockConfig.log.error).toHaveBeenCalledWith(
+      4,
+      '[custom-scope.dep-a] ShareScope external has multiple shared versions.'
     );
   });
 
@@ -690,7 +693,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
       },
     });
     expect(mockConfig.log.debug).toHaveBeenCalledWith(
-      '[4][custom-scope][dep-a] shareScope has no override version, scoping override versions.'
+      4,
+      '[custom-scope][dep-a] shareScope has no override version, scoping override versions.'
     );
   });
 
@@ -718,8 +722,9 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
     }));
 
     await expect(generateImportMap()).rejects.toThrow('Could not create ImportMap.');
-    expect(mockConfig.log.debug).toHaveBeenCalledWith(
-      '[4][custom-scope][dep-a][team/mfe4] Remote name not found in cache.'
+    expect(mockConfig.log.error).toHaveBeenCalledWith(
+      4,
+      '[custom-scope][dep-a][team/mfe4] Remote name not found in cache.'
     );
   });
 

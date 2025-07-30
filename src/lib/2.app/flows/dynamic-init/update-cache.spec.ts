@@ -122,8 +122,9 @@ describe('createProcessDynamicRemoteEntry', () => {
       await updateCache(remoteEntry);
 
       expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
-      expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        "[8][team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
+      expect(mockConfig.log.warn).toHaveBeenCalledWith(
+        8,
+        "[team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
       );
     });
   });
@@ -501,7 +502,11 @@ describe('createProcessDynamicRemoteEntry', () => {
       };
 
       await expect(updateCache(remoteEntry)).rejects.toThrow(
-        `dep-a@1.2.3 from remote team/mfe1 is not compatible with team/mfe2.`
+        `Remote team/mfe1 is not compatible with team/mfe2.`
+      );
+      expect(mockConfig.log.error).toHaveBeenCalledWith(
+        8,
+        "[__GLOBAL__][team/mfe1] dep-a@1.2.3 Is not compatible with existing dep-a@2.2.3 requiredRange '~2.2.1'"
       );
     });
 
@@ -572,8 +577,9 @@ describe('createProcessDynamicRemoteEntry', () => {
       await updateCache(remoteEntry);
 
       expect(mockAdapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalled();
-      expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        "[8][team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
+      expect(mockConfig.log.warn).toHaveBeenCalledWith(
+        8,
+        "[team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
       );
     });
   });

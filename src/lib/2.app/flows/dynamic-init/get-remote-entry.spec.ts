@@ -86,6 +86,7 @@ describe('createGetRemoteEntry', () => {
       );
 
       expect(mockConfig.log.warn).toHaveBeenCalledWith(
+        7,
         `remoteEntry '${result.get()?.name}' Does not match expected 'team/mfe2'.`
       );
     });

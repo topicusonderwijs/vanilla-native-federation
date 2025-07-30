@@ -76,12 +76,14 @@ describe('createGetRemoteEntries', () => {
 
       expect(mockConfig.log.debug).toHaveBeenNthCalledWith(
         1,
-        `[1] Fetched 'team/mfe1' from 'http://my.service/mfe1/remoteEntry.json', exposing: [{"key":"./wc-comp-a","outFileName":"component-a.js"}]`
+        1,
+        `Fetched 'team/mfe1' from 'http://my.service/mfe1/remoteEntry.json', exposing: [{"key":"./wc-comp-a","outFileName":"component-a.js"}]`
       );
 
       expect(mockConfig.log.debug).toHaveBeenNthCalledWith(
         2,
-        `[1] Fetched 'team/mfe2' from 'http://my.service/mfe2/remoteEntry.json', exposing: [{"key":"./wc-comp-b","outFileName":"component-b.js"},{"key":"./wc-comp-c","outFileName":"component-c.js"}]`
+        1,
+        `Fetched 'team/mfe2' from 'http://my.service/mfe2/remoteEntry.json', exposing: [{"key":"./wc-comp-b","outFileName":"component-b.js"},{"key":"./wc-comp-c","outFileName":"component-c.js"}]`
       );
     });
 
@@ -170,7 +172,8 @@ describe('createGetRemoteEntries', () => {
       expect(actual).toEqual([MOCK_REMOTE_ENTRY_II()]);
 
       expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        expect.stringContaining("Found remote 'team/mfe1' in storage, omitting fetch.")
+        1,
+        "Found remote 'team/mfe1' in storage, omitting fetch."
       );
     });
   });
@@ -191,8 +194,9 @@ describe('createGetRemoteEntries', () => {
 
       expect(actual).toEqual([MOCK_REMOTE_ENTRY_I()]);
 
-      expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        '[init][ERR] Failed to fetch remoteEntry.',
+      expect(mockConfig.log.error).toHaveBeenCalledWith(
+        1,
+        'Failed to fetch remoteEntry.',
         expect.any(NFError)
       );
     });
@@ -211,8 +215,9 @@ describe('createGetRemoteEntries', () => {
         new NFError('Could not fetch remoteEntry.')
       );
 
-      expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        '[init][ERR] Failed to fetch remoteEntry.',
+      expect(mockConfig.log.error).toHaveBeenCalledWith(
+        1,
+        'Failed to fetch remoteEntry.',
         expect.any(NFError)
       );
     });
@@ -226,8 +231,9 @@ describe('createGetRemoteEntries', () => {
         new NFError('Could not fetch manifest.')
       );
 
-      expect(mockConfig.log.debug).toHaveBeenCalledWith(
-        '[1][ERR] Failed to fetch manifest.',
+      expect(mockConfig.log.error).toHaveBeenCalledWith(
+        1,
+        'Failed to fetch manifest.',
         expect.any(NFError)
       );
     });
@@ -240,9 +246,8 @@ describe('createGetRemoteEntries', () => {
       await getRemoteEntries(manifestWithBadEntryName);
 
       expect(mockConfig.log.warn).toHaveBeenCalledWith(
-        expect.stringContaining(
-          "Fetched remote 'team/mfe1' does not match requested 'bad-mfe-name'."
-        )
+        1,
+        "Fetched remote 'team/mfe1' does not match requested 'bad-mfe-name'."
       );
     });
   });

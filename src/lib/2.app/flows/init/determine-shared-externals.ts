@@ -1,5 +1,5 @@
 import type { ForDeterminingSharedExternals } from '../../driver-ports/init/for-determining-shared-externals.port';
-import type { SharedExternal } from 'lib/1.domain';
+import { GLOBAL_SCOPE, type SharedExternal } from 'lib/1.domain';
 import { NFError } from 'lib/native-federation.error';
 import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { LoggingConfig } from '../../config/log.contract';
@@ -42,14 +42,21 @@ export function createDetermineSharedExternals(
               shareScope
             )
           );
-        config.log.debug('[3] determined shared externals', sharedExternals);
-      } catch (err) {
-        config.log.debug(
-          `[3][ERR][${shareScope}] failed to determine shared externals, state:`,
-          sharedExternals
+        config.log.debug(3, 'determined shared externals', sharedExternals);
+      } catch (error) {
+        config.log.error(
+          3,
+          `[${shareScope ?? GLOBAL_SCOPE}] failed to determine shared externals.`,
+          {
+            sharedExternals,
+            error,
+          }
         );
         return Promise.reject(
-          new NFError(`Could not determine shared externals in scope ${shareScope}.`, err as Error)
+          new NFError(
+            `Could not determine shared externals in scope ${shareScope}.`,
+            error as Error
+          )
         );
       }
     }
@@ -97,12 +104,10 @@ export function createDetermineSharedExternals(
         return;
       }
 
-      config.log.debug(
-        `[3][${externalName}] Shared version ${sharedVersion!.tag} is not compatible with range '${v.remotes[0]!.requiredVersion}'`
-      );
-
       if (config.strict && v.remotes[0]!.strictVersion) {
-        throw new NFError('Could not determine shared externals, incompatible version found.');
+        throw new NFError(
+          `[${v.remotes[0]!.name}] ${externalName}@${v.tag} is not compatible with existing ${sharedVersion!.remotes[0]!.requiredVersion}@${sharedVersion!.tag} requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}'`
+        );
       }
       v.action = v.remotes[0]!.strictVersion ? 'scope' : 'skip';
     });

@@ -54,8 +54,9 @@ describe('createExposeModuleLoader', () => {
     );
 
     expect(mockConfig.log.error).toHaveBeenCalledWith(
+      6,
       'Failed to load module team/mfe1/./comp-a: ',
-      new NFError("Remote 'team/mfe1' is not initialized.")
+      { error: new NFError("Remote 'team/mfe1' is not initialized.") }
     );
   });
 
@@ -70,8 +71,13 @@ describe('createExposeModuleLoader', () => {
     );
 
     expect(mockConfig.log.error).toHaveBeenCalledWith(
+      6,
       'Failed to load module team/mfe1/./comp-a: ',
-      new NFError("Exposed module './comp-a' from remote 'team/mfe1' not found in storage.")
+      {
+        error: new NFError(
+          "Exposed module './comp-a' from remote 'team/mfe1' not found in storage."
+        ),
+      }
     );
   });
 });

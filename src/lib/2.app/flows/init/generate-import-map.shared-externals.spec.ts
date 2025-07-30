@@ -329,6 +329,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
       },
     });
     expect(mockConfig.log.warn).toHaveBeenCalledWith(
+      4,
       'Singleton external dep-a has multiple shared versions.'
     );
   });
@@ -373,8 +374,9 @@ describe('createGenerateImportMap (shared-externals)', () => {
     }));
 
     await expect(generateImportMap()).rejects.toEqual(new NFError('Could not create ImportMap.'));
-    expect(mockConfig.log.debug).toHaveBeenCalledWith(
-      '[4][dep-a] Shared external has multiple shared versions.'
+    expect(mockConfig.log.error).toHaveBeenCalledWith(
+      4,
+      '[dep-a] Shared external has multiple shared versions.'
     );
   });
 
@@ -402,8 +404,9 @@ describe('createGenerateImportMap (shared-externals)', () => {
     }));
 
     await expect(generateImportMap()).rejects.toThrow('Could not create ImportMap.');
-    expect(mockConfig.log.debug).toHaveBeenCalledWith(
-      '[4][__GLOBAL__][dep-a][team/mfe3] Remote name not found in cache.'
+    expect(mockConfig.log.error).toHaveBeenCalledWith(
+      4,
+      `[__GLOBAL__][dep-a][team/mfe3] Remote name not found in cache.`
     );
   });
 });
