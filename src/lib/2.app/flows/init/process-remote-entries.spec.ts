@@ -124,7 +124,7 @@ describe('createProcessRemoteEntries', () => {
       expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
       expect(mockConfig.log.warn).toHaveBeenCalledWith(
         2,
-        "[team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
+        "[team/mfe1][dep-a] Version 'bad-semver' is not a valid version. skipping version."
       );
     });
   });
@@ -207,7 +207,7 @@ describe('createProcessRemoteEntries', () => {
       expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
       expect(mockConfig.log.warn).toHaveBeenCalledWith(
         2,
-        "[team/mfe1][dep-a] Version 'bad-version' is not a valid version, skipping version."
+        "[team/mfe1][dep-a] Version 'bad-version' is not a valid version. skipping version."
       );
     });
   });

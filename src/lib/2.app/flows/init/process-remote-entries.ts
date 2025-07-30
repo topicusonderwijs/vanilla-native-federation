@@ -58,18 +58,14 @@ export function createProcessRemoteEntries(
   function addExternalsToStorage(remoteEntry: RemoteEntry): void {
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
+        const errorDetails = `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version.`;
+
         if (config.strict) {
-          config.log.error(
-            2,
-            `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
-          );
+          config.log.error(2, errorDetails);
           throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
         }
 
-        config.log.warn(
-          2,
-          `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
-        );
+        config.log.warn(2, `${errorDetails} skipping version.`);
         return;
       }
       if (external.singleton) {
@@ -115,10 +111,14 @@ export function createProcessRemoteEntries(
         remote.strictVersion &&
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
-        config.log.warn(
-          2,
-          `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`
-        );
+        const errorDetails = `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`;
+        if (config.strict) {
+          config.log.error(2, errorDetails);
+          throw new NFError(
+            `Remote ${remoteName} is not compatible with existing ${matchingVersion.remotes[0]!.name}.`
+          );
+        }
+        config.log.warn(2, errorDetails);
       }
 
       if (!matchingVersion.host && !!remoteEntry?.host) {

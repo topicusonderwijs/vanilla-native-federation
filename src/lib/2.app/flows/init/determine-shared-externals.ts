@@ -42,7 +42,6 @@ export function createDetermineSharedExternals(
               shareScope
             )
           );
-        config.log.debug(3, 'determined shared externals', sharedExternals);
       } catch (error) {
         config.log.error(
           3,

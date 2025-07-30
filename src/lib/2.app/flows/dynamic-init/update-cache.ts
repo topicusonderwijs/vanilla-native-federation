@@ -140,10 +140,14 @@ export function createUpdateCache(
         remote.strictVersion &&
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
-        config.log.warn(
-          8,
-          `[${sharedInfo.shareScope ?? GLOBAL_SCOPE}][${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`
-        );
+        const errorDetails = `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`;
+        if (config.strict) {
+          config.log.error(2, errorDetails);
+          throw new NFError(
+            `Remote ${remoteName} is not compatible with existing ${matchingVersion.remotes[0]!.name}.`
+          );
+        }
+        config.log.warn(2, errorDetails);
       }
       matchingVersion.remotes.push(remote);
     } else {
