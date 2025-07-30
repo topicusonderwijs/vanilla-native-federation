@@ -22,6 +22,13 @@ module.exports = {
   setupFiles: [],
 
   collectCoverage: true,
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+  },  
 
   coverageDirectory: 'coverage',
 
