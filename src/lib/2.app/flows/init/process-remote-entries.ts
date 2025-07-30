@@ -112,7 +112,10 @@ export function createProcessRemoteEntries(
     let dirty = cached.dirty;
 
     if (!!matchingVersion) {
-      if (matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion) {
+      if (
+        remote.strictVersion &&
+        matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
+      ) {
         config.log.warn(
           `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`
         );
