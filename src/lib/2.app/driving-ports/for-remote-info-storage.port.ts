@@ -3,7 +3,8 @@ import type { Optional } from 'lib/utils/optional';
 
 export type ForRemoteInfoStorage = {
   contains: (remoteName: RemoteName) => boolean;
-  tryGetScope: (remoteName: RemoteName) => Optional<string>;
+  tryGet: (remoteName: RemoteName) => Optional<RemoteInfo>;
+  remove: (remoteName: RemoteName) => ForRemoteInfoStorage;
   tryGetModule: (remoteName: RemoteName, exposedModule: string) => Optional<string>;
   addOrUpdate: (remoteName: string, remote: RemoteInfo) => ForRemoteInfoStorage;
   getAll: () => Remotes;

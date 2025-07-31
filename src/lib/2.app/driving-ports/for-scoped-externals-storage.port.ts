@@ -6,6 +6,7 @@ export type ForScopedExternalsStorage = {
     external: string,
     version: ScopedVersion
   ) => ForScopedExternalsStorage;
+  remove: (remoteName: RemoteName) => ForScopedExternalsStorage;
   getAll: () => ScopedExternals;
   commit: () => ForScopedExternalsStorage;
 };

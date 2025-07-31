@@ -16,6 +16,10 @@ const createScopedExternalsRepository = (config: StorageConfig): ForScopedExtern
       _cache[remoteName][external] = version;
       return this;
     },
+    remove: function (remoteName: RemoteName) {
+      delete _cache[remoteName];
+      return this;
+    },
     getAll: function () {
       return _cache;
     },

@@ -7,14 +7,15 @@ import type { ModeConfig } from '../../config/mode.contract';
 import type { ForGettingRemoteEntry } from '../../driver-ports/dynamic-init/for-getting-remote-entry.port';
 import { Optional } from 'lib/utils/optional';
 import type { RemoteEntry } from 'lib/1.domain';
+import * as _path from 'lib/utils/path';
 
 export function createGetRemoteEntry(
   config: LoggingConfig & ModeConfig,
   ports: Pick<DrivingContract, 'remoteEntryProvider' | 'remoteInfoRepo'>
 ): ForGettingRemoteEntry {
   return async (remoteEntryUrl: RemoteEntryUrl, remoteName?: RemoteName) => {
-    if (!!remoteName && shouldSkipCachedRemote(remoteName)) {
-      config.log.debug(7, `[${remoteName}] Skipped initialization of cached remote.`);
+    if (!!remoteName && shouldSkipCachedRemote(remoteEntryUrl, remoteName)) {
+      config.log.debug(7, `Found remote '${remoteName}' in storage, omitting fetch.`);
       return Optional.empty<RemoteEntry>();
     }
 
@@ -26,10 +27,21 @@ export function createGetRemoteEntry(
         `[${remoteEntry.name}] Fetched from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`
       );
       if (!!remoteName && remoteEntry.name !== remoteName) {
-        config.log.warn(
-          7,
-          `remoteEntry '${remoteEntry.name}' Does not match expected '${remoteName}'.`
-        );
+        if (remoteEntry.name !== remoteName) {
+          const errorDetails = `Fetched remote '${remoteEntry.name}' does not match requested '${remoteName}'.`;
+          if (config.strict) {
+            config.log.error(7, errorDetails);
+            return Promise.reject(
+              new NFError(`[${remoteName ?? remoteEntryUrl}] Could not fetch remoteEntry.`)
+            );
+          }
+          config.log.warn(7, `${errorDetails} Omitting expected name.`);
+        }
+      }
+
+      if (ports.remoteInfoRepo.contains(remoteEntry.name)) {
+        remoteEntry.override = true;
+        config.log.debug(7, `Overriding existing remote '${remoteName}' with '${remoteEntryUrl}'.`);
       }
       return Optional.of(remoteEntry);
     } catch (error: unknown) {
@@ -37,16 +49,25 @@ export function createGetRemoteEntry(
         7,
         `[${remoteName ?? 'unknown'}] Could not fetch remoteEntry from ${remoteEntryUrl}.`
       );
-      throw new NFError(
-        `[${remoteName ?? remoteEntryUrl}] Could not fetch remoteEntry.`,
-        error as Error
+      return Promise.reject(
+        new NFError(`[${remoteName ?? remoteEntryUrl}] Could not fetch remoteEntry.`)
       );
     }
   };
 
-  function shouldSkipCachedRemote(remoteName: RemoteName): boolean {
-    return (
-      config.profile.skipCachedRemotes !== 'never' && ports.remoteInfoRepo.contains(remoteName)
-    );
+  function shouldSkipCachedRemote(remoteEntryUrl: string, remoteName: RemoteName): boolean {
+    let shouldSkip = false;
+    ports.remoteInfoRepo.tryGet(remoteName).ifPresent(remoteInfo => {
+      if (config.profile.skipCachedRemotes !== 'never') {
+        shouldSkip = true;
+        return;
+      }
+
+      if (_path.join(remoteInfo.scopeUrl, 'remoteEntry.json') === remoteEntryUrl) {
+        shouldSkip = true;
+        return;
+      }
+    });
+    return shouldSkip;
   }
 }

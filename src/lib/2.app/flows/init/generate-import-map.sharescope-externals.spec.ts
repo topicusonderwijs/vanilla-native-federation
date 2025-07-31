@@ -6,7 +6,7 @@ import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-exter
 import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
 import { LoggingConfig } from '../../config/log.contract';
 import { ModeConfig } from '../../config/mode.contract';
-import { GLOBAL_SCOPE, shareScope } from 'lib/1.domain';
+import { GLOBAL_SCOPE, RemoteInfo, shareScope } from 'lib/1.domain';
 import { NFError } from 'lib/native-federation.error';
 import { Optional } from 'lib/utils/optional';
 
@@ -30,6 +30,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
       profile: {
         latestSharedExternal: false,
         skipCachedRemotes: 'never',
+        skipCachedRemotesIfURLMatches: true,
       },
     } as LoggingConfig & ModeConfig;
 
@@ -47,12 +48,15 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
       ({ includeGlobal } = { includeGlobal: true }) =>
         includeGlobal ? [GLOBAL_SCOPE, 'custom-scope'] : ['custom-scope']
     );
-    mockAdapters.remoteInfoRepo.tryGetScope = jest.fn(remote => {
-      if (remote === 'team/mfe1') return Optional.of('http://my.service/mfe1/');
-      if (remote === 'team/mfe2') return Optional.of('http://my.service/mfe2/');
-      if (remote === 'team/mfe3') return Optional.of('http://my.service/mfe3/');
+    mockAdapters.remoteInfoRepo.tryGet = jest.fn(remote => {
+      if (remote === 'team/mfe1')
+        return Optional.of({ scopeUrl: 'http://my.service/mfe1/', exposes: [] });
+      if (remote === 'team/mfe2')
+        return Optional.of({ scopeUrl: 'http://my.service/mfe2/', exposes: [] });
+      if (remote === 'team/mfe3')
+        return Optional.of({ scopeUrl: 'http://my.service/mfe3/', exposes: [] });
 
-      return Optional.empty<string>();
+      return Optional.empty<RemoteInfo>();
     });
 
     generateImportMap = createGenerateImportMap(mockConfig, mockAdapters);

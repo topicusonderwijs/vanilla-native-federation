@@ -8,7 +8,14 @@ import {
 } from 'lib/1.domain/externals/external.contract';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { Optional } from 'lib/utils/optional';
-import { MOCK_VERSION_II, MOCK_VERSION_III } from 'lib/6.mocks/domain/externals/version.mock';
+import {
+  MOCK_VERSION_II,
+  MOCK_VERSION_III,
+  MOCK_VERSION_IV,
+  MOCK_VERSION_V,
+  MOCK_VERSION_VI,
+  MOCK_VERSION_VII,
+} from 'lib/6.mocks/domain/externals/version.mock';
 import { StorageConfig } from 'lib/2.app/config';
 
 describe('createSharedExternalsRepository', () => {
@@ -373,6 +380,68 @@ describe('createSharedExternalsRepository', () => {
       const actual = externalsRepo.getScopes({ includeGlobal: false });
 
       expect(actual).toEqual(['custom-scope', 'other-custom-scope']);
+    });
+  });
+
+  describe('removeFromAllScopes', () => {
+    it('should remove all external versions from the global scope', () => {
+      const { externalsRepo, mockStorage } = setupWithCache({
+        [GLOBAL_SCOPE]: {
+          'dep-b': { dirty: false, versions: [MOCK_VERSION_II()] },
+          'dep-c': {
+            dirty: false,
+            versions: [MOCK_VERSION_III(), MOCK_VERSION_V()],
+          },
+          'dep-d': {
+            dirty: false,
+            versions: [MOCK_VERSION_VII(), MOCK_VERSION_VI(), MOCK_VERSION_IV()],
+          },
+        },
+      });
+
+      externalsRepo.removeFromAllScopes('team/mfe1');
+      externalsRepo.commit();
+
+      expect(mockStorage['shared-externals']).toEqual({
+        [GLOBAL_SCOPE]: {
+          'dep-c': { dirty: false, versions: [MOCK_VERSION_III(), MOCK_VERSION_V()] },
+          'dep-d': {
+            dirty: true,
+            versions: [MOCK_VERSION_VI(), MOCK_VERSION_IV()],
+          },
+        },
+      });
+    });
+
+    it('should remove cached duplicates from a version, without marking dirty', () => {
+      const mockVersionIV = MOCK_VERSION_IV();
+      mockVersionIV.remotes.push({
+        file: `dep-d.js`,
+        name: 'team/mfe1',
+        requiredVersion: '^2.0.0',
+        strictVersion: true,
+        cached: true,
+      });
+      const { externalsRepo, mockStorage } = setupWithCache({
+        [GLOBAL_SCOPE]: {
+          'dep-d': {
+            dirty: false,
+            versions: [MOCK_VERSION_VI(), mockVersionIV],
+          },
+        },
+      });
+
+      externalsRepo.removeFromAllScopes('team/mfe1');
+      externalsRepo.commit();
+
+      expect(mockStorage['shared-externals']).toEqual({
+        [GLOBAL_SCOPE]: {
+          'dep-d': {
+            dirty: false,
+            versions: [MOCK_VERSION_VI(), MOCK_VERSION_IV()],
+          },
+        },
+      });
     });
   });
 });

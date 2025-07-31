@@ -38,12 +38,19 @@ export function createProcessRemoteEntries(
    */
   return remoteEntries => {
     remoteEntries.forEach(remoteEntry => {
+      if (remoteEntry?.override) removeCachedRemoteEntry(remoteEntry);
       addRemoteInfoToStorage(remoteEntry);
       addExternalsToStorage(remoteEntry);
     });
 
     return Promise.resolve();
   };
+
+  function removeCachedRemoteEntry(remoteEntry: RemoteEntry): void {
+    ports.remoteInfoRepo.remove(remoteEntry.name);
+    ports.scopedExternalsRepo.remove(remoteEntry.name);
+    ports.sharedExternalsRepo.removeFromAllScopes(remoteEntry.name);
+  }
 
   function addRemoteInfoToStorage({ name, url, exposes }: RemoteEntry): void {
     ports.remoteInfoRepo.addOrUpdate(name, {

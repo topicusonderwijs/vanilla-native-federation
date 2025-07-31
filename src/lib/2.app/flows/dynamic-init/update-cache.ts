@@ -28,6 +28,7 @@ export function createUpdateCache(
 ): ForUpdatingCache {
   return remoteEntry => {
     try {
+      if (remoteEntry?.override) removeCachedRemoteEntry(remoteEntry);
       addRemoteInfoToStorage(remoteEntry);
       const actions = mergeExternalsIntoStorage(remoteEntry);
 
@@ -36,6 +37,12 @@ export function createUpdateCache(
       return Promise.reject(error);
     }
   };
+
+  function removeCachedRemoteEntry(remoteEntry: RemoteEntry): void {
+    ports.remoteInfoRepo.remove(remoteEntry.name);
+    ports.scopedExternalsRepo.remove(remoteEntry.name);
+    ports.sharedExternalsRepo.removeFromAllScopes(remoteEntry.name);
+  }
 
   function addRemoteInfoToStorage({ name, url, exposes }: RemoteEntry) {
     ports.remoteInfoRepo.addOrUpdate(name, {
@@ -71,8 +78,8 @@ export function createUpdateCache(
 
         if (action === 'skip' && external.shareScope && sharedVersion?.remotes[0]?.file) {
           actions[external.packageName]!.override = ports.remoteInfoRepo
-            .tryGetScope(sharedVersion.remotes[0]!.name)
-            .map(scope => _path.join(scope, sharedVersion.remotes[0]!.file))
+            .tryGet(sharedVersion.remotes[0]!.name)
+            .map(remote => _path.join(remote.scopeUrl, sharedVersion.remotes[0]!.file))
             .orThrow(() => {
               config.log.error(
                 8,

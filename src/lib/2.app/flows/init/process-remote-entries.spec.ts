@@ -30,6 +30,7 @@ describe('createProcessRemoteEntries', () => {
       profile: {
         latestSharedExternal: false,
         skipCachedRemotes: 'never',
+        skipCachedRemotesIfURLMatches: true,
       },
       strict: false,
     } as LoggingConfig & ModeConfig;
@@ -44,6 +45,63 @@ describe('createProcessRemoteEntries', () => {
     mockAdapters.sharedExternalsRepo.tryGet = jest.fn(_e => Optional.empty<SharedExternal>());
 
     processRemoteEntries = createProcessRemoteEntries(mockConfig, mockAdapters);
+  });
+
+  describe('cleaning up before processing', () => {
+    it('should remove the previous cached version if remoteEntry is marked as override', async () => {
+      const remoteEntries = [
+        {
+          name: 'team/mfe1',
+          url: 'http://my.service/mfe1/remoteEntry.json',
+          exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
+          override: true,
+          shared: [],
+        },
+      ];
+
+      await processRemoteEntries(remoteEntries);
+
+      expect(mockAdapters.remoteInfoRepo.remove).toHaveBeenCalledWith('team/mfe1');
+      expect(mockAdapters.scopedExternalsRepo.remove).toHaveBeenCalledWith('team/mfe1');
+      expect(mockAdapters.sharedExternalsRepo.removeFromAllScopes).toHaveBeenCalledWith(
+        'team/mfe1'
+      );
+    });
+
+    it('should not remove the old version if the remoteEntry is not marked as override', async () => {
+      const remoteEntries = [
+        {
+          name: 'team/mfe1',
+          url: 'http://my.service/mfe1/remoteEntry.json',
+          exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
+          override: false,
+          shared: [],
+        },
+      ];
+
+      await processRemoteEntries(remoteEntries);
+
+      expect(mockAdapters.remoteInfoRepo.remove).not.toHaveBeenCalled();
+      expect(mockAdapters.scopedExternalsRepo.remove).not.toHaveBeenCalled();
+      expect(mockAdapters.sharedExternalsRepo.removeFromAllScopes).not.toHaveBeenCalled();
+    });
+
+    it('should not remove the old version if the remoteEntry is missing the override flag', async () => {
+      const remoteEntries = [
+        {
+          name: 'team/mfe1',
+          url: 'http://my.service/mfe1/remoteEntry.json',
+          exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
+          shared: [],
+        },
+      ];
+
+      await processRemoteEntries(remoteEntries);
+
+      expect(mockAdapters.remoteInfoRepo.remove).not.toHaveBeenCalled();
+      expect(mockAdapters.scopedExternalsRepo.remove).not.toHaveBeenCalled();
+      expect(mockAdapters.sharedExternalsRepo.removeFromAllScopes).not.toHaveBeenCalled();
+    });
   });
 
   describe('process remote infos', () => {

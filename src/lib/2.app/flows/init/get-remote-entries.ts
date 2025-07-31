@@ -7,6 +7,7 @@ import type { LoggingConfig } from '../../config/log.contract';
 import { NFError } from 'lib/native-federation.error';
 import type { ModeConfig } from '../../config/mode.contract';
 import type { HostConfig } from '../../config/host.contract';
+import * as _path from 'lib/utils/path';
 
 export function createGetRemoteEntries(
   config: LoggingConfig & ModeConfig & HostConfig,
@@ -26,9 +27,9 @@ export function createGetRemoteEntries(
   return (remotesOrManifestUrl = {}) =>
     ports.manifestProvider
       .provide(remotesOrManifestUrl)
-      .catch(err => {
-        config.log.error(1, `Failed to fetch manifest.`, err);
-        return Promise.reject(new NFError(`Could not fetch manifest.`));
+      .catch(e => {
+        config.log.error(1, 'Could not fetch manifest.', e);
+        return Promise.reject(new NFError('Failed to fetch manifest'));
       })
       .then(addHostRemoteEntry)
       .then(fetchRemoteEntries)
@@ -60,26 +61,46 @@ export function createGetRemoteEntries(
     remoteName: RemoteName,
     remoteEntryUrl: RemoteEntryUrl
   ): Promise<RemoteEntry | false> {
-    if (shouldSkipCachedRemote(remoteName)) {
-      config.log.debug(1, `Found remote '${remoteName}' in storage, omitting fetch.`);
-      return false;
-    }
+    let isOverride = false;
+    let skip = false;
+
+    ports.remoteInfoRepo.tryGet(remoteName).ifPresent(cachedRemoteInfo => {
+      if (
+        config.profile.skipCachedRemotes === 'always' ||
+        (config.profile.skipCachedRemotesIfURLMatches &&
+          remoteEntryUrl === _path.join(cachedRemoteInfo.scopeUrl, 'remoteEntry.json'))
+      ) {
+        config.log.debug(1, `Found remote '${remoteName}' in storage, omitting fetch.`);
+        skip = true;
+      } else {
+        isOverride = true;
+        config.log.debug(1, `Overriding existing remote '${remoteName}' with '${remoteEntryUrl}'.`);
+      }
+    });
+
+    if (skip) return false;
 
     try {
       const remoteEntry = await ports.remoteEntryProvider.provide(remoteEntryUrl);
-      return processRemoteEntry(remoteEntry, remoteName);
+
+      return processRemoteEntry(remoteEntry, remoteName, isOverride);
     } catch (error) {
-      return handleRemoteEntryFetchError(error);
+      if (config.strict) {
+        config.log.error(1, `Could not fetch remote '${remoteName}'.`, error);
+        return Promise.reject(new NFError(`Could not fetch remote '${remoteName}'`));
+      }
+      config.log.warn(1, `Could not fetch remote '${remoteName}'. skipping init.`, error);
+
+      return Promise.resolve(false);
     }
   }
+  function processRemoteEntry(
+    remoteEntry: RemoteEntry,
+    expectedRemoteName: string,
+    isOverride: boolean
+  ): RemoteEntry {
+    if (isOverride) remoteEntry.override = isOverride;
 
-  function shouldSkipCachedRemote(remoteName: RemoteName): boolean {
-    return (
-      config.profile.skipCachedRemotes === 'always' && ports.remoteInfoRepo.contains(remoteName)
-    );
-  }
-
-  function processRemoteEntry(remoteEntry: RemoteEntry, expectedRemoteName: string): RemoteEntry {
     if (!!config.hostRemoteEntry && expectedRemoteName === config.hostRemoteEntry.name) {
       remoteEntry.host = true;
       remoteEntry.name = config.hostRemoteEntry!.name;
@@ -96,21 +117,12 @@ export function createGetRemoteEntries(
 
   function validateRemoteEntryName(remoteEntry: RemoteEntry, expectedName: string): void {
     if (remoteEntry.name !== expectedName) {
-      config.log.warn(
-        1,
-        `Fetched remote '${remoteEntry.name}' does not match requested '${expectedName}'.`
-      );
+      const errorDetails = `Fetched remote '${remoteEntry.name}' does not match requested '${expectedName}'.`;
+      if (config.strict) {
+        throw new NFError(errorDetails);
+      }
+      config.log.warn(1, `${errorDetails} Omitting expected name.`);
     }
-  }
-
-  async function handleRemoteEntryFetchError(error: unknown): Promise<false> {
-    config.log.error(1, 'Failed to fetch remoteEntry.', error);
-
-    if (config.strict) {
-      throw new NFError('Could not fetch remoteEntry.');
-    }
-
-    return false;
   }
 
   function removeSkippedRemotes(remoteEntries: (RemoteEntry | false)[]): RemoteEntry[] {

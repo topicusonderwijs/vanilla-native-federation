@@ -138,4 +138,37 @@ describe('createScopedExternalsRepository', () => {
       expect(result).toBe(externalsRepo);
     });
   });
+
+  describe('remove', () => {
+    it('should remove a remoteEntry scope from the cache', () => {
+      const { externalsRepo, mockStorage } = setupWithCache({
+        ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
+      });
+
+      externalsRepo.remove('team/mfe1');
+      externalsRepo.commit();
+
+      expect(mockStorage['scoped-externals']).toEqual({});
+    });
+
+    it('should not remove other remoteEntry scope', () => {
+      const { externalsRepo, mockStorage } = setupWithCache({
+        ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
+        ['team/mfe2']: MOCK_EXTERNALS_SCOPE(),
+      });
+
+      externalsRepo.remove('team/mfe1');
+      externalsRepo.commit();
+
+      expect(mockStorage['scoped-externals']).toEqual({
+        ['team/mfe2']: MOCK_EXTERNALS_SCOPE(),
+      });
+    });
+
+    it('should return the repository instance for chaining', () => {
+      const { externalsRepo } = setupWithCache({});
+      const result = externalsRepo.remove('scope-a');
+      expect(result).toBe(externalsRepo);
+    });
+  });
 });

@@ -27,6 +27,7 @@ describe('createGenerateImportMap (remoteInfos)', () => {
       profile: {
         latestSharedExternal: false,
         skipCachedRemotes: 'never',
+        skipCachedRemotesIfURLMatches: true,
       },
     } as LoggingConfig & ModeConfig;
 

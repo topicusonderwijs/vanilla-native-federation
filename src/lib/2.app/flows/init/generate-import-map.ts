@@ -46,11 +46,11 @@ export function createGenerateImportMap(
     const scopedExternals = ports.scopedExternalsRepo.getAll();
 
     for (const [remoteName, externals] of Object.entries(scopedExternals)) {
-      const scope = ports.remoteInfoRepo.tryGetScope(remoteName).orThrow(() => {
+      const remote = ports.remoteInfoRepo.tryGet(remoteName).orThrow(() => {
         config.log.error(4, `[scoped][${remoteName}] Remote name not found in cache.`);
         return new NFError('Could not create ImportMap.');
       });
-      addToScope(importMap, scope, createScopeModules(externals, scope));
+      addToScope(importMap, remote.scopeUrl, createScopeModules(externals, remote.scopeUrl));
     }
 
     return importMap;
@@ -234,12 +234,15 @@ export function createGenerateImportMap(
   }
 
   function getScope(externalName: string, shareScope: string, remoteName: RemoteName) {
-    return ports.remoteInfoRepo.tryGetScope(remoteName).orThrow(() => {
-      config.log.error(
-        4,
-        `[${shareScope}][${externalName}][${remoteName}] Remote name not found in cache.`
-      );
-      return new NFError('Could not create ImportMap.');
-    });
+    return ports.remoteInfoRepo
+      .tryGet(remoteName)
+      .map(remote => remote.scopeUrl)
+      .orThrow(() => {
+        config.log.error(
+          4,
+          `[${shareScope}][${externalName}][${remoteName}] Remote name not found in cache.`
+        );
+        return new NFError('Could not create ImportMap.');
+      });
   }
 }

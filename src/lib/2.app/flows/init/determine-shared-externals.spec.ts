@@ -24,6 +24,7 @@ describe('createDetermineSharedExternals', () => {
       profile: {
         latestSharedExternal: false,
         skipCachedRemotes: 'never',
+        skipCachedRemotesIfURLMatches: true,
       },
       strict: false,
     } as LoggingConfig & ModeConfig;

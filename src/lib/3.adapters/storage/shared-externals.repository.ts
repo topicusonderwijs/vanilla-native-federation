@@ -31,6 +31,33 @@ const createSharedExternalsRepository = (config: StorageConfig): ForSharedExtern
       if (o.includeGlobal) return Object.keys(_cache);
       return Object.keys(_cache).filter(s => s !== GLOBAL_SCOPE);
     },
+    removeFromAllScopes: function (remoteName: string) {
+      Object.values(_cache).forEach(scope => {
+        const removeExternals: string[] = [];
+
+        Object.entries(scope).forEach(([name, external]) => {
+          const removeIdx: number[] = [];
+          external.versions.forEach((version, i) => {
+            const versionRemoteIDX = version.remotes.findIndex(r => r.name === remoteName);
+            if (~versionRemoteIDX) {
+              version.remotes.splice(versionRemoteIDX, 1);
+            }
+
+            if (version.remotes.length === 0) removeIdx.push(i);
+          });
+
+          if (removeIdx.length > 0) {
+            for (let i = removeIdx.length - 1; i >= 0; i--) {
+              external.versions.splice(removeIdx[i]!, 1);
+            }
+            external.dirty = true;
+
+            if (external.versions.length === 0) removeExternals.push(name);
+          }
+        });
+        removeExternals.forEach(name => delete scope[name]);
+      });
+    },
     scopeType: function (shareScope?: string) {
       switch (shareScope) {
         case GLOBAL_SCOPE:

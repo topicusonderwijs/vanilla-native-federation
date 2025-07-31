@@ -9,7 +9,7 @@ import { Optional } from 'lib/utils/optional';
 import { ForUpdatingCache } from 'lib/2.app/driver-ports/dynamic-init/for-updating-cache';
 import { createUpdateCache } from './update-cache';
 import { ModeConfig } from 'lib/2.app/config/mode.contract';
-import { SharedExternal } from 'lib/1.domain';
+import { RemoteInfo, SharedExternal } from 'lib/1.domain';
 
 describe('createProcessDynamicRemoteEntry', () => {
   let updateCache: ForUpdatingCache;
@@ -30,6 +30,7 @@ describe('createProcessDynamicRemoteEntry', () => {
       profile: {
         latestSharedExternal: false,
         skipCachedRemotes: 'never',
+        skipCachedRemotesIfURLMatches: true,
       },
       strict: false,
     } as LoggingConfig & ModeConfig;
@@ -40,14 +41,68 @@ describe('createProcessDynamicRemoteEntry', () => {
       scopedExternalsRepo: mockScopedExternalsRepository(),
       versionCheck: createVersionCheck(),
     };
-    mockAdapters.remoteInfoRepo.tryGetScope = jest.fn(remote => {
-      if (remote === 'team/mfe1') return Optional.of('http://my.service/mfe1/');
-      if (remote === 'team/mfe2') return Optional.of('http://my.service/mfe2/');
-      return Optional.empty<string>();
+    mockAdapters.remoteInfoRepo.tryGet = jest.fn(remote => {
+      if (remote === 'team/mfe1')
+        return Optional.of({ scopeUrl: 'http://my.service/mfe1/', exposes: [] });
+      if (remote === 'team/mfe2')
+        return Optional.of({ scopeUrl: 'http://my.service/mfe2/', exposes: [] });
+
+      return Optional.empty<RemoteInfo>();
     });
     mockAdapters.sharedExternalsRepo.tryGet = jest.fn(_e => Optional.empty<SharedExternal>());
 
     updateCache = createUpdateCache(mockConfig, mockAdapters);
+  });
+
+  describe('cleaning up before processing', () => {
+    it('should remove the previous cached version if remoteEntry is marked as override', async () => {
+      const remoteEntry = {
+        name: 'team/mfe1',
+        url: 'http://my.service/mfe1/remoteEntry.json',
+        exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
+        override: true,
+        shared: [],
+      };
+
+      await updateCache(remoteEntry);
+
+      expect(mockAdapters.remoteInfoRepo.remove).toHaveBeenCalledWith('team/mfe1');
+      expect(mockAdapters.scopedExternalsRepo.remove).toHaveBeenCalledWith('team/mfe1');
+      expect(mockAdapters.sharedExternalsRepo.removeFromAllScopes).toHaveBeenCalledWith(
+        'team/mfe1'
+      );
+    });
+
+    it('should not remove the old version if the remoteEntry is not marked as override', async () => {
+      const remoteEntry = {
+        name: 'team/mfe1',
+        url: 'http://my.service/mfe1/remoteEntry.json',
+        exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
+        override: false,
+        shared: [],
+      };
+
+      await updateCache(remoteEntry);
+
+      expect(mockAdapters.remoteInfoRepo.remove).not.toHaveBeenCalled();
+      expect(mockAdapters.scopedExternalsRepo.remove).not.toHaveBeenCalled();
+      expect(mockAdapters.sharedExternalsRepo.removeFromAllScopes).not.toHaveBeenCalled();
+    });
+
+    it('should not remove the old version if the remoteEntry is missing the override flag', async () => {
+      const remoteEntry = {
+        name: 'team/mfe1',
+        url: 'http://my.service/mfe1/remoteEntry.json',
+        exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
+        shared: [],
+      };
+
+      await updateCache(remoteEntry);
+
+      expect(mockAdapters.remoteInfoRepo.remove).not.toHaveBeenCalled();
+      expect(mockAdapters.scopedExternalsRepo.remove).not.toHaveBeenCalled();
+      expect(mockAdapters.sharedExternalsRepo.removeFromAllScopes).not.toHaveBeenCalled();
+    });
   });
 
   describe('addRemoteInfoToStorage', () => {
@@ -138,7 +193,6 @@ describe('createProcessDynamicRemoteEntry', () => {
         (): Optional<SharedExternal> => Optional.empty()
       );
 
-      console.log('test');
       const remoteEntry = {
         name: 'team/mfe1',
         url: 'http://my.service/mfe1/remoteEntry.json',

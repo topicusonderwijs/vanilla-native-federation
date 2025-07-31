@@ -17,6 +17,8 @@ import { NFError } from 'lib/native-federation.error';
 import { HostConfig } from '../../config/host.contract';
 import { LoggingConfig } from '../../config/log.contract';
 import { ModeConfig } from '../../config/mode.contract';
+import { Optional } from 'lib/utils/optional';
+import { RemoteInfo } from 'lib/1.domain';
 
 describe('createGetRemoteEntries', () => {
   let getRemoteEntries: ForGettingRemoteEntries;
@@ -37,6 +39,7 @@ describe('createGetRemoteEntries', () => {
       profile: {
         latestSharedExternal: false,
         skipCachedRemotes: 'never',
+        skipCachedRemotesIfURLMatches: true,
       },
       hostRemoteEntry: false,
       strict: false,
@@ -47,6 +50,9 @@ describe('createGetRemoteEntries', () => {
       manifestProvider: mockManifestProvider(),
       remoteInfoRepo: mockRemoteInfoRepository(),
     };
+    mockAdapters.remoteInfoRepo.tryGet = jest.fn(_ => {
+      return Optional.empty<RemoteInfo>();
+    });
 
     getRemoteEntries = createGetRemoteEntries(mockConfig, mockAdapters);
   });
@@ -149,26 +155,49 @@ describe('createGetRemoteEntries', () => {
   describe('handling existing remotes', () => {
     it('should not skip fetching remotes that exist in the repository when disabled in config', async () => {
       mockConfig.profile.skipCachedRemotes = 'never';
+      mockConfig.profile.skipCachedRemotesIfURLMatches = false;
 
       // Setup storage to contain one of the remotes
-      mockAdapters.remoteInfoRepo.contains = jest
+      mockAdapters.remoteInfoRepo.tryGet = jest
         .fn()
-        .mockImplementation(name => name === 'team/mfe1');
+        .mockImplementation(_ =>
+          Optional.of({ scopeUrl: MOCK_REMOTE_ENTRY_SCOPE_I_URL(), exposes: [] })
+        );
 
       const actual = await getRemoteEntries(MOCK_MANIFEST());
 
-      expect(actual).toEqual([MOCK_REMOTE_ENTRY_I(), MOCK_REMOTE_ENTRY_II()]);
+      expect(actual).toEqual([
+        { ...MOCK_REMOTE_ENTRY_I(), override: true },
+        { ...MOCK_REMOTE_ENTRY_II(), override: true },
+      ]);
+    });
+
+    it('should skip fetching same-url remotes that exist in the repository when enabled in config', async () => {
+      mockConfig.profile.skipCachedRemotes = 'never';
+      mockConfig.profile.skipCachedRemotesIfURLMatches = true;
+
+      // Setup storage to contain one of the remotes
+      mockAdapters.remoteInfoRepo.tryGet = jest
+        .fn()
+        .mockImplementation(_ =>
+          Optional.of({ scopeUrl: MOCK_REMOTE_ENTRY_SCOPE_I_URL(), exposes: [] })
+        );
+
+      const actual = await getRemoteEntries(MOCK_MANIFEST());
+
+      expect(actual).toEqual([{ ...MOCK_REMOTE_ENTRY_II(), override: true }]);
     });
 
     it('should skip fetching remotes that exist in the repository when enabled in config', async () => {
       mockConfig.profile.skipCachedRemotes = 'always';
 
-      mockAdapters.remoteInfoRepo.contains = jest
-        .fn()
-        .mockImplementation(name => name === 'team/mfe1');
+      mockAdapters.remoteInfoRepo.tryGet = jest.fn().mockImplementation(remote => {
+        if (remote === 'team/mfe1')
+          return Optional.of({ scopeUrl: MOCK_REMOTE_ENTRY_SCOPE_I_URL(), exposes: [] });
+        return Optional.empty();
+      });
 
       const actual = await getRemoteEntries(MOCK_MANIFEST());
-
       expect(actual).toEqual([MOCK_REMOTE_ENTRY_II()]);
 
       expect(mockConfig.log.debug).toHaveBeenCalledWith(
@@ -194,9 +223,9 @@ describe('createGetRemoteEntries', () => {
 
       expect(actual).toEqual([MOCK_REMOTE_ENTRY_I()]);
 
-      expect(mockConfig.log.error).toHaveBeenCalledWith(
+      expect(mockConfig.log.warn).toHaveBeenCalledWith(
         1,
-        'Failed to fetch remoteEntry.',
+        "Could not fetch remote 'team/mfe2'. skipping init.",
         expect.any(NFError)
       );
     });
@@ -212,12 +241,12 @@ describe('createGetRemoteEntries', () => {
       });
 
       await expect(getRemoteEntries(MOCK_MANIFEST())).rejects.toEqual(
-        new NFError('Could not fetch remoteEntry.')
+        new NFError("Could not fetch remote 'team/mfe1'")
       );
 
       expect(mockConfig.log.error).toHaveBeenCalledWith(
         1,
-        'Failed to fetch remoteEntry.',
+        "Could not fetch remote 'team/mfe1'.",
         expect.any(NFError)
       );
     });
@@ -228,12 +257,12 @@ describe('createGetRemoteEntries', () => {
         .mockRejectedValue(new NFError('Failed to fetch manifest'));
 
       await expect(getRemoteEntries('http://bad.manifest.url')).rejects.toEqual(
-        new NFError('Could not fetch manifest.')
+        new NFError('Failed to fetch manifest')
       );
 
       expect(mockConfig.log.error).toHaveBeenCalledWith(
         1,
-        'Failed to fetch manifest.',
+        'Could not fetch manifest.',
         expect.any(NFError)
       );
     });
@@ -247,7 +276,18 @@ describe('createGetRemoteEntries', () => {
 
       expect(mockConfig.log.warn).toHaveBeenCalledWith(
         1,
-        "Fetched remote 'team/mfe1' does not match requested 'bad-mfe-name'."
+        "Fetched remote 'team/mfe1' does not match requested 'bad-mfe-name'. Omitting expected name."
+      );
+    });
+
+    it('should throw an error when remote entry name does not match requested name on strict mode', () => {
+      mockConfig.strict = true;
+      const manifestWithBadEntryName = {
+        'bad-mfe-name': `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`,
+      };
+
+      expect(getRemoteEntries(manifestWithBadEntryName)).rejects.toEqual(
+        new NFError("Could not fetch remote 'bad-mfe-name'")
       );
     });
   });

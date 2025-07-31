@@ -24,6 +24,7 @@ interface FederationInfo {
 type RemoteEntry = FederationInfo & {
   url: RemoteEntryUrl;
   host?: boolean;
+  override?: boolean;
 };
 
 type SharedInfoActions = Record<string, { action: SharedVersionAction; override?: string }>;

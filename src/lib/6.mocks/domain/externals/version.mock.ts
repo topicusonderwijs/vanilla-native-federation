@@ -93,3 +93,18 @@ export const MOCK_VERSION_VI = (): SharedVersion => ({
 
   action: 'share',
 });
+
+export const MOCK_VERSION_VII = (): SharedVersion => ({
+  tag: '2.9.0',
+  remotes: [
+    {
+      file: 'dep-d.js',
+      name: 'team/mfe1',
+      requiredVersion: '~2.9.0',
+      strictVersion: true,
+      cached: false,
+    },
+  ],
+  host: false,
+  action: 'skip',
+});
