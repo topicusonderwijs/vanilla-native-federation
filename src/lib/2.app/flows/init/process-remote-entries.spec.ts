@@ -2,49 +2,31 @@ import { createProcessRemoteEntries } from './process-remote-entries';
 import { ForProcessingRemoteEntries } from '../../driver-ports/init/for-processing-remote-entries.port';
 import { DrivingContract } from '../../driving-ports/driving.contract';
 import { LoggingConfig } from '../../config/log.contract';
-import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
-import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
-import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-externals.repository.mock';
-import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
 import { SharedVersion, Version } from 'lib/1.domain/externals/version.contract';
 import { Optional } from 'lib/utils/optional';
 import { ModeConfig } from 'lib/2.app/config/mode.contract';
 import { SharedExternal } from 'lib/1.domain';
+import { mockConfig } from 'lib/6.mocks/config.mock';
+import { mockAdapters } from 'lib/6.mocks/adapters.mock';
 
 describe('createProcessRemoteEntries', () => {
   let processRemoteEntries: ForProcessingRemoteEntries;
-  let mockConfig: LoggingConfig & ModeConfig;
-  let mockAdapters: Pick<
+  let config: LoggingConfig & ModeConfig;
+  let adapters: Pick<
     DrivingContract,
     'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
   >;
 
   beforeEach(() => {
-    mockConfig = {
-      log: {
-        debug: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        level: 'debug',
-      },
-      profile: {
-        latestSharedExternal: false,
-        skipCachedRemotes: 'never',
-        skipCachedRemotesIfURLMatches: true,
-      },
-      strict: false,
-    } as LoggingConfig & ModeConfig;
+    config = mockConfig();
+    adapters = mockAdapters();
 
-    mockAdapters = {
-      remoteInfoRepo: mockRemoteInfoRepository(),
-      sharedExternalsRepo: mockSharedExternalsRepository(),
-      scopedExternalsRepo: mockScopedExternalsRepository(),
-      versionCheck: createVersionCheck(),
-    };
+    adapters.sharedExternalsRepo.tryGet = jest.fn(_e => Optional.empty<SharedExternal>());
 
-    mockAdapters.sharedExternalsRepo.tryGet = jest.fn(_e => Optional.empty<SharedExternal>());
+    processRemoteEntries = createProcessRemoteEntries(config, adapters);
 
-    processRemoteEntries = createProcessRemoteEntries(mockConfig, mockAdapters);
+    adapters.versionCheck.isValidSemver = jest.fn(() => true);
+    adapters.versionCheck.compare = jest.fn(() => 0);
   });
 
   describe('cleaning up before processing', () => {
@@ -61,11 +43,9 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.remoteInfoRepo.remove).toHaveBeenCalledWith('team/mfe1');
-      expect(mockAdapters.scopedExternalsRepo.remove).toHaveBeenCalledWith('team/mfe1');
-      expect(mockAdapters.sharedExternalsRepo.removeFromAllScopes).toHaveBeenCalledWith(
-        'team/mfe1'
-      );
+      expect(adapters.remoteInfoRepo.remove).toHaveBeenCalledWith('team/mfe1');
+      expect(adapters.scopedExternalsRepo.remove).toHaveBeenCalledWith('team/mfe1');
+      expect(adapters.sharedExternalsRepo.removeFromAllScopes).toHaveBeenCalledWith('team/mfe1');
     });
 
     it('should not remove the old version if the remoteEntry is not marked as override', async () => {
@@ -81,9 +61,9 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.remoteInfoRepo.remove).not.toHaveBeenCalled();
-      expect(mockAdapters.scopedExternalsRepo.remove).not.toHaveBeenCalled();
-      expect(mockAdapters.sharedExternalsRepo.removeFromAllScopes).not.toHaveBeenCalled();
+      expect(adapters.remoteInfoRepo.remove).not.toHaveBeenCalled();
+      expect(adapters.scopedExternalsRepo.remove).not.toHaveBeenCalled();
+      expect(adapters.sharedExternalsRepo.removeFromAllScopes).not.toHaveBeenCalled();
     });
 
     it('should not remove the old version if the remoteEntry is missing the override flag', async () => {
@@ -98,9 +78,9 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.remoteInfoRepo.remove).not.toHaveBeenCalled();
-      expect(mockAdapters.scopedExternalsRepo.remove).not.toHaveBeenCalled();
-      expect(mockAdapters.sharedExternalsRepo.removeFromAllScopes).not.toHaveBeenCalled();
+      expect(adapters.remoteInfoRepo.remove).not.toHaveBeenCalled();
+      expect(adapters.scopedExternalsRepo.remove).not.toHaveBeenCalled();
+      expect(adapters.sharedExternalsRepo.removeFromAllScopes).not.toHaveBeenCalled();
     });
   });
 
@@ -117,8 +97,8 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.remoteInfoRepo.addOrUpdate).toHaveBeenCalledTimes(1);
-      expect(mockAdapters.remoteInfoRepo.addOrUpdate).toHaveBeenCalledWith('team/mfe1', {
+      expect(adapters.remoteInfoRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+      expect(adapters.remoteInfoRepo.addOrUpdate).toHaveBeenCalledWith('team/mfe1', {
         scopeUrl: 'http://my.service/mfe1/',
         exposes: [{ moduleName: './wc-comp-a', file: 'component-a.js' }],
       });
@@ -147,18 +127,15 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.scopedExternalsRepo.addExternal).toHaveBeenCalledTimes(1);
-      expect(mockAdapters.scopedExternalsRepo.addExternal).toHaveBeenCalledWith(
-        'team/mfe1',
-        'dep-a',
-        {
-          tag: '1.2.3',
-          file: 'dep-a.js',
-        } as Version
-      );
+      expect(adapters.scopedExternalsRepo.addExternal).toHaveBeenCalledTimes(1);
+      expect(adapters.scopedExternalsRepo.addExternal).toHaveBeenCalledWith('team/mfe1', 'dep-a', {
+        tag: '1.2.3',
+        file: 'dep-a.js',
+      } as Version);
     });
 
     it('should skip a version with a bad version', async () => {
+      adapters.versionCheck.isValidSemver = jest.fn(() => false);
       const remoteEntries = [
         {
           name: 'team/mfe1',
@@ -179,8 +156,8 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
-      expect(mockConfig.log.warn).toHaveBeenCalledWith(
+      expect(adapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
+      expect(config.log.warn).toHaveBeenCalledWith(
         2,
         "[team/mfe1][dep-a] Version 'bad-semver' is not a valid version. skipping version."
       );
@@ -189,7 +166,7 @@ describe('createProcessRemoteEntries', () => {
 
   describe('process shared externals', () => {
     it('should add a shared external', async () => {
-      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+      adapters.sharedExternalsRepo.tryGet = jest.fn(
         (): Optional<SharedExternal> => Optional.empty()
       );
       const remoteEntries = [
@@ -212,8 +189,8 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
         'dep-a',
         {
           dirty: true,
@@ -239,7 +216,9 @@ describe('createProcessRemoteEntries', () => {
     });
 
     it('should add a shared external', async () => {
-      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+      adapters.versionCheck.isValidSemver = jest.fn(() => false);
+
+      adapters.sharedExternalsRepo.tryGet = jest.fn(
         (): Optional<SharedExternal> => Optional.empty()
       );
       const remoteEntries = [
@@ -262,8 +241,8 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
-      expect(mockConfig.log.warn).toHaveBeenCalledWith(
+      expect(adapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
+      expect(config.log.warn).toHaveBeenCalledWith(
         2,
         "[team/mfe1][dep-a] Version 'bad-version' is not a valid version. skipping version."
       );
@@ -272,7 +251,7 @@ describe('createProcessRemoteEntries', () => {
 
   describe('process shared externals - handle custom scopes', () => {
     it('should add a shared external', async () => {
-      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+      adapters.sharedExternalsRepo.tryGet = jest.fn(
         (): Optional<SharedExternal> => Optional.empty()
       );
       const remoteEntries = [
@@ -296,8 +275,8 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
         'dep-a',
         {
           dirty: true,
@@ -325,7 +304,7 @@ describe('createProcessRemoteEntries', () => {
 
   describe('process shared externals - Handle version collisions', () => {
     it('should add remote if exact version already exists in cache', async () => {
-      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+      adapters.sharedExternalsRepo.tryGet = jest.fn(
         (): Optional<SharedExternal> =>
           Optional.of({
             dirty: false,
@@ -367,7 +346,7 @@ describe('createProcessRemoteEntries', () => {
       ];
 
       await processRemoteEntries(remoteEntries);
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
         'dep-a',
         {
           dirty: false,
@@ -400,7 +379,7 @@ describe('createProcessRemoteEntries', () => {
     });
 
     it('should not skip shared external if in cache, but new version is from host remoteEntry', async () => {
-      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+      adapters.sharedExternalsRepo.tryGet = jest.fn(
         (): Optional<SharedExternal> =>
           Optional.of({
             dirty: false,
@@ -443,7 +422,7 @@ describe('createProcessRemoteEntries', () => {
       ];
 
       await processRemoteEntries(remoteEntries);
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
         'dep-a',
         {
           dirty: false,
@@ -476,7 +455,7 @@ describe('createProcessRemoteEntries', () => {
     });
 
     it('should mark shared external if in cache and both are host version', async () => {
-      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+      adapters.sharedExternalsRepo.tryGet = jest.fn(
         (): Optional<SharedExternal> =>
           Optional.of({
             dirty: false,
@@ -520,7 +499,7 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
         'dep-a',
         {
           dirty: false,
@@ -554,8 +533,15 @@ describe('createProcessRemoteEntries', () => {
   });
 
   describe('process shared externals - Handle version ordering', () => {
+    beforeEach(() => {
+      adapters.versionCheck.compare = jest.fn((a, b) => {
+        const order = ['1.2.4', '1.2.3', '1.2.2'];
+        return order.indexOf(b) - order.indexOf(a);
+      });
+    });
+
     it('should correctly order the the versions descending', async () => {
-      mockAdapters.sharedExternalsRepo.tryGet = jest.fn(
+      adapters.sharedExternalsRepo.tryGet = jest.fn(
         (): Optional<SharedExternal> =>
           Optional.of({
             dirty: false,
@@ -612,8 +598,8 @@ describe('createProcessRemoteEntries', () => {
 
       await processRemoteEntries(remoteEntries);
 
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
-      expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
         'dep-a',
         {
           dirty: true,

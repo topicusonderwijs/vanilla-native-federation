@@ -2,22 +2,16 @@ import { LoggingConfig } from '../init';
 import { ForConvertingToImportMap } from 'lib/2.app/driver-ports/dynamic-init/for-converting-to-import-map';
 import { createConvertToImportMap } from './convert-to-import-map';
 import { RemoteEntry, SharedInfoActions } from 'lib/1.domain';
+import { mockConfig } from 'lib/6.mocks/config.mock';
 
 describe('createConvertToImportMap', () => {
   let convertToImportMap: ForConvertingToImportMap;
-  let mockConfig: LoggingConfig;
+  let config: LoggingConfig;
 
   beforeEach(() => {
-    mockConfig = {
-      log: {
-        debug: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        level: 'debug',
-      },
-    } as LoggingConfig;
+    config = mockConfig();
 
-    convertToImportMap = createConvertToImportMap(mockConfig);
+    convertToImportMap = createConvertToImportMap(config);
   });
 
   describe('Remote Entry Exposes', () => {

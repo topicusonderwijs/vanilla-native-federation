@@ -1,51 +1,32 @@
 import { ForGeneratingImportMap } from '../../driver-ports/init/for-generating-import-map';
 import { DrivingContract } from '../../driving-ports/driving.contract';
 import { createGenerateImportMap } from './generate-import-map';
-import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
-import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-externals.repository.mock';
-import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
 import { LoggingConfig } from '../../config/log.contract';
 import { ModeConfig } from '../../config/mode.contract';
+import { mockConfig } from 'lib/6.mocks/config.mock';
+import { mockAdapters } from 'lib/6.mocks/adapters.mock';
 
 describe('createGenerateImportMap (remoteInfos)', () => {
   let generateImportMap: ForGeneratingImportMap;
-  let mockAdapters: Pick<
+  let adapters: Pick<
     DrivingContract,
     'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo'
   >;
-  let mockConfig: LoggingConfig & ModeConfig;
+  let config: LoggingConfig & ModeConfig;
 
   beforeEach(() => {
-    mockConfig = {
-      log: {
-        debug: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        level: 'debug',
-      },
-      strict: false,
-      profile: {
-        latestSharedExternal: false,
-        skipCachedRemotes: 'never',
-        skipCachedRemotesIfURLMatches: true,
-      },
-    } as LoggingConfig & ModeConfig;
+    config = mockConfig();
+    adapters = mockAdapters();
 
-    mockAdapters = {
-      remoteInfoRepo: mockRemoteInfoRepository(),
-      scopedExternalsRepo: mockScopedExternalsRepository(),
-      sharedExternalsRepo: mockSharedExternalsRepository(),
-    };
+    adapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
+    adapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
+    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
 
-    mockAdapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
-    mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
-
-    generateImportMap = createGenerateImportMap(mockConfig, mockAdapters);
+    generateImportMap = createGenerateImportMap(config, adapters);
   });
 
   it('should add the remote modules to the global scope.', async () => {
-    mockAdapters.remoteInfoRepo.getAll = jest.fn(() => ({
+    adapters.remoteInfoRepo.getAll = jest.fn(() => ({
       'team/mfe1': {
         scopeUrl: 'http://my.service/mfe1/',
         exposes: [
@@ -66,7 +47,7 @@ describe('createGenerateImportMap (remoteInfos)', () => {
   });
 
   it('should add multiple remotes.', async () => {
-    mockAdapters.remoteInfoRepo.getAll = jest.fn(() => ({
+    adapters.remoteInfoRepo.getAll = jest.fn(() => ({
       'team/mfe1': {
         scopeUrl: 'http://my.service/mfe1/',
         exposes: [
@@ -92,7 +73,7 @@ describe('createGenerateImportMap (remoteInfos)', () => {
   });
 
   it('should handle remotes without modules.', async () => {
-    mockAdapters.remoteInfoRepo.getAll = jest.fn(() => ({
+    adapters.remoteInfoRepo.getAll = jest.fn(() => ({
       '__NF-HOST__': {
         scopeUrl: 'http://my.service/mfe1/',
         exposes: [],

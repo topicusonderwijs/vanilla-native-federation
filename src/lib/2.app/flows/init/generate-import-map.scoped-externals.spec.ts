@@ -1,48 +1,29 @@
 import { ForGeneratingImportMap } from '../../driver-ports/init/for-generating-import-map';
 import { DrivingContract } from '../../driving-ports/driving.contract';
 import { createGenerateImportMap } from './generate-import-map';
-import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
-import { mockScopedExternalsRepository } from 'lib/6.mocks/adapters/scoped-externals.repository.mock';
-import { mockRemoteInfoRepository } from 'lib/6.mocks/adapters/remote-info.repository.mock';
 import { LoggingConfig } from '../../config/log.contract';
 import { ModeConfig } from '../../config/mode.contract';
 import { Optional } from 'lib/utils/optional';
 import { RemoteInfo } from 'lib/1.domain';
+import { mockConfig } from 'lib/6.mocks/config.mock';
+import { mockAdapters } from 'lib/6.mocks/adapters.mock';
 
 describe('createGenerateImportMap (scoped-externals)', () => {
   let generateImportMap: ForGeneratingImportMap;
-  let mockAdapters: Pick<
+  let adapters: Pick<
     DrivingContract,
     'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo'
   >;
-  let mockConfig: LoggingConfig & ModeConfig;
+  let config: LoggingConfig & ModeConfig;
 
   beforeEach(() => {
-    mockConfig = {
-      log: {
-        debug: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        level: 'debug',
-      },
-      strict: false,
-      profile: {
-        latestSharedExternal: false,
-        skipCachedRemotes: 'never',
-        skipCachedRemotesIfURLMatches: true,
-      },
-    } as LoggingConfig & ModeConfig;
+    config = mockConfig();
+    adapters = mockAdapters();
 
-    mockAdapters = {
-      remoteInfoRepo: mockRemoteInfoRepository(),
-      scopedExternalsRepo: mockScopedExternalsRepository(),
-      sharedExternalsRepo: mockSharedExternalsRepository(),
-    };
-
-    mockAdapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
-    mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
-    mockAdapters.remoteInfoRepo.tryGet = jest.fn(remote => {
+    adapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
+    adapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
+    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
+    adapters.remoteInfoRepo.tryGet = jest.fn(remote => {
       if (remote === 'team/mfe1')
         return Optional.of({ scopeUrl: 'http://my.service/mfe1/', exposes: [] });
       if (remote === 'team/mfe2')
@@ -51,11 +32,11 @@ describe('createGenerateImportMap (scoped-externals)', () => {
       return Optional.empty<RemoteInfo>();
     });
 
-    generateImportMap = createGenerateImportMap(mockConfig, mockAdapters);
+    generateImportMap = createGenerateImportMap(config, adapters);
   });
 
   it('should add a scoped externals to its respective scope.', async () => {
-    mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.scopedExternalsRepo.getAll = jest.fn(() => ({
       'team/mfe1': {
         'dep-a': {
           tag: '1.2.3',
@@ -77,7 +58,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
   });
 
   it('should handle multiple scopes.', async () => {
-    mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.scopedExternalsRepo.getAll = jest.fn(() => ({
       'team/mfe1': {
         'dep-a': {
           tag: '1.2.3',
@@ -108,7 +89,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
   });
 
   it('should handle multiple externals in 1 scope.', async () => {
-    mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.scopedExternalsRepo.getAll = jest.fn(() => ({
       'team/mfe1': {
         'dep-a': {
           tag: '1.2.3',
@@ -135,7 +116,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
   });
 
   it('should throw an error if the remote doesnt exist', async () => {
-    mockAdapters.scopedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.scopedExternalsRepo.getAll = jest.fn(() => ({
       'team/mfe3': {
         'dep-a': {
           tag: '1.2.3',
@@ -145,7 +126,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
     }));
 
     await expect(generateImportMap()).rejects.toThrow('Could not create ImportMap.');
-    expect(mockConfig.log.error).toHaveBeenCalledWith(
+    expect(config.log.error).toHaveBeenCalledWith(
       4,
       `[scoped][team/mfe3] Remote name not found in cache.`
     );

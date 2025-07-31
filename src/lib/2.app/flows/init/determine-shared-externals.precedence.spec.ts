@@ -1,47 +1,30 @@
 import { ForDeterminingSharedExternals } from '../../driver-ports/init/for-determining-shared-externals.port';
 import { DrivingContract } from '../../driving-ports/driving.contract';
 import { createDetermineSharedExternals } from './determine-shared-externals';
-import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
-import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
-import { LoggingConfig } from '../../config/log.contract';
-import { ModeConfig } from '../../config/mode.contract';
 import { GLOBAL_SCOPE } from 'lib/1.domain';
+import { mockConfig } from 'lib/6.mocks/config.mock';
+import { mockAdapters } from 'lib/6.mocks/adapters.mock';
 
 /**
  * This tests the precedence of the different external versions
  */
 describe('createDetermineSharedExternals (compatibility precedence)', () => {
   let determineSharedExternals: ForDeterminingSharedExternals;
-  let mockConfig: any;
-  let mockAdapters: Pick<DrivingContract, 'versionCheck' | 'sharedExternalsRepo'>;
+  let config: any;
+  let adapters: Pick<DrivingContract, 'versionCheck' | 'sharedExternalsRepo'>;
 
   beforeEach(() => {
-    mockConfig = {
-      log: {
-        debug: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        level: 'debug',
-      },
-      profile: {
-        latestSharedExternal: false,
-        skipCachedRemotes: 'never',
-        skipCachedRemotesIfURLMatches: true,
-      },
-      strict: false,
-    } as LoggingConfig & ModeConfig;
+    config = mockConfig();
 
-    mockAdapters = {
-      versionCheck: createVersionCheck(),
-      sharedExternalsRepo: mockSharedExternalsRepository(),
-    };
-    mockAdapters.sharedExternalsRepo.getScopes = jest.fn(() => [GLOBAL_SCOPE]);
-    mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'global');
-    determineSharedExternals = createDetermineSharedExternals(mockConfig, mockAdapters);
+    adapters = mockAdapters();
+
+    adapters.sharedExternalsRepo.getScopes = jest.fn(() => [GLOBAL_SCOPE]);
+    adapters.sharedExternalsRepo.scopeType = jest.fn(() => 'global');
+    determineSharedExternals = createDetermineSharedExternals(config, adapters);
   });
 
   it('should set the host version if available', async () => {
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
@@ -79,7 +62,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
 
     await determineSharedExternals();
 
-    expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
       'dep-a',
       {
         dirty: false,
@@ -119,7 +102,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
   });
 
   it('should set the latest version if all equal', async () => {
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
@@ -157,7 +140,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
 
     await determineSharedExternals();
 
-    expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
       'dep-a',
       {
         dirty: false,
@@ -197,9 +180,10 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
   });
 
   it('Should choose latest most compatible version if no host version available', async () => {
-    mockConfig.strict = false;
+    config.strict = false;
+    adapters.versionCheck.isCompatible = jest.fn((a, b) => a.substring(0, 2) === b.substring(1, 3));
 
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
@@ -252,7 +236,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
 
     await determineSharedExternals();
 
-    expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
       'dep-a',
       {
         dirty: false,
@@ -307,10 +291,10 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
   });
 
   it('Should prioritize latest version if config is enabled', async () => {
-    mockConfig.strict = false;
-    mockConfig.profile.latestSharedExternal = true;
+    config.strict = false;
+    config.profile.latestSharedExternal = true;
 
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
@@ -362,7 +346,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
 
     await determineSharedExternals();
 
-    expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
       'dep-a',
       {
         dirty: false,
