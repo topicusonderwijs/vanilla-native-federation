@@ -784,6 +784,60 @@ sequenceDiagram
     Resolver->>Page2: Prioritize cached versions within scopes
 ```
 
+## Remote Cache Override Behavior
+
+When a remote is already present in the cache, the orchestrator will skip the requested remote or override the existing cached remote based on the provided `profile` options.
+
+### Override Flag Detection
+
+The orchestrator checks when a remote should be overridden or skipped by comparing the provided remoteName with the cached remoteName. If they match, the requested `remoteEntry.json` URL will be compared with the cached `remoteEntry.json` URL. By default, on initialization, the remote will be skipped if the URLs match and overridden if the URLs differ. Except for the dynamic init which will always skip by default.
+
+### Skip Cached Remotes Configuration
+
+The `skipCachedRemotes` setting controls whether to fetch remotes that already exist in cache. The default setting is dynamic-only since it is generally not recommended to update the existing import-map after initialization:
+
+```javascript
+await initFederation(manifest, {
+  profile: {
+    skipCachedRemotes: 'never', // Always fetch, allow overrides
+    skipCachedRemotes: 'dynamic-only', // Skip only during dynamic init (default)
+    skipCachedRemotes: 'always', // Skip all cached remotes
+  },
+});
+```
+
+### URL Matching Behavior
+
+The `skipCachedRemotesIfURLMatches` setting provides additional control. Normally, it makes sense to only override the remoteEntry.json if the URL changed, like from `https://my.cdn/mfe1/0.0.1/remoteEntry.json` to `https://my.cdn/mfe1/0.0.2/remoteEntry.json`. However, it might be necessary to always override, even if the URL matches the previously cached url:
+
+```javascript
+await initFederation(manifest, {
+  profile: {
+    skipCachedRemotes: 'never',
+    skipCachedRemotesIfURLMatches: true,
+  },
+});
+```
+
+> **Note:** the `skipCachedRemotes` is generally meant as "skip if urls differ or override if urls differ".
+
+### Override Processing Steps
+
+When a remote is marked for override by the orchestrator (`override: true`), the system performs complete cache cleanup by purging all cached meta data like exposed modules and externals:
+
+```mermaid
+flowchart TD
+    A[Remote marked as override] --> B[Remove from RemoteInfo cache]
+    B --> C[Remove from ScopedExternals cache]
+    C --> D[Remove from SharedExternals cache (all scopes)]
+    D --> E[Add new RemoteInfo to cache]
+    E --> F[Process new externals normally]
+
+    F --> G{External Type}
+    G -->|singleton: true| H[Add to SharedExternals]
+    G -->|singleton: false| I[Add to ScopedExternals]
+```
+
 ## Configuration
 
 ### Host Remote Entry

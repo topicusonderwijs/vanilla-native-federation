@@ -36,19 +36,19 @@ const createSharedExternalsRepository = (config: StorageConfig): ForSharedExtern
         const removeExternals: string[] = [];
 
         Object.entries(scope).forEach(([name, external]) => {
-          const removeIdx: number[] = [];
+          const removeVersionIdx: number[] = [];
           external.versions.forEach((version, i) => {
             const versionRemoteIDX = version.remotes.findIndex(r => r.name === remoteName);
             if (~versionRemoteIDX) {
               version.remotes.splice(versionRemoteIDX, 1);
             }
 
-            if (version.remotes.length === 0) removeIdx.push(i);
+            if (version.remotes.length === 0) removeVersionIdx.push(i);
           });
 
-          if (removeIdx.length > 0) {
-            for (let i = removeIdx.length - 1; i >= 0; i--) {
-              external.versions.splice(removeIdx[i]!, 1);
+          if (removeVersionIdx.length > 0) {
+            for (let i = removeVersionIdx.length - 1; i >= 0; i--) {
+              external.versions.splice(removeVersionIdx[i]!, 1);
             }
             external.dirty = true;
 
