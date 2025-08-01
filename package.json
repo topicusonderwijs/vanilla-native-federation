@@ -10,7 +10,7 @@
   "scripts": {
     "build": "node build.js",
     "lint": "eslint . -c eslint.config.js",
-    "test-ci": "jest --ci --coverage",
+    "test-ci": "jest --ci --coverage --coverageReporters=json-summary",
     "test": "jest"
   },
   "repository": {

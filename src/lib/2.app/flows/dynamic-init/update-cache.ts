@@ -1,6 +1,5 @@
 import type { ForUpdatingCache } from '../../driver-ports/dynamic-init/for-updating-cache';
 import {
-  FALLBACK_VERSION,
   type ScopedVersion,
   type RemoteEntry,
   type RemoteInfo,
@@ -107,7 +106,8 @@ export function createUpdateCache(
 
     let action: SharedVersionAction = 'skip';
 
-    const tag = sharedInfo.version ?? FALLBACK_VERSION;
+    const tag =
+      sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion);
     const remote: SharedVersionMeta = {
       file: sharedInfo.outFileName,
       strictVersion: sharedInfo.strictVersion,
@@ -177,7 +177,7 @@ export function createUpdateCache(
 
   function addScopedExternal(remoteName: RemoteName, sharedInfo: SharedInfo): void {
     ports.scopedExternalsRepo.addExternal(remoteName, sharedInfo.packageName, {
-      tag: sharedInfo.version ?? FALLBACK_VERSION,
+      tag: sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion),
       file: sharedInfo.outFileName,
     } as ScopedVersion);
   }

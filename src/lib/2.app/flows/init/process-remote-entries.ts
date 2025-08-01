@@ -4,7 +4,6 @@ import {
   type RemoteEntry,
   type RemoteInfo,
   type SharedInfo,
-  FALLBACK_VERSION,
   type SharedVersionMeta,
   type ScopedVersion,
   type SharedVersionAction,
@@ -37,13 +36,16 @@ export function createProcessRemoteEntries(
    * @returns Promise<void>
    */
   return remoteEntries => {
-    remoteEntries.forEach(remoteEntry => {
-      if (remoteEntry?.override) removeCachedRemoteEntry(remoteEntry);
-      addRemoteInfoToStorage(remoteEntry);
-      addExternalsToStorage(remoteEntry);
-    });
-
-    return Promise.resolve();
+    try {
+      remoteEntries.forEach(remoteEntry => {
+        if (remoteEntry?.override) removeCachedRemoteEntry(remoteEntry);
+        addRemoteInfoToStorage(remoteEntry);
+        addExternalsToStorage(remoteEntry);
+      });
+      return Promise.resolve();
+    } catch (e) {
+      return Promise.reject(e);
+    }
   };
 
   function removeCachedRemoteEntry(remoteEntry: RemoteEntry): void {
@@ -65,15 +67,10 @@ export function createProcessRemoteEntries(
   function addExternalsToStorage(remoteEntry: RemoteEntry): void {
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
-        const errorDetails = `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version.`;
-
-        if (config.strict) {
-          config.log.error(2, errorDetails);
-          throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
-        }
-
-        config.log.warn(2, `${errorDetails} skipping version.`);
-        return;
+        handleError(
+          remoteEntry.name,
+          `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version.`
+        );
       }
       if (external.singleton) {
         addSharedExternal(remoteEntry.name, external, remoteEntry);
@@ -90,7 +87,8 @@ export function createProcessRemoteEntries(
   ): void {
     let action: SharedVersionAction = 'skip';
 
-    const tag = sharedInfo.version ?? FALLBACK_VERSION;
+    const tag =
+      sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion);
     const remote: SharedVersionMeta = {
       file: sharedInfo.outFileName,
       name: remoteName,
@@ -118,14 +116,10 @@ export function createProcessRemoteEntries(
         remote.strictVersion &&
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
-        const errorDetails = `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`;
-        if (config.strict) {
-          config.log.error(2, errorDetails);
-          throw new NFError(
-            `Remote ${remoteName} is not compatible with existing ${matchingVersion.remotes[0]!.name}.`
-          );
-        }
-        config.log.warn(2, errorDetails);
+        handleError(
+          remoteName,
+          `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`
+        );
       }
 
       if (!matchingVersion.host && !!remoteEntry?.host) {
@@ -149,8 +143,16 @@ export function createProcessRemoteEntries(
 
   function addScopedExternal(scope: string, sharedInfo: SharedInfo): void {
     ports.scopedExternalsRepo.addExternal(scope, sharedInfo.packageName, {
-      tag: sharedInfo.version ?? FALLBACK_VERSION,
+      tag: sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion),
       file: sharedInfo.outFileName,
     } as ScopedVersion);
+  }
+
+  function handleError(remoteName: RemoteName, msg: string): void {
+    if (config.strict) {
+      config.log.error(2, msg);
+      throw new NFError(`Could not process remote '${remoteName}'`);
+    }
+    config.log.warn(2, msg);
   }
 }

@@ -36,9 +36,7 @@ export function createGetRemoteEntries(
       .then(removeSkippedRemotes);
 
   function addHostRemoteEntry(manifest: Manifest): Manifest {
-    if (!config.hostRemoteEntry) {
-      return manifest;
-    }
+    if (!config.hostRemoteEntry) return manifest;
 
     const { name, url, cacheTag } = config.hostRemoteEntry;
     const urlWithCache = cacheTag ? `${url}?cacheTag=${cacheTag}` : url;
@@ -53,7 +51,6 @@ export function createGetRemoteEntries(
     const fetchPromises = Object.entries(manifest).map(([remoteName, remoteEntryUrl]) =>
       fetchRemoteEntry(remoteName, remoteEntryUrl)
     );
-
     return Promise.all(fetchPromises);
   }
 

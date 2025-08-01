@@ -276,4 +276,25 @@ describe('versionCheck', () => {
       expect(versionCheck.compare('1.1.1', '2.1.1')).toBe(-1);
     });
   });
+
+  describe('smallestVersion', () => {
+    it('should return the smallest version from a range', () => {
+      expect(versionCheck.smallestVersion('^1.2.3')).toBe('1.2.3');
+      expect(versionCheck.smallestVersion('~1.2.3')).toBe('1.2.3');
+      expect(versionCheck.smallestVersion('>=1.0.0 <2.0.0')).toBe('1.0.0');
+      expect(versionCheck.smallestVersion('>1.0.0 <2.0.0')).toBe('1.0.1');
+      expect(versionCheck.smallestVersion('^0.1.2')).toBe('0.1.2');
+      expect(versionCheck.smallestVersion('~0.1.2')).toBe('0.1.2');
+    });
+
+    it('should return null for invalid ranges', () => {
+      expect(versionCheck.smallestVersion('invalid-range')).toBe('0.0.0');
+    });
+
+    it('should handle single versions as ranges', () => {
+      expect(versionCheck.smallestVersion('')).toBe('0.0.0');
+      expect(versionCheck.smallestVersion('1.2.3')).toBe('1.2.3');
+      expect(versionCheck.smallestVersion('1.2.3-patch')).toBe('1.2.3-patch');
+    });
+  });
 });

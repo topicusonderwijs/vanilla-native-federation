@@ -18,8 +18,6 @@ export type SharedVersion = Version & {
 
 export type SharedVersionAction = 'skip' | 'scope' | 'share';
 
-export const FALLBACK_VERSION = '0.0.0';
-
 export type SharedVersionMeta = {
   file: string;
   requiredVersion: string;
