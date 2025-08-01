@@ -32,6 +32,16 @@ describe('createGetRemoteEntries', () => {
       return Optional.empty<RemoteInfo>();
     });
 
+    adapters.remoteEntryProvider.provide = jest.fn((url: string) => {
+      if (url === `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`) {
+        return Promise.resolve(MOCK_REMOTE_ENTRY_I());
+      }
+      if (url === `${MOCK_REMOTE_ENTRY_SCOPE_II_URL()}remoteEntry.json`) {
+        return Promise.resolve(MOCK_REMOTE_ENTRY_II());
+      }
+      return Promise.reject(new NFError(`Fetch of '${url}' returned 404 Not Found`));
+    });
+
     getRemoteEntries = createGetRemoteEntries(config, adapters);
   });
 
@@ -83,6 +93,21 @@ describe('createGetRemoteEntries', () => {
   });
 
   describe('inclusion of host remoteEntry', () => {
+    beforeEach(() => {
+      adapters.remoteEntryProvider.provide = jest.fn((url: string) => {
+        if (url.startsWith(`${MOCK_HOST_REMOTE_ENTRY_SCOPE_URL()}remoteEntry.json`)) {
+          return Promise.resolve(MOCK_HOST_REMOTE_ENTRY());
+        }
+        if (url === `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`) {
+          return Promise.resolve(MOCK_REMOTE_ENTRY_I());
+        }
+        if (url === `${MOCK_REMOTE_ENTRY_SCOPE_II_URL()}remoteEntry.json`) {
+          return Promise.resolve(MOCK_REMOTE_ENTRY_II());
+        }
+        return Promise.reject(new NFError(`Fetch of '${url}' returned 404 Not Found`));
+      });
+    });
+
     it('should process hostRemoteEntry if defined in config', async () => {
       config.hostRemoteEntry = {
         name: 'host',

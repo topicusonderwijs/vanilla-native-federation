@@ -8,7 +8,6 @@ function getScope(path: string) {
   if (!path) return '';
 
   const parts = path.split('/');
-  if (parts.length < 1) return '';
 
   if (parts[parts.length - 1] === '' || parts[parts.length - 1]!.includes('.')) {
     parts.pop();

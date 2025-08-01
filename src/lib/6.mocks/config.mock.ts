@@ -1,4 +1,5 @@
 import { ConfigContract } from 'lib/2.app/config';
+import { createMockLogHandler } from './handlers/log.handler';
 
 export const mockConfig = (): ConfigContract => ({
   // StorageConfig
@@ -9,12 +10,7 @@ export const mockConfig = (): ConfigContract => ({
   })),
   clearStorage: false,
   // LoggingConfig
-  log: {
-    debug: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    level: 'debug',
-  },
+  log: createMockLogHandler('debug'),
   // importMapConfig
   importMapType: 'importmap',
   loadModuleFn: jest.fn(),

@@ -8,6 +8,7 @@ import { ForGettingRemoteEntry } from 'lib/2.app/driver-ports/dynamic-init/for-g
 import { Optional } from 'lib/utils/optional';
 import { mockConfig } from 'lib/6.mocks/config.mock';
 import { mockAdapters } from 'lib/6.mocks/adapters.mock';
+import { NFError } from 'lib/native-federation.error';
 
 describe('createGetRemoteEntry', () => {
   let getRemoteEntry: ForGettingRemoteEntry;
@@ -21,6 +22,10 @@ describe('createGetRemoteEntry', () => {
     adapters.remoteInfoRepo.tryGet = jest.fn(() => Optional.empty());
 
     getRemoteEntry = createGetRemoteEntry(config, adapters);
+
+    adapters.remoteEntryProvider.provide = jest.fn((from: string) =>
+      Promise.resolve({ ...MOCK_REMOTE_ENTRY_I(), url: from })
+    );
   });
 
   describe('fetching remote entry', () => {
@@ -90,7 +95,8 @@ describe('createGetRemoteEntry', () => {
 
       expect(config.log.error).toHaveBeenCalledWith(
         7,
-        `Fetched remote 'team/mfe1' does not match requested 'team/mfe2'.`
+        '[team/mfe2] Could not fetch remoteEntry from http://my.service/mfe1/remoteEntry.json.',
+        new NFError("Fetched remote 'team/mfe1' does not match requested 'team/mfe2'.")
       );
     });
   });
@@ -136,6 +142,34 @@ describe('createGetRemoteEntry', () => {
       expect(adapters.remoteEntryProvider.provide).not.toHaveBeenCalled();
 
       expect(result.isPresent()).toBe(false);
+    });
+  });
+
+  describe('overriding existing remote info', () => {
+    it('should mark remote as overridden if it exists in repository', async () => {
+      adapters.remoteInfoRepo.contains = jest.fn(() => true);
+      adapters.remoteInfoRepo.tryGet = jest.fn(() =>
+        Optional.of({
+          name: 'team/mfe1',
+          scopeUrl: `http://legacy.url/remoteEntry.json`,
+          exposes: [],
+        })
+      );
+      const result = await getRemoteEntry(`http://override.url/remoteEntry.json`, 'team/mfe1');
+
+      expect(adapters.remoteEntryProvider.provide).toHaveBeenCalledWith(
+        `http://override.url/remoteEntry.json`
+      );
+
+      expect(result.get()).toEqual({
+        ...MOCK_REMOTE_ENTRY_I(),
+        url: 'http://override.url/remoteEntry.json',
+        override: true,
+      });
+      expect(config.log.debug).toHaveBeenCalledWith(
+        7,
+        `Overriding existing remote 'team/mfe1' with 'http://override.url/remoteEntry.json'.`
+      );
     });
   });
 });

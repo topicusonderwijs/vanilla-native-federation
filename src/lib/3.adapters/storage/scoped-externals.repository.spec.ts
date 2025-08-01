@@ -139,6 +139,37 @@ describe('createScopedExternalsRepository', () => {
     });
   });
 
+  describe('getAll', () => {
+    it('should return all externals from the cache', () => {
+      const { externalsRepo } = setupWithCache({
+        ['team/mfe1']: {
+          'dep-a': MOCK_VERSION_I(),
+          'dep-b': MOCK_VERSION_I(),
+        },
+        ['team/mfe2']: {
+          'dep-x': MOCK_VERSION_I(),
+        },
+      });
+
+      const allExternals = externalsRepo.getAll();
+
+      expect(allExternals).toEqual({
+        'team/mfe1': {
+          'dep-a': MOCK_VERSION_I(),
+          'dep-b': MOCK_VERSION_I(),
+        },
+        'team/mfe2': {
+          'dep-x': MOCK_VERSION_I(),
+        },
+      });
+    });
+    it('should return an empty object if no externals are cached', () => {
+      const { externalsRepo } = setupWithCache({});
+      const allExternals = externalsRepo.getAll();
+      expect(allExternals).toEqual({});
+    });
+  });
+
   describe('remove', () => {
     it('should remove a remoteEntry scope from the cache', () => {
       const { externalsRepo, mockStorage } = setupWithCache({

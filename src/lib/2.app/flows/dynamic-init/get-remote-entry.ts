@@ -27,16 +27,9 @@ export function createGetRemoteEntry(
         `[${remoteEntry.name}] Fetched from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`
       );
       if (!!remoteName && remoteEntry.name !== remoteName) {
-        if (remoteEntry.name !== remoteName) {
-          const errorDetails = `Fetched remote '${remoteEntry.name}' does not match requested '${remoteName}'.`;
-          if (config.strict) {
-            config.log.error(7, errorDetails);
-            return Promise.reject(
-              new NFError(`[${remoteName ?? remoteEntryUrl}] Could not fetch remoteEntry.`)
-            );
-          }
-          config.log.warn(7, `${errorDetails} Omitting expected name.`);
-        }
+        const errorMessage = `Fetched remote '${remoteEntry.name}' does not match requested '${remoteName}'.`;
+        if (config.strict) throw new NFError(errorMessage);
+        config.log.warn(7, errorMessage + ' Omitting expected name.');
       }
 
       if (ports.remoteInfoRepo.contains(remoteEntry.name)) {
@@ -44,10 +37,11 @@ export function createGetRemoteEntry(
         config.log.debug(7, `Overriding existing remote '${remoteName}' with '${remoteEntryUrl}'.`);
       }
       return Optional.of(remoteEntry);
-    } catch (error: unknown) {
+    } catch (error) {
       config.log.error(
         7,
-        `[${remoteName ?? 'unknown'}] Could not fetch remoteEntry from ${remoteEntryUrl}.`
+        `[${remoteName ?? 'unknown'}] Could not fetch remoteEntry from ${remoteEntryUrl}.`,
+        error
       );
       return Promise.reject(
         new NFError(`[${remoteName ?? remoteEntryUrl}] Could not fetch remoteEntry.`)

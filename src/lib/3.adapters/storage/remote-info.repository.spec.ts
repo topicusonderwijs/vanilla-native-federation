@@ -186,6 +186,28 @@ describe('createRemoteInfoRepository', () => {
     });
   });
 
+  describe('getAll', () => {
+    it('should return all remote infos from the cache', () => {
+      const { remoteInfoRepo } = setupWithCache({
+        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe2': MOCK_REMOTE_INFO_II(),
+      });
+
+      const allRemoteInfos = remoteInfoRepo.getAll();
+
+      expect(allRemoteInfos).toEqual({
+        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe2': MOCK_REMOTE_INFO_II(),
+      });
+    });
+
+    it('should return an empty object if no remote infos are cached', () => {
+      const { remoteInfoRepo } = setupWithCache({});
+      const allRemoteInfos = remoteInfoRepo.getAll();
+      expect(allRemoteInfos).toEqual({});
+    });
+  });
+
   describe('remove', () => {
     it('should remove a remoteEntry scope from the cache', () => {
       const { remoteInfoRepo, mockStorage } = setupWithCache({
