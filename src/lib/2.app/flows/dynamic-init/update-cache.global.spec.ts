@@ -403,16 +403,15 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
       ],
     };
 
-    await expect(updateCache(remoteEntry)).rejects.toThrow(
-      `Remote team/mfe1 is not compatible with team/mfe2.`
-    );
+    await expect(updateCache(remoteEntry)).rejects.toThrow(`Could not process remote 'team/mfe1'`);
     expect(config.log.error).toHaveBeenCalledWith(
       8,
       "[__GLOBAL__][team/mfe1] dep-a@1.2.3 Is not compatible with existing dep-a@2.2.3 requiredRange '~2.2.1'"
     );
   });
 
-  it('should skip a shared external to list with same version', async () => {
+  it('should handle duplicate versions of the same external', async () => {
+    adapters.versionCheck.isCompatible = jest.fn(() => true);
     adapters.sharedExternalsRepo.tryGet = jest.fn(
       (): Optional<SharedExternal> =>
         Optional.of({
@@ -423,7 +422,7 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
               remotes: [
                 {
                   file: 'dep-a.js',
-                  name: 'team/mfe2',
+                  name: 'team/mfe1',
                   requiredVersion: '~1.2.1',
                   strictVersion: false,
                   cached: true,
@@ -437,8 +436,8 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
     );
 
     const remoteEntry = {
-      name: 'team/mfe1',
-      url: 'http://my.service/mfe1/remoteEntry.json',
+      name: 'team/mfe2',
+      url: 'http://my.service/mfe2/remoteEntry.json',
       exposes: [],
       shared: [
         {
@@ -454,13 +453,181 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
 
     const result = await updateCache(remoteEntry);
 
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      'dep-a',
+      {
+        dirty: false,
+        versions: [
+          {
+            tag: '1.2.3',
+            remotes: [
+              {
+                name: 'team/mfe1',
+                file: 'dep-a.js',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: true,
+              },
+              {
+                name: 'team/mfe2',
+                file: 'dep-a.js',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
+
+            host: false,
+            action: 'share',
+          } as SharedVersion,
+        ],
+      },
+      undefined
+    );
+
     expect(result.actions).toEqual({
       'dep-a': { action: 'skip' },
     });
   });
 
-  it('should skip a version with a bad version', async () => {
-    adapters.versionCheck.isValidSemver = jest.fn(() => false);
+  it('should warn users if the requiredVersions differ and strictVersion', async () => {
+    adapters.versionCheck.isCompatible = jest.fn(() => true);
+    adapters.sharedExternalsRepo.tryGet = jest.fn(
+      (): Optional<SharedExternal> =>
+        Optional.of({
+          dirty: false,
+          versions: [
+            {
+              tag: '1.2.3',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
+              host: false,
+              action: 'share',
+            },
+          ],
+        })
+    );
+
+    const remoteEntry = {
+      name: 'team/mfe2',
+      url: 'http://my.service/mfe2/remoteEntry.json',
+      exposes: [],
+      shared: [
+        {
+          version: '1.2.3',
+          requiredVersion: '~1.2.2',
+          strictVersion: true,
+          singleton: true,
+          packageName: 'dep-a',
+          outFileName: 'dep-a.js',
+        },
+      ],
+    };
+
+    const result = await updateCache(remoteEntry);
+
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      'dep-a',
+      {
+        dirty: false,
+        versions: [
+          {
+            tag: '1.2.3',
+            remotes: [
+              {
+                name: 'team/mfe1',
+                file: 'dep-a.js',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: true,
+              },
+              {
+                name: 'team/mfe2',
+                file: 'dep-a.js',
+                requiredVersion: '~1.2.2',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
+
+            host: false,
+            action: 'share',
+          } as SharedVersion,
+        ],
+      },
+      undefined
+    );
+
+    expect(result.actions).toEqual({
+      'dep-a': { action: 'skip' },
+    });
+    expect(config.log.warn).toHaveBeenCalledWith(
+      8,
+      "[team/mfe2][dep-a@1.2.3] Required version '~1.2.2' does not match existing '~1.2.1'"
+    );
+  });
+
+  it('should throw an error if the requiredVersions differs if strictVersion and in strict mode', async () => {
+    config.strict = true;
+    adapters.versionCheck.isCompatible = jest.fn(() => true);
+    adapters.sharedExternalsRepo.tryGet = jest.fn(
+      (): Optional<SharedExternal> =>
+        Optional.of({
+          dirty: false,
+          versions: [
+            {
+              tag: '1.2.3',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
+              host: false,
+              action: 'share',
+            },
+          ],
+        })
+    );
+
+    const remoteEntry = {
+      name: 'team/mfe2',
+      url: 'http://my.service/mfe2/remoteEntry.json',
+      exposes: [],
+      shared: [
+        {
+          version: '1.2.3',
+          requiredVersion: '~1.2.2',
+          strictVersion: true,
+          singleton: true,
+          packageName: 'dep-a',
+          outFileName: 'dep-a.js',
+        },
+      ],
+    };
+
+    await expect(updateCache(remoteEntry)).rejects.toThrow("Could not process remote 'team/mfe2'");
+
+    expect(config.log.error).toHaveBeenCalledWith(
+      8,
+      "[team/mfe2][dep-a@1.2.3] Required version '~1.2.2' does not match existing '~1.2.1'"
+    );
+  });
+
+  it('should add the correct tag if missing', async () => {
+    adapters.versionCheck.smallestVersion = jest.fn((): string => '1.2.1');
+
+    adapters.sharedExternalsRepo.tryGet = jest.fn((): Optional<SharedExternal> => Optional.empty());
 
     const remoteEntry = {
       name: 'team/mfe1',
@@ -468,7 +635,6 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
       exposes: [],
       shared: [
         {
-          version: 'bad-semver',
           requiredVersion: '~1.2.1',
           strictVersion: false,
           singleton: true,
@@ -478,12 +644,160 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
       ],
     };
 
-    await updateCache(remoteEntry);
+    const actual = await updateCache(remoteEntry);
 
-    expect(adapters.sharedExternalsRepo.addOrUpdate).not.toHaveBeenCalled();
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      'dep-a',
+      {
+        dirty: false,
+        versions: [
+          {
+            tag: '1.2.1',
+            remotes: [
+              {
+                name: 'team/mfe1',
+                file: 'dep-a.js',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: true,
+              },
+            ],
+
+            host: false,
+            action: 'share',
+          } as SharedVersion,
+        ],
+      },
+      undefined
+    );
+
+    expect(actual.actions).toEqual({
+      'dep-a': { action: 'share', override: undefined },
+    });
     expect(config.log.warn).toHaveBeenCalledWith(
       8,
-      "[team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
+      "[team/mfe1][dep-a] Version 'undefined' is not a valid version."
     );
+  });
+
+  it('should correctly order the the versions descending', async () => {
+    adapters.versionCheck.compare = jest.fn((a, b) => {
+      const order = ['1.2.4', '1.2.3', '1.2.2'];
+      return order.indexOf(b) - order.indexOf(a);
+    });
+    adapters.sharedExternalsRepo.tryGet = jest.fn(
+      (): Optional<SharedExternal> =>
+        Optional.of({
+          dirty: false,
+          versions: [
+            {
+              tag: '1.2.4',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe1',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
+              host: false,
+              action: 'share',
+            },
+            {
+              tag: '1.2.2',
+              remotes: [
+                {
+                  file: 'dep-a.js',
+                  name: 'team/mfe2',
+                  requiredVersion: '~1.2.1',
+                  strictVersion: false,
+                  cached: true,
+                },
+              ],
+              host: false,
+              action: 'skip',
+            },
+          ],
+        })
+    );
+
+    const remoteEntry = {
+      name: 'team/mfe3',
+      url: 'http://my.service/mfe3/remoteEntry.json',
+      exposes: [],
+      shared: [
+        {
+          version: '1.2.3',
+          requiredVersion: '~1.2.1',
+          strictVersion: false,
+          singleton: true,
+          packageName: 'dep-a',
+          outFileName: 'dep-a.js',
+        },
+      ],
+    };
+
+    const actual = await updateCache(remoteEntry);
+
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      'dep-a',
+      {
+        dirty: false,
+        versions: [
+          {
+            tag: '1.2.4',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe1',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: true,
+              },
+            ],
+            host: false,
+            action: 'share',
+          } as SharedVersion,
+          {
+            tag: '1.2.3',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe3',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
+            host: false,
+            action: 'skip',
+          } as SharedVersion,
+          {
+            tag: '1.2.2',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe2',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: true,
+              },
+            ],
+            host: false,
+            action: 'skip',
+          } as SharedVersion,
+        ],
+      },
+      undefined
+    );
+
+    expect(actual.actions).toEqual({
+      'dep-a': { action: 'skip', override: undefined },
+    });
   });
 });

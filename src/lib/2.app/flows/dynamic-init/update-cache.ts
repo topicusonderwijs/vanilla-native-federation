@@ -57,18 +57,10 @@ export function createUpdateCache(
     const actions: SharedInfoActions = {};
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
-        if (config.strict) {
-          config.log.error(
-            8,
-            `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version.`
-          );
-          throw new NFError(`Invalid version '${external.packageName}@${external.version}'`);
-        }
-        config.log.warn(
-          8,
-          `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version, skipping version.`
+        handleError(
+          remoteEntry.name,
+          `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version.`
         );
-        return;
       }
 
       if (external.singleton) {
@@ -130,12 +122,9 @@ export function createUpdateCache(
     if (action === 'skip' && !isCompatible && remote.strictVersion) {
       action = 'scope';
       if (config.strict) {
-        config.log.error(
-          8,
+        handleError(
+          remoteName,
           `[${sharedInfo.shareScope ?? GLOBAL_SCOPE}][${remoteName}] ${sharedInfo.packageName}@${sharedInfo.version} Is not compatible with existing ${sharedInfo.packageName}@${sharedVersion!.tag} requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}'`
-        );
-        throw new NFError(
-          `Remote ${remoteName} is not compatible with ${sharedVersion.remotes[0]!.name}.`
         );
       }
     }
@@ -147,14 +136,10 @@ export function createUpdateCache(
         remote.strictVersion &&
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
-        const errorDetails = `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`;
-        if (config.strict) {
-          config.log.error(2, errorDetails);
-          throw new NFError(
-            `Remote ${remoteName} is not compatible with existing ${matchingVersion.remotes[0]!.name}.`
-          );
-        }
-        config.log.warn(2, errorDetails);
+        handleError(
+          remoteName,
+          `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`
+        );
       }
       matchingVersion.remotes.push(remote);
     } else {
@@ -180,5 +165,13 @@ export function createUpdateCache(
       tag: sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion),
       file: sharedInfo.outFileName,
     } as ScopedVersion);
+  }
+
+  function handleError(remoteName: RemoteName, msg: string): void {
+    if (config.strict) {
+      config.log.error(8, msg);
+      throw new NFError(`Could not process remote '${remoteName}'`);
+    }
+    config.log.warn(8, msg);
   }
 }

@@ -64,8 +64,8 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
     expect(actual.actions).toEqual({});
   });
 
-  it('should skip a version with a bad version', async () => {
-    adapters.versionCheck.isValidSemver = jest.fn(() => false);
+  it('should add the correct tag if missing', async () => {
+    adapters.versionCheck.smallestVersion = jest.fn((): string => '1.2.1');
 
     const remoteEntry = {
       name: 'team/mfe1',
@@ -73,7 +73,6 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
       exposes: [],
       shared: [
         {
-          version: 'bad-semver',
           requiredVersion: '~1.2.1',
           strictVersion: false,
           singleton: false,
@@ -82,13 +81,14 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
         },
       ],
     };
+    const actual = await updateCache(remoteEntry);
 
-    await updateCache(remoteEntry);
+    expect(adapters.scopedExternalsRepo.addExternal).toHaveBeenCalledTimes(1);
+    expect(adapters.scopedExternalsRepo.addExternal).toHaveBeenCalledWith('team/mfe1', 'dep-a', {
+      tag: '1.2.1',
+      file: 'dep-a.js',
+    } as Version);
 
-    expect(adapters.scopedExternalsRepo.addExternal).not.toHaveBeenCalled();
-    expect(config.log.warn).toHaveBeenCalledWith(
-      8,
-      "[team/mfe1][dep-a] Version 'bad-semver' is not a valid version, skipping version."
-    );
+    expect(actual.actions).toEqual({});
   });
 });

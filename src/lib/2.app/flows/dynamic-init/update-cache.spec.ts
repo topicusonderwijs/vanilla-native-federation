@@ -104,4 +104,61 @@ describe('createProcessDynamicRemoteEntry', () => {
       expect(actual.actions).toEqual({});
     });
   });
+
+  describe('handling a missing version property', () => {
+    it('should handle invalid versions in strict mode', async () => {
+      config.strict = true;
+      adapters.versionCheck.isValidSemver = jest.fn(() => false);
+
+      const remoteEntry = {
+        name: 'team/mfe1',
+        url: 'http://my.service/mfe1/remoteEntry.json',
+        exposes: [],
+        shared: [
+          {
+            version: 'invalid-version',
+            requiredVersion: '~1.2.1',
+            strictVersion: false,
+            singleton: false,
+            packageName: 'dep-a',
+            outFileName: 'dep-a.js',
+          },
+        ],
+      };
+      await expect(updateCache(remoteEntry)).rejects.toThrow(
+        "Could not process remote 'team/mfe1'"
+      );
+      expect(config.log.error).toHaveBeenCalledWith(
+        8,
+        "[team/mfe1][dep-a] Version 'invalid-version' is not a valid version."
+      );
+    });
+
+    it('should handle undefined versions in strict mode', async () => {
+      config.strict = true;
+      adapters.versionCheck.isValidSemver = jest.fn(() => false);
+
+      const remoteEntry = {
+        name: 'team/mfe1',
+        url: 'http://my.service/mfe1/remoteEntry.json',
+        exposes: [],
+        shared: [
+          {
+            requiredVersion: '~1.2.1',
+            strictVersion: false,
+            singleton: false,
+            packageName: 'dep-a',
+            outFileName: 'dep-a.js',
+          },
+        ],
+      };
+      await expect(updateCache(remoteEntry)).rejects.toThrow(
+        "Could not process remote 'team/mfe1'"
+      );
+      expect(config.log.error).toHaveBeenCalledWith(
+        8,
+        "[team/mfe1][dep-a] Version 'undefined' is not a valid version."
+      );
+    });
+  });
 });
