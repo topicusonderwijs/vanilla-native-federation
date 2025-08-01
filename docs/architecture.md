@@ -155,22 +155,23 @@ classDiagram
 
     class FederationInfo {
         name: string
-        url: string
         exposes: ExposesInfo[]
         shared: SharedInfo[]
     }
     class ExposesInfo{
         key: string
         outFileName: string
+        dev?: object
     }
     class SharedInfo{
         singleton: boolean
         strictVersion: boolean
         requiredVersion: string
-        shareScope?: string
         version?: string
         packageName: string
         outFileName: string
+        shareScope?: string
+        dev?: object
     }
 ```
 
@@ -212,6 +213,7 @@ classDiagram
 | shareScope      | Allows for sharing dependencies in a specific group instead of globally, allowing for clusters of shared externals                                  |
 | packageName     | Dependency identifier for resolution                                                                                                                |
 | outFileName     | File path relative to the micro frontend's scope                                                                                                    |
+| dev             | Optional development configuration containing entryPoint information                                                                                |
 
 ### Understanding the stored remoteEntries
 
@@ -265,8 +267,9 @@ classDiagram
     SharedExternals *-- shareScope
     shareScope *-- SharedExternal
     SharedExternal *-- SharedVersion
+    SharedVersion *-- SharedVersionMeta
     ScopedExternals *-- ExternalsScope
-    ExternalsScope *-- Version
+    ExternalsScope *-- ScopedVersion
 
     class SharedExternals {
         Map<.string, shareScope>
@@ -279,13 +282,17 @@ classDiagram
         versions: SharedVersion[]
     }
     class SharedVersion{
-        version: string
+        tag: string
+        host: boolean
+        action: 'skip'|'scope'|'share'
+        remotes: SharedVersionMeta[]
+    }
+    class SharedVersionMeta{
         file: string
         requiredVersion: string
         strictVersion: boolean
         cached: boolean
-        host: boolean
-        action: 'skip'|'scope'|'share'
+        name: string
     }
     class ScopedExternals {
         Map<.string, ExternalsScope>
@@ -293,8 +300,8 @@ classDiagram
     class ExternalsScope {
         Map<.string, Version>
     }
-    class Version{
-        version: string
+    class ScopedVersion{
+        tag: string
         file: string
     }
 ```
@@ -311,22 +318,32 @@ The action field is calculated during the dependency resolution phase:
         "dirty": false,
         "versions": [
           {
-            "version": "1.2.3",
-            "file": "https://example.org/mfe1/dep-a.js",
-            "requiredVersion": "~1.2.1",
-            "strictVersion": false,
-            "action": "share",
+            "tag": "1.2.3",
             "host": false,
-            "cached": true
+            "action": "share",
+            "remotes": [
+              {
+                "file": "dep-a.js",
+                "name": "team/mfe1",
+                "requiredVersion": "~1.2.1",
+                "strictVersion": false,
+                "cached": true
+              }
+            ]
           },
           {
-            "version": "1.2.2",
-            "file": "https://example.org/mfe2/dep-a.js",
-            "requiredVersion": "^1.2.1",
-            "strictVersion": true,
-            "action": "skip",
+            "tag": "1.2.2",
             "host": false,
-            "cached": false
+            "action": "skip",
+            "remotes": [
+              {
+                "file": "dep-a.js",
+                "name": "team/mfe2",
+                "requiredVersion": "^1.2.1",
+                "strictVersion": true,
+                "cached": false
+              }
+            ]
           }
         ]
       }
@@ -336,22 +353,32 @@ The action field is calculated during the dependency resolution phase:
         "dirty": false,
         "versions": [
           {
-            "version": "1.2.4",
-            "file": "https://example.org/mfe1/dep-c.js",
-            "requiredVersion": "~1.2.1",
-            "strictVersion": false,
-            "action": "share",
+            "tag": "1.2.4",
             "host": false,
-            "cached": true
+            "action": "share",
+            "remotes": [
+              {
+                "file": "dep-c.js",
+                "name": "team/mfe1",
+                "requiredVersion": "~1.2.1",
+                "strictVersion": false,
+                "cached": true
+              }
+            ]
           },
           {
-            "version": "1.2.3",
-            "file": "https://example.org/mfe2/dep-c.js",
-            "requiredVersion": "~1.2.1",
-            "strictVersion": false,
-            "action": "skip",
+            "tag": "1.2.3",
             "host": false,
-            "cached": false
+            "action": "skip",
+            "remotes": [
+              {
+                "file": "dep-c.js",
+                "name": "team/mfe2",
+                "requiredVersion": "~1.2.1",
+                "strictVersion": false,
+                "cached": false
+              }
+            ]
           }
         ]
       }
@@ -360,7 +387,7 @@ The action field is calculated during the dependency resolution phase:
   "scoped-externals": {
     "https://example.org/mfe1/": {
       "dep-b": {
-        "version": "4.5.6",
+        "tag": "4.5.6",
         "file": "dep-b.js"
       }
     }
@@ -388,7 +415,7 @@ The final import map provides the browser with optimized module resolution instr
       "dep-b": "https://example.org/mfe1/dep-b.js",
       "dep-c": "https://example.org/mfe1/dep-c.js"
     },
-    "https://example.org/mfe1/": {
+    "https://example.org/mfe2/": {
       "dep-c": "https://example.org/mfe1/dep-c.js"
     }
   }

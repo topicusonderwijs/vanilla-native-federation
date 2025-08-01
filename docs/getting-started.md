@@ -29,8 +29,8 @@ The simplest approach uses the pre-built runtime script with declarative configu
     <!-- Define your micro frontends -->
     <script type="application/json" id="mfe-manifest">
       {
-        "team/button": "http://localhost:3000/remoteEntry.json",
-        "team/header": "http://localhost:4000/remoteEntry.json"
+        "team/mfe1": "http://localhost:3000/remoteEntry.json",
+        "team/mfe2": "http://localhost:4000/remoteEntry.json"
       }
     </script>
 
@@ -40,15 +40,15 @@ The simplest approach uses the pre-built runtime script with declarative configu
         'mfe-loader-available',
         e => {
           // Load your micro frontends
-          e.detail.loadRemoteModule('team/button', './Button');
-          e.detail.loadRemoteModule('team/header', './Header');
+          e.detail.loadRemoteModule('team/mfe1', './Button');
+          e.detail.loadRemoteModule('team/mfe2', './Header');
         },
         { once: true }
       );
     </script>
 
-    <!-- Include the runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@0.15.0/quickstart.mjs"></script>
+    <!-- Include the orchestrator -->
+    <script src="https://unpkg.com/vanilla-native-federation@0.17.0/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -68,8 +68,8 @@ The manifest script tag tells the system where to find your micro frontends. The
 ```html
 <script type="application/json" id="mfe-manifest">
   {
-    "team/button": "http://localhost:3000/remoteEntry.json",
-    "team/header": "http://localhost:4000/remoteEntry.json"
+    "team/mfe1": "http://localhost:3000/remoteEntry.json",
+    "team/mfe2": "http://localhost:4000/remoteEntry.json"
   }
 </script>
 ```
@@ -86,8 +86,8 @@ The micro frontend loading process is asynchronous - the runtime needs time to f
     event => {
       const { loadRemoteModule } = event.detail;
 
-      loadRemoteModule('team/button', './Button');
-      loadRemoteModule('team/header', './Header');
+      loadRemoteModule('team/mfe1', './Button');
+      loadRemoteModule('team/mfe2', './Header');
     },
     { once: true }
   );
@@ -115,13 +115,13 @@ This script must be loaded after the manifest and event handler are defined, as 
 </html>
 ```
 
-Micro frontends can register themselves as custom elements (part of the [webcomponents](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) spec). When you call `loadRemoteModule("team/button", "./Button")`, the loaded component typically registers a custom element like `<my-button>`. The HTML elements in your page will remain empty until the corresponding micro frontends load and register themselves.
+Micro frontends can register themselves as custom elements (part of the [webcomponents](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) spec). When you call `loadRemoteModule("team/mfe2", "./Button")`, the loaded component typically registers a custom element like `<my-button>`. The HTML elements in your page will remain empty until the corresponding micro frontends load and register themselves.
 
 ### Quickstart (pre-built)
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@0.15.0/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.17.0/quickstart.mjs"></script>
 ```
 
 ## Custom Implementation
@@ -276,8 +276,11 @@ await initFederation(manifest, {
   // Use native browser import maps (default)
   importMapType: 'importmap',
   loadModuleFn: url => import(url),
+});
 
-  // Use es-module-shims polyfill for older browsers
+// OR for older browser support:
+await initFederation(manifest, {
+  // Use es-module-shims polyfill
   ...useShimImportMap({ shimMode: true }),
 });
 ```
@@ -317,7 +320,7 @@ await initFederation(manifest, {
   // Fail on version conflicts (default: false)
   strict: true,
 
-  // Resolution profile
+  // Choose a dependency resolution profile
   profile: defaultProfile, // Optimize for compatibility
   profile: cachingProfile, // Optimize for performance
 
@@ -325,6 +328,7 @@ await initFederation(manifest, {
   profile: {
     latestSharedExternal: true, // Always use latest dependency versions
     skipCachedRemotes: 'always', // Skip re-fetching known micro frontends
+    skipCachedRemotesIfURLMatches: true,
   },
 });
 ```
@@ -381,7 +385,7 @@ await loadRemoteModule('team/button', './Button');
 const buttonModule = await loadRemoteModule('team/button', './Button');
 
 // Type-safe usage with TypeScript
-const typedComponent = await as<ButtonComponent>().loadTypedModule('team/button', './Button');
+const typedComponent = await as<ButtonComponent>().loadRemoteModule('team/button', './Button');
 
 // Remote-specific loader
 const buttonRemote = remote<ButtonComponent>('team/button');
@@ -431,6 +435,8 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { ApplicationConfig, InjectionToken, provideZoneChangeDetection } from '@angular/core';
 import { AppComponent } from './app/app.component';
 import { LoadRemoteModule } from 'vanilla-native-federation';
+
+export const MODULE_LOADER = new InjectionToken<LoadRemoteModule<unknown>>('MODULE_LOADER');
 
 const appConfig = (loader: LoadRemoteModule<unknown>): ApplicationConfig => ({
   providers: [
