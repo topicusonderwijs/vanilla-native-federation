@@ -1,5 +1,5 @@
 {
-  "version": "0.16.0",
+  "version": "0.17.0-RC1",
   "name": "vanilla-native-federation",
   "author": "aukevanoost",
   "keywords": [
@@ -10,7 +10,7 @@
   "scripts": {
     "build": "node build.js",
     "lint": "eslint . -c eslint.config.js",
-    "test-ci": "jest --ci --coverage",
+    "test-ci": "jest --ci --coverage --coverageReporters=json-summary",
     "test": "jest"
   },
   "repository": {

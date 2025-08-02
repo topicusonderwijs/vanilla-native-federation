@@ -1,66 +1,58 @@
 import { ForDeterminingSharedExternals } from '../../driver-ports/init/for-determining-shared-externals.port';
 import { DrivingContract } from '../../driving-ports/driving.contract';
 import { createDetermineSharedExternals } from './determine-shared-externals';
-import { mockSharedExternalsRepository } from 'lib/6.mocks/adapters/shared-externals.repository.mock';
-import { createVersionCheck } from 'lib/3.adapters/checks/version.check';
-import { LoggingConfig } from '../../config/log.contract';
-import { ModeConfig } from '../../config/mode.contract';
 import { GLOBAL_SCOPE } from 'lib/1.domain';
+import { mockConfig } from 'lib/6.mocks/config.mock';
+import { mockAdapters } from 'lib/6.mocks/adapters.mock';
 
 /**
  * This tests the precedence of the different external versions
  */
 describe('createDetermineSharedExternals (compatibility precedence)', () => {
   let determineSharedExternals: ForDeterminingSharedExternals;
-  let mockConfig: any;
-  let mockAdapters: Pick<DrivingContract, 'versionCheck' | 'sharedExternalsRepo'>;
+  let config: any;
+  let adapters: Pick<DrivingContract, 'versionCheck' | 'sharedExternalsRepo'>;
 
   beforeEach(() => {
-    mockConfig = {
-      log: {
-        debug: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-        level: 'debug',
-      },
-      profile: {
-        latestSharedExternal: false,
-        skipCachedRemotes: 'never',
-      },
-      strict: false,
-    } as LoggingConfig & ModeConfig;
+    config = mockConfig();
 
-    mockAdapters = {
-      versionCheck: createVersionCheck(),
-      sharedExternalsRepo: mockSharedExternalsRepository(),
-    };
-    mockAdapters.sharedExternalsRepo.getScopes = jest.fn(() => [GLOBAL_SCOPE]);
-    mockAdapters.sharedExternalsRepo.scopeType = jest.fn(() => 'global');
-    determineSharedExternals = createDetermineSharedExternals(mockConfig, mockAdapters);
+    adapters = mockAdapters();
+
+    adapters.sharedExternalsRepo.getScopes = jest.fn(() => [GLOBAL_SCOPE]);
+    adapters.sharedExternalsRepo.scopeType = jest.fn(() => 'global');
+    determineSharedExternals = createDetermineSharedExternals(config, adapters);
   });
 
   it('should set the host version if available', async () => {
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
           {
-            version: '1.2.3',
-            file: 'dep-a.js',
-            remote: 'team/mfe1',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: false,
+            tag: '1.2.3',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe1',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'skip',
           },
           {
-            version: '1.2.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe2',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: false,
+            tag: '1.2.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe2',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
             host: true,
             action: 'skip',
           },
@@ -70,28 +62,36 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
 
     await determineSharedExternals();
 
-    expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
       'dep-a',
       {
         dirty: false,
         versions: [
           {
-            version: '1.2.3',
-            file: 'dep-a.js',
-            remote: 'team/mfe1',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: false,
+            tag: '1.2.3',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe1',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'skip',
           },
           {
-            version: '1.2.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe2',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: false,
+            tag: '1.2.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe2',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
             host: true,
             action: 'share',
           },
@@ -102,27 +102,35 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
   });
 
   it('should set the latest version if all equal', async () => {
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
           {
-            version: '1.2.3',
-            file: 'dep-a.js',
-            remote: 'team/mfe1',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: false,
+            tag: '1.2.3',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe1',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'skip',
           },
           {
-            version: '1.2.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe2',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: false,
+            tag: '1.2.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe2',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'skip',
           },
@@ -132,28 +140,36 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
 
     await determineSharedExternals();
 
-    expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
       'dep-a',
       {
         dirty: false,
         versions: [
           {
-            version: '1.2.3',
-            file: 'dep-a.js',
-            remote: 'team/mfe1',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: false,
+            tag: '1.2.3',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe1',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'share',
           },
           {
-            version: '1.2.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe2',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            cached: false,
+            tag: '1.2.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe2',
+                requiredVersion: '~1.2.1',
+                strictVersion: false,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'skip',
           },
@@ -164,39 +180,53 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
   });
 
   it('Should choose latest most compatible version if no host version available', async () => {
-    mockConfig.strict = false;
+    config.strict = false;
+    adapters.versionCheck.isCompatible = jest.fn((a, b) => a.substring(0, 2) === b.substring(1, 3));
 
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
           {
-            version: '19.0.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe1',
-            requiredVersion: '~19.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '19.0.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe1',
+                requiredVersion: '~19.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
+
             host: false,
             action: 'skip',
           },
           {
-            version: '18.0.2',
-            file: 'dep-a.js',
-            remote: 'team/mfe2',
-            requiredVersion: '~18.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '18.0.2',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe2',
+                requiredVersion: '~18.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'skip',
           },
           {
-            version: '18.0.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe3',
-            requiredVersion: '~18.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '18.0.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe3',
+                requiredVersion: '~18.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'skip',
           },
@@ -206,38 +236,51 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
 
     await determineSharedExternals();
 
-    expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
       'dep-a',
       {
         dirty: false,
         versions: [
           {
-            version: '19.0.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe1',
-            requiredVersion: '~19.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '19.0.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe1',
+                requiredVersion: '~19.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'scope', // because 18.0.1 and 18.0.2 are compatible, this version will be excluded
           },
           {
-            version: '18.0.2',
-            file: 'dep-a.js',
-            remote: 'team/mfe2',
-            requiredVersion: '~18.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '18.0.2',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe2',
+                requiredVersion: '~18.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'share',
           },
           {
-            version: '18.0.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe3',
-            requiredVersion: '~18.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '18.0.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe3',
+                requiredVersion: '~18.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
+
             host: false,
             action: 'skip',
           },
@@ -248,40 +291,52 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
   });
 
   it('Should prioritize latest version if config is enabled', async () => {
-    mockConfig.strict = false;
-    mockConfig.profile.latestSharedExternal = true;
+    config.strict = false;
+    config.profile.latestSharedExternal = true;
 
-    mockAdapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
           {
-            version: '19.0.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe1',
-            requiredVersion: '~19.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '19.0.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe1',
+                requiredVersion: '~19.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'skip',
           },
           {
-            version: '18.0.2',
-            file: 'dep-a.js',
-            remote: 'team/mfe2',
-            requiredVersion: '~18.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '18.0.2',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe2',
+                requiredVersion: '~18.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'skip',
           },
           {
-            version: '18.0.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe3',
-            requiredVersion: '~18.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '18.0.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe3',
+                requiredVersion: '~18.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'skip',
           },
@@ -291,38 +346,51 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
 
     await determineSharedExternals();
 
-    expect(mockAdapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
       'dep-a',
       {
         dirty: false,
         versions: [
           {
-            version: '19.0.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe1',
-            requiredVersion: '~19.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '19.0.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe1',
+                requiredVersion: '~19.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
+
             host: false,
             action: 'share', // Prioritizes latest version because it was defined in the config
           },
           {
-            version: '18.0.2',
-            file: 'dep-a.js',
-            remote: 'team/mfe2',
-            requiredVersion: '~18.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '18.0.2',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe2',
+                requiredVersion: '~18.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'scope',
           },
           {
-            version: '18.0.1',
-            file: 'dep-a.js',
-            remote: 'team/mfe3',
-            requiredVersion: '~18.0.1',
-            strictVersion: true,
-            cached: false,
+            tag: '18.0.1',
+            remotes: [
+              {
+                file: 'dep-a.js',
+                name: 'team/mfe3',
+                requiredVersion: '~18.0.1',
+                strictVersion: true,
+                cached: false,
+              },
+            ],
             host: false,
             action: 'scope',
           },

@@ -6,13 +6,24 @@ import type {
 import type { RemoteEntry } from './1.domain/remote-entry/remote-entry.contract';
 import type { NFOptions } from './2.app/config/config.contract';
 import { CREATE_NF_APP } from './create-nf-app';
-import { NFError } from './native-federation.error';
 
 const initFederation = (
   remotesOrManifestUrl: string | Record<string, string>,
   options: NFOptions = {}
 ): Promise<LazyInitFederationResult> => {
-  const { init, dynamicInit, config } = CREATE_NF_APP(options);
+  const { init, dynamicInit, config, adapters } = CREATE_NF_APP(options);
+
+  const stateDump = (msg: string) =>
+    config.log.debug(0, msg, {
+      remotes: { ...adapters.remoteInfoRepo.getAll() },
+      'shared-externals': adapters.sharedExternalsRepo
+        .getScopes({ includeGlobal: true })
+        .reduce(
+          (acc, scope) => ({ ...acc, [scope]: adapters.sharedExternalsRepo.getAll(scope) }),
+          {}
+        ),
+      'scoped-externals': adapters.scopedExternalsRepo.getAll(),
+    });
 
   return init
     .getRemoteEntries(remotesOrManifestUrl)
@@ -49,9 +60,10 @@ const initFederation = (
           .getRemoteEntry(remoteEntryUrl, remoteName)
           .then(entry => entry.map(processDynamicRemoteEntry).orElse(Promise.resolve()))
           .catch(e => {
-            config.log.debug('Dynamic init failed:', e);
-            if (config.strict) throw new NFError('Failed to initialize remote entry.');
-            else config.log.warn('Failed to initialize remote entry, continuing anyway.');
+            stateDump(`[dynamic-init][${remoteName ?? remoteEntryUrl}] STATE DUMP`);
+            if (config.strict) return Promise.reject(e);
+            else console.warn('Failed to initialize remote entry, continuing anyway.');
+            return Promise.resolve();
           })
           .then(() => ({
             ...output,
@@ -64,7 +76,7 @@ const initFederation = (
       };
     })
     .catch(e => {
-      config.log.error('Init failed: ', e);
+      stateDump(`[init] STATE DUMP`);
       return Promise.reject(e);
     });
 };

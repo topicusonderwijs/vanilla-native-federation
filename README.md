@@ -1,6 +1,6 @@
 # vanilla-native-federation
 
-A lightweight **runtime orchestrator** for implementing micro frontends in non-SPA applications using native federation. This is an alternative runtime to [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), specifically designed for integrating micro frontends with minimal effort into traditional web applications built with technologies like PHP, ASP.NET, JSF, JSP, Ruby on Rails, or Django.
+A lightweight **runtime orchestrator** for implementing micro frontends in SPA as well as non-SPA websites using native federation. This is an alternative runtime to [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), specifically designed for integrating micro frontends with minimal effort into traditional web applications built with technologies like PHP, ASP.NET, JSF, JSP, Ruby on Rails, or Django.
 
 [![Verify library](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml/badge.svg)](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml)
 ![Coverage total](https://raw.githubusercontent.com/topicusonderwijs/vanilla-native-federation/badges/badges/coverage-total.svg)
@@ -21,7 +21,11 @@ The library runs in the browser to orchestrate the integration of micro frontend
 
 ### Extends the Native Federation Ecosystem
 
-This library provides an alternative runtime to [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), extending native federation capabilities specifically for non-SPA environments while maintaining full compatibility with the broader ecosystem. It can load any remotes that have been built using [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation) and expose a remoteEntry.json metadata file.
+This library provides an alternative runtime to [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), extending native federation capabilities specifically for non-SPA environments while maintaining full compatibility with the broader ecosystem. It can load any remotes that have been built using [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation) and expose a `remoteEntry.json` metadata file.
+
+### What makes this orchestrator different?
+
+This orchestrator offers the possibility to cache the remoteEntries in localStorage or sessionStorage. This way the downloaded dependencies can be reused, even over multiple page changes. This is not an issue with SPA websites that don't reload the page on rerouting but essential to traditional websites where every route is a full page refresh.
 
 ## Quick Start
 
@@ -35,7 +39,7 @@ Get up and running in under 2 minutes:
   <head>
     <title>My Application</title>
 
-    <!-- Define your micro frontends -->
+    <!-- Define your micro frontends (remotes) -->
     <script type="application/json" id="mfe-manifest">
       {
         "team/mfe1": "http://localhost:3000/remoteEntry.json",
@@ -48,7 +52,7 @@ Get up and running in under 2 minutes:
       window.addEventListener(
         'mfe-loader-available',
         e => {
-          // Load your micro frontends
+          // Load your remote modules, a remote can have multiple modules
           e.detail.loadRemoteModule('team/mfe1', './Button');
           e.detail.loadRemoteModule('team/mfe2', './Header');
         },
@@ -56,8 +60,8 @@ Get up and running in under 2 minutes:
       );
     </script>
 
-    <!-- Include the runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@0.15.0/quickstart.mjs"></script>
+    <!-- Include the orchestrator runtime -->
+    <script src="https://unpkg.com/vanilla-native-federation@0.16.0/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -76,11 +80,11 @@ Your micro frontends are now loaded and ready to use. The runtime handles:
 - ✅ Generating an optimized import map based on cached dependencies
 - ✅ Loading your remote modules (micro frontends)
 
-### Available quickstart Runtime
+### Available quickstart runtime
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@0.15.0/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.16.0/quickstart.mjs"></script>
 ```
 
 ## Advanced Usage
@@ -92,10 +96,12 @@ import { initFederation } from 'vanilla-native-federation';
 import { consoleLogger, localStorageEntry } from 'vanilla-native-federation/options';
 
 const { loadRemoteModule } = await initFederation(
+  // Manifest
   {
     'team/mfe1': 'http://localhost:3000/remoteEntry.json',
     'team/mfe2': 'http://localhost:4000/remoteEntry.json',
   },
+  // Options
   {
     logLevel: 'error',
     logger: consoleLogger,
@@ -122,14 +128,16 @@ const HeaderComponent = await loadRemoteModule('team/mfe2', './Header');
 
 ## Native Federation Ecosystem
 
-| This library is part of the broader native federation ecosystem:                                             | Purpose             | Best For                            |
-| ------------------------------------------------------------------------------------------------------------ | ------------------- | ----------------------------------- |
-| [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation)                       | Build toolchain     | Creating federated applications     |
-| [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime)       | SPA runtime         | React, Angular, Vue applications    |
-| **vanilla-native-federation**                                                                                | Alternative runtime | PHP, ASP.NET, JSF, JSP applications |
-| [@angular-architects/native-federation](https://www.npmjs.com/package/@angular-architects/native-federation) | Angular integration | Angular-specific features           |
+This library is part of the broader native federation
 
-> 🔗 **Full compatibility** with standard remoteEntry.json format ensures seamless interoperability
+| ecosystem:                                                                                                   | Purpose                     |
+| ------------------------------------------------------------------------------------------------------------ | --------------------------- |
+| [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation)                       | Core build toolchain        |
+| [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime)       | Core runtime                |
+| **vanilla-native-federation**                                                                                | Alternative runtime         |
+| [@angular-architects/native-federation](https://www.npmjs.com/package/@angular-architects/native-federation) | Build toolchain for Angular |
+
+> ✅ **Full compatibility** with standard remoteEntry.json format ensures seamless interoperability
 
 ## Alternative orchestrators
 
@@ -144,7 +152,7 @@ While this orchestrator focusses on compatibility and native-federation support.
 ## Browser Support
 
 - ✅ **Modern browsers**: Native import map support
-- ✅ **Legacy browsers**: Available polyfils using [es-module-shims](https://www.npmjs.com/package/es-module-shims)
+- ✅ **Legacy browsers**: Available polyfills using [es-module-shims](https://www.npmjs.com/package/es-module-shims)
 - ✅ **Framework agnostic**: Accepts React, Angular, Vue, Svelte, etc.
 
-_It is recommended to use webcomponents as remote modules to ensure maximum compatibility._
+> 🧠 _It is recommended to expose webcomponents as remote modules to ensure maximum compatibility_

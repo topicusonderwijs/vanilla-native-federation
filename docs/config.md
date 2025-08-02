@@ -18,7 +18,8 @@ The `hostRemoteEntry` configuration is meant for adding a host remoteEntry file 
 
 ```javascript
 export type HostOptions = {
-    hostRemoteEntry?: false|{
+    hostRemoteEntry?: string | false | {
+        name?: string,
         url: string,
         cacheTag?: string
     }
@@ -43,12 +44,12 @@ initFederation('http://example.org/manifest.json', {
 
 ## <a id="importMapConfig"></a> 2. ImportMap configuration
 
-The native-federation library uses importmaps under the hood for module resolving. Since importmaps are a [relatively new feature of browsers](https://caniuse.com/import-maps), it might be a good idea to use a polyfill that is guaranteed to work, also in older browsers. There are 3 options supported: default, [es-module-shims](https://www.npmjs.com/package/es-module-shims/v/1.0.1) and systemJS.
+The native-federation library uses importmaps under the hood for module resolving. Since importmaps are a [relatively new feature of browsers](https://caniuse.com/import-maps), it might be a good idea to use a polyfill that is guaranteed to work, also in older browsers. There are 2 options supported: default and [es-module-shims](https://www.npmjs.com/package/es-module-shims/v/1.0.1).
 
 ```javascript
 export type ImportMapOptions = {
     importMapType?: string,
-    loadModuleFn?: (url: string) => unknown
+    loadModuleFn?: (url: string) => Promise<unknown>
 }
 ```
 
@@ -64,11 +65,7 @@ export type ImportMapOptions = {
 ```javascript
 import 'es-module-shims';
 import { initFederation } from 'vanilla-native-federation';
-import {
-  useShimImportMap,
-  useDefaultImportMap,
-  useSystemJSImportMap,
-} from 'vanilla-native-federation/options';
+import { useShimImportMap, useDefaultImportMap } from 'vanilla-native-federation/options';
 
 initFederation('http://example.org/manifest.json', {
   // Option 1: Using es-module-shims
@@ -76,9 +73,6 @@ initFederation('http://example.org/manifest.json', {
 
   // Option 2: Using the default importmap
   ...useDefaultImportMap(),
-
-  // Option 3: Using systemJS
-  ...useSystemJSImportMap(),
 });
 ```
 
@@ -88,7 +82,7 @@ Allows for the configuration and specificity of logging. Additionally, a custom 
 
 ```javascript
 export type LoggingOptions = {
-    logger?: LogHandler,
+    logger?: Logger,
     logLevel?: "debug"|"warn"|"error",
 }
 ```
@@ -122,14 +116,9 @@ initFederation('http://example.org/manifest.json', {
 The mode config focusses on the way the library behaves, especially when resolving shared externals. The options are meant as hyperparameters to tweak the strictness of native-federation.
 
 ```javascript
-export type ModeConfig = {
-    strict: boolean,
-
-    // Option 1: default profile
-    profile: defaultProfile
-
-    // Option 2: caching profile
-    profile: cachingProfile
+export type ModeOptions = {
+    strict?: boolean,
+    profile?: ModeProfileConfig
 }
 ```
 
@@ -145,11 +134,11 @@ export type ModeConfig = {
 
 ```javascript
 import { initFederation } from 'vanilla-native-federation';
-import { noopLogger, consoleLogger } from 'vanilla-native-federation/options';
+import { defaultProfile, cachingProfile } from 'vanilla-native-federation/options';
 
 initFederation('http://example.org/manifest.json', {
   strict: true,
-  profile: cachingProfile, // { latestShareExternal: false, skipCachedRemotes: 'dynamic-only' }
+  profile: cachingProfile, // { latestSharedExternal: false, skipCachedRemotes: 'always' }
 });
 ```
 
@@ -158,9 +147,10 @@ initFederation('http://example.org/manifest.json', {
 The library stores the current state by default in the globalThis object, it is possible to provide a custom storage or switch to localStorage or sessionStorage.
 
 ```javascript
-type StorageConfig = {
-    storage: StorageEntryHandler,
-    clearStorage: boolean,
+type StorageOptions = {
+    storage?: StorageEntryCreator,
+    clearStorage?: boolean,
+    storageNamespace?: string,
 }
 ```
 
@@ -177,7 +167,7 @@ type StorageConfig = {
 ```javascript
 import { initFederation } from 'vanilla-native-federation';
 import {
-  globalThisStorage,
+  globalThisStorageEntry,
   localStorageEntry,
   sessionStorageEntry,
 } from 'vanilla-native-federation/options';
@@ -187,12 +177,12 @@ initFederation('http://example.org/manifest.json', {
   storageNamespace: '__custom_namespace__',
 
   // Option 1: globalThis
-  logger: globalThisStorage,
+  storage: globalThisStorageEntry,
 
   // Option 2: localStorage
-  logger: localStorageEntry,
+  storage: localStorageEntry,
 
   // Option 3: sessionStorage
-  logger: sessionStorageEntry,
+  storage: sessionStorageEntry,
 });
 ```

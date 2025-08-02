@@ -3,5 +3,6 @@ import { ForScopedExternalsStorage } from 'lib/2.app/driving-ports/for-scoped-ex
 export const mockScopedExternalsRepository = (): jest.Mocked<ForScopedExternalsStorage> => ({
   addExternal: jest.fn(),
   getAll: jest.fn(),
+  remove: jest.fn(),
   commit: jest.fn(),
 });

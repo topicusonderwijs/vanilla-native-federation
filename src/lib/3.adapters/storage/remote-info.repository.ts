@@ -14,12 +14,16 @@ const createRemoteInfoRepository = (config: StorageConfig): ForRemoteInfoStorage
     contains: function (remoteName: RemoteName) {
       return !!_cache[remoteName];
     },
+    remove: function (remoteName: RemoteName) {
+      delete _cache[remoteName];
+      return this;
+    },
     addOrUpdate: function (remoteName: string, remote: RemoteInfo) {
       _cache[remoteName] = remote;
       return this;
     },
-    tryGetScope: function (remoteName: RemoteName) {
-      return Optional.of(_cache[remoteName]?.scopeUrl);
+    tryGet: function (remoteName: RemoteName) {
+      return Optional.of(_cache[remoteName]);
     },
     tryGetModule: function (remoteName: RemoteName, exposedModule: string) {
       return Optional.of(_cache[remoteName]?.exposes.find(m => m.moduleName === exposedModule)).map(

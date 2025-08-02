@@ -61,6 +61,7 @@ describe('DefaultConfig', () => {
         profile: {
           latestSharedExternal: false,
           skipCachedRemotes: 'dynamic-only',
+          skipCachedRemotesIfURLMatches: true,
         },
       });
     });

@@ -1,5 +1,5 @@
 import type { ForDeterminingSharedExternals } from '../../driver-ports/init/for-determining-shared-externals.port';
-import type { SharedExternal } from 'lib/1.domain';
+import { GLOBAL_SCOPE, type SharedExternal } from 'lib/1.domain';
 import { NFError } from 'lib/native-federation.error';
 import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { LoggingConfig } from '../../config/log.contract';
@@ -42,14 +42,20 @@ export function createDetermineSharedExternals(
               shareScope
             )
           );
-        config.log.debug('[3] determined shared externals', sharedExternals);
-      } catch (err) {
-        config.log.debug(
-          `[3][ERR][${shareScope}] failed to determine shared externals, state:`,
-          sharedExternals
+      } catch (error) {
+        config.log.error(
+          3,
+          `[${shareScope ?? GLOBAL_SCOPE}] failed to determine shared externals.`,
+          {
+            sharedExternals,
+            error,
+          }
         );
         return Promise.reject(
-          new NFError(`Could not determine shared externals in scope ${shareScope}.`, err as Error)
+          new NFError(
+            `Could not determine shared externals in scope ${shareScope}.`,
+            error as Error
+          )
         );
       }
     }
@@ -75,9 +81,9 @@ export function createDetermineSharedExternals(
       external.versions.forEach(vA => {
         const extraDownloads = external.versions.filter(
           vB =>
-            !vB.cached &&
-            vB.strictVersion &&
-            !ports.versionCheck.isCompatible(vA.version, vB.requiredVersion)
+            !vB.remotes[0]!.cached &&
+            vB.remotes[0]!.strictVersion &&
+            !ports.versionCheck.isCompatible(vA.tag, vB.remotes[0]!.requiredVersion)
         ).length;
         if (extraDownloads < leastExtraDownloads) {
           leastExtraDownloads = extraDownloads;
@@ -92,19 +98,17 @@ export function createDetermineSharedExternals(
 
     // Determine action of other versions based on chosen sharedVersion
     external.versions.forEach(v => {
-      if (ports.versionCheck.isCompatible(sharedVersion!.version, v.requiredVersion)) {
+      if (ports.versionCheck.isCompatible(sharedVersion!.tag, v.remotes[0]!.requiredVersion)) {
         v.action = 'skip';
         return;
       }
 
-      config.log.debug(
-        `[3][${externalName}] Shared version ${sharedVersion!.version} is not compatible with range '${v.requiredVersion}'`
-      );
-
-      if (config.strict && v.strictVersion) {
-        throw new NFError('Could not determine shared externals, incompatible version found.');
+      if (config.strict && v.remotes[0]!.strictVersion) {
+        throw new NFError(
+          `[${v.remotes[0]!.name}] ${externalName}@${v.tag} is not compatible with existing ${sharedVersion!.remotes[0]!.requiredVersion}@${sharedVersion!.tag} requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}'`
+        );
       }
-      v.action = v.strictVersion ? 'scope' : 'skip';
+      v.action = v.remotes[0]!.strictVersion ? 'scope' : 'skip';
     });
 
     sharedVersion.action = 'share';

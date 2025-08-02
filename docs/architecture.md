@@ -42,14 +42,14 @@ sequenceDiagram
 
 1. Your website asks "What micro frontends can I use?"
 2. Each micro frontend says "Here's what I offer and what I need"
-3. Your website figures out the most efficient way to load everything
+3. The orchestrator figures out the most efficient way to load the remotes
 4. Components are loaded on-demand when needed
 
 ## Key Concepts
 
 ### 1. Manifest - The Service Directory
 
-The **manifest** serves as a registry that maps micro frontend names to their metadata locations:
+The **manifest** serves as a registry that maps "remote" (micro frontend) names to their remoteEntry.json (metadata file) locations:
 
 ```json
 {
@@ -59,11 +59,7 @@ The **manifest** serves as a registry that maps micro frontend names to their me
 }
 ```
 
-**Function:**
-
-- Maps logical names to remote entry endpoints
-- Enables decentralized deployment and discovery
-- Supports runtime composition of micro frontends
+This enables decentralized deployment and management of micro frontends and provides a central place to discover and fetch the latest versions of all the micro frontends.
 
 ### 2. RemoteEntry - The Component Metadata
 
@@ -155,22 +151,23 @@ classDiagram
 
     class FederationInfo {
         name: string
-        url: string
         exposes: ExposesInfo[]
         shared: SharedInfo[]
     }
     class ExposesInfo{
         key: string
         outFileName: string
+        dev?: object
     }
     class SharedInfo{
         singleton: boolean
         strictVersion: boolean
         requiredVersion: string
-        shareScope?: string
         version?: string
         packageName: string
         outFileName: string
+        shareScope?: string
+        dev?: object
     }
 ```
 
@@ -203,15 +200,16 @@ classDiagram
 
 #### Shared External Properties
 
-| Property        | Description                                                                                                                                         |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| version         | The actual version of the dependency provided by this micro frontend                                                                                |
-| requiredVersion | Version range this micro frontend is compatible with (enables clustering)                                                                           |
-| strictVersion   | Will make sure the remote receives a compatible version when the external is shared, even if that means loading multiple versions of the dependency |
-| singleton       | Allows the dependency to be shared and used by other remotes that need it.                                                                          |
-| shareScope      | Allows for sharing dependencies in a specific group instead of globally, allowing for clusters of shared externals                                  |
-| packageName     | Dependency identifier for resolution                                                                                                                |
-| outFileName     | File path relative to the micro frontend's scope                                                                                                    |
+| Property        | Description                                                                                                                                                       |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| version         | The actual version of the dependency provided by this micro frontend                                                                                              |
+| requiredVersion | Version range this micro frontend is compatible with (enables clustering)                                                                                         |
+| strictVersion   | Will make sure the remote receives a compatible version when the external is shared, even if that means loading multiple versions of the dependency               |
+| singleton       | Allows the dependency to be shared and used by other remotes that need it.                                                                                        |
+| shareScope      | Allows for sharing dependencies in a specific group instead of globally, allowing for clusters of shared externals. the `"strict"` shareScope is a special scope. |
+| packageName     | Dependency identifier for resolution                                                                                                                              |
+| outFileName     | File path relative to the micro frontend's scope                                                                                                                  |
+| dev             | Optional development configuration containing entryPoint information                                                                                              |
 
 ### Understanding the stored remoteEntries
 
@@ -265,8 +263,9 @@ classDiagram
     SharedExternals *-- shareScope
     shareScope *-- SharedExternal
     SharedExternal *-- SharedVersion
+    SharedVersion *-- SharedVersionMeta
     ScopedExternals *-- ExternalsScope
-    ExternalsScope *-- Version
+    ExternalsScope *-- ScopedVersion
 
     class SharedExternals {
         Map<.string, shareScope>
@@ -279,13 +278,17 @@ classDiagram
         versions: SharedVersion[]
     }
     class SharedVersion{
-        version: string
+        tag: string
+        host: boolean
+        action: 'skip'|'scope'|'share'
+        remotes: SharedVersionMeta[]
+    }
+    class SharedVersionMeta{
         file: string
         requiredVersion: string
         strictVersion: boolean
         cached: boolean
-        host: boolean
-        action: 'skip'|'scope'|'share'
+        name: string
     }
     class ScopedExternals {
         Map<.string, ExternalsScope>
@@ -293,8 +296,8 @@ classDiagram
     class ExternalsScope {
         Map<.string, Version>
     }
-    class Version{
-        version: string
+    class ScopedVersion{
+        tag: string
         file: string
     }
 ```
@@ -311,22 +314,39 @@ The action field is calculated during the dependency resolution phase:
         "dirty": false,
         "versions": [
           {
-            "version": "1.2.3",
-            "file": "https://example.org/mfe1/dep-a.js",
-            "requiredVersion": "~1.2.1",
-            "strictVersion": false,
-            "action": "share",
+            "tag": "1.2.3",
             "host": false,
-            "cached": true
+            "action": "share",
+            "remotes": [
+              {
+                "file": "dep-a.js",
+                "name": "team/mfe1",
+                "requiredVersion": "~1.2.1",
+                "strictVersion": false,
+                "cached": true
+              },
+              {
+                "file": "dep-a.js",
+                "name": "team/mfe2",
+                "requiredVersion": "~1.2.1",
+                "strictVersion": false,
+                "cached": false
+              }
+            ]
           },
           {
-            "version": "1.2.2",
-            "file": "https://example.org/mfe2/dep-a.js",
-            "requiredVersion": "^1.2.1",
-            "strictVersion": true,
-            "action": "skip",
+            "tag": "1.2.2",
             "host": false,
-            "cached": false
+            "action": "skip",
+            "remotes": [
+              {
+                "file": "dep-a.js",
+                "name": "team/mfe2",
+                "requiredVersion": "^1.2.1",
+                "strictVersion": true,
+                "cached": false
+              }
+            ]
           }
         ]
       }
@@ -336,22 +356,32 @@ The action field is calculated during the dependency resolution phase:
         "dirty": false,
         "versions": [
           {
-            "version": "1.2.4",
-            "file": "https://example.org/mfe1/dep-c.js",
-            "requiredVersion": "~1.2.1",
-            "strictVersion": false,
-            "action": "share",
+            "tag": "1.2.4",
             "host": false,
-            "cached": true
+            "action": "share",
+            "remotes": [
+              {
+                "file": "dep-c.js",
+                "name": "team/mfe1",
+                "requiredVersion": "~1.2.1",
+                "strictVersion": false,
+                "cached": true
+              }
+            ]
           },
           {
-            "version": "1.2.3",
-            "file": "https://example.org/mfe2/dep-c.js",
-            "requiredVersion": "~1.2.1",
-            "strictVersion": false,
-            "action": "skip",
+            "tag": "1.2.3",
             "host": false,
-            "cached": false
+            "action": "skip",
+            "remotes": [
+              {
+                "file": "dep-c.js",
+                "name": "team/mfe2",
+                "requiredVersion": "~1.2.1",
+                "strictVersion": false,
+                "cached": false
+              }
+            ]
           }
         ]
       }
@@ -360,7 +390,7 @@ The action field is calculated during the dependency resolution phase:
   "scoped-externals": {
     "https://example.org/mfe1/": {
       "dep-b": {
-        "version": "4.5.6",
+        "tag": "4.5.6",
         "file": "dep-b.js"
       }
     }
@@ -388,7 +418,7 @@ The final import map provides the browser with optimized module resolution instr
       "dep-b": "https://example.org/mfe1/dep-b.js",
       "dep-c": "https://example.org/mfe1/dep-c.js"
     },
-    "https://example.org/mfe1/": {
+    "https://example.org/mfe2/": {
       "dep-c": "https://example.org/mfe1/dep-c.js"
     }
   }
@@ -477,7 +507,7 @@ Different configuration options change how the system behaves:
 
 ## Understanding the process
 
-The library follows a 6-step process:
+The library follows internally a 6-step process:
 
 ### Step 1: Gather Information
 

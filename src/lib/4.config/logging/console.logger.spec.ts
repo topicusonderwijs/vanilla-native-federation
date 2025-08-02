@@ -20,42 +20,42 @@ describe('consoleLogger', () => {
   });
 
   it('should log debug messages with correct prefix', () => {
-    consoleLogger.debug('test debug message');
-    expect(console.log).toHaveBeenCalledWith('[DEBUG]: test debug message');
+    consoleLogger.debug(0, 'test debug message');
+    expect(console.log).toHaveBeenCalledWith('[DEBUG][0]: test debug message');
 
-    consoleLogger.debug('test debug message', new Error('Something went wrong'));
+    consoleLogger.debug(1, 'test debug message', new Error('Something went wrong'));
     expect(console.log).toHaveBeenCalledWith(
-      '[DEBUG]: test debug message',
+      '[DEBUG][1]: test debug message',
       new Error('Something went wrong')
     );
   });
 
   it('should log error messages with correct prefix', () => {
-    consoleLogger.error('test error message');
-    expect(console.error).toHaveBeenCalledWith('[NF]: test error message');
+    consoleLogger.error(0, 'test error message');
+    expect(console.error).toHaveBeenCalledWith('[NF][0]: test error message');
 
-    consoleLogger.error('test error message', new Error('Something went wrong'));
+    consoleLogger.error(1, 'test error message', new Error('Something went wrong'));
     expect(console.error).toHaveBeenCalledWith(
-      '[NF]: test error message',
+      '[NF][1]: test error message',
       new Error('Something went wrong')
     );
   });
 
   it('should log warning messages with correct prefix', () => {
-    consoleLogger.warn('test warning message');
-    expect(console.warn).toHaveBeenCalledWith('[NF]: test warning message');
+    consoleLogger.warn(0, 'test warning message');
+    expect(console.warn).toHaveBeenCalledWith('[NF][0]: test warning message');
 
-    consoleLogger.warn('test warning message', new Error('Something went wrong'));
+    consoleLogger.warn(1, 'test warning message', new Error('Something went wrong'));
     expect(console.warn).toHaveBeenCalledWith(
-      '[NF]: test warning message',
+      '[NF][1]: test warning message',
       new Error('Something went wrong')
     );
   });
 
   it('should call appropriate console methods for each level', () => {
-    consoleLogger.debug('debug');
-    consoleLogger.error('error');
-    consoleLogger.warn('warn');
+    consoleLogger.debug(0, 'debug');
+    consoleLogger.error(0, 'error');
+    consoleLogger.warn(0, 'warn');
 
     expect(console.log).toHaveBeenCalledTimes(1);
     expect(console.error).toHaveBeenCalledTimes(1);

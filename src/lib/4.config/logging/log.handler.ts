@@ -12,9 +12,9 @@ const createLogHandler = (logger: Logger, logLevel: LogType): LogHandler => {
     (acc, logMessageType) => {
       return {
         ...acc,
-        [logMessageType]: (message: string, details: unknown) => {
+        [logMessageType]: (step: number, message: string, details: unknown) => {
           if (LogLevel[logMessageType] >= LogLevel[logLevel]) {
-            logger[logMessageType](message, details);
+            logger[logMessageType](step, message, details);
           }
         },
       };

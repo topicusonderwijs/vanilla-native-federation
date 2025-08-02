@@ -2,7 +2,7 @@ module.exports = {
   verbose: true,
   rootDir: '.',
   roots: ['<rootDir>/src'],
-  coverageReporters: ["json-summary"],
+  coverageReporters: ["html", "text"],
   testEnvironment: 'jsdom',
   testMatch: [
       '**/*.spec.ts'
@@ -22,6 +22,13 @@ module.exports = {
   setupFiles: [],
 
   collectCoverage: true,
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+  },  
 
   coverageDirectory: 'coverage',
 

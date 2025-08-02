@@ -1,4 +1,4 @@
-import type { Version, SharedVersion } from './version.contract';
+import type { SharedVersion, ScopedVersion } from './version.contract';
 
 export type ExternalName = string;
 
@@ -17,4 +17,4 @@ export type shareScope = Record<string, SharedExternal>;
 
 export type SharedExternals = Record<string, shareScope> & { [GLOBAL_SCOPE]: shareScope };
 
-export type ExternalsScope = Record<string, Version>;
+export type ExternalsScope = Record<string, ScopedVersion>;

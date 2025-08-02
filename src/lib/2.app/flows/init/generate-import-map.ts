@@ -46,11 +46,11 @@ export function createGenerateImportMap(
     const scopedExternals = ports.scopedExternalsRepo.getAll();
 
     for (const [remoteName, externals] of Object.entries(scopedExternals)) {
-      const scope = ports.remoteInfoRepo.tryGetScope(remoteName).orThrow(() => {
-        config.log.debug(`[4][scoped][${remoteName}] Remote name not found in cache.`);
+      const remote = ports.remoteInfoRepo.tryGet(remoteName).orThrow(() => {
+        config.log.error(4, `[scoped][${remoteName}] Remote name not found in cache.`);
         return new NFError('Could not create ImportMap.');
       });
-      addToScope(importMap, scope, createScopeModules(externals, scope));
+      addToScope(importMap, remote.scopeUrl, createScopeModules(externals, remote.scopeUrl));
     }
 
     return importMap;
@@ -92,29 +92,27 @@ export function createGenerateImportMap(
       for (const version of external.versions) {
         if (version.action === 'skip' && scopeType === 'global') continue;
 
-        const scope = getScope(externalName, shareScope, version.remote);
+        const scope = getScope(externalName, shareScope, version.remotes[0]!.name);
 
-        let targetFileUrl: string = _path.join(scope, version.file);
-        version.cached = true;
+        let targetFileUrl: string = _path.join(scope, version.remotes[0]!.file);
+        version.remotes[0]!.cached = true;
 
         if (version.action === 'skip') {
           if (!override) {
             override = findOverride(external, shareScope, externalName) ?? 'NOT_AVAILABLE';
           }
           if (override !== 'NOT_AVAILABLE') {
-            if (!overrideScope) overrideScope = getScope(externalName, shareScope, override.remote);
-            targetFileUrl = _path.join(overrideScope, override.file);
-            override.cached = true;
-            version.cached = false;
+            if (!overrideScope)
+              overrideScope = getScope(externalName, shareScope, override.remotes[0]!.name);
+            targetFileUrl = _path.join(overrideScope, override.remotes[0]!.file);
+            override.remotes[0]!.cached = true;
+            version.remotes[0]!.cached = false;
           }
         }
-        addToScope(importMap, scope, { [externalName]: targetFileUrl });
-        if (!!version.usedBy) {
-          version.usedBy.forEach(remoteName => {
-            const scope = getScope(externalName, shareScope, remoteName);
-            addToScope(importMap, scope, { [externalName]: targetFileUrl });
-          });
-        }
+        version.remotes.forEach(r => {
+          const scope = getScope(externalName, shareScope, r.name);
+          addToScope(importMap, scope, { [externalName]: targetFileUrl });
+        });
       }
       ports.sharedExternalsRepo.addOrUpdate(externalName, external, shareScope);
     }
@@ -134,11 +132,12 @@ export function createGenerateImportMap(
 
     if (sharedVersions.length < 1) {
       if (config.strict) {
-        config.log.debug(`[4][${shareScope}][${externalName}] shareScope has no override version.`);
+        config.log.error(4, `[${shareScope}][${externalName}] shareScope has no override version.`);
         throw new NFError('Could not create ImportMap.');
       }
       config.log.debug(
-        `[4][${shareScope}][${externalName}] shareScope has no override version, scoping override versions.`
+        4,
+        `[${shareScope}][${externalName}] shareScope has no override version, scoping override versions.`
       );
     }
 
@@ -147,13 +146,14 @@ export function createGenerateImportMap(
 
   function handleMultipleSharedVersions(scopedExternalName: string): void {
     if (config.strict) {
-      config.log.debug(
-        `[4][${scopedExternalName}] ShareScope external has multiple shared versions.`
+      config.log.error(
+        4,
+        `[${scopedExternalName}] ShareScope external has multiple shared versions.`
       );
       throw new NFError('Could not create ImportMap.');
     }
 
-    config.log.warn(`ShareScope external ${scopedExternalName} has multiple shared versions.`);
+    config.log.warn(4, `ShareScope external ${scopedExternalName} has multiple shared versions.`);
   }
 
   /**
@@ -167,10 +167,12 @@ export function createGenerateImportMap(
     for (const [externalName, external] of Object.entries(sharedExternals)) {
       for (const version of external.versions) {
         if (version.action === 'skip') continue;
-        const scope = getScope(externalName, GLOBAL_SCOPE, version.remote);
+        const scope = getScope(externalName, GLOBAL_SCOPE, version.remotes[0]!.name);
         if (version.action === 'scope') {
-          addToScope(importMap, scope, { [externalName]: _path.join(scope, version.file) });
-          version.cached = true;
+          addToScope(importMap, scope, {
+            [externalName]: _path.join(scope, version.remotes[0]!.file),
+          });
+          version.remotes[0]!.cached = true;
           continue;
         }
 
@@ -179,8 +181,8 @@ export function createGenerateImportMap(
           continue;
         }
 
-        addToGlobal(importMap, { [externalName]: _path.join(scope, version.file) });
-        version.cached = true;
+        addToGlobal(importMap, { [externalName]: _path.join(scope, version.remotes[0]!.file) });
+        version.remotes[0]!.cached = true;
       }
       ports.sharedExternalsRepo.addOrUpdate(externalName, external);
     }
@@ -190,11 +192,11 @@ export function createGenerateImportMap(
 
   function handleDuplicateGlobalExternal(externalName: string): void {
     if (config.strict) {
-      config.log.debug(`[4][${externalName}] Shared external has multiple shared versions.`);
+      config.log.error(4, `[${externalName}] Shared external has multiple shared versions.`);
       throw new NFError('Could not create ImportMap.');
     }
 
-    config.log.warn(`Singleton external ${externalName} has multiple shared versions.`);
+    config.log.warn(4, `Singleton external ${externalName} has multiple shared versions.`);
   }
 
   function addToScope(importMap: ImportMap, scope: string, imports: Imports): void {
@@ -232,11 +234,15 @@ export function createGenerateImportMap(
   }
 
   function getScope(externalName: string, shareScope: string, remoteName: RemoteName) {
-    return ports.remoteInfoRepo.tryGetScope(remoteName).orThrow(() => {
-      config.log.debug(
-        `[4][${shareScope}][${externalName}][${remoteName}] Remote name not found in cache.`
-      );
-      return new NFError('Could not create ImportMap.');
-    });
+    return ports.remoteInfoRepo
+      .tryGet(remoteName)
+      .map(remote => remote.scopeUrl)
+      .orThrow(() => {
+        config.log.error(
+          4,
+          `[${shareScope}][${externalName}][${remoteName}] Remote name not found in cache.`
+        );
+        return new NFError('Could not create ImportMap.');
+      });
   }
 }

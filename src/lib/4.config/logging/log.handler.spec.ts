@@ -17,17 +17,17 @@ describe('LogHandler', () => {
     });
 
     it('should correctly call ERROR messages', () => {
-      logHandler.error('Error message');
+      logHandler.error(0, 'Error message');
       expect(noopLogger.error).toHaveBeenCalledTimes(1);
     });
 
     it('should not call WARN messages', () => {
-      logHandler.warn('Warn message');
+      logHandler.warn(0, 'Warn message');
       expect(noopLogger.warn).not.toHaveBeenCalled();
     });
 
     it('should not call DEBUG messages', () => {
-      logHandler.debug('Debug message');
+      logHandler.debug(0, 'Debug message');
       expect(noopLogger.debug).not.toHaveBeenCalled();
     });
   });
@@ -38,17 +38,17 @@ describe('LogHandler', () => {
     });
 
     it('should correctly call ERROR messages', () => {
-      logHandler.error('Error message');
+      logHandler.error(0, 'Error message');
       expect(noopLogger.error).toHaveBeenCalledTimes(1);
     });
 
     it('should correctly call WARN messages', () => {
-      logHandler.warn('Warn message');
+      logHandler.warn(0, 'Warn message');
       expect(noopLogger.warn).toHaveBeenCalledTimes(1);
     });
 
     it('should not call DEBUG messages', () => {
-      logHandler.debug('Debug message');
+      logHandler.debug(0, 'Debug message');
       expect(noopLogger.debug).not.toHaveBeenCalled();
     });
   });
@@ -59,17 +59,17 @@ describe('LogHandler', () => {
     });
 
     it('should correctly call ERROR messages', () => {
-      logHandler.error('Error message');
+      logHandler.error(0, 'Error message');
       expect(noopLogger.error).toHaveBeenCalledTimes(1);
     });
 
     it('should correctly call WARN messages', () => {
-      logHandler.warn('Warn message');
+      logHandler.warn(0, 'Warn message');
       expect(noopLogger.warn).toHaveBeenCalledTimes(1);
     });
 
     it('should correctly call DEBUG messages', () => {
-      logHandler.debug('Debug message');
+      logHandler.debug(0, 'Debug message');
       expect(noopLogger.debug).toHaveBeenCalledTimes(1);
     });
   });

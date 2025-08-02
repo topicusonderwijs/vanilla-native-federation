@@ -26,7 +26,7 @@ export function createCommitChanges(
 
   function addToBrowser(importMap: ImportMap) {
     ports.browser.setImportMap(importMap);
-    config.log.debug('[5] Added import map to browser.', importMap);
+    config.log.debug(5, 'Added import map to browser.', importMap);
     return importMap;
   }
 

@@ -37,11 +37,13 @@ export function createExposeModuleLoader(
           )
         );
 
-      config.log.debug(`Loading initialized module '${remoteModuleUrl}'`);
+      config.log.debug(6, `Loading initialized module '${remoteModuleUrl}'`);
 
       return ports.browser.importModule(remoteModuleUrl);
-    } catch (err) {
-      config.log.error(`Failed to load module ${_path.join(remoteName, exposedModule)}: `, err);
+    } catch (error) {
+      config.log.error(6, `Failed to load module ${_path.join(remoteName, exposedModule)}: `, {
+        error,
+      });
 
       return Promise.reject(
         new NFError(`Failed to load module ${_path.join(remoteName, exposedModule)}`)

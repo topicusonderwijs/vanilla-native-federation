@@ -61,7 +61,7 @@ Import maps provide **scopes** and **shared scopes** as solutions for dependency
       "react": "https://legacy-mfe.example.com/react@17.0.2.js"
     },
 
-    // Linking multiple scopes to the same external can create a more fine-grained sharing of externals between a specific selectiion of remotes.
+    // Linking multiple scopes to the same external can create a more fine-grained sharing of externals between a specific selection of remotes.
     "mfe1.example.com/": {
       "ui-library": "mfe1.example.com/ui-lib@3.0.0.js"
     },
@@ -292,23 +292,29 @@ For each scope (global, shared scopes, strict, individual), the resolver determi
 ```mermaid
 flowchart TD
     A[Dependencies grouped by scope] --> B[For each scope:]
-    B --> C{Scope type?}
-    C -->|Strict scope| D[All exact versions get 'share' action]
-    C -->|Other scopes| E[Apply priority rules to choose shared version]
-    E --> F[Assign actions to all other versions in scope]
+    B --> C{Only one version in scope?}
+    C -->|Yes| D[Set action: SHARE]
+    C -->|No| E{Scope type?}
+    E -->|Strict scope| F[All versions get 'share' action<br/>Replace requiredVersion with exact version]
+    E -->|Other scopes| G[Apply priority rules to choose shared version]
 
-    E --> E1{Host version exists in scope?}
-    E1 -->|Yes| E2[Choose host version]
-    E1 -->|No| E3{latestSharedExternal enabled?}
-    E3 -->|Yes| E4[Choose latest version in scope]
-    E3 -->|No| E5[Choose version with least incompatibilities in scope]
+    G --> G1{Host version exists in scope?}
+    G1 -->|Yes| G2[Choose host version]
+    G1 -->|No| G3{latestSharedExternal enabled?}
+    G3 -->|Yes| G4[Choose latest version in scope]
+    G3 -->|No| G5[Choose version with least extra downloads]
 
-    F --> F1[For each remaining version in scope:]
-    F1 --> F2{Compatible with chosen version?}
-    F2 -->|Yes| F3[Action: SKIP<br/>Don't download]
-    F2 -->|No| F4{strictVersion: true?}
-    F4 -->|Yes| F5[Action: SCOPE<br/>Download individually]
-    F4 -->|No| F6[Action: SKIP + WARN<br/>Risk compatibility issues]
+    G --> H[Assign actions to all other versions in scope]
+    H --> H1[For each remaining version in scope:]
+    H1 --> H2{Compatible with chosen version?}
+    H2 -->|Yes| H3[Action: SKIP<br/>Don't download]
+    H2 -->|No| H4{strictVersion: true?}
+    H4 -->|Yes| H5[Action: SCOPE<br/>Download individually]
+    H4 -->|No| H6[Action: SKIP + WARN<br/>Risk compatibility issues]
+
+    H6 --> I{strict mode enabled?}
+    I -->|Yes| J[Throw NFError]
+    I -->|No| K[Continue with warning]
 ```
 
 ### Step 4: Generate Import Map
@@ -354,20 +360,28 @@ When you call `initRemoteEntry()` to dynamically load a micro frontend, the syst
 flowchart TD
     A[Call initRemoteEntry] --> B[Fetch remoteEntry.json]
     B --> C[Process new dependencies]
-    C --> D{Dependency already exists?}
-    D -->|Yes| E[Skip - use existing version]
-    D -->|No| F{Compatible with existing shared version?}
-    F -->|Yes, Global Scope| G[Skip - use existing shared version]
-    F -->|Yes, Shared Scope| H[Override - reuse shared version URL]
-    F -->|No + strictVersion: false| I[Skip + Warn - use existing]
-    F -->|No + strictVersion: true| J[Scope - individual download]
-    F -->|No existing version| K[Share - add to appropriate scope]
+    C --> D{external.singleton?}
+    D -->|No| E[Add to scoped externals]
+    D -->|Yes| F{Dependency already exists in scope?}
+    F -->|No| G[Action: SHARE<br/>Become shared version]
+    F -->|Yes| H{Scope type?}
+    H -->|Strict| I[Action: SHARE<br/>Add as additional exact version]
+    H -->|Other| J{Compatible with existing shared version?}
+    J -->|Yes| K[Action: SKIP<br/>Use existing shared version]
+    J -->|No| L{strictVersion: true?}
+    L -->|Yes| M[Action: SCOPE<br/>Individual download]
+    L -->|No| N[Action: SKIP + WARN<br/>Use existing incompatible]
 
-    G --> L[Add additional import-map to DOM]
-    H --> L
-    I --> L
-    J --> L
-    K --> L
+    N --> O{strict mode enabled?}
+    O -->|Yes| P[Throw NFError]
+    O -->|No| Q[Continue with warning]
+
+    E --> R[Add additional import-map to DOM]
+    G --> R
+    I --> R
+    K --> R
+    M --> R
+    Q --> R
 ```
 
 ### Dynamic Init Actions
@@ -376,7 +390,7 @@ Each new dependency gets one of these actions during dynamic init:
 
 | Action    | Description                                                                                                                                                                                          |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **SKIP**  | Version already exists or use existing shared version, in a shareScope context this action is used for overriding by skipping the provided external and loading a compatible cached version instead. |
+| **SKIP**  | Version already exists or use existing shared version. In a shareScope context this action is used for overriding by skipping the provided external and loading a compatible cached version instead. |
 | **SHARE** | No compatible version exists (yet), become the shared version for this scope                                                                                                                         |
 | **SCOPE** | Incompatible version with strictVersion: true                                                                                                                                                        |
 
@@ -732,6 +746,8 @@ await initFederation(manifest, {
 
 **Why this is default**: Minimizes bundle size and download time by choosing the version that requires the fewest additional scoped downloads within each scope.
 
+The resolver calculates which version minimizes extra downloads per scope by examining how many versions would need to be individually scoped due to incompatibility:
+
 ```
 // The resolver calculates which version minimizes extra downloads per scope:
 
@@ -766,6 +782,60 @@ sequenceDiagram
     Resolver->>Storage: Check cached versions by scope
     Storage-->>Resolver: Cached versions found per scope
     Resolver->>Page2: Prioritize cached versions within scopes
+```
+
+## Remote Cache Override Behavior
+
+When a remote is already present in the cache, the orchestrator will skip the requested remote or override the existing cached remote based on the provided `profile` options.
+
+### Override Flag Detection
+
+The orchestrator checks when a remote should be overridden or skipped by comparing the provided remoteName with the cached remoteName. If they match, the requested `remoteEntry.json` URL will be compared with the cached `remoteEntry.json` URL. By default, on initialization, the remote will be skipped if the URLs match and overridden if the URLs differ. Except for the dynamic init which will always skip by default.
+
+### Skip Cached Remotes Configuration
+
+The `skipCachedRemotes` setting controls whether to fetch remotes that already exist in cache. The default setting is dynamic-only since it is generally not recommended to update the existing import-map after initialization:
+
+```javascript
+await initFederation(manifest, {
+  profile: {
+    skipCachedRemotes: 'never', // Always fetch, allow overrides
+    skipCachedRemotes: 'dynamic-only', // Skip only during dynamic init (default)
+    skipCachedRemotes: 'always', // Skip all cached remotes
+  },
+});
+```
+
+### URL Matching Behavior
+
+The `skipCachedRemotesIfURLMatches` setting provides additional control. Normally, it makes sense to only override the remoteEntry.json if the URL changed, like from `https://my.cdn/mfe1/0.0.1/remoteEntry.json` to `https://my.cdn/mfe1/0.0.2/remoteEntry.json`. However, it might be necessary to always override, even if the URL matches the previously cached url:
+
+```javascript
+await initFederation(manifest, {
+  profile: {
+    skipCachedRemotes: 'never',
+    skipCachedRemotesIfURLMatches: true,
+  },
+});
+```
+
+> **Note:** the `skipCachedRemotes` is generally meant as "skip if urls differ or override if urls differ".
+
+### Override Processing Steps
+
+When a remote is marked for override by the orchestrator (`override: true`), the system performs complete cache cleanup by purging all cached meta data like exposed modules and externals:
+
+```mermaid
+flowchart TD
+    A[Remote marked as override] --> B[Remove from RemoteInfo cache]
+    B --> C[Remove from ScopedExternals cache]
+    C --> D[Remove from SharedExternals cache (all scopes)]
+    D --> E[Add new RemoteInfo to cache]
+    E --> F[Process new externals normally]
+
+    F --> G{External Type}
+    G -->|singleton: true| H[Add to SharedExternals]
+    G -->|singleton: false| I[Add to ScopedExternals]
 ```
 
 ## Configuration
@@ -834,10 +904,10 @@ storage: localStorageEntry
 
 ```
 // Error in strict mode for global scope
-NFError: [dep-a] Shared version 2.0.0 is not compatible with range '^1.0.0'
+NFError: [team/mfe1] dep-a@1.2.3 is not compatible with existing dep-a@2.0.0 requiredRange '^1.0.0'
 
 // Error in strict mode for shared scope
-NFError: ShareScope external team-a.dep-a has multiple shared versions.
+NFError: [custom-scope.dep-a] ShareScope external has multiple shared versions.
 
 // Solutions:
 // 1. Loosen the version constraints in the remoteEntry.json
@@ -851,7 +921,7 @@ NFError: ShareScope external team-a.dep-a has multiple shared versions.
 
 ```
 // Warning for shared scope with no shared versions
-Warning: ShareScope external team-a.dep-a has no shared versions.
+Warning: [team-a][dep-a] shareScope has no override version.
 
 // All versions in the shared scope will be individually scoped
 // Consider reviewing version compatibility or shared scope assignments

@@ -7,15 +7,11 @@ import type { ForConvertingToImportMap } from 'lib/2.app/driver-ports/dynamic-in
 export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingToImportMap {
   return ({ entry, actions }) => {
     const importMap: ImportMap = { imports: {} };
-    try {
-      log.debug(`[9][${entry.name}] Processing actions:`, actions);
-      addExternals(entry, actions, importMap);
-      addRemoteInfos(entry, importMap);
-      log.debug('[9] Updated importMap:', importMap);
-      return Promise.resolve(importMap);
-    } catch (e) {
-      return Promise.reject(e);
-    }
+
+    addExternals(entry, actions, importMap);
+    addRemoteInfos(entry, importMap);
+    log.debug(9, `[${entry.name}] Processed actions:`, actions);
+    return Promise.resolve(importMap);
   };
 
   function addExternals(
@@ -41,8 +37,9 @@ export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingT
       }
 
       if (!actions[external.packageName]) {
-        log.debug(
-          `[9][${remoteEntry.name}] No action found for shared external '${external.packageName}'.`
+        log.warn(
+          9,
+          `[${remoteEntry.name}] No action defined for shared external '${external.packageName}', skipping.`
         );
         return;
       }
