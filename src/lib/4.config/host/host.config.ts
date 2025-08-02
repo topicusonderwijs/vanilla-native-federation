@@ -1,6 +1,9 @@
 import type { HostConfig, HostOptions } from 'lib/2.app/config/host.contract';
 
 export const createHostConfig = (override: Partial<HostOptions>): HostConfig => {
+  if (!override?.hostRemoteEntry) {
+    return { hostRemoteEntry: false };
+  }
   if (typeof override.hostRemoteEntry === 'string') {
     return {
       hostRemoteEntry: {
@@ -9,15 +12,10 @@ export const createHostConfig = (override: Partial<HostOptions>): HostConfig => 
       },
     };
   }
-
-  if (!!override.hostRemoteEntry?.url) {
-    return {
-      hostRemoteEntry: {
-        name: '__NF-HOST__',
-        ...override.hostRemoteEntry,
-      },
-    };
-  }
-
-  return { hostRemoteEntry: false };
+  return {
+    hostRemoteEntry: {
+      name: '__NF-HOST__',
+      ...override.hostRemoteEntry,
+    },
+  };
 };

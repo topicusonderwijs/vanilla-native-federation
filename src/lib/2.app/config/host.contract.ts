@@ -11,6 +11,7 @@ export type HostConfig = {
 export type HostOptions = {
   hostRemoteEntry?:
     | string
+    | false
     | {
         name?: string;
         url: string;
