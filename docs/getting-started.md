@@ -48,7 +48,7 @@ The simplest approach uses the pre-built runtime script with declarative configu
     </script>
 
     <!-- Include the orchestrator -->
-    <script src="https://unpkg.com/vanilla-native-federation@0.17.0/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@0.16.0/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -123,7 +123,7 @@ In this example, the micro frontends register themselves as custom elements (par
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@0.17.0/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.16.0/quickstart.mjs"></script>
 ```
 
 ## Custom implementation
