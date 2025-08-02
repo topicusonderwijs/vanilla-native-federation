@@ -6,10 +6,10 @@ This guide demonstrates how to integrate the vanilla-native-federation orchestra
 
 ## Prerequisites
 
-This library is part of the bigger native-federation pattern and covers the integration of micro frontends in the shell (host) application. Therefore, this getting-started tutorial assumes:
+This library is part of the bigger native-federation mental model and covers the integration of remotes (a.k.a. micro frontend) in the shell (a.k.a. host) application. Therefore, this getting-started tutorial assumes:
 
 - Basic HTML and JavaScript knowledge.
-- The presence of one or more micro frontends with published `remoteEntry.json` files.
+- The presence of one or more remotes with published `remoteEntry.json` files.
 
 ## Quick Integration
 
@@ -21,7 +21,7 @@ The simplest approach uses the pre-built runtime script with declarative configu
   <head>
     <title>My Application</title>
 
-    <!-- Enable shim-mode for optimal browser support -->
+    <!-- Enable shim-mode for optimal browser support, this is optional -->
     <script type="esms-options">
       { "shimMode": true }
     </script>
@@ -76,6 +76,8 @@ The manifest script tag tells the system where to find your micro frontends. The
 
 Each entry maps a logical name (like "@team/component") to the URL of that micro frontend's metadata file. The runtime fetches these URLs to understand what components are available and what dependencies they need.
 
+> 🧠 In production environments it would make more sense to fetch the manifest from some sort of micro frontend discovery service or feed.
+
 **Event Handler Setup**<br />
 The micro frontend loading process is asynchronous - the runtime needs time to fetch metadata, resolve dependencies, and set up import maps. The `mfe-loader-available` event signals when this process is complete and the `loadRemoteModule` function is ready to use.
 
@@ -97,13 +99,13 @@ The micro frontend loading process is asynchronous - the runtime needs time to f
 The `{ once: true }` option ensures the event handler only runs once, preventing duplicate loading if the event somehow fires multiple times. Each `loadRemoteModule` call fetches and initializes a specific micro frontend. This function typically triggers side effects like registering custom elements rather than returning component instances directly.
 
 **Runtime Inclusion**
-The runtime script performs all the orchestration work: fetching manifests, processing metadata, resolving dependencies, and setting up the browser's module loading system.
+The runtime script performs all the orchestration work: fetching the manifest, processing metadata, resolving dependencies, and setting up the browser's module loading system.
 
 ```html
 <script src="https://unpkg.com/vanilla-native-federation@latest/quickstart.mjs"></script>
 ```
 
-This script must be loaded after the manifest and event handler are defined, as it immediately begins looking for the manifest and will fire the `mfe-loader-available` event once initialization completes.
+This script must be loaded after (so below in the HTML) the manifest and event listeners are defined, as it immediately begins looking for the manifest and will fire the `mfe-loader-available` event once initialization completes.
 
 ### Component Rendering
 
@@ -115,7 +117,7 @@ This script must be loaded after the manifest and event handler are defined, as 
 </html>
 ```
 
-Micro frontends can register themselves as custom elements (part of the [webcomponents](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) spec). When you call `loadRemoteModule("team/mfe2", "./Button")`, the loaded component typically registers a custom element like `<my-button>`. The HTML elements in your page will remain empty until the corresponding micro frontends load and register themselves.
+In this example, the micro frontends register themselves as custom elements (part of the [webcomponents](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) spec). When `loadRemoteModule("team/mfe2", "./Button")` is called, the loaded component typically registers a custom element like `<my-button>`. The HTML elements in your page will remain empty until the corresponding micro frontends load and register themselves.
 
 ### Quickstart (pre-built)
 
@@ -124,18 +126,9 @@ Micro frontends can register themselves as custom elements (part of the [webcomp
 <script src="https://unpkg.com/vanilla-native-federation@0.17.0/quickstart.mjs"></script>
 ```
 
-## Custom Implementation
+## Custom implementation
 
-For applications requiring specific configuration or integration patterns, a custom implementation provides complete control over the initialization process. This approach is necessary when you need to integrate with existing build systems, customize the loading behavior, or handle errors in application-specific ways.
-
-### Why Custom Implementation?
-
-The quickstart approach works well for simple scenarios, but custom implementation becomes necessary when:
-
-- **Build Integration**: You need to bundle the orchestrator with your application code
-- **Fine-grained control**: Your application requires specific error handling, a specific optimized orchestrator or custom fallback behavior.
-- **Framework Integration**: You're integrating with React, Angular, Vue, or other frameworks that manage component lifecycles
-- **Advanced Caching**: You need fine-grained control over storage and caching strategies
+For applications requiring specific configuration or integration patterns, a custom implementation provides more fine-grained control over the initialization process. This approach is necessary when you need to integrate with existing build systems, customize or tune the loading behavior, or handle errors in application-specific ways. This is especially handy for integration with frameworks like Angular, Vue etc.
 
 ### Implementation Process
 
@@ -178,8 +171,8 @@ import {
 
     // Load specific modules (only possible in shim-mode)
     await Promise.all([
-      loadRemoteModule('team/button', './Button'),
-      loadRemoteModule('team/header', './Header'),
+      loadRemoteModule('team/mfe1', './Button'),
+      loadRemoteModule('team/mfe2', './Header'),
     ]);
 
     console.log('All micro frontends loaded successfully');
@@ -192,7 +185,7 @@ import {
 
 This approach gives you explicit control over the initialization timing, error handling, and configuration. The `try-catch` block allows you to implement fallback behavior if micro frontend loading fails.
 
-### Integration Strategy
+### Using your custom orchestrator:
 
 ```html
 <!DOCTYPE html>
@@ -225,7 +218,7 @@ The `type="module"` attribute is essential because the orchestrator uses ES modu
 
 ## Configuration Options
 
-The library provides extensive configuration options to control behavior, storage, logging, and dependency resolution. Understanding these options is crucial for production deployments and complex integration scenarios. For complete details, see the [Configuration Guide](./config.md).
+The library provides extensive configuration options to control behavior, storage, logging, and dependency resolution. Different configuration can be used for production deployments and complex integration scenarios. For complete details, see the [Configuration Guide](./config.md).
 
 ### Storage Configuration
 
@@ -265,7 +258,7 @@ For example. if a mfe on page A uses the same dependency as a mfe on page B. It 
 
 - Memory storage is fastest but lost on every page reload
 - Session storage persists during the browser session, ideal for multi-page (SSR) websites
-- Local storage persists across browser restarts, useful for cache that needs to exist over longer periods and multiple browser sessions
+- Local storage persists across browser restarts, useful for cache that needs to exist over longer periods and multiple browser sessions. This can be useful to avoid having to process remote entries multiple times but is generally not recommended.
 
 ### Import Map Implementation
 
@@ -285,7 +278,7 @@ await initFederation(manifest, {
 });
 ```
 
-**Why Import Map Configuration Matters**: Import maps are a relatively new browser feature. Older browsers don't support them natively, so you need a polyfill. The es-module-shims library provides this polyfill, but it adds overhead. If you're only supporting modern browsers, the default configuration is fastest. If you need broader compatibility, use the shim mode.
+**Why Import Map Configuration Matters**: Import maps are a relatively [new browser feature](https://caniuse.com/?search=import%20maps). Older browsers may not support them natively, so you might need a polyfill. The es-module-shims library provides this polyfill, but it adds overhead. If you're only supporting modern browsers, the default configuration is fastest. If you need broader compatibility, use the shim mode.
 
 ### Logging Configuration
 
@@ -302,9 +295,9 @@ await initFederation(manifest, {
 
   // Custom logger
   logger: {
-    debug: (msg, details) => console.log(`[DEBUG] ${msg}`, details),
-    warn: (msg, details) => console.warn(`[WARN] ${msg}`, details),
-    error: (msg, details) => console.error(`[ERROR] ${msg}`, details),
+    debug: (step, msg, details) => console.log(`[${step}][DEBUG] ${msg}`, details),
+    warn: (step, msg, details) => console.warn(`[${step}][WARN] ${msg}`, details),
+    error: (step, msg, details) => console.error(`[${step}][ERROR] ${msg}`, details),
   },
 });
 ```
@@ -461,15 +454,7 @@ If you want to see how the orchestrator can be used check out these repositories
 
 ## Next Steps
 
-For comprehensive configuration options and advanced features, see the [Configuration Guide](./config.md), which covers:
-
-- **Host Configuration**: Control critical dependency versions
-- **Storage Options**: Choose persistence strategies for different use cases
-- **Import Map Implementations**: Browser compatibility and polyfill options
-- **Logging Configuration**: Debug and monitor micro frontend loading
-- **Mode Configuration**: Tune dependency resolution and error handling
-
-For deeper understanding of the system:
+For comprehensive configuration options and advanced features, see the [Configuration Guide](./config.md). For deeper understanding of the system:
 
 - Check [Architecture Documentation](./architecture.md) for an overview of the concepts.
 - Dive into [Version Resolution](./version-resolver.md) to learn about dependency management.

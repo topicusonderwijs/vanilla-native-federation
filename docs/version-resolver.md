@@ -61,7 +61,7 @@ Import maps provide **scopes** and **shared scopes** as solutions for dependency
       "react": "https://legacy-mfe.example.com/react@17.0.2.js"
     },
 
-    // Linking multiple scopes to the same external can create a more fine-grained sharing of externals between a specific selectiion of remotes.
+    // Linking multiple scopes to the same external can create a more fine-grained sharing of externals between a specific selection of remotes.
     "mfe1.example.com/": {
       "ui-library": "mfe1.example.com/ui-lib@3.0.0.js"
     },

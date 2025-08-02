@@ -42,14 +42,14 @@ sequenceDiagram
 
 1. Your website asks "What micro frontends can I use?"
 2. Each micro frontend says "Here's what I offer and what I need"
-3. Your website figures out the most efficient way to load everything
+3. The orchestrator figures out the most efficient way to load the remotes
 4. Components are loaded on-demand when needed
 
 ## Key Concepts
 
 ### 1. Manifest - The Service Directory
 
-The **manifest** serves as a registry that maps micro frontend names to their metadata locations:
+The **manifest** serves as a registry that maps "remote" (micro frontend) names to their remoteEntry.json (metadata file) locations:
 
 ```json
 {
@@ -59,11 +59,7 @@ The **manifest** serves as a registry that maps micro frontend names to their me
 }
 ```
 
-**Function:**
-
-- Maps logical names to remote entry endpoints
-- Enables decentralized deployment and discovery
-- Supports runtime composition of micro frontends
+This enables decentralized deployment and management of micro frontends and provides a central place to discover and fetch the latest versions of all the micro frontends.
 
 ### 2. RemoteEntry - The Component Metadata
 
@@ -204,16 +200,16 @@ classDiagram
 
 #### Shared External Properties
 
-| Property        | Description                                                                                                                                         |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| version         | The actual version of the dependency provided by this micro frontend                                                                                |
-| requiredVersion | Version range this micro frontend is compatible with (enables clustering)                                                                           |
-| strictVersion   | Will make sure the remote receives a compatible version when the external is shared, even if that means loading multiple versions of the dependency |
-| singleton       | Allows the dependency to be shared and used by other remotes that need it.                                                                          |
-| shareScope      | Allows for sharing dependencies in a specific group instead of globally, allowing for clusters of shared externals                                  |
-| packageName     | Dependency identifier for resolution                                                                                                                |
-| outFileName     | File path relative to the micro frontend's scope                                                                                                    |
-| dev             | Optional development configuration containing entryPoint information                                                                                |
+| Property        | Description                                                                                                                                                       |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| version         | The actual version of the dependency provided by this micro frontend                                                                                              |
+| requiredVersion | Version range this micro frontend is compatible with (enables clustering)                                                                                         |
+| strictVersion   | Will make sure the remote receives a compatible version when the external is shared, even if that means loading multiple versions of the dependency               |
+| singleton       | Allows the dependency to be shared and used by other remotes that need it.                                                                                        |
+| shareScope      | Allows for sharing dependencies in a specific group instead of globally, allowing for clusters of shared externals. the `"strict"` shareScope is a special scope. |
+| packageName     | Dependency identifier for resolution                                                                                                                              |
+| outFileName     | File path relative to the micro frontend's scope                                                                                                                  |
+| dev             | Optional development configuration containing entryPoint information                                                                                              |
 
 ### Understanding the stored remoteEntries
 
@@ -328,6 +324,13 @@ The action field is calculated during the dependency resolution phase:
                 "requiredVersion": "~1.2.1",
                 "strictVersion": false,
                 "cached": true
+              },
+              {
+                "file": "dep-a.js",
+                "name": "team/mfe2",
+                "requiredVersion": "~1.2.1",
+                "strictVersion": false,
+                "cached": false
               }
             ]
           },
@@ -504,7 +507,7 @@ Different configuration options change how the system behaves:
 
 ## Understanding the process
 
-The library follows a 6-step process:
+The library follows internally a 6-step process:
 
 ### Step 1: Gather Information
 
