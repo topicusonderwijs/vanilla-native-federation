@@ -7,28 +7,37 @@ import {
   STRICT_SCOPE,
 } from 'lib/1.domain/externals/external.contract';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
-import { Optional } from 'lib/utils/optional';
-import {
-  MOCK_VERSION_II,
-  MOCK_VERSION_III,
-  MOCK_VERSION_IV,
-  MOCK_VERSION_V,
-  MOCK_VERSION_VI,
-  MOCK_VERSION_VII,
-} from 'lib/6.mocks/domain/externals/version.mock';
 import { StorageConfig } from 'lib/2.app/config';
+import {
+  MOCK_DEP_A,
+  MOCK_DEP_B,
+  MOCK_FROM_EXTERNAL,
+  builders,
+} from 'lib/6.mocks/domain/externals/external.mock';
+import { Optional } from 'lib/utils/optional';
+import { ForSharedExternalsStorage } from 'lib/sdk.index';
 
 describe('createSharedExternalsRepository', () => {
   const setupWithCache = (storage: any) => {
     const mockStorage = { 'shared-externals': storage };
     const mockStorageEntry = createStorageHandlerMock(mockStorage);
 
-    const mockConfig: StorageConfig = {
+    const externalsRepo = createSharedExternalsRepository({
       storage: mockStorageEntry,
       clearStorage: false,
-    };
-    const externalsRepo = createSharedExternalsRepository(mockConfig);
+    });
     return { mockStorage, externalsRepo };
+  };
+
+  // Helper function to show new builder usage
+  const setupWithBuilders = (data: Record<string, Record<string, SharedExternal>> = {}) => {
+    const mockStorage = { 'shared-externals': data };
+    const mockStorageEntry = createStorageHandlerMock(mockStorage);
+    const repo = createSharedExternalsRepository({
+      storage: mockStorageEntry,
+      clearStorage: false,
+    });
+    return { repo, storage: mockStorage };
   };
 
   describe('initialization', () => {
@@ -40,7 +49,7 @@ describe('createSharedExternalsRepository', () => {
     it('should reset cache when in config', () => {
       const mockStorage: { 'shared-externals': SharedExternals } = {
         ['shared-externals']: {
-          [GLOBAL_SCOPE]: { 'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] } },
+          [GLOBAL_SCOPE]: { 'dep-a': MOCK_DEP_A() },
         },
       };
       const mockStorageEntry = createStorageHandlerMock(mockStorage);
@@ -65,32 +74,24 @@ describe('createSharedExternalsRepository', () => {
 
     it('should return all shared deps of a particular scope', () => {
       const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
-        ['custom-scope']: {
-          'dep-b': { dirty: false, versions: [MOCK_VERSION_III()] },
-        },
+        [GLOBAL_SCOPE]: { 'dep-a': MOCK_DEP_A() },
+        ['custom-scope']: { 'dep-b': MOCK_DEP_B() },
       });
 
       const actual: shareScope = externalsRepo.getAll('custom-scope');
 
-      expect(actual).toEqual({ 'dep-b': { dirty: false, versions: [MOCK_VERSION_III()] } });
+      expect(actual).toEqual({ 'dep-b': MOCK_DEP_B() });
     });
 
     it('should return all shared deps of the global scope by default', () => {
       const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
-        ['custom-scope']: {
-          'dep-b': { dirty: false, versions: [MOCK_VERSION_III()] },
-        },
+        [GLOBAL_SCOPE]: { 'dep-a': MOCK_DEP_A() },
+        ['custom-scope']: { 'dep-b': MOCK_DEP_B() },
       });
 
       const actual: shareScope = externalsRepo.getAll();
 
-      expect(actual).toEqual({ 'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] } });
+      expect(actual).toEqual({ 'dep-a': MOCK_DEP_A() });
     });
   });
 
@@ -121,17 +122,22 @@ describe('createSharedExternalsRepository', () => {
   });
 
   describe('tryGet', () => {
-    it('should return the versions', () => {
-      const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
-      });
+    let repository: ForSharedExternalsStorage;
 
-      const actual: Optional<SharedExternal> = externalsRepo.tryGet('dep-a');
+    beforeEach(() => {
+      const { externalsRepo } = setupWithCache({
+        [GLOBAL_SCOPE]: { 'dep-a': MOCK_DEP_A() },
+        ['custom-scope']: { 'dep-b': MOCK_DEP_B() },
+      });
+      repository = externalsRepo;
+    });
+
+    it('should return the versions', () => {
+      const actual: Optional<SharedExternal> = repository.tryGet('dep-a');
+      const expected: SharedExternal = MOCK_DEP_A();
 
       expect(actual.isPresent()).toBe(true);
-      expect(actual.get()).toEqual({ dirty: false, versions: [MOCK_VERSION_II()] });
+      expect(actual.get()).toEqual(expected);
     });
 
     it('should return empty optional if version doesnt exist', () => {
@@ -143,131 +149,115 @@ describe('createSharedExternalsRepository', () => {
       expect(actual.get()).toEqual(undefined);
     });
 
-    it('should return empty optional if only other externals exist', () => {
-      const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
-      });
-
-      const actual: Optional<SharedExternal> = externalsRepo.tryGet('dep-b');
-
-      expect(actual.isPresent()).toBe(false);
-      expect(actual.get()).toEqual(undefined);
-    });
-
     it('should return an external from a custom scope', () => {
-      const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
-        ['custom-scope']: {
-          'dep-b': { dirty: false, versions: [MOCK_VERSION_III()] },
-        },
-      });
-      const actual: Optional<SharedExternal> = externalsRepo.tryGet('dep-b', 'custom-scope');
+      const actual: Optional<SharedExternal> = repository.tryGet('dep-b', 'custom-scope');
+      const expected: SharedExternal = MOCK_DEP_B();
 
       expect(actual.isPresent()).toBe(true);
-      expect(actual.get()).toEqual({ dirty: false, versions: [MOCK_VERSION_III()] });
+      expect(actual.get()).toEqual(expected);
+    });
+
+    it('should return empty optional if only other externals exist', () => {
+      const actual: Optional<SharedExternal> = repository.tryGet('dep-b'); // from global scope
+      const expected = undefined;
+
+      expect(actual.isPresent()).toBe(false);
+      expect(actual.get()).toEqual(expected);
     });
 
     it('should not return an external from a different scope', () => {
-      const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
-        ['custom-scope']: {
-          'dep-b': { dirty: false, versions: [MOCK_VERSION_III()] },
-        },
-      });
-      const actual: Optional<SharedExternal> = externalsRepo.tryGet('dep-a', 'custom-scope');
+      const actual: Optional<SharedExternal> = repository.tryGet('dep-a', 'custom-scope');
+      const expected = undefined;
 
       expect(actual.isPresent()).toBe(false);
-      expect(actual.get()).toEqual(undefined);
+      expect(actual.get()).toEqual(expected);
     });
   });
 
   describe('addOrUpdate', () => {
-    it('should not add or update if no commit', () => {
-      const { mockStorage, externalsRepo } = setupWithCache({});
+    let repository: ForSharedExternalsStorage;
+    let storage: any;
 
-      externalsRepo.addOrUpdate('dep-a', { dirty: false, versions: [MOCK_VERSION_II()] });
-
-      expect(mockStorage['shared-externals']).toEqual({});
+    beforeEach(() => {
+      const { externalsRepo, mockStorage } = setupWithCache({});
+      repository = externalsRepo;
+      storage = mockStorage;
     });
 
-    it('should add a new external to empty storage after commit', () => {
-      const { mockStorage, externalsRepo } = setupWithCache({});
+    it('should not add or update if no commit', () => {
+      repository.addOrUpdate('dep-a', MOCK_DEP_A());
+      const expected = { 'shared-externals': {} };
 
-      externalsRepo.addOrUpdate('dep-a', { dirty: false, versions: [MOCK_VERSION_II()] });
-      expect(mockStorage['shared-externals']).toEqual({});
+      expect(storage).toEqual(expected);
+    });
 
-      externalsRepo.commit();
-      expect(mockStorage['shared-externals']).toEqual({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
+    it('should add a new external to global storage after commit', () => {
+      repository.addOrUpdate('dep-a', MOCK_DEP_A());
+      expect(storage).toEqual({ 'shared-externals': {} });
+
+      repository.commit();
+
+      expect(storage).toEqual({
+        'shared-externals': {
+          [GLOBAL_SCOPE]: { 'dep-a': MOCK_DEP_A() },
         },
       });
     });
 
-    it('should add a new dirty external to the storage', () => {
-      const { mockStorage, externalsRepo } = setupWithCache({});
+    it('should add a new external to custom shareScope storage after commit', () => {
+      repository.addOrUpdate('dep-a', MOCK_DEP_A(), 'custom-scope');
+      expect(storage).toEqual({ 'shared-externals': {} });
 
-      externalsRepo.addOrUpdate('dep-a', { dirty: true, versions: [MOCK_VERSION_II()] });
-      expect(mockStorage['shared-externals']).toEqual({});
-
-      externalsRepo.commit();
-      expect(mockStorage['shared-externals']).toEqual({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: true, versions: [MOCK_VERSION_II()] },
+      repository.commit();
+      expect(storage).toEqual({
+        'shared-externals': {
+          'custom-scope': { 'dep-a': MOCK_DEP_A() },
         },
       });
     });
 
     it('should replace versions for an existing external', () => {
       const { mockStorage, externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
+        [GLOBAL_SCOPE]: { 'dep-a': MOCK_DEP_A() },
       });
 
-      const newVersion = { ...MOCK_VERSION_II(), version: '2.0.0' };
-
-      externalsRepo.addOrUpdate('dep-a', { dirty: false, versions: [newVersion] });
+      externalsRepo.addOrUpdate('dep-a', {
+        dirty: false,
+        versions: [MOCK_FROM_EXTERNAL('dep-a').SHARED_VERSION_2_1_1({ 'team/mfe1': {} })],
+      });
 
       externalsRepo.commit();
 
       expect(mockStorage['shared-externals']).toEqual({
         [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [newVersion] },
+          'dep-a': {
+            dirty: false,
+            versions: [MOCK_FROM_EXTERNAL('dep-a').SHARED_VERSION_2_1_1({ 'team/mfe1': {} })],
+          },
         },
       });
     });
 
     it('should keep other externals when adding a new one', () => {
       const { mockStorage, externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
+        [GLOBAL_SCOPE]: { 'dep-a': MOCK_DEP_A() },
       });
 
-      const versionB = { ...MOCK_VERSION_II(), version: '4.5.6' };
-
-      externalsRepo.addOrUpdate('dep-b', { dirty: false, versions: [versionB] });
+      externalsRepo.addOrUpdate('dep-b', MOCK_DEP_B());
 
       externalsRepo.commit();
 
       expect(mockStorage['shared-externals']).toEqual({
         [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-          'dep-b': { dirty: false, versions: [versionB] },
+          'dep-a': MOCK_DEP_A(),
+          'dep-b': MOCK_DEP_B(),
         },
       });
     });
 
     it('should keep other externals when updating an existing one', () => {
-      const versionA = MOCK_VERSION_II();
-      const versionB = { ...MOCK_VERSION_II(), version: '4.5.6' };
+      const versionA = MOCK_FROM_EXTERNAL('dep-a').SHARED_VERSION_2_1_1({ 'team/mfe1': {} });
+      const versionB = MOCK_FROM_EXTERNAL('dep-b').SHARED_VERSION_2_2_1({ 'team/mfe1': {} });
 
       const { mockStorage, externalsRepo } = setupWithCache({
         [GLOBAL_SCOPE]: {
@@ -276,7 +266,7 @@ describe('createSharedExternalsRepository', () => {
         },
       });
 
-      const newVersionA = { ...MOCK_VERSION_II(), version: '2.0.0' };
+      const newVersionA = MOCK_FROM_EXTERNAL('dep-a').SHARED_VERSION_2_1_2({ 'team/mfe1': {} });
 
       externalsRepo.addOrUpdate('dep-a', { dirty: false, versions: [newVersionA] });
       externalsRepo.commit();
@@ -290,112 +280,64 @@ describe('createSharedExternalsRepository', () => {
     });
 
     it('should add multiple versions for the same external', () => {
-      const version1 = MOCK_VERSION_II();
-      const version2 = { ...MOCK_VERSION_II(), version: '2.0.0' };
+      const versionA1 = MOCK_FROM_EXTERNAL('dep-a').SHARED_VERSION_2_1_1({ 'team/mfe1': {} });
+      const versionA2 = MOCK_FROM_EXTERNAL('dep-a').SHARED_VERSION_2_1_2({ 'team/mfe1': {} });
 
       const { mockStorage, externalsRepo } = setupWithCache({});
 
-      externalsRepo.addOrUpdate('dep-a', { dirty: false, versions: [version1, version2] });
+      externalsRepo.addOrUpdate('dep-a', { dirty: false, versions: [versionA1, versionA2] });
       externalsRepo.commit();
 
       expect(mockStorage['shared-externals']).toEqual({
         [GLOBAL_SCOPE]: {
           'dep-a': {
             dirty: false,
-            versions: [version1, version2],
+            versions: [versionA1, versionA2],
           },
         },
       });
     });
 
     it('should return the repository instance for chaining', () => {
-      const { externalsRepo } = setupWithCache({});
-      const result = externalsRepo.addOrUpdate('dep-a', {
-        dirty: false,
-        versions: [MOCK_VERSION_II()],
-      });
-      expect(result).toBe(externalsRepo);
-    });
-
-    it('should add a new dirty external to a custom scope', () => {
-      const { mockStorage, externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
-      });
-
-      externalsRepo.addOrUpdate(
-        'dep-b',
-        { dirty: true, versions: [MOCK_VERSION_III()] },
-        'custom-scope'
-      );
-      expect(mockStorage['shared-externals']).toEqual({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
-      });
-
-      externalsRepo.commit();
-      expect(mockStorage['shared-externals']).toEqual({
-        [GLOBAL_SCOPE]: {
-          'dep-a': { dirty: false, versions: [MOCK_VERSION_II()] },
-        },
-        'custom-scope': {
-          'dep-b': { dirty: true, versions: [MOCK_VERSION_III()] },
-        },
-      });
+      const result = repository.addOrUpdate('dep-a', MOCK_DEP_A());
+      expect(result).toBe(repository);
     });
   });
 
   describe('getScopes', () => {
-    it('should return only GLOBAL by default', () => {
+    let repository: ForSharedExternalsStorage;
+
+    beforeEach(() => {
       const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {},
+        [GLOBAL_SCOPE]: { 'dep-a': MOCK_DEP_A() },
+        ['custom-scope']: { 'dep-b': MOCK_DEP_B() },
       });
-
-      const actual = externalsRepo.getScopes();
-
-      expect(actual).toEqual(['__GLOBAL__']);
+      repository = externalsRepo;
     });
 
-    it('should return all availble scopes', () => {
-      const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {},
-        'custom-scope': {},
-        'other-custom-scope': {},
-      });
-
-      const actual = externalsRepo.getScopes();
-
-      expect(actual).toEqual(['__GLOBAL__', 'custom-scope', 'other-custom-scope']);
+    it('should return all scopes by default', () => {
+      const actual = repository.getScopes();
+      expect(actual).toEqual(['__GLOBAL__', 'custom-scope']);
     });
 
     it('should exclude the global scope when in options', () => {
-      const { externalsRepo } = setupWithCache({
-        [GLOBAL_SCOPE]: {},
-        'custom-scope': {},
-        'other-custom-scope': {},
-      });
-
-      const actual = externalsRepo.getScopes({ includeGlobal: false });
-
-      expect(actual).toEqual(['custom-scope', 'other-custom-scope']);
+      const actual = repository.getScopes({ includeGlobal: false });
+      expect(actual).toEqual(['custom-scope']);
     });
   });
 
   describe('removeFromAllScopes', () => {
     it('should remove all external versions from the global scope', () => {
+      const versionA1 = MOCK_FROM_EXTERNAL('dep-a').SHARED_VERSION_2_1_1({ 'team/mfe1': {} });
+      const versionA2 = MOCK_FROM_EXTERNAL('dep-a').SHARED_VERSION_2_1_1({ 'team/mfe2': {} });
+      const versionD1 = MOCK_FROM_EXTERNAL('dep-d').SHARED_VERSION_2_1_2({
+        'team/mfe2': {},
+        'team/mfe3': {},
+      });
       const { externalsRepo, mockStorage } = setupWithCache({
         [GLOBAL_SCOPE]: {
-          'dep-b': { dirty: false, versions: [MOCK_VERSION_II()] },
-          'dep-c': {
-            dirty: false,
-            versions: [MOCK_VERSION_III(), MOCK_VERSION_V()],
-          },
-          'dep-d': {
-            dirty: false,
-            versions: [MOCK_VERSION_VII(), MOCK_VERSION_VI(), MOCK_VERSION_IV()],
-          },
+          'dep-a': { dirty: false, versions: [versionA1, versionA2] },
+          'dep-d': { dirty: false, versions: [versionD1] },
         },
       });
 
@@ -404,30 +346,54 @@ describe('createSharedExternalsRepository', () => {
 
       expect(mockStorage['shared-externals']).toEqual({
         [GLOBAL_SCOPE]: {
-          'dep-c': { dirty: false, versions: [MOCK_VERSION_III(), MOCK_VERSION_V()] },
-          'dep-d': {
-            dirty: true,
-            versions: [MOCK_VERSION_VI(), MOCK_VERSION_IV()],
-          },
+          'dep-a': { dirty: true, versions: [versionA2] },
+          'dep-d': { dirty: false, versions: [versionD1] },
         },
       });
     });
 
-    it('should remove cached duplicates from a version, without marking dirty', () => {
-      const mockVersionIV = MOCK_VERSION_IV();
-      mockVersionIV.remotes.push({
-        file: `dep-d.js`,
-        name: 'team/mfe1',
-        requiredVersion: '^2.0.0',
-        strictVersion: true,
-        cached: true,
+    it('should remove a duplicate version without setting the external dirty flag', () => {
+      const versionB1 = MOCK_FROM_EXTERNAL('dep-b').SHARED_VERSION_2_1_2({
+        'team/mfe1': {},
+        'team/mfe2': {},
+      });
+      const versionD1 = MOCK_FROM_EXTERNAL('dep-d').SHARED_VERSION_2_1_2({
+        'team/mfe2': {},
+        'team/mfe3': {},
       });
       const { externalsRepo, mockStorage } = setupWithCache({
         [GLOBAL_SCOPE]: {
-          'dep-d': {
-            dirty: false,
-            versions: [MOCK_VERSION_VI(), mockVersionIV],
-          },
+          'dep-b': { dirty: false, versions: [versionB1] },
+          'dep-d': { dirty: false, versions: [versionD1] },
+        },
+      });
+
+      externalsRepo.removeFromAllScopes('team/mfe1');
+      externalsRepo.commit();
+
+      const versionB1_withoutTeam1 = MOCK_FROM_EXTERNAL('dep-b').SHARED_VERSION_2_1_2({
+        'team/mfe2': {},
+      });
+      expect(mockStorage['shared-externals']).toEqual({
+        [GLOBAL_SCOPE]: {
+          'dep-b': { dirty: false, versions: [versionB1_withoutTeam1] },
+          'dep-d': { dirty: false, versions: [versionD1] },
+        },
+      });
+    });
+
+    it('should remove an externals if all versions are gone', () => {
+      const versionC1 = MOCK_FROM_EXTERNAL('dep-c').SHARED_VERSION_2_1_2({
+        'team/mfe1': {},
+      });
+      const versionD1 = MOCK_FROM_EXTERNAL('dep-c').SHARED_VERSION_2_1_2({
+        'team/mfe2': {},
+        'team/mfe3': {},
+      });
+      const { externalsRepo, mockStorage } = setupWithCache({
+        [GLOBAL_SCOPE]: {
+          'dep-c': { dirty: false, versions: [versionC1] },
+          'dep-d': { dirty: false, versions: [versionD1] },
         },
       });
 
@@ -436,10 +402,7 @@ describe('createSharedExternalsRepository', () => {
 
       expect(mockStorage['shared-externals']).toEqual({
         [GLOBAL_SCOPE]: {
-          'dep-d': {
-            dirty: false,
-            versions: [MOCK_VERSION_VI(), MOCK_VERSION_IV()],
-          },
+          'dep-d': { dirty: false, versions: [versionD1] },
         },
       });
     });

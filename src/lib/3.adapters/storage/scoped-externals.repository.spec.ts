@@ -1,9 +1,11 @@
 import { createScopedExternalsRepository } from './scoped-externals.repository';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
-import { MOCK_EXTERNALS_SCOPE } from 'lib/6.mocks/domain/externals/external.mock';
 import { ScopedVersion } from 'lib/1.domain/externals/version.contract';
-import { MOCK_VERSION_I } from 'lib/6.mocks/domain/externals/version.mock';
 import { StorageConfig } from 'lib/2.app/config';
+import {
+  MOCK_FROM_EXTERNAL,
+  MOCK_SCOPED_EXTERNALS_SCOPE,
+} from 'lib/6.mocks/domain/externals/external.mock';
 
 describe('createScopedExternalsRepository', () => {
   const setupWithCache = (storage: any) => {
@@ -27,7 +29,7 @@ describe('createScopedExternalsRepository', () => {
     it('should reset cache when in config', () => {
       const mockStorage = {
         'scoped-externals': {
-          ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
+          ['team/mfe1']: MOCK_SCOPED_EXTERNALS_SCOPE(),
         },
       };
       const mockStorageEntry = createStorageHandlerMock(mockStorage);
@@ -77,7 +79,7 @@ describe('createScopedExternalsRepository', () => {
 
     it('should add external to a new scope', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
-        ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
+        ['team/mfe1']: MOCK_SCOPED_EXTERNALS_SCOPE(),
       });
       const newVersion = (): ScopedVersion => ({
         tag: '9.9.9',
@@ -94,7 +96,7 @@ describe('createScopedExternalsRepository', () => {
 
     it('should add multiple externals to a new scope', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
-        ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
+        ['team/mfe1']: MOCK_SCOPED_EXTERNALS_SCOPE(),
       });
       const newVersionI = (): ScopedVersion => ({
         tag: '8.8.8',
@@ -123,7 +125,7 @@ describe('createScopedExternalsRepository', () => {
       });
 
       const { externalsRepo, mockStorage } = setupWithCache({
-        ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
+        ['team/mfe1']: MOCK_SCOPED_EXTERNALS_SCOPE(),
       });
 
       externalsRepo.addExternal('team/mfe1', 'dep-a', newVersion());
@@ -134,7 +136,11 @@ describe('createScopedExternalsRepository', () => {
 
     it('should return the repository instance for chaining', () => {
       const { externalsRepo } = setupWithCache({});
-      const result = externalsRepo.addExternal('scope-a', 'dep-a', MOCK_VERSION_I());
+      const result = externalsRepo.addExternal(
+        'scope-a',
+        'dep-a',
+        MOCK_FROM_EXTERNAL('dep-a').SCOPED_VERSION_1_2_3()
+      );
       expect(result).toBe(externalsRepo);
     });
   });
@@ -143,23 +149,23 @@ describe('createScopedExternalsRepository', () => {
     it('should return all externals from the cache', () => {
       const { externalsRepo } = setupWithCache({
         ['team/mfe1']: {
-          'dep-a': MOCK_VERSION_I(),
-          'dep-b': MOCK_VERSION_I(),
+          'dep-a': MOCK_FROM_EXTERNAL('dep-a').SCOPED_VERSION_1_2_3(),
+          'dep-b': MOCK_FROM_EXTERNAL('dep-b').SCOPED_VERSION_1_2_3(),
         },
         ['team/mfe2']: {
-          'dep-x': MOCK_VERSION_I(),
+          'dep-x': MOCK_FROM_EXTERNAL('dep-x').SCOPED_VERSION_1_2_3(),
         },
       });
 
       const allExternals = externalsRepo.getAll();
 
       expect(allExternals).toEqual({
-        'team/mfe1': {
-          'dep-a': MOCK_VERSION_I(),
-          'dep-b': MOCK_VERSION_I(),
+        ['team/mfe1']: {
+          'dep-a': MOCK_FROM_EXTERNAL('dep-a').SCOPED_VERSION_1_2_3(),
+          'dep-b': MOCK_FROM_EXTERNAL('dep-b').SCOPED_VERSION_1_2_3(),
         },
-        'team/mfe2': {
-          'dep-x': MOCK_VERSION_I(),
+        ['team/mfe2']: {
+          'dep-x': MOCK_FROM_EXTERNAL('dep-x').SCOPED_VERSION_1_2_3(),
         },
       });
     });
@@ -173,7 +179,7 @@ describe('createScopedExternalsRepository', () => {
   describe('remove', () => {
     it('should remove a remoteEntry scope from the cache', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
-        ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
+        ['team/mfe1']: MOCK_SCOPED_EXTERNALS_SCOPE(),
       });
 
       externalsRepo.remove('team/mfe1');
@@ -184,15 +190,15 @@ describe('createScopedExternalsRepository', () => {
 
     it('should not remove other remoteEntry scope', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
-        ['team/mfe1']: MOCK_EXTERNALS_SCOPE(),
-        ['team/mfe2']: MOCK_EXTERNALS_SCOPE(),
+        ['team/mfe1']: MOCK_SCOPED_EXTERNALS_SCOPE(),
+        ['team/mfe2']: MOCK_SCOPED_EXTERNALS_SCOPE(),
       });
 
       externalsRepo.remove('team/mfe1');
       externalsRepo.commit();
 
       expect(mockStorage['scoped-externals']).toEqual({
-        ['team/mfe2']: MOCK_EXTERNALS_SCOPE(),
+        ['team/mfe2']: MOCK_SCOPED_EXTERNALS_SCOPE(),
       });
     });
 
