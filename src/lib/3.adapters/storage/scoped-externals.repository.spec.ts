@@ -1,10 +1,9 @@
 import { createScopedExternalsRepository } from './scoped-externals.repository';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
-import { ScopedVersion } from 'lib/1.domain/externals/version.contract';
 import { StorageConfig } from 'lib/2.app/config';
 import {
-  MOCK_FROM_EXTERNAL,
   MOCK_SCOPED_EXTERNALS_SCOPE,
+  buildMockVersion,
 } from 'lib/6.mocks/domain/externals/external.mock';
 
 describe('createScopedExternalsRepository', () => {
@@ -47,12 +46,9 @@ describe('createScopedExternalsRepository', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
         ['team/mfe1']: {},
       });
-      const newVersion = (): ScopedVersion => ({
-        tag: '9.9.9',
-        file: 'dep-x.js',
-      });
+      const newVersion = buildMockVersion.scopedVersion('9.9.9', 'dep-x');
 
-      externalsRepo.addExternal('team/mfe1', 'dep-x', newVersion());
+      externalsRepo.addExternal('team/mfe1', 'dep-x', newVersion);
 
       expect(mockStorage['scoped-externals']['team/mfe1']).toEqual({});
     });
@@ -61,19 +57,16 @@ describe('createScopedExternalsRepository', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
         ['team/mfe1']: {},
       });
-      const newVersion = (): ScopedVersion => ({
-        tag: '9.9.9',
-        file: 'dep-x.js',
-      });
+      const newVersion = buildMockVersion.scopedVersion('9.9.9', 'dep-x');
 
-      externalsRepo.addExternal('team/mfe1', 'dep-x', newVersion());
+      externalsRepo.addExternal('team/mfe1', 'dep-x', newVersion);
 
       expect(mockStorage['scoped-externals']['team/mfe1']).toEqual({});
 
       externalsRepo.commit();
 
       expect(mockStorage['scoped-externals']['team/mfe1']).toEqual({
-        'dep-x': newVersion(),
+        'dep-x': newVersion,
       });
     });
 
@@ -81,16 +74,13 @@ describe('createScopedExternalsRepository', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
         ['team/mfe1']: MOCK_SCOPED_EXTERNALS_SCOPE(),
       });
-      const newVersion = (): ScopedVersion => ({
-        tag: '9.9.9',
-        file: 'dep-x.js',
-      });
+      const newVersion = buildMockVersion.scopedVersion('9.9.9', 'dep-x');
 
-      externalsRepo.addExternal('new-scope', 'dep-x', newVersion());
+      externalsRepo.addExternal('new-scope', 'dep-x', newVersion);
       externalsRepo.commit();
 
       expect(mockStorage['scoped-externals']['new-scope']).toEqual({
-        'dep-x': newVersion(),
+        'dep-x': newVersion,
       });
     });
 
@@ -98,40 +88,31 @@ describe('createScopedExternalsRepository', () => {
       const { externalsRepo, mockStorage } = setupWithCache({
         ['team/mfe1']: MOCK_SCOPED_EXTERNALS_SCOPE(),
       });
-      const newVersionI = (): ScopedVersion => ({
-        tag: '8.8.8',
-        file: 'dep-a.js',
-      });
-      const newVersionII = (): ScopedVersion => ({
-        tag: '9.9.9',
-        file: 'dep-b.js',
-      });
+      const newVersionA = buildMockVersion.scopedVersion('8.8.8', 'dep-a');
+      const newVersionB = buildMockVersion.scopedVersion('9.9.9', 'dep-b');
 
       externalsRepo
-        .addExternal('new-scope', 'dep-a', newVersionI())
-        .addExternal('new-scope', 'dep-b', newVersionII());
+        .addExternal('new-scope', 'dep-a', newVersionA)
+        .addExternal('new-scope', 'dep-b', newVersionB);
       externalsRepo.commit();
 
       expect(mockStorage['scoped-externals']['new-scope']).toEqual({
-        'dep-a': newVersionI(),
-        'dep-b': newVersionII(),
+        'dep-a': newVersionA,
+        'dep-b': newVersionB,
       });
     });
 
     it('should overwrite an existing external in a scope', () => {
-      const newVersion = (): ScopedVersion => ({
-        tag: '8.8.8',
-        file: 'new-dep-a.js',
-      });
+      const newVersion = buildMockVersion.scopedVersion('8.8.8', 'new-dep-a');
 
       const { externalsRepo, mockStorage } = setupWithCache({
         ['team/mfe1']: MOCK_SCOPED_EXTERNALS_SCOPE(),
       });
 
-      externalsRepo.addExternal('team/mfe1', 'dep-a', newVersion());
+      externalsRepo.addExternal('team/mfe1', 'dep-a', newVersion);
       externalsRepo.commit();
 
-      expect(mockStorage['scoped-externals']['team/mfe1']['dep-a']).toEqual(newVersion());
+      expect(mockStorage['scoped-externals']['team/mfe1']['dep-a']).toEqual(newVersion);
     });
 
     it('should return the repository instance for chaining', () => {
@@ -139,9 +120,38 @@ describe('createScopedExternalsRepository', () => {
       const result = externalsRepo.addExternal(
         'scope-a',
         'dep-a',
-        MOCK_FROM_EXTERNAL('dep-a').SCOPED_VERSION_1_2_3()
+        buildMockVersion.scoped1_2_3('dep-a')
       );
       expect(result).toBe(externalsRepo);
+    });
+
+    // Example showcasing the clean new buildMockVersion syntax
+    it('should handle complex scoped externals setup with clean syntax', () => {
+      const { externalsRepo, mockStorage } = setupWithCache({});
+
+      // Set up multiple scopes with different externals using clean syntax
+      externalsRepo
+        .addExternal('shell-app', 'react', buildMockVersion.scopedVersion('18.2.0', 'react'))
+        .addExternal('shell-app', 'lodash', buildMockVersion.scopedVersion('4.17.21', 'lodash'))
+        .addExternal('feature-team-a', 'vue', buildMockVersion.scopedVersion('3.3.4', 'vue'))
+        .addExternal('feature-team-a', 'axios', buildMockVersion.scopedVersion('1.4.0', 'axios'))
+        .addExternal('legacy-app', 'jquery', buildMockVersion.scopedVersion('3.6.0', 'jquery'));
+
+      externalsRepo.commit();
+
+      expect(mockStorage['scoped-externals']).toEqual({
+        'shell-app': {
+          react: buildMockVersion.scopedVersion('18.2.0', 'react'),
+          lodash: buildMockVersion.scopedVersion('4.17.21', 'lodash'),
+        },
+        'feature-team-a': {
+          vue: buildMockVersion.scopedVersion('3.3.4', 'vue'),
+          axios: buildMockVersion.scopedVersion('1.4.0', 'axios'),
+        },
+        'legacy-app': {
+          jquery: buildMockVersion.scopedVersion('3.6.0', 'jquery'),
+        },
+      });
     });
   });
 
@@ -149,11 +159,11 @@ describe('createScopedExternalsRepository', () => {
     it('should return all externals from the cache', () => {
       const { externalsRepo } = setupWithCache({
         ['team/mfe1']: {
-          'dep-a': MOCK_FROM_EXTERNAL('dep-a').SCOPED_VERSION_1_2_3(),
-          'dep-b': MOCK_FROM_EXTERNAL('dep-b').SCOPED_VERSION_1_2_3(),
+          'dep-a': buildMockVersion.scoped1_2_3('dep-a'),
+          'dep-b': buildMockVersion.scoped1_2_3('dep-b'),
         },
         ['team/mfe2']: {
-          'dep-x': MOCK_FROM_EXTERNAL('dep-x').SCOPED_VERSION_1_2_3(),
+          'dep-x': buildMockVersion.scoped1_2_3('dep-x'),
         },
       });
 
@@ -161,11 +171,11 @@ describe('createScopedExternalsRepository', () => {
 
       expect(allExternals).toEqual({
         ['team/mfe1']: {
-          'dep-a': MOCK_FROM_EXTERNAL('dep-a').SCOPED_VERSION_1_2_3(),
-          'dep-b': MOCK_FROM_EXTERNAL('dep-b').SCOPED_VERSION_1_2_3(),
+          'dep-a': buildMockVersion.scoped1_2_3('dep-a'),
+          'dep-b': buildMockVersion.scoped1_2_3('dep-b'),
         },
         ['team/mfe2']: {
-          'dep-x': MOCK_FROM_EXTERNAL('dep-x').SCOPED_VERSION_1_2_3(),
+          'dep-x': buildMockVersion.scoped1_2_3('dep-x'),
         },
       });
     });
