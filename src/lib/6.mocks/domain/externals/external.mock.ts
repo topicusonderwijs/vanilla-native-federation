@@ -1,6 +1,5 @@
 import { ExternalsScope, SharedExternal, SharedVersion, shareScope } from 'lib/1.domain';
 
-// Simple, composable mock buildMockVersion using functions
 const mockRemote = (
   name: string,
   external: string = 'test-dep',
@@ -55,18 +54,13 @@ const mockExternal = (versions: SharedVersion[], dirty = false): SharedExternal 
   versions,
 });
 
-export const buildMockVersion = {
-  version: (tag: string, external: string, ...remotes: string[]) =>
+export const mockVersion = {
+  v: (tag: string, external: string, remotes: string[] | Record<string, any>) =>
     mockSharedVersion(tag, remotes, external),
 
-  versionWithOptions: (tag: string, external: string, remotes: Record<string, any>) =>
-    mockSharedVersion(tag, remotes, external),
+  scopedV: (tag: string, external: string) => mockScopedVersion(tag, external),
 
-  scopedVersion: (tag: string, external: string) => mockScopedVersion(tag, external),
-
-  external: (versions: SharedVersion[], dirty = false) => mockExternal(versions, dirty),
-
-  dirtyExternal: (versions: SharedVersion[]) => mockExternal(versions, true),
+  external: (versions: SharedVersion[], o = { dirty: true }) => mockExternal(versions, o.dirty),
 
   globalScope: (externals: Record<string, SharedExternal>) => ({
     __GLOBAL__: externals,
@@ -75,48 +69,29 @@ export const buildMockVersion = {
   customScope: (scopeName: string, externals: Record<string, SharedExternal>) => ({
     [scopeName]: externals,
   }),
-
-  v2_1_1: (external: string, remotes: string[] | Record<string, any>) =>
-    mockSharedVersion('2.1.1', remotes, external),
-
-  v2_1_2: (external: string, remotes: string[] | Record<string, any>) =>
-    mockSharedVersion('2.1.2', remotes, external),
-
-  v2_1_3: (external: string, remotes: string[] | Record<string, any>) =>
-    mockSharedVersion('2.1.3', remotes, external),
-
-  v2_2_1: (external: string, remotes: string[] | Record<string, any>) =>
-    mockSharedVersion('2.2.1', remotes, external),
-
-  v2_2_2: (external: string, remotes: string[] | Record<string, any>) =>
-    mockSharedVersion('2.2.2', remotes, external),
-
-  scoped1_2_3: (external: string) => mockScopedVersion('1.2.3', external),
-  scoped1_2_4: (external: string) => mockScopedVersion('1.2.4', external),
 };
 
-// Pre-built common externals using the new buildMockVersion
 export const mockExternalA = (): SharedExternal =>
-  buildMockVersion.external([
-    buildMockVersion.v2_1_2('dep-a', ['team/mfe1', 'team/mfe2']),
-    buildMockVersion.v2_1_1('dep-a', ['team/mfe3']),
+  mockVersion.external([
+    mockVersion.v('2.1.2', 'dep-a', ['team/mfe1', 'team/mfe2']),
+    mockVersion.v('2.1.1', 'dep-a', ['team/mfe3']),
   ]);
 
 export const mockExternalB = (): SharedExternal =>
-  buildMockVersion.external([
-    buildMockVersion.v2_2_2('dep-b', ['team/mfe1']),
-    buildMockVersion.v2_1_2('dep-b', ['team/mfe2']),
-    buildMockVersion.v2_1_1('dep-b', ['team/mfe3']),
+  mockVersion.external([
+    mockVersion.v('2.2.2', 'dep-b', ['team/mfe1']),
+    mockVersion.v('2.1.2', 'dep-b', ['team/mfe2']),
+    mockVersion.v('2.1.1', 'dep-b', ['team/mfe3']),
   ]);
 
 export const mockExternalC = (): SharedExternal =>
-  buildMockVersion.external([
-    buildMockVersion.v2_2_2('dep-c', ['team/mfe1']),
-    buildMockVersion.v2_2_1('dep-c', { 'team/mfe2': {}, host: { host: true } }),
+  mockVersion.external([
+    mockVersion.v('2.2.2', 'dep-c', ['team/mfe1']),
+    mockVersion.v('2.2.1', 'dep-c', { 'team/mfe2': {}, host: { host: true } }),
   ]);
 
 export const mockExternalD = (): SharedExternal =>
-  buildMockVersion.external([buildMockVersion.v2_2_2('dep-d', ['team/mfe1', 'team/mfe2'])]);
+  mockVersion.external([mockVersion.v('2.2.2', 'dep-d', ['team/mfe1', 'team/mfe2'])]);
 
 export const mockSharedExternals = (): shareScope => ({
   'dep-a': mockExternalA(),
@@ -125,6 +100,6 @@ export const mockSharedExternals = (): shareScope => ({
 });
 
 export const MOCK_SCOPED_EXTERNALS_SCOPE = (): ExternalsScope => ({
-  'dep-a': buildMockVersion.scoped1_2_3('dep-a'),
-  'dep-b': buildMockVersion.scoped1_2_4('dep-b'),
+  'dep-a': mockVersion.scopedV('1.2.3', 'dep-a'),
+  'dep-b': mockVersion.scopedV('1.2.4', 'dep-b'),
 });
