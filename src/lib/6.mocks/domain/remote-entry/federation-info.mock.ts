@@ -65,5 +65,5 @@ export const mockFederationInfo_HOST = (
 ) =>
   mockFederationInfo('team/host', {
     exposes: o.exposes ?? [],
-    shared: o.shared ?? [mockSharedInfoD.v2_2_2()],
+    shared: o.shared ?? [mockSharedInfoA.v2_1_3(), mockSharedInfoD.v2_2_2()],
   });

@@ -4,7 +4,7 @@ import type { ImportMap, Imports } from 'lib/1.domain/import-map/import-map.cont
 import {
   GLOBAL_SCOPE,
   type RemoteName,
-  type ExternalsScope,
+  type ScopedExternal,
   type RemoteInfo,
   type SharedExternal,
   type SharedVersion,
@@ -56,7 +56,7 @@ export function createGenerateImportMap(
     return importMap;
   }
 
-  function createScopeModules(externals: ExternalsScope, scope: string): Imports {
+  function createScopeModules(externals: ScopedExternal, scope: string): Imports {
     const modules: Imports = {};
 
     for (const [external, version] of Object.entries(externals)) {

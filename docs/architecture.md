@@ -264,8 +264,8 @@ classDiagram
     shareScope *-- SharedExternal
     SharedExternal *-- SharedVersion
     SharedVersion *-- SharedVersionMeta
-    ScopedExternals *-- ExternalsScope
-    ExternalsScope *-- ScopedVersion
+    ScopedExternals *-- ScopedExternal
+    ScopedExternal *-- ScopedVersion
 
     class SharedExternals {
         Map<.string, shareScope>
@@ -291,9 +291,9 @@ classDiagram
         name: string
     }
     class ScopedExternals {
-        Map<.string, ExternalsScope>
+        Map<.string, ScopedExternal>
     }
-    class ExternalsScope {
+    class ScopedExternal {
         Map<.string, Version>
     }
     class ScopedVersion{
