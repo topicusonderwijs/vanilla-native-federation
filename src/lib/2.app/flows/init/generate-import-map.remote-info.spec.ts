@@ -20,7 +20,7 @@ describe('createGenerateImportMap (remoteInfos)', () => {
 
     adapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
     adapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({}));
 
     generateImportMap = createGenerateImportMap(config, adapters);
   });

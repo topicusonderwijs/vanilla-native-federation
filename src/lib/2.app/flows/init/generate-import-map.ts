@@ -82,7 +82,7 @@ export function createGenerateImportMap(
   }
 
   function processshareScope(importMap: ImportMap, shareScope: string): void {
-    const sharedExternals = ports.sharedExternalsRepo.getAll(shareScope);
+    const sharedExternals = ports.sharedExternalsRepo.getFromScope(shareScope);
     const scopeType = ports.sharedExternalsRepo.scopeType(shareScope);
 
     for (const [externalName, external] of Object.entries(sharedExternals)) {
@@ -162,7 +162,7 @@ export function createGenerateImportMap(
    * @returns
    */
   function addGlobalSharedExternals(importMap: ImportMap): ImportMap {
-    const sharedExternals = ports.sharedExternalsRepo.getAll();
+    const sharedExternals = ports.sharedExternalsRepo.getFromScope();
 
     for (const [externalName, external] of Object.entries(sharedExternals)) {
       for (const version of external.versions) {

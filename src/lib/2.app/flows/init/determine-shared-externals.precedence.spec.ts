@@ -24,7 +24,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
   });
 
   it('should set the host version if available', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
@@ -102,7 +102,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
   });
 
   it('should set the latest version if all equal', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
@@ -183,7 +183,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
     config.strict = false;
     adapters.versionCheck.isCompatible = jest.fn((a, b) => a.substring(0, 2) === b.substring(1, 3));
 
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [
@@ -294,7 +294,7 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
     config.strict = false;
     config.profile.latestSharedExternal = true;
 
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: true,
         versions: [

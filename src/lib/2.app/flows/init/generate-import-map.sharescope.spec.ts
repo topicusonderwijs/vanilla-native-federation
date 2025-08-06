@@ -23,8 +23,8 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
 
     adapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
     adapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({}));
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({}));
     adapters.sharedExternalsRepo.getScopes = jest.fn(
       ({ includeGlobal } = { includeGlobal: true }) =>
         includeGlobal ? [GLOBAL_SCOPE, 'custom-scope'] : ['custom-scope']
@@ -44,7 +44,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   });
 
   it('should add the scoped externals to the right scope.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -101,7 +101,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   });
 
   it('should fallback to scope with the action skip and no shared externals.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -157,7 +157,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   });
 
   it('should override the skipped externals to the right scope.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -214,7 +214,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   });
 
   it('should scope a shared version if no override version is available.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -254,7 +254,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
 
   it('should throw an error if no override version is available and strict.', async () => {
     config.strict = true;
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -289,7 +289,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   });
 
   it('should not override a scoped version.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -365,7 +365,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   });
 
   it('should mark the used versions as cached.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -480,7 +480,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   it('should warn the user about 2 shared versions and choose the most recent one if in non-strict mode.', async () => {
     config.strict = false;
 
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -560,7 +560,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   it('should throw error if 2 shared versions and in strict mode when attempting an override.', async () => {
     config.strict = true;
 
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -624,7 +624,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   it('should warn the user about 0 shared versions and scope all if in non-strict mode.', async () => {
     config.strict = false;
 
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -684,7 +684,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   });
 
   it('should throw an error if the remote doesnt exist', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: false,
         versions: [
@@ -714,7 +714,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   });
 
   it('shoud add a usedBy entry from a shared version to the importMap.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {
@@ -763,7 +763,7 @@ describe('createGenerateImportMap (shareScope-externals)', () => {
   });
 
   it('shoud add a usedBy entry from override version to the importMap.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn((scope?: string): shareScope => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn((scope?: string): shareScope => {
       return !scope || scope === GLOBAL_SCOPE
         ? {}
         : {

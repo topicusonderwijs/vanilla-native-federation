@@ -23,7 +23,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
 
     adapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
     adapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({}));
     adapters.remoteInfoRepo.tryGet = jest.fn(remote => {
       if (remote === 'host')
         return Optional.of({ scopeUrl: 'http://my.service/host/', exposes: [] });
@@ -39,7 +39,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
   });
 
   it('should add the shared externals to the global scope.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: false,
         versions: [
@@ -71,7 +71,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
   });
 
   it('should only add the shared version of the shared external to the global scope.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: false,
         versions: [
@@ -131,7 +131,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
   });
 
   it('should add the scoped version of the shared external to its own scope.', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: false,
         versions: [
@@ -196,7 +196,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
   });
 
   it('should update the version in storage as "cached".', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: false,
         versions: [
@@ -272,7 +272,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
   it('should warn the user about 2 shared versions and choose the most recent one if in non-strict mode.', async () => {
     config.strict = false;
 
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: false,
         versions: [
@@ -324,7 +324,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
   it('should throw error if 2 shared versions and in strict mode.', async () => {
     config.strict = true;
 
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: false,
         versions: [
@@ -368,7 +368,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
   });
 
   it('should throw an error if the remote doesnt exist', async () => {
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': {
         dirty: false,
         versions: [

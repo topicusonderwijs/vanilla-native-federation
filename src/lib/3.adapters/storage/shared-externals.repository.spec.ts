@@ -62,11 +62,11 @@ describe('createSharedExternalsRepository', () => {
     });
   });
 
-  describe('getAll', () => {
+  describe('getFromScope', () => {
     it('should return empty object if no shared deps', () => {
       const { externalsRepo } = setupWithCache({});
 
-      const actual: shareScope = externalsRepo.getAll();
+      const actual: shareScope = externalsRepo.getFromScope();
 
       expect(actual).toEqual({});
     });
@@ -77,7 +77,7 @@ describe('createSharedExternalsRepository', () => {
         ['custom-scope']: { 'dep-b': mockExternalB() },
       });
 
-      const actual: shareScope = externalsRepo.getAll('custom-scope');
+      const actual: shareScope = externalsRepo.getFromScope('custom-scope');
 
       expect(actual).toEqual({ 'dep-b': mockExternalB() });
     });
@@ -88,7 +88,7 @@ describe('createSharedExternalsRepository', () => {
         ['custom-scope']: { 'dep-b': mockExternalB() },
       });
 
-      const actual: shareScope = externalsRepo.getAll();
+      const actual: shareScope = externalsRepo.getFromScope();
 
       expect(actual).toEqual({ 'dep-a': mockExternalA() });
     });

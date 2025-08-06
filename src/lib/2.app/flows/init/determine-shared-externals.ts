@@ -30,7 +30,7 @@ export function createDetermineSharedExternals(
    */
   return () => {
     for (const shareScope of ports.sharedExternalsRepo.getScopes()) {
-      const sharedExternals = ports.sharedExternalsRepo.getAll(shareScope);
+      const sharedExternals = ports.sharedExternalsRepo.getFromScope(shareScope);
 
       try {
         Object.entries(sharedExternals)

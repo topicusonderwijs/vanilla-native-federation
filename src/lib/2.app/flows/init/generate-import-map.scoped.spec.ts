@@ -22,7 +22,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
 
     adapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
     adapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({}));
     adapters.remoteInfoRepo.tryGet = jest.fn(remote => {
       if (remote === 'team/mfe1')
         return Optional.of({ scopeUrl: 'http://my.service/mfe1/', exposes: [] });

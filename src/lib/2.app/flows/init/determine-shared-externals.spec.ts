@@ -23,7 +23,7 @@ describe('createDetermineSharedExternals', () => {
 
   describe("default scenario's", () => {
     it('should set only available version to share', async () => {
-      adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+      adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
         'dep-a': {
           dirty: true,
           versions: [
@@ -73,7 +73,7 @@ describe('createDetermineSharedExternals', () => {
     });
 
     it('should skip if not dirty', async () => {
-      adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+      adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
         'dep-a': {
           dirty: false,
           versions: [
@@ -105,7 +105,7 @@ describe('createDetermineSharedExternals', () => {
     it('should set "skip" if incompatible, strictVersion is false and in non-strict mode', async () => {
       config.strict = false;
 
-      adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+      adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
         'dep-a': {
           dirty: true,
           versions: [
@@ -186,7 +186,7 @@ describe('createDetermineSharedExternals', () => {
     it('should set "scoped" if incompatible, strictVersion is true and in non-strict mode', async () => {
       config.strict = false;
 
-      adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+      adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
         'dep-a': {
           dirty: true,
           versions: [
@@ -267,7 +267,7 @@ describe('createDetermineSharedExternals', () => {
     it('should throw error if incompatible, strictVersion is true and in strict mode', async () => {
       config.strict = true;
 
-      adapters.sharedExternalsRepo.getAll = jest.fn(() => ({
+      adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
         'dep-a': {
           dirty: true,
           versions: [
@@ -317,7 +317,7 @@ describe('createDetermineSharedExternals', () => {
     });
 
     it('should set only one version to share when compatible, the rest to override', async () => {
-      adapters.sharedExternalsRepo.getAll = jest.fn((): shareScope => {
+      adapters.sharedExternalsRepo.getFromScope = jest.fn((): shareScope => {
         return {
           'dep-a': {
             dirty: true,
