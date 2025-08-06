@@ -1,10 +1,7 @@
 import { Manifest } from 'lib/1.domain';
-import {
-  MOCK_REMOTE_ENTRY_SCOPE_I_URL,
-  MOCK_REMOTE_ENTRY_SCOPE_II_URL,
-} from './remote-entry/remote-entry.mock';
+import { mockScopeUrl_MFE1, mockScopeUrl_MFE2 } from './scope-url.mock';
 
-export const MOCK_MANIFEST = (): Manifest => ({
-  'team/mfe1': `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`,
-  'team/mfe2': `${MOCK_REMOTE_ENTRY_SCOPE_II_URL()}remoteEntry.json`,
+export const mockManifest = (): Manifest => ({
+  'team/mfe1': `${mockScopeUrl_MFE1()}remoteEntry.json`,
+  'team/mfe2': `${mockScopeUrl_MFE2()}remoteEntry.json`,
 });

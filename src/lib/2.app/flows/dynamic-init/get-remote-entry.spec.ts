@@ -1,14 +1,12 @@
 import { createGetRemoteEntry } from './get-remote-entry';
 import { DrivingContract } from '../../driving-ports/driving.contract';
-import {
-  MOCK_REMOTE_ENTRY_I,
-  MOCK_REMOTE_ENTRY_SCOPE_I_URL,
-} from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
 import { ForGettingRemoteEntry } from 'lib/2.app/driver-ports/dynamic-init/for-getting-remote-entry.port';
 import { Optional } from 'lib/utils/optional';
 import { mockConfig } from 'lib/6.mocks/config.mock';
 import { mockAdapters } from 'lib/6.mocks/adapters.mock';
 import { NFError } from 'lib/native-federation.error';
+import { mockRemoteEntry_MFE1 } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
+import { mockScopeUrl_MFE1 } from 'lib/6.mocks/domain/scope-url.mock';
 
 describe('createGetRemoteEntry', () => {
   let getRemoteEntry: ForGettingRemoteEntry;
@@ -24,30 +22,27 @@ describe('createGetRemoteEntry', () => {
     getRemoteEntry = createGetRemoteEntry(config, adapters);
 
     adapters.remoteEntryProvider.provide = jest.fn((from: string) =>
-      Promise.resolve({ ...MOCK_REMOTE_ENTRY_I(), url: from })
+      Promise.resolve({ ...mockRemoteEntry_MFE1(), url: from })
     );
   });
 
   describe('fetching remote entry', () => {
     it('should fetch the given remoteEntry', async () => {
-      const result = await getRemoteEntry(
-        `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`,
-        'team/mfe1'
-      );
+      const result = await getRemoteEntry(`${mockScopeUrl_MFE1()}remoteEntry.json`, 'team/mfe1');
 
       expect(adapters.remoteEntryProvider.provide).toHaveBeenCalledWith(
-        `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`
+        `${mockScopeUrl_MFE1()}remoteEntry.json`
       );
 
-      expect(result.get()).toEqual(MOCK_REMOTE_ENTRY_I());
+      expect(result.get()).toEqual(mockRemoteEntry_MFE1());
     });
 
     it('should throw error if remoteEntryProvider fails', async () => {
       adapters.remoteEntryProvider.provide = jest.fn().mockRejectedValue(new Error('Fetch error'));
 
-      await expect(
-        getRemoteEntry(`${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`)
-      ).rejects.toThrow('Could not fetch remoteEntry.');
+      await expect(getRemoteEntry(`${mockScopeUrl_MFE1()}remoteEntry.json`)).rejects.toThrow(
+        'Could not fetch remoteEntry.'
+      );
     });
 
     it('should skip fetching remote if it exists in repository and skipCachedRemotes is always', async () => {
@@ -55,15 +50,12 @@ describe('createGetRemoteEntry', () => {
       adapters.remoteInfoRepo.tryGet = jest.fn(() =>
         Optional.of({
           name: 'team/mfe1',
-          scopeUrl: MOCK_REMOTE_ENTRY_SCOPE_I_URL(),
+          scopeUrl: mockScopeUrl_MFE1(),
           exposes: [],
         })
       );
 
-      const result = await getRemoteEntry(
-        `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`,
-        'team/mfe1'
-      );
+      const result = await getRemoteEntry(`${mockScopeUrl_MFE1()}remoteEntry.json`, 'team/mfe1');
       expect(adapters.remoteInfoRepo.tryGet).toHaveBeenCalledWith('team/mfe1');
 
       expect(adapters.remoteEntryProvider.provide).not.toHaveBeenCalled();
@@ -72,10 +64,7 @@ describe('createGetRemoteEntry', () => {
     });
 
     it('should log a warning if fetched remote name does not match requested name', async () => {
-      const result = await getRemoteEntry(
-        `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`,
-        'team/mfe2'
-      );
+      const result = await getRemoteEntry(`${mockScopeUrl_MFE1()}remoteEntry.json`, 'team/mfe2');
 
       expect(config.log.warn).toHaveBeenCalledWith(
         7,
@@ -84,13 +73,13 @@ describe('createGetRemoteEntry', () => {
 
       expect(result.isPresent()).toBe(true);
       expect(result.get()!.name).toBe('team/mfe1');
-      expect(result.get()!.url).toBe(`${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`);
+      expect(result.get()!.url).toBe(`${mockScopeUrl_MFE1()}remoteEntry.json`);
     });
 
     it('should reject if fetched remote name does not match requested name on strict mode', async () => {
       config.strict = true;
       await expect(
-        getRemoteEntry(`${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`, 'team/mfe2')
+        getRemoteEntry(`${mockScopeUrl_MFE1()}remoteEntry.json`, 'team/mfe2')
       ).rejects.toThrow('Could not fetch remoteEntry.');
 
       expect(config.log.error).toHaveBeenCalledWith(
@@ -107,15 +96,12 @@ describe('createGetRemoteEntry', () => {
       adapters.remoteInfoRepo.tryGet = jest.fn(() =>
         Optional.of({
           name: 'team/mfe1',
-          scopeUrl: MOCK_REMOTE_ENTRY_SCOPE_I_URL(),
+          scopeUrl: mockScopeUrl_MFE1(),
           exposes: [],
         })
       );
 
-      const result = await getRemoteEntry(
-        `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`,
-        'team/mfe1'
-      );
+      const result = await getRemoteEntry(`${mockScopeUrl_MFE1()}remoteEntry.json`, 'team/mfe1');
       expect(adapters.remoteInfoRepo.tryGet).toHaveBeenCalledWith('team/mfe1');
 
       expect(adapters.remoteEntryProvider.provide).not.toHaveBeenCalled();
@@ -128,15 +114,12 @@ describe('createGetRemoteEntry', () => {
       adapters.remoteInfoRepo.tryGet = jest.fn(() =>
         Optional.of({
           name: 'team/mfe1',
-          scopeUrl: MOCK_REMOTE_ENTRY_SCOPE_I_URL(),
+          scopeUrl: mockScopeUrl_MFE1(),
           exposes: [],
         })
       );
 
-      const result = await getRemoteEntry(
-        `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`,
-        'team/mfe1'
-      );
+      const result = await getRemoteEntry(`${mockScopeUrl_MFE1()}remoteEntry.json`, 'team/mfe1');
       expect(adapters.remoteInfoRepo.tryGet).toHaveBeenCalledWith('team/mfe1');
 
       expect(adapters.remoteEntryProvider.provide).not.toHaveBeenCalled();
@@ -162,7 +145,7 @@ describe('createGetRemoteEntry', () => {
       );
 
       expect(result.get()).toEqual({
-        ...MOCK_REMOTE_ENTRY_I(),
+        ...mockRemoteEntry_MFE1(),
         url: 'http://override.url/remoteEntry.json',
         override: true,
       });

@@ -1,7 +1,7 @@
 import { createBrowser } from './browser';
 import { ImportMapConfig } from 'lib/2.app/config/import-map.contract';
 import { ForBrowserTasks } from 'lib/2.app/driving-ports/for-browser-tasks';
-import { MOCK_IMPORT_MAP } from 'lib/6.mocks/domain/import-map.mock';
+import { mockImportMap } from 'lib/6.mocks/domain/import-map.mock';
 
 function setupDomEnvironment() {
   document.head.innerHTML = '';
@@ -35,7 +35,7 @@ describe('createBrowser', () => {
 
   describe('setImportMap', () => {
     it('should create a new script element with correct type', () => {
-      const importMap = MOCK_IMPORT_MAP();
+      const importMap = mockImportMap();
       browser.setImportMap(importMap);
 
       const script = document.head.querySelector('script[type="importmap"]');
@@ -51,7 +51,7 @@ describe('createBrowser', () => {
 
       expect(document.head.querySelectorAll('script[type="importmap"]').length).toBe(1);
 
-      const importMap = MOCK_IMPORT_MAP();
+      const importMap = mockImportMap();
       browser.setImportMap(importMap);
 
       const scripts = document.head.querySelectorAll('script[type="importmap"]');
@@ -67,7 +67,7 @@ describe('createBrowser', () => {
 
       expect(document.head.querySelectorAll('script[type="importmap"]').length).toBe(1);
 
-      const importMap = MOCK_IMPORT_MAP();
+      const importMap = mockImportMap();
       browser.setImportMap(importMap, { override: true });
 
       const scripts = document.head.querySelectorAll('script[type="importmap"]');
@@ -76,7 +76,7 @@ describe('createBrowser', () => {
     });
 
     it('should set the innerHTML to stringified import map', () => {
-      const importMap = MOCK_IMPORT_MAP();
+      const importMap = mockImportMap();
       browser.setImportMap(importMap);
 
       const script = document.head.querySelector('script[type="importmap"]');
@@ -84,7 +84,7 @@ describe('createBrowser', () => {
     });
 
     it('should return the import map', () => {
-      const importMap = MOCK_IMPORT_MAP();
+      const importMap = mockImportMap();
       const result = browser.setImportMap(importMap);
 
       expect(result).toEqual(importMap);
@@ -94,7 +94,7 @@ describe('createBrowser', () => {
       mockConfig.importMapType = 'custom-importmap';
       browser = createBrowser(mockConfig);
 
-      const importMap = MOCK_IMPORT_MAP();
+      const importMap = mockImportMap();
       browser.setImportMap(importMap);
 
       expect(document.head.querySelector('script[type="custom-importmap"]')).not.toBeNull();
@@ -111,7 +111,7 @@ describe('createBrowser', () => {
 
       expect(document.head.querySelectorAll('script[type="importmap"]').length).toBe(3);
 
-      const importMap = MOCK_IMPORT_MAP();
+      const importMap = mockImportMap();
       browser.setImportMap(importMap, { override: true });
 
       const scripts = document.head.querySelectorAll('script[type="importmap"]');

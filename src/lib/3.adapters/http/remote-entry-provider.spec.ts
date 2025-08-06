@@ -1,12 +1,10 @@
 import { createRemoteEntryProvider } from './remote-entry-provider';
 import { RemoteEntry } from 'lib/1.domain/remote-entry/remote-entry.contract';
 import { ForProvidingRemoteEntries } from 'lib/2.app/driving-ports/for-providing-remote-entries.port';
+import { mockFederationInfo_MFE1 } from 'lib/6.mocks/domain/remote-entry/federation-info.mock';
+import { mockRemoteEntry_MFE1 } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
+import { mockScopeUrl_MFE1 } from 'lib/6.mocks/domain/scope-url.mock';
 import { NFError } from 'lib/native-federation.error';
-import { MOCK_FEDERATION_INFO_I } from 'lib/6.mocks/domain/remote-entry/federation-info.mock';
-import {
-  MOCK_REMOTE_ENTRY_I,
-  MOCK_REMOTE_ENTRY_SCOPE_I_URL,
-} from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
 
 describe('createRemoteEntryProvider', () => {
   let remoteEntryProvider: ForProvidingRemoteEntries;
@@ -35,33 +33,29 @@ describe('createRemoteEntryProvider', () => {
 
   describe('provide', () => {
     it('should fetch and return the remote entry', async () => {
-      mockFetchAPI(MOCK_FEDERATION_INFO_I(), { success: true });
+      mockFetchAPI(mockFederationInfo_MFE1(), { success: true });
 
-      const result = await remoteEntryProvider.provide(
-        `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`
-      );
+      const result = await remoteEntryProvider.provide(`${mockScopeUrl_MFE1()}remoteEntry.json`);
 
-      expect(fetch).toHaveBeenCalledWith(`${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`);
-      expect(result).toEqual(MOCK_REMOTE_ENTRY_I());
+      expect(fetch).toHaveBeenCalledWith(`${mockScopeUrl_MFE1()}remoteEntry.json`);
+      expect(result).toEqual(mockRemoteEntry_MFE1());
     });
 
     it('should fill empty fields with defaults', async () => {
       mockFetchAPI({ name: 'test-remote' }, { success: true });
 
-      const result = await remoteEntryProvider.provide(
-        `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`
-      );
+      const result = await remoteEntryProvider.provide(`${mockScopeUrl_MFE1()}remoteEntry.json`);
 
       expect(result).toEqual({
         name: 'test-remote',
-        url: `${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`,
+        url: `${mockScopeUrl_MFE1()}remoteEntry.json`,
         exposes: [],
         shared: [],
       });
     });
 
     it('should reject with NFError when fetch fails', async () => {
-      mockFetchAPI(MOCK_FEDERATION_INFO_I(), { success: false });
+      mockFetchAPI(mockFederationInfo_MFE1(), { success: false });
 
       await expect(
         remoteEntryProvider.provide('http://bad.service/remoteEntry.js')
@@ -80,7 +74,7 @@ describe('createRemoteEntryProvider', () => {
       }) as jest.Mock;
 
       await expect(
-        remoteEntryProvider.provide(`${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}remoteEntry.json`)
+        remoteEntryProvider.provide(`${mockScopeUrl_MFE1()}remoteEntry.json`)
       ).rejects.toEqual(
         new NFError("Fetch of 'http://my.service/mfe1/remoteEntry.json' returned Invalid JSON")
       );

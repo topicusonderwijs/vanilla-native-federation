@@ -1,4 +1,10 @@
-import { ExternalsScope, SharedExternal, SharedVersion, shareScope } from 'lib/1.domain';
+import {
+  ExternalsScope,
+  SharedExternal,
+  SharedVersion,
+  SharedVersionMeta,
+  shareScope,
+} from 'lib/1.domain';
 
 const mockRemote = (
   name: string,
@@ -9,7 +15,7 @@ const mockRemote = (
     cached?: boolean;
     host?: boolean;
   } = {}
-) => ({
+): SharedVersionMeta => ({
   file: `${external}.js`,
   name,
   requiredVersion: options.requiredVersion || '~2.1.0',
@@ -55,10 +61,10 @@ const mockExternal = (versions: SharedVersion[], dirty = false): SharedExternal 
 });
 
 export const mockVersion = {
-  v: (tag: string, external: string, remotes: string[] | Record<string, any>) =>
+  shared: (tag: string, external: string, remotes: string[] | Record<string, any>) =>
     mockSharedVersion(tag, remotes, external),
 
-  scopedV: (tag: string, external: string) => mockScopedVersion(tag, external),
+  scoped: (tag: string, external: string) => mockScopedVersion(tag, external),
 
   external: (versions: SharedVersion[], o = { dirty: true }) => mockExternal(versions, o.dirty),
 
@@ -73,26 +79,27 @@ export const mockVersion = {
 
 export const mockExternalA = (): SharedExternal =>
   mockVersion.external([
-    mockVersion.v('2.1.2', 'dep-a', ['team/mfe1', 'team/mfe2']),
-    mockVersion.v('2.1.1', 'dep-a', ['team/mfe3']),
+    mockVersion.shared('2.1.2', 'dep-a', ['team/mfe1', 'team/mfe2']),
+    mockVersion.shared('2.1.1', 'dep-a', ['team/mfe3']),
   ]);
 
 export const mockExternalB = (): SharedExternal =>
   mockVersion.external([
-    mockVersion.v('2.2.2', 'dep-b', ['team/mfe1']),
-    mockVersion.v('2.1.2', 'dep-b', ['team/mfe2']),
-    mockVersion.v('2.1.1', 'dep-b', ['team/mfe3']),
+    mockVersion.shared('2.2.2', 'dep-b', ['team/mfe1']),
+    mockVersion.shared('2.1.2', 'dep-b', ['team/mfe2']),
+    mockVersion.shared('2.1.1', 'dep-b', ['team/mfe3']),
   ]);
 
 export const mockExternalC = (): SharedExternal =>
   mockVersion.external([
-    mockVersion.v('2.2.2', 'dep-c', ['team/mfe1']),
-    mockVersion.v('2.2.1', 'dep-c', { 'team/mfe2': {}, host: { host: true } }),
+    mockVersion.shared('2.2.2', 'dep-c', ['team/mfe1']),
+    mockVersion.shared('2.2.1', 'dep-c', { 'team/mfe2': {}, host: { host: true } }),
   ]);
 
 export const mockExternalD = (): SharedExternal =>
-  mockVersion.external([mockVersion.v('2.2.2', 'dep-d', ['team/mfe1', 'team/mfe2'])]);
+  mockVersion.external([mockVersion.shared('2.2.2', 'dep-d', ['team/mfe1', 'team/mfe2'])]);
 
+// todo: check
 export const mockSharedExternals = (): shareScope => ({
   'dep-a': mockExternalA(),
   'dep-b': mockExternalB(),
@@ -100,6 +107,6 @@ export const mockSharedExternals = (): shareScope => ({
 });
 
 export const MOCK_SCOPED_EXTERNALS_SCOPE = (): ExternalsScope => ({
-  'dep-a': mockVersion.scopedV('1.2.3', 'dep-a'),
-  'dep-b': mockVersion.scopedV('1.2.4', 'dep-b'),
+  'dep-a': mockVersion.scoped('1.2.3', 'dep-a'),
+  'dep-b': mockVersion.scoped('1.2.4', 'dep-b'),
 });
