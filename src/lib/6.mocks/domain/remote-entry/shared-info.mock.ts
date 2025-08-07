@@ -110,3 +110,33 @@ export const mockSharedInfoD = {
       version: '2.2.2',
     }),
 };
+
+export const mockSharedInfoE = {
+  v1_2_3: () =>
+    mockSharedInfo('dep-e', {
+      requiredVersion: '~1.2.0',
+      version: '1.2.3',
+      singleton: false,
+    }),
+  v1_2_4: () =>
+    mockSharedInfo('dep-e', {
+      requiredVersion: '~1.2.0',
+      version: '1.2.4',
+      singleton: false,
+    }),
+};
+
+export const mockSharedInfoF = {
+  v1_2_3: () =>
+    mockSharedInfo('dep-f', {
+      requiredVersion: '~1.2.0',
+      version: '1.2.3',
+      singleton: false,
+    }),
+  v1_2_4: () =>
+    mockSharedInfo('dep-f', {
+      requiredVersion: '~1.2.0',
+      version: '1.2.4',
+      singleton: false,
+    }),
+};

@@ -1,6 +1,6 @@
 import { SharedVersion, SharedVersionAction, SharedVersionMeta } from 'lib/1.domain';
 
-const mockRemote = (
+export const mockVersionRemote = (
   name: string,
   external: string = 'test-dep',
   options: {
@@ -23,17 +23,17 @@ type mockSharedVersionOptions = {
   action?: SharedVersionAction;
 };
 
-const mockSharedVersion = (
+export const mockSharedVersion = (
   tag: string,
   external: string = 'test-dep',
   opt: mockSharedVersionOptions
 ): SharedVersion => {
   const remoteList = Array.isArray(opt.remotes)
     ? opt.remotes.map(name =>
-        mockRemote(name, external, { requiredVersion: `~${tag.substring(0, 3)}.0` })
+        mockVersionRemote(name, external, { requiredVersion: `~${tag.substring(0, 3)}.0` })
       )
     : Object.entries(opt.remotes).map(([name, remoteOpt]) =>
-        mockRemote(name, external, {
+        mockVersionRemote(name, external, {
           requiredVersion: `~${tag.substring(0, 3)}.0`,
           ...remoteOpt,
         })
@@ -51,7 +51,7 @@ const mockSharedVersion = (
   };
 };
 
-const mockScopedVersion = (tag: string, external: string = 'test-dep') => ({
+export const mockScopedVersion = (tag: string, external: string = 'test-dep') => ({
   tag,
   file: `${external}.js`,
 });
