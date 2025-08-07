@@ -8,7 +8,7 @@ import { RemoteInfo } from 'lib/1.domain';
 import { mockConfig } from 'lib/6.mocks/config.mock';
 import { mockAdapters } from 'lib/6.mocks/adapters.mock';
 import {
-  mockScopeUrl_host,
+  mockScopeUrl_HOST,
   mockScopeUrl_MFE1,
   mockScopeUrl_MFE2,
 } from 'lib/6.mocks/domain/scope-url.mock';
@@ -97,7 +97,7 @@ describe('createGetRemoteEntries', () => {
   describe('inclusion of host remoteEntry', () => {
     beforeEach(() => {
       adapters.remoteEntryProvider.provide = jest.fn((url: string) => {
-        if (url.startsWith(`${mockScopeUrl_host()}remoteEntry.json`)) {
+        if (url.startsWith(`${mockScopeUrl_HOST()}remoteEntry.json`)) {
           return Promise.resolve(mockRemoteEntry_HOST());
         }
         if (url === `${mockScopeUrl_MFE1()}remoteEntry.json`) {
@@ -113,7 +113,7 @@ describe('createGetRemoteEntries', () => {
     it('should process hostRemoteEntry if defined in config', async () => {
       config.hostRemoteEntry = {
         name: 'team/host',
-        url: `${mockScopeUrl_host()}remoteEntry.json`,
+        url: `${mockScopeUrl_HOST()}remoteEntry.json`,
       };
       const actual = await getRemoteEntries(mockManifest());
 
@@ -130,13 +130,13 @@ describe('createGetRemoteEntries', () => {
     it('should add a cacheTag if defined in config', async () => {
       config.hostRemoteEntry = {
         name: 'team/host',
-        url: `${mockScopeUrl_host()}remoteEntry.json`,
+        url: `${mockScopeUrl_HOST()}remoteEntry.json`,
         cacheTag: '123abc',
       };
       const actual = await getRemoteEntries(mockManifest());
 
       expect(adapters.remoteEntryProvider.provide).toHaveBeenCalledWith(
-        `${mockScopeUrl_host()}remoteEntry.json?cacheTag=123abc`
+        `${mockScopeUrl_HOST()}remoteEntry.json?cacheTag=123abc`
       );
 
       expect(actual).toEqual([
@@ -149,7 +149,7 @@ describe('createGetRemoteEntries', () => {
     it('should rename host remoteName to config defined name', async () => {
       config.hostRemoteEntry = {
         name: 'newHostName',
-        url: `${mockScopeUrl_host()}remoteEntry.json`,
+        url: `${mockScopeUrl_HOST()}remoteEntry.json`,
       };
       const actual = await getRemoteEntries({});
 

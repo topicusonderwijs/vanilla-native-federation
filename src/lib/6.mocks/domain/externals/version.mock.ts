@@ -1,4 +1,4 @@
-import { SharedVersion, SharedVersionAction, SharedVersionMeta } from 'lib/1.domain';
+import { ScopedVersion, SharedVersion, SharedVersionAction, SharedVersionMeta } from 'lib/1.domain';
 
 export const mockVersionRemote = (
   name: string,
@@ -51,7 +51,7 @@ export const mockSharedVersion = (
   };
 };
 
-export const mockScopedVersion = (tag: string, external: string = 'test-dep') => ({
+export const mockScopedVersion = (tag: string, external: string = 'test-dep'): ScopedVersion => ({
   tag,
   file: `${external}.js`,
 });

@@ -32,72 +32,66 @@ describe('createProcessRemoteEntries - shareScope', () => {
     adapters.versionCheck.compare = jest.fn(() => 0);
   });
 
-  describe('process shared externals - default cases', () => {
-    it('should add to shareScope', async () => {
-      adapters.sharedExternalsRepo.tryGet = jest.fn(
-        (): Optional<SharedExternal> => Optional.empty()
-      );
+  it('should add to shareScope', async () => {
+    adapters.sharedExternalsRepo.tryGet = jest.fn((): Optional<SharedExternal> => Optional.empty());
 
-      const remoteEntries = [
-        mockRemoteEntry_MFE1({ shared: [mockSharedInfoA.v2_1_2({ shareScope: 'custom-scope' })] }),
-      ];
+    const remoteEntries = [
+      mockRemoteEntry_MFE1({ shared: [mockSharedInfoA.v2_1_2({ shareScope: 'custom-scope' })] }),
+    ];
 
-      await processRemoteEntries(remoteEntries);
+    await processRemoteEntries(remoteEntries);
 
-      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
-      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
-        'dep-a',
-        mockExternal.shared([mockVersion_A.v2_1_2({ remotes: ['team/mfe1'] })], { dirty: true }),
-        'custom-scope'
-      );
-    });
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      'dep-a',
+      mockExternal.shared([mockVersion_A.v2_1_2({ remotes: ['team/mfe1'] })], { dirty: true }),
+      'custom-scope'
+    );
   });
 
-  describe('process shared externals - strict shareScope', () => {
-    it('should add to shareScope', async () => {
-      adapters.sharedExternalsRepo.scopeType = jest.fn(() => 'strict');
+  it('should handle "strict" shareScope', async () => {
+    adapters.sharedExternalsRepo.scopeType = jest.fn(() => 'strict');
 
-      adapters.sharedExternalsRepo.tryGet = jest.fn(
-        (): Optional<SharedExternal> =>
-          Optional.of(
-            mockExternal.shared(
-              [
-                mockVersion_A.v2_1_1({
-                  remotes: { 'team/mfe2': { requiredVersion: '2.1.1' } },
-                  action: 'share',
-                }),
-              ],
-              { dirty: false }
-            )
+    adapters.sharedExternalsRepo.tryGet = jest.fn(
+      (): Optional<SharedExternal> =>
+        Optional.of(
+          mockExternal.shared(
+            [
+              mockVersion_A.v2_1_1({
+                remotes: { 'team/mfe2': { requiredVersion: '2.1.1' } },
+                action: 'share',
+              }),
+            ],
+            { dirty: false }
           )
-      );
+        )
+    );
 
-      const remoteEntries = [
-        mockRemoteEntry_MFE1({
-          shared: [mockSharedInfoA.v2_1_2({ shareScope: 'strict', requiredVersion: '2.1.2' })],
-        }),
-      ];
+    const remoteEntries = [
+      mockRemoteEntry_MFE1({
+        shared: [mockSharedInfoA.v2_1_2({ shareScope: 'strict', requiredVersion: '2.1.2' })],
+      }),
+    ];
 
-      await processRemoteEntries(remoteEntries);
+    await processRemoteEntries(remoteEntries);
 
-      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
-      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
-        'dep-a',
-        mockExternal.shared(
-          [
-            mockVersion_A.v2_1_1({
-              remotes: { 'team/mfe2': { requiredVersion: '2.1.1' } },
-              action: 'share',
-            }),
-            mockVersion_A.v2_1_2({
-              remotes: { 'team/mfe1': { requiredVersion: '2.1.2' } },
-              action: 'share',
-            }),
-          ],
-          { dirty: false }
-        ),
-        'strict'
-      );
-    });
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      'dep-a',
+      mockExternal.shared(
+        [
+          mockVersion_A.v2_1_1({
+            remotes: { 'team/mfe2': { requiredVersion: '2.1.1' } },
+            action: 'share',
+          }),
+          mockVersion_A.v2_1_2({
+            remotes: { 'team/mfe1': { requiredVersion: '2.1.2' } },
+            action: 'share',
+          }),
+        ],
+        { dirty: false }
+      ),
+      'strict'
+    );
   });
 });

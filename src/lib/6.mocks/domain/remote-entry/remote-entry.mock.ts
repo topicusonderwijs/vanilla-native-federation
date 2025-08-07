@@ -1,6 +1,6 @@
 import { RemoteEntry, FederationInfo } from 'lib/1.domain';
 import {
-  mockScopeUrl_host,
+  mockScopeUrl_HOST,
   mockScopeUrl_MFE1,
   mockScopeUrl_MFE2,
   mockScopeUrl_MFE3,
@@ -22,23 +22,23 @@ type MockRemoteEntryOptions = Partial<FederationInfo> & {
  * --------------------------------------
  */
 export const mockRemoteEntry = (
-  scopeUrl: string,
+  scopeUrl: (o: { file: string }) => string,
   federationInfo: FederationInfo = mockFederationInfo_MFE1(),
   opts: MockRemoteEntryOptions = {}
 ): RemoteEntry => ({
   ...federationInfo,
   ...opts,
-  url: `${scopeUrl}remoteEntry.json`,
+  url: scopeUrl({ file: 'remoteEntry.json' }),
 });
 
 export const mockRemoteEntry_MFE1 = (opts: MockRemoteEntryOptions = {}): RemoteEntry =>
-  mockRemoteEntry(mockScopeUrl_MFE1(), mockFederationInfo_MFE1(), opts);
+  mockRemoteEntry(mockScopeUrl_MFE1, mockFederationInfo_MFE1(), opts);
 
 export const mockRemoteEntry_MFE2 = (opts: MockRemoteEntryOptions = {}): RemoteEntry =>
-  mockRemoteEntry(mockScopeUrl_MFE2(), mockFederationInfo_MFE2(), opts);
+  mockRemoteEntry(mockScopeUrl_MFE2, mockFederationInfo_MFE2(), opts);
 
 export const mockRemoteEntry_MFE3 = (opts: MockRemoteEntryOptions = {}): RemoteEntry =>
-  mockRemoteEntry(mockScopeUrl_MFE3(), mockFederationInfo_MFE3(), opts);
+  mockRemoteEntry(mockScopeUrl_MFE3, mockFederationInfo_MFE3(), opts);
 
 export const mockRemoteEntry_HOST = (opts: MockRemoteEntryOptions = {}): RemoteEntry =>
-  mockRemoteEntry(mockScopeUrl_host(), { host: true, ...mockFederationInfo_HOST(), ...opts });
+  mockRemoteEntry(mockScopeUrl_HOST, { host: true, ...mockFederationInfo_HOST(), ...opts });
