@@ -35,9 +35,9 @@ type SharedInfoOptions = {
 export const mockSharedInfoA = {
   v2_1_3: (o: SharedInfoOptions = {}) =>
     mockSharedInfo('dep-a', {
+      singleton: true,
       ...o,
       requiredVersion: o.requiredVersion ?? '~2.1.0',
-      singleton: true,
       version: '2.1.3',
     }),
   v2_1_2: (o: SharedInfoOptions = {}) =>
@@ -49,16 +49,16 @@ export const mockSharedInfoA = {
     }),
   v2_1_1: (o: SharedInfoOptions = {}) =>
     mockSharedInfo('dep-a', {
+      singleton: true,
       ...o,
       requiredVersion: o.requiredVersion ?? '~2.1.0',
-      singleton: true,
       version: '2.1.1',
     }),
   v2_2_1: (o: SharedInfoOptions = {}) =>
     mockSharedInfo('dep-a', {
+      singleton: true,
       ...o,
       requiredVersion: o.requiredVersion ?? '~2.2.0',
-      singleton: true,
       version: '2.2.2',
     }),
 };
@@ -66,23 +66,23 @@ export const mockSharedInfoA = {
 export const mockSharedInfoB = {
   v2_2_2: (o: SharedInfoOptions = {}) =>
     mockSharedInfo('dep-b', {
+      singleton: true,
       ...o,
       requiredVersion: o.requiredVersion ?? '~2.2.0',
-      singleton: true,
       version: '2.2.2',
     }),
   v2_1_2: (o: SharedInfoOptions = {}) =>
     mockSharedInfo('dep-b', {
+      singleton: true,
       ...o,
       requiredVersion: o.requiredVersion ?? '~2.1.0',
-      singleton: true,
       version: '2.1.2',
     }),
   v2_1_1: (o: SharedInfoOptions = {}) =>
     mockSharedInfo('dep-b', {
+      singleton: true,
       ...o,
       requiredVersion: o.requiredVersion ?? '~2.1.0',
-      singleton: true,
       version: '2.1.1',
     }),
 };

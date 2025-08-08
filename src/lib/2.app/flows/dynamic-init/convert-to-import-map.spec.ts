@@ -3,6 +3,19 @@ import { ForConvertingToImportMap } from 'lib/2.app/driver-ports/dynamic-init/fo
 import { createConvertToImportMap } from './convert-to-import-map';
 import { RemoteEntry, SharedInfoActions } from 'lib/1.domain';
 import { mockConfig } from 'lib/6.mocks/config.mock';
+import { mockRemoteEntry_MFE2 } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
+import { mockScopeUrl_MFE1, mockScopeUrl_MFE2 } from 'lib/6.mocks/domain/scope-url.mock';
+import {
+  mockSharedInfoA,
+  mockSharedInfoB,
+  mockSharedInfoC,
+  mockSharedInfoE,
+  mockSharedInfoF,
+} from 'lib/6.mocks/domain/remote-entry/shared-info.mock';
+import {
+  mockExposedModuleA,
+  mockExposedModuleB,
+} from 'lib/6.mocks/domain/remote-entry/exposes-info.mock';
 
 describe('createConvertToImportMap', () => {
   let convertToImportMap: ForConvertingToImportMap;
@@ -16,33 +29,21 @@ describe('createConvertToImportMap', () => {
 
   describe('Remote Entry Exposes', () => {
     it('should add remote entry exposes to importMap', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        exposes: [
-          { key: 'ComponentA', outFileName: 'component-a.js' },
-          { key: 'ComponentB', outFileName: 'component-b.js' },
-        ],
-        shared: [],
-      };
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({ shared: [] });
       const actions: SharedInfoActions = {};
 
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
       expect(importMap).toEqual({
         imports: {
-          'remote/ComponentA': 'http://my.service/mfe1/component-a.js',
-          'remote/ComponentB': 'http://my.service/mfe1/component-b.js',
+          'team/mfe2/./wc-comp-b': mockScopeUrl_MFE2({ file: 'component-b.js' }),
+          'team/mfe2/./wc-comp-c': mockScopeUrl_MFE2({ file: 'component-c.js' }),
         },
       });
     });
 
     it('should handle empty exposes array', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        exposes: [],
-        shared: [],
-      };
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({ shared: [], exposes: [] });
+
       const actions: SharedInfoActions = {};
 
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
@@ -52,11 +53,8 @@ describe('createConvertToImportMap', () => {
     });
 
     it('should handle missing exposes property', async () => {
-      const remoteEntry: any = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        shared: [],
-      };
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({ shared: [], exposes: undefined });
+
       const actions: SharedInfoActions = {};
 
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
@@ -68,66 +66,40 @@ describe('createConvertToImportMap', () => {
 
   describe('Shared Externals - singleton: false (Scoped)', () => {
     it('should add non-singleton externals to scoped imports', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        shared: [
-          {
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-            singleton: false,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-          },
-          {
-            packageName: 'dep-b',
-            outFileName: 'dep-b.js',
-            singleton: false,
-            strictVersion: false,
-            requiredVersion: '1.0.0',
-          },
-        ],
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
         exposes: [],
-      };
+        shared: [mockSharedInfoE.v1_2_3(), mockSharedInfoF.v1_2_4()],
+      });
+
       const actions: SharedInfoActions = {};
 
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
       expect(importMap).toEqual({
         imports: {},
         scopes: {
-          'http://my.service/mfe1/': {
-            'dep-a': 'http://my.service/mfe1/dep-a.js',
-            'dep-b': 'http://my.service/mfe1/dep-b.js',
+          'http://my.service/mfe2/': {
+            'dep-e': mockScopeUrl_MFE2({ file: 'dep-e.js' }),
+            'dep-f': mockScopeUrl_MFE2({ file: 'dep-f.js' }),
           },
         },
       });
     });
 
-    it('should not overrides for non-singleton externals', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        shared: [
-          {
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-            singleton: false,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-          },
-        ],
+    it('should not override for non-singleton externals', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
         exposes: [],
-      };
+        shared: [mockSharedInfoE.v1_2_3()],
+      });
       const actions: SharedInfoActions = {
-        'dep-a': { action: 'scope', override: 'http://scope-a.example.com/scope-a/' },
+        'dep-e': { action: 'scope', override: mockScopeUrl_MFE1({ file: 'dep-e.js' }) },
       };
 
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
       expect(importMap).toEqual({
         imports: {},
         scopes: {
-          'http://my.service/mfe1/': {
-            'dep-a': 'http://my.service/mfe1/dep-a.js',
+          [mockScopeUrl_MFE2()]: {
+            'dep-e': mockScopeUrl_MFE2({ file: 'dep-e.js' }),
           },
         },
       });
@@ -136,20 +108,10 @@ describe('createConvertToImportMap', () => {
 
   describe('Shared Externals - Singleton with "skip" action', () => {
     it('should skip externals with skip action and no shareScope', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        shared: [
-          {
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-            singleton: true,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-          },
-        ],
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
         exposes: [],
-      };
+        shared: [mockSharedInfoA.v2_1_2()],
+      });
       const actions: SharedInfoActions = {
         'dep-a': { action: 'skip' },
       };
@@ -161,31 +123,20 @@ describe('createConvertToImportMap', () => {
     });
 
     it('should handle skip action with override and shareScope', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        shared: [
-          {
-            packageName: 'dep-a',
-            outFileName: 'dep-a-xyz.js',
-            singleton: true,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-            shareScope: 'custom-scope',
-          },
-        ],
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
         exposes: [],
-      };
+        shared: [mockSharedInfoA.v2_1_2({ shareScope: 'custom-scope' })],
+      });
       const actions: SharedInfoActions = {
-        'dep-a': { action: 'skip', override: 'http://my.service/mfe2/dep-a-abc.js' },
+        'dep-a': { action: 'skip', override: mockScopeUrl_MFE1({ file: 'dep-a.js' }) },
       };
 
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
       expect(importMap).toEqual({
         imports: {},
         scopes: {
-          'http://my.service/mfe1/': {
-            'dep-a': 'http://my.service/mfe2/dep-a-abc.js',
+          [mockScopeUrl_MFE2()]: {
+            'dep-a': mockScopeUrl_MFE1({ file: 'dep-a.js' }),
           },
         },
       });
@@ -194,20 +145,10 @@ describe('createConvertToImportMap', () => {
 
   describe('Shared Externals - Singleton with "scope" action', () => {
     it('should add scoped externals with scope action', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        shared: [
-          {
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-            singleton: true,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-          },
-        ],
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
         exposes: [],
-      };
+        shared: [mockSharedInfoA.v2_1_2({ shareScope: 'custom-scope' })],
+      });
       const actions: SharedInfoActions = {
         'dep-a': { action: 'scope' },
       };
@@ -216,8 +157,8 @@ describe('createConvertToImportMap', () => {
       expect(importMap).toEqual({
         imports: {},
         scopes: {
-          'http://my.service/mfe1/': {
-            'dep-a': 'http://my.service/mfe1/dep-a.js',
+          [mockScopeUrl_MFE2()]: {
+            'dep-a': mockScopeUrl_MFE2({ file: 'dep-a.js' }),
           },
         },
       });
@@ -226,21 +167,10 @@ describe('createConvertToImportMap', () => {
 
   describe('Shared Externals - Singleton shareScope with "share" action', () => {
     it('should add the shared external to the specific scope when shareScope is defined', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        shared: [
-          {
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-            singleton: true,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-            shareScope: 'custom-scope',
-          },
-        ],
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
         exposes: [],
-      };
+        shared: [mockSharedInfoA.v2_1_2({ shareScope: 'custom-scope' })],
+      });
       const actions: SharedInfoActions = {
         'dep-a': { action: 'share' },
       };
@@ -248,8 +178,8 @@ describe('createConvertToImportMap', () => {
       expect(importMap).toEqual({
         imports: {},
         scopes: {
-          'http://my.service/mfe1/': {
-            'dep-a': 'http://my.service/mfe1/dep-a.js',
+          [mockScopeUrl_MFE2()]: {
+            'dep-a': mockScopeUrl_MFE2({ file: 'dep-a.js' }),
           },
         },
       });
@@ -257,28 +187,11 @@ describe('createConvertToImportMap', () => {
   });
 
   describe('Shared Externals - Singleton with "share" action', () => {
-    it('should add globally shared externals to imports when no action specified (defaults to share)', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        shared: [
-          {
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-            singleton: true,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-          },
-          {
-            packageName: 'dep-b',
-            outFileName: 'dep-b.js',
-            singleton: true,
-            strictVersion: false,
-            requiredVersion: '1.0.0',
-          },
-        ],
+    it('should add globally shared externals with no shareScope', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
         exposes: [],
-      };
+        shared: [mockSharedInfoA.v2_1_2(), mockSharedInfoB.v2_1_2()],
+      });
       const actions: SharedInfoActions = {
         'dep-a': { action: 'share' },
         'dep-b': { action: 'share' },
@@ -287,27 +200,17 @@ describe('createConvertToImportMap', () => {
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
       expect(importMap).toEqual({
         imports: {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
-          'dep-b': 'http://my.service/mfe1/dep-b.js',
+          'dep-a': mockScopeUrl_MFE2({ file: 'dep-a.js' }),
+          'dep-b': mockScopeUrl_MFE2({ file: 'dep-b.js' }),
         },
       });
     });
 
     it('should skip singleton externals without actions defined', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        shared: [
-          {
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-            singleton: true,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-          },
-        ],
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
         exposes: [],
-      };
+        shared: [mockSharedInfoA.v2_1_2()],
+      });
       const actions: SharedInfoActions = {};
 
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
@@ -319,23 +222,10 @@ describe('createConvertToImportMap', () => {
 
   describe('Combined Functionality', () => {
     it('should handle remote entry with both exposes and shared externals', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
-        exposes: [
-          { key: 'Component', outFileName: 'component.js' },
-          { key: 'Service', outFileName: 'service.js' },
-        ],
-        shared: [
-          {
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-            singleton: true,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-          },
-        ],
-      };
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
+        exposes: [mockExposedModuleA(), mockExposedModuleB()],
+        shared: [mockSharedInfoA.v2_1_2()],
+      });
       const actions: SharedInfoActions = {
         'dep-a': { action: 'share' },
       };
@@ -343,56 +233,36 @@ describe('createConvertToImportMap', () => {
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
       expect(importMap).toEqual({
         imports: {
-          'remote/Component': 'http://my.service/mfe1/component.js',
-          'remote/Service': 'http://my.service/mfe1/service.js',
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+          'team/mfe2/./wc-comp-a': mockScopeUrl_MFE2({ file: 'component-a.js' }),
+          'team/mfe2/./wc-comp-b': mockScopeUrl_MFE2({ file: 'component-b.js' }),
+          'dep-a': mockScopeUrl_MFE2({ file: 'dep-a.js' }),
         },
       });
     });
 
     it('should handle mixed singleton and non-singleton externals', async () => {
-      const remoteEntry: RemoteEntry = {
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        name: 'remote',
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
         exposes: [],
         shared: [
-          {
-            packageName: 'shared-global',
-            outFileName: 'shared-global.js',
-            singleton: true,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-          },
-          {
-            packageName: 'scoped-dep',
-            outFileName: 'scoped-dep.js',
-            singleton: false,
-            strictVersion: false,
-            requiredVersion: '1.0.0',
-          },
-          {
-            packageName: 'scoped-singleton',
-            outFileName: 'scoped-singleton.js',
-            singleton: true,
-            strictVersion: true,
-            requiredVersion: '1.0.0',
-          },
+          mockSharedInfoA.v2_1_2({ singleton: true }), // Shared
+          mockSharedInfoB.v2_1_1({ singleton: false }), // Scoped
+          mockSharedInfoC.v2_2_1({ singleton: true }), // Scoped
         ],
-      };
+      });
       const actions: SharedInfoActions = {
-        'shared-global': { action: 'share' },
-        'scoped-singleton': { action: 'scope' },
+        'dep-a': { action: 'share' },
+        'dep-c': { action: 'scope' },
       };
 
       const importMap = await convertToImportMap({ entry: remoteEntry, actions });
       expect(importMap).toEqual({
         imports: {
-          'shared-global': 'http://my.service/mfe1/shared-global.js',
+          'dep-a': mockScopeUrl_MFE2({ file: 'dep-a.js' }),
         },
         scopes: {
-          'http://my.service/mfe1/': {
-            'scoped-dep': 'http://my.service/mfe1/scoped-dep.js',
-            'scoped-singleton': 'http://my.service/mfe1/scoped-singleton.js',
+          [mockScopeUrl_MFE2()]: {
+            'dep-b': mockScopeUrl_MFE2({ file: 'dep-b.js' }),
+            'dep-c': mockScopeUrl_MFE2({ file: 'dep-c.js' }),
           },
         },
       });
