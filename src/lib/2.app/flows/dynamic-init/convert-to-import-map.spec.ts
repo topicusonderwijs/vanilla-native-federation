@@ -41,6 +41,19 @@ describe('createConvertToImportMap', () => {
       });
     });
 
+    it('should handle a missing shared property', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({ shared: undefined });
+      const actions: SharedInfoActions = {};
+
+      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+      expect(importMap).toEqual({
+        imports: {
+          'team/mfe2/./wc-comp-b': mockScopeUrl_MFE2({ file: 'component-b.js' }),
+          'team/mfe2/./wc-comp-c': mockScopeUrl_MFE2({ file: 'component-c.js' }),
+        },
+      });
+    });
+
     it('should handle empty exposes array', async () => {
       const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({ shared: [], exposes: [] });
 

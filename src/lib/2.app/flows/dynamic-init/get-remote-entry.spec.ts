@@ -191,6 +191,7 @@ describe('createGetRemoteEntry', () => {
     it('should override remote if URL matches cached remote info and enabled in config', async () => {
       config.profile.overrideCachedRemotes = 'always';
       config.profile.overrideCachedRemotesIfURLMatches = true;
+      adapters.remoteInfoRepo.contains = jest.fn(() => true);
 
       adapters.remoteInfoRepo.tryGet = jest.fn(() =>
         Optional.of({
@@ -211,6 +212,11 @@ describe('createGetRemoteEntry', () => {
       );
 
       expect(result.isPresent()).toEqual(true);
+      expect(result.get()).toEqual({
+        ...mockRemoteEntry_MFE1(),
+        url: mockScopeUrl_MFE1({ folder: 'v1', file: 'remoteEntry.json' }),
+        override: true,
+      });
     });
   });
 });

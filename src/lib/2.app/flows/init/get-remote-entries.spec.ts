@@ -206,7 +206,7 @@ describe('createGetRemoteEntries', () => {
       expect(adapters.remoteEntryProvider.provide).not.toHaveBeenCalled();
     });
 
-    it('should skip fetching remotes that exist in the repository when override disabled in config', async () => {
+    it('should skip fetching remotes that exist in the repository when override "never" in config', async () => {
       config.profile.overrideCachedRemotes = 'never';
       config.profile.overrideCachedRemotesIfURLMatches = true;
 
