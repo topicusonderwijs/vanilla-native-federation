@@ -7,6 +7,18 @@ import { ModeConfig } from 'lib/2.app/config/mode.contract';
 import { RemoteInfo, SharedExternal } from 'lib/1.domain';
 import { mockConfig } from 'lib/6.mocks/config.mock';
 import { mockAdapters } from 'lib/6.mocks/adapters.mock';
+import {
+  mockRemoteInfo_MFE1,
+  mockRemoteInfo_MFE2,
+} from 'lib/6.mocks/domain/remote-info/remote-info.mock';
+import { mockRemoteEntry_MFE1 } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
+import { mockExposedModuleA } from 'lib/6.mocks/domain/remote-entry/exposes-info.mock';
+import {
+  mockSharedInfo,
+  mockSharedInfoA,
+  mockSharedInfoB,
+} from 'lib/6.mocks/domain/remote-entry/shared-info.mock';
+import { mockRemoteModuleA } from 'lib/6.mocks/domain/remote-info/remote-module.mock';
 
 describe('createProcessDynamicRemoteEntry', () => {
   let updateCache: ForUpdatingCache;
@@ -24,10 +36,8 @@ describe('createProcessDynamicRemoteEntry', () => {
     adapters.versionCheck.compare = jest.fn(() => 0);
 
     adapters.remoteInfoRepo.tryGet = jest.fn(remote => {
-      if (remote === 'team/mfe1')
-        return Optional.of({ scopeUrl: 'http://my.service/mfe1/', exposes: [] });
-      if (remote === 'team/mfe2')
-        return Optional.of({ scopeUrl: 'http://my.service/mfe2/', exposes: [] });
+      if (remote === 'team/mfe2') return Optional.of(mockRemoteInfo_MFE2({ exposes: [] }));
+      if (remote === 'team/mfe1') return Optional.of(mockRemoteInfo_MFE1({ exposes: [] }));
 
       return Optional.empty<RemoteInfo>();
     });
@@ -38,13 +48,11 @@ describe('createProcessDynamicRemoteEntry', () => {
 
   describe('cleaning up before processing', () => {
     it('should remove the previous cached version if remoteEntry is marked as override', async () => {
-      const remoteEntry = {
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
+      const remoteEntry = mockRemoteEntry_MFE1({
         override: true,
-        shared: [],
-      };
+        shared: [mockSharedInfoA.v2_1_1(), mockSharedInfoB.v2_1_2()],
+        exposes: [mockExposedModuleA()],
+      });
 
       await updateCache(remoteEntry);
 
@@ -54,13 +62,11 @@ describe('createProcessDynamicRemoteEntry', () => {
     });
 
     it('should not remove the old version if the remoteEntry is not marked as override', async () => {
-      const remoteEntry = {
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
+      const remoteEntry = mockRemoteEntry_MFE1({
         override: false,
-        shared: [],
-      };
+        shared: [mockSharedInfoA.v2_1_1(), mockSharedInfoB.v2_1_2()],
+        exposes: [mockExposedModuleA()],
+      });
 
       await updateCache(remoteEntry);
 
@@ -70,12 +76,10 @@ describe('createProcessDynamicRemoteEntry', () => {
     });
 
     it('should not remove the old version if the remoteEntry is missing the override flag', async () => {
-      const remoteEntry = {
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
-        shared: [],
-      };
+      const remoteEntry = mockRemoteEntry_MFE1({
+        shared: [mockSharedInfoA.v2_1_1(), mockSharedInfoB.v2_1_2()],
+        exposes: [mockExposedModuleA()],
+      });
 
       await updateCache(remoteEntry);
 
@@ -87,20 +91,19 @@ describe('createProcessDynamicRemoteEntry', () => {
 
   describe('addRemoteInfoToStorage', () => {
     it('should add remote info with exposed modules to storage', async () => {
-      const remoteEntry = {
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [{ key: './wc-comp-a', outFileName: 'component-a.js' }],
+      const remoteEntry = mockRemoteEntry_MFE1({
+        override: false,
         shared: [],
-      };
+        exposes: [mockExposedModuleA()],
+      });
 
       const actual = await updateCache(remoteEntry);
 
       expect(adapters.remoteInfoRepo.addOrUpdate).toHaveBeenCalledTimes(1);
-      expect(adapters.remoteInfoRepo.addOrUpdate).toHaveBeenCalledWith('team/mfe1', {
-        scopeUrl: 'http://my.service/mfe1/',
-        exposes: [{ moduleName: './wc-comp-a', file: 'component-a.js' }],
-      });
+      expect(adapters.remoteInfoRepo.addOrUpdate).toHaveBeenCalledWith(
+        'team/mfe1',
+        mockRemoteInfo_MFE1({ exposes: [mockRemoteModuleA()] })
+      );
       expect(actual.actions).toEqual({});
     });
   });
@@ -110,21 +113,12 @@ describe('createProcessDynamicRemoteEntry', () => {
       config.strict = true;
       adapters.versionCheck.isValidSemver = jest.fn(() => false);
 
-      const remoteEntry = {
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
-        exposes: [],
+      const remoteEntry = mockRemoteEntry_MFE1({
         shared: [
-          {
-            version: 'invalid-version',
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            singleton: false,
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-          },
+          mockSharedInfo('dep-a', { version: 'invalid-version', requiredVersion: '~1.2.1' }),
         ],
-      };
+        exposes: [],
+      });
       await expect(updateCache(remoteEntry)).rejects.toThrow(
         "Could not process remote 'team/mfe1'"
       );
@@ -138,20 +132,10 @@ describe('createProcessDynamicRemoteEntry', () => {
       config.strict = true;
       adapters.versionCheck.isValidSemver = jest.fn(() => false);
 
-      const remoteEntry = {
-        name: 'team/mfe1',
-        url: 'http://my.service/mfe1/remoteEntry.json',
+      const remoteEntry = mockRemoteEntry_MFE1({
+        shared: [mockSharedInfo('dep-a', { version: undefined, requiredVersion: '~1.2.1' })],
         exposes: [],
-        shared: [
-          {
-            requiredVersion: '~1.2.1',
-            strictVersion: false,
-            singleton: false,
-            packageName: 'dep-a',
-            outFileName: 'dep-a.js',
-          },
-        ],
-      };
+      });
       await expect(updateCache(remoteEntry)).rejects.toThrow(
         "Could not process remote 'team/mfe1'"
       );

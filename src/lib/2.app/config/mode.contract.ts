@@ -1,7 +1,8 @@
 export type ModeProfileConfig = {
   latestSharedExternal: boolean;
-  skipCachedRemotes: 'always' | 'never' | 'dynamic-only';
-  skipCachedRemotesIfURLMatches: boolean;
+
+  overrideCachedRemotes: 'always' | 'never' | 'init-only';
+  overrideCachedRemotesIfURLMatches: boolean;
 };
 export type ModeConfig = {
   strict: boolean;

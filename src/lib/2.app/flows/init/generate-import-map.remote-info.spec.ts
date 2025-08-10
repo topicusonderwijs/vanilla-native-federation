@@ -5,6 +5,11 @@ import { LoggingConfig } from '../../config/log.contract';
 import { ModeConfig } from '../../config/mode.contract';
 import { mockConfig } from 'lib/6.mocks/config.mock';
 import { mockAdapters } from 'lib/6.mocks/adapters.mock';
+import {
+  mockRemoteInfo_MFE1,
+  mockRemoteInfo_MFE2,
+} from 'lib/6.mocks/domain/remote-info/remote-info.mock';
+import { mockScopeUrl_MFE1, mockScopeUrl_MFE2 } from 'lib/6.mocks/domain/scope-url.mock';
 
 describe('createGenerateImportMap (remoteInfos)', () => {
   let generateImportMap: ForGeneratingImportMap;
@@ -20,75 +25,54 @@ describe('createGenerateImportMap (remoteInfos)', () => {
 
     adapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
     adapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({}));
 
     generateImportMap = createGenerateImportMap(config, adapters);
   });
 
   it('should add the remote modules to the global scope.', async () => {
     adapters.remoteInfoRepo.getAll = jest.fn(() => ({
-      'team/mfe1': {
-        scopeUrl: 'http://my.service/mfe1/',
-        exposes: [
-          { moduleName: './wc-comp-a', file: 'component-a.js' },
-          { moduleName: './wc-comp-b', file: 'component-b.js' },
-        ],
-      },
+      'team/mfe1': mockRemoteInfo_MFE1(),
     }));
 
     const actual = await generateImportMap();
 
     expect(actual).toEqual({
       imports: {
-        'team/mfe1/./wc-comp-a': 'http://my.service/mfe1/component-a.js',
-        'team/mfe1/./wc-comp-b': 'http://my.service/mfe1/component-b.js',
+        'team/mfe1/./wc-comp-a': mockScopeUrl_MFE1({ file: 'component-a.js' }),
       },
     });
   });
 
   it('should add multiple remotes.', async () => {
     adapters.remoteInfoRepo.getAll = jest.fn(() => ({
-      'team/mfe1': {
-        scopeUrl: 'http://my.service/mfe1/',
-        exposes: [
-          { moduleName: './wc-comp-a', file: 'component-a.js' },
-          { moduleName: './wc-comp-b', file: 'component-b.js' },
-        ],
-      },
-      'team/mfe2': {
-        scopeUrl: 'http://my.service/mfe2/',
-        exposes: [{ moduleName: './wc-comp-c', file: 'component-c.js' }],
-      },
+      'team/mfe1': mockRemoteInfo_MFE1(),
+      'team/mfe2': mockRemoteInfo_MFE2(),
     }));
 
     const actual = await generateImportMap();
 
     expect(actual).toEqual({
       imports: {
-        'team/mfe1/./wc-comp-a': 'http://my.service/mfe1/component-a.js',
-        'team/mfe1/./wc-comp-b': 'http://my.service/mfe1/component-b.js',
-        'team/mfe2/./wc-comp-c': 'http://my.service/mfe2/component-c.js',
+        'team/mfe1/./wc-comp-a': mockScopeUrl_MFE1({ file: 'component-a.js' }),
+        'team/mfe2/./wc-comp-b': mockScopeUrl_MFE2({ file: 'component-b.js' }),
+        'team/mfe2/./wc-comp-c': mockScopeUrl_MFE2({ file: 'component-c.js' }),
       },
     });
   });
 
   it('should handle remotes without modules.', async () => {
     adapters.remoteInfoRepo.getAll = jest.fn(() => ({
-      '__NF-HOST__': {
-        scopeUrl: 'http://my.service/mfe1/',
-        exposes: [],
-      },
-      'team/mfe2': {
-        scopeUrl: 'http://my.service/mfe2/',
-        exposes: [{ moduleName: './wc-comp-c', file: 'component-c.js' }],
-      },
+      'team/mfe1': mockRemoteInfo_MFE1({ exposes: [] }),
+      'team/mfe2': mockRemoteInfo_MFE2(),
     }));
 
     const actual = await generateImportMap();
 
     expect(actual).toEqual({
       imports: {
-        'team/mfe2/./wc-comp-c': 'http://my.service/mfe2/component-c.js',
+        'team/mfe2/./wc-comp-b': mockScopeUrl_MFE2({ file: 'component-b.js' }),
+        'team/mfe2/./wc-comp-c': mockScopeUrl_MFE2({ file: 'component-c.js' }),
       },
     });
   });

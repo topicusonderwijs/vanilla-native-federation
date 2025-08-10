@@ -29,7 +29,6 @@ module.exports = {
       lines: 80,
     },
   },  
-
   coverageDirectory: 'coverage',
 
   collectCoverageFrom: [
@@ -37,6 +36,7 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/**/index.ts',
     '!src/lib/5.di/**/*',
+    '!src/lib/6.mocks/**/*',
   ],
   preset: 'ts-jest',
   clearMocks: true

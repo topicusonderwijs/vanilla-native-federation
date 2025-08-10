@@ -20,7 +20,7 @@ export const mockConfig = (): ConfigContract => ({
   strict: false,
   profile: {
     latestSharedExternal: false,
-    skipCachedRemotes: 'never',
-    skipCachedRemotesIfURLMatches: true,
+    overrideCachedRemotes: 'always',
+    overrideCachedRemotesIfURLMatches: false,
   },
 });

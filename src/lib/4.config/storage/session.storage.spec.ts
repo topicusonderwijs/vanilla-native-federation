@@ -1,10 +1,10 @@
 import { StorageEntryHandler } from 'lib/2.app/config/storage.contract';
 import { sessionStorageEntry } from './session.storage';
-import {
-  MOCK_REMOTE_INFO_I,
-  MOCK_REMOTE_INFO_II,
-} from 'lib/6.mocks/domain/remote-info/remote-info.mock';
 import { RemoteInfo } from 'lib/1.domain/remote/remote-info.contract';
+import {
+  mockRemoteInfo_MFE1,
+  mockRemoteInfo_MFE2,
+} from 'lib/6.mocks/domain/remote-info/remote-info.mock';
 
 describe('sessionStorageEntry', () => {
   let mockStorage: any;
@@ -27,30 +27,30 @@ describe('sessionStorageEntry', () => {
   });
 
   it('Create entry with default value on init', () => {
-    storageEntryHandler('remotes', { 'team/mfe1': MOCK_REMOTE_INFO_I() });
+    storageEntryHandler('remotes', { 'team/mfe1': mockRemoteInfo_MFE1() });
 
     expect(mockStorage[`${'namespace'}.remotes`]).toBeDefined();
     expect(JSON.parse(mockStorage[`${'namespace'}.remotes`])).toEqual({
-      'team/mfe1': MOCK_REMOTE_INFO_I(),
+      'team/mfe1': mockRemoteInfo_MFE1(),
     });
   });
 
   describe('get', () => {
     it('get should return the fallback value', () => {
-      const entry = storageEntryHandler('remotes', { 'team/mfe1': MOCK_REMOTE_INFO_I() });
+      const entry = storageEntryHandler('remotes', { 'team/mfe1': mockRemoteInfo_MFE1() });
 
-      const expected = { 'team/mfe1': MOCK_REMOTE_INFO_I() };
+      const expected = { 'team/mfe1': mockRemoteInfo_MFE1() };
 
       expect(entry.get()).toEqual(expected);
     });
 
     it('not allow any mutations', () => {
-      const entry = storageEntryHandler('remotes', { 'team/mfe1': MOCK_REMOTE_INFO_I() });
+      const entry = storageEntryHandler('remotes', { 'team/mfe1': mockRemoteInfo_MFE1() });
 
-      const expected = { 'team/mfe1': MOCK_REMOTE_INFO_I() };
+      const expected = { 'team/mfe1': mockRemoteInfo_MFE1() };
 
       const keyA = entry.get()!;
-      keyA['team/mfe1'] = MOCK_REMOTE_INFO_II();
+      keyA['team/mfe1'] = mockRemoteInfo_MFE2();
 
       expect(entry.get()).toEqual(expected);
     });
@@ -59,33 +59,35 @@ describe('sessionStorageEntry', () => {
   describe('set', () => {
     it('set stores value in namespace', () => {
       const entry = storageEntryHandler<Record<string, RemoteInfo>>('remotes', {
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
       });
-      const expected = { 'team/mfe2': MOCK_REMOTE_INFO_II() };
+      const expected = { 'team/mfe2': mockRemoteInfo_MFE2() };
 
-      entry.set({ 'team/mfe2': MOCK_REMOTE_INFO_II() });
+      entry.set({ 'team/mfe2': mockRemoteInfo_MFE2() });
 
       expect(entry.get()).toEqual(expected);
     });
 
     it('not allow any mutations', () => {
-      const entry = storageEntryHandler('remotes', { 'team/mfe1': MOCK_REMOTE_INFO_I() });
-      const newEntry = { 'team/mfe2': MOCK_REMOTE_INFO_II() } as any;
+      const entry = storageEntryHandler('remotes', { 'team/mfe1': mockRemoteInfo_MFE1() });
+      const newEntry = { 'team/mfe2': mockRemoteInfo_MFE2() } as any;
       entry.set(newEntry);
 
       newEntry['MALICOUS_INJECT'] = 'BAD_SCRIPT.js';
 
-      expect(entry.get()).toEqual({ 'team/mfe2': MOCK_REMOTE_INFO_II() });
+      expect(entry.get()).toEqual({ 'team/mfe2': mockRemoteInfo_MFE2() });
     });
   });
 
   describe('clear', () => {
     it('clears the entry back to the initialValue', () => {
-      mockStorage[`${'namespace'}.remotes`] = JSON.stringify({ 'team/mfe1': MOCK_REMOTE_INFO_I() });
+      mockStorage[`${'namespace'}.remotes`] = JSON.stringify({
+        'team/mfe1': mockRemoteInfo_MFE1(),
+      });
 
       const entry = storageEntryHandler<Record<string, RemoteInfo>>('remotes', {});
 
-      expect(entry.get()).toEqual({ 'team/mfe1': MOCK_REMOTE_INFO_I() });
+      expect(entry.get()).toEqual({ 'team/mfe1': mockRemoteInfo_MFE1() });
 
       entry.clear();
 

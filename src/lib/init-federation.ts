@@ -19,7 +19,7 @@ const initFederation = (
       'shared-externals': adapters.sharedExternalsRepo
         .getScopes({ includeGlobal: true })
         .reduce(
-          (acc, scope) => ({ ...acc, [scope]: adapters.sharedExternalsRepo.getAll(scope) }),
+          (acc, scope) => ({ ...acc, [scope]: adapters.sharedExternalsRepo.getFromScope(scope) }),
           {}
         ),
       'scoped-externals': adapters.scopedExternalsRepo.getAll(),

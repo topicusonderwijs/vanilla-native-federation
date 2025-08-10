@@ -1,13 +1,13 @@
 import { createRemoteInfoRepository } from './remote-info.repository';
 import { Optional } from 'lib/utils/optional';
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
-import {
-  MOCK_REMOTE_INFO_I,
-  MOCK_REMOTE_INFO_II,
-} from 'lib/6.mocks/domain/remote-info/remote-info.mock';
-import { MOCK_REMOTE_ENTRY_SCOPE_I_URL } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
 import { StorageConfig } from 'lib/2.app/config';
 import { RemoteInfo } from 'lib/1.domain';
+import {
+  mockRemoteInfo_MFE1,
+  mockRemoteInfo_MFE2,
+} from 'lib/6.mocks/domain/remote-info/remote-info.mock';
+import { mockScopeUrl_MFE1 } from 'lib/6.mocks/domain/scope-url.mock';
 
 describe('createRemoteInfoRepository', () => {
   const setupWithCache = (storage: any) => {
@@ -31,7 +31,7 @@ describe('createRemoteInfoRepository', () => {
     it('should reset cache when in config', () => {
       const mockStorage = {
         remotes: {
-          'team/mfe1': MOCK_REMOTE_INFO_I(),
+          'team/mfe1': mockRemoteInfo_MFE1(),
         },
       };
       const mockStorageEntry = createStorageHandlerMock(mockStorage);
@@ -56,7 +56,7 @@ describe('createRemoteInfoRepository', () => {
 
     it('should return true when exists', () => {
       const { remoteInfoRepo } = setupWithCache({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
       });
 
       const result = remoteInfoRepo.contains('team/mfe1');
@@ -66,7 +66,7 @@ describe('createRemoteInfoRepository', () => {
 
     it('should return false when entry doesnt exist', () => {
       const { remoteInfoRepo } = setupWithCache({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
       });
 
       const result = remoteInfoRepo.contains('team/mfe2');
@@ -87,7 +87,7 @@ describe('createRemoteInfoRepository', () => {
     it('should not alter storage if not committed', () => {
       const { remoteInfoRepo, mockStorage } = setupWithCache({});
 
-      remoteInfoRepo.addOrUpdate('team/mfe1', MOCK_REMOTE_INFO_I());
+      remoteInfoRepo.addOrUpdate('team/mfe1', mockRemoteInfo_MFE1());
 
       expect(mockStorage['remotes']).toEqual({});
     });
@@ -95,44 +95,44 @@ describe('createRemoteInfoRepository', () => {
     it('should update changes after commit', () => {
       const { remoteInfoRepo, mockStorage } = setupWithCache({});
 
-      remoteInfoRepo.addOrUpdate('team/mfe1', MOCK_REMOTE_INFO_I());
+      remoteInfoRepo.addOrUpdate('team/mfe1', mockRemoteInfo_MFE1());
       expect(mockStorage['remotes']).toEqual({});
 
       remoteInfoRepo.commit();
-      expect(mockStorage['remotes']).toEqual({ 'team/mfe1': MOCK_REMOTE_INFO_I() });
+      expect(mockStorage['remotes']).toEqual({ 'team/mfe1': mockRemoteInfo_MFE1() });
     });
 
     it('should update if not in list', () => {
       const { remoteInfoRepo, mockStorage } = setupWithCache({ 'team/mfe1': 'MOCK_REMOTE_INFO' });
 
-      remoteInfoRepo.addOrUpdate('team/mfe1', MOCK_REMOTE_INFO_I());
+      remoteInfoRepo.addOrUpdate('team/mfe1', mockRemoteInfo_MFE1());
       remoteInfoRepo.commit();
 
-      expect(mockStorage['remotes']['team/mfe1']).toEqual(MOCK_REMOTE_INFO_I());
+      expect(mockStorage['remotes']['team/mfe1']).toEqual(mockRemoteInfo_MFE1());
     });
 
     it('should not affect other entries', () => {
       const { remoteInfoRepo, mockStorage } = setupWithCache({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
       });
 
-      remoteInfoRepo.addOrUpdate('team/mfe2', MOCK_REMOTE_INFO_II());
+      remoteInfoRepo.addOrUpdate('team/mfe2', mockRemoteInfo_MFE2());
       remoteInfoRepo.commit();
 
-      expect(mockStorage['remotes']['team/mfe1']).toEqual(MOCK_REMOTE_INFO_I());
-      expect(mockStorage['remotes']['team/mfe2']).toEqual(MOCK_REMOTE_INFO_II());
+      expect(mockStorage['remotes']['team/mfe1']).toEqual(mockRemoteInfo_MFE1());
+      expect(mockStorage['remotes']['team/mfe2']).toEqual(mockRemoteInfo_MFE2());
     });
 
     it('should return the repository instance for chaining', () => {
       const { remoteInfoRepo } = setupWithCache({});
-      const result = remoteInfoRepo.addOrUpdate('team/mfe1', MOCK_REMOTE_INFO_I());
+      const result = remoteInfoRepo.addOrUpdate('team/mfe1', mockRemoteInfo_MFE1());
       expect(result).toBe(remoteInfoRepo);
     });
   });
   describe('tryGet', () => {
     it('should return the scopeUrl', () => {
       const { remoteInfoRepo } = setupWithCache({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
       });
 
       const actual: Optional<RemoteInfo> = remoteInfoRepo.tryGet('team/mfe1');
@@ -146,7 +146,7 @@ describe('createRemoteInfoRepository', () => {
 
     it('should return an empty optional if the remote is not registered.', () => {
       const { remoteInfoRepo } = setupWithCache({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
       });
 
       const actual: Optional<RemoteInfo> = remoteInfoRepo.tryGet('team/mfe2');
@@ -158,18 +158,18 @@ describe('createRemoteInfoRepository', () => {
   describe('tryGetModule', () => {
     it('should return the exposed module', () => {
       const { remoteInfoRepo } = setupWithCache({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
       });
 
       const actual: Optional<string> = remoteInfoRepo.tryGetModule('team/mfe1', './wc-comp-a');
 
       expect(actual.isPresent()).toBe(true);
-      expect(actual.get()).toEqual(`${MOCK_REMOTE_ENTRY_SCOPE_I_URL()}component-a.js`);
+      expect(actual.get()).toEqual(`${mockScopeUrl_MFE1()}component-a.js`);
     });
 
     it('should return empty optional if module doesnt exist', () => {
       const { remoteInfoRepo } = setupWithCache({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
       });
 
       const actual: Optional<string> = remoteInfoRepo.tryGetModule('team/mfe1', './wc-comp-c');
@@ -189,15 +189,15 @@ describe('createRemoteInfoRepository', () => {
   describe('getAll', () => {
     it('should return all remote infos from the cache', () => {
       const { remoteInfoRepo } = setupWithCache({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
-        'team/mfe2': MOCK_REMOTE_INFO_II(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
+        'team/mfe2': mockRemoteInfo_MFE2(),
       });
 
       const allRemoteInfos = remoteInfoRepo.getAll();
 
       expect(allRemoteInfos).toEqual({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
-        'team/mfe2': MOCK_REMOTE_INFO_II(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
+        'team/mfe2': mockRemoteInfo_MFE2(),
       });
     });
 
@@ -211,7 +211,7 @@ describe('createRemoteInfoRepository', () => {
   describe('remove', () => {
     it('should remove a remoteEntry scope from the cache', () => {
       const { remoteInfoRepo, mockStorage } = setupWithCache({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
       });
 
       remoteInfoRepo.remove('team/mfe1');
@@ -222,15 +222,15 @@ describe('createRemoteInfoRepository', () => {
 
     it('should not remove other remoteEntry scope', () => {
       const { remoteInfoRepo, mockStorage } = setupWithCache({
-        'team/mfe1': MOCK_REMOTE_INFO_I(),
-        'team/mfe2': MOCK_REMOTE_INFO_II(),
+        'team/mfe1': mockRemoteInfo_MFE1(),
+        'team/mfe2': mockRemoteInfo_MFE2(),
       });
 
       remoteInfoRepo.remove('team/mfe1');
       remoteInfoRepo.commit();
 
       expect(mockStorage['remotes']).toEqual({
-        'team/mfe2': MOCK_REMOTE_INFO_II(),
+        'team/mfe2': mockRemoteInfo_MFE2(),
       });
     });
 

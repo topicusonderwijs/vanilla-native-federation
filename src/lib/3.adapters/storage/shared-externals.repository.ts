@@ -19,7 +19,7 @@ const createSharedExternalsRepository = (config: StorageConfig): ForSharedExtern
   const _cache: SharedExternals = STORAGE.get()!;
 
   return {
-    getAll: function (shareScope?: string) {
+    getFromScope: function (shareScope?: string) {
       return { ..._cache[shareScope ?? GLOBAL_SCOPE] };
     },
     addOrUpdate: function (externalName: string, external: SharedExternal, shareScope?: string) {

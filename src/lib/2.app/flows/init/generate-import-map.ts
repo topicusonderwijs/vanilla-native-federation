@@ -4,7 +4,7 @@ import type { ImportMap, Imports } from 'lib/1.domain/import-map/import-map.cont
 import {
   GLOBAL_SCOPE,
   type RemoteName,
-  type ExternalsScope,
+  type ScopedExternal,
   type RemoteInfo,
   type SharedExternal,
   type SharedVersion,
@@ -56,7 +56,7 @@ export function createGenerateImportMap(
     return importMap;
   }
 
-  function createScopeModules(externals: ExternalsScope, scope: string): Imports {
+  function createScopeModules(externals: ScopedExternal, scope: string): Imports {
     const modules: Imports = {};
 
     for (const [external, version] of Object.entries(externals)) {
@@ -82,7 +82,7 @@ export function createGenerateImportMap(
   }
 
   function processshareScope(importMap: ImportMap, shareScope: string): void {
-    const sharedExternals = ports.sharedExternalsRepo.getAll(shareScope);
+    const sharedExternals = ports.sharedExternalsRepo.getFromScope(shareScope);
     const scopeType = ports.sharedExternalsRepo.scopeType(shareScope);
 
     for (const [externalName, external] of Object.entries(sharedExternals)) {
@@ -162,7 +162,7 @@ export function createGenerateImportMap(
    * @returns
    */
   function addGlobalSharedExternals(importMap: ImportMap): ImportMap {
-    const sharedExternals = ports.sharedExternalsRepo.getAll();
+    const sharedExternals = ports.sharedExternalsRepo.getFromScope();
 
     for (const [externalName, external] of Object.entries(sharedExternals)) {
       for (const version of external.versions) {

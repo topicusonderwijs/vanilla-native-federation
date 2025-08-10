@@ -2,7 +2,7 @@ import type { SharedVersion, ScopedVersion } from './version.contract';
 
 export type ExternalName = string;
 
-export type ScopedExternals = Record<string, ExternalsScope>;
+export type ScopedExternals = Record<string, ScopedExternal>;
 
 export const GLOBAL_SCOPE = '__GLOBAL__';
 
@@ -17,4 +17,4 @@ export type shareScope = Record<string, SharedExternal>;
 
 export type SharedExternals = Record<string, shareScope> & { [GLOBAL_SCOPE]: shareScope };
 
-export type ExternalsScope = Record<string, ScopedVersion>;
+export type ScopedExternal = Record<string, ScopedVersion>;

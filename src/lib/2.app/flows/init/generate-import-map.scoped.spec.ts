@@ -7,6 +7,12 @@ import { Optional } from 'lib/utils/optional';
 import { RemoteInfo } from 'lib/1.domain';
 import { mockConfig } from 'lib/6.mocks/config.mock';
 import { mockAdapters } from 'lib/6.mocks/adapters.mock';
+import {
+  mockRemoteInfo_MFE1,
+  mockRemoteInfo_MFE2,
+} from 'lib/6.mocks/domain/remote-info/remote-info.mock';
+import { mockExternal_E, mockExternal_F } from 'lib/6.mocks/domain/externals/external.mock';
+import { mockScopeUrl_MFE1, mockScopeUrl_MFE2 } from 'lib/6.mocks/domain/scope-url.mock';
 
 describe('createGenerateImportMap (scoped-externals)', () => {
   let generateImportMap: ForGeneratingImportMap;
@@ -22,12 +28,10 @@ describe('createGenerateImportMap (scoped-externals)', () => {
 
     adapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
     adapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
-    adapters.sharedExternalsRepo.getAll = jest.fn(() => ({}));
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({}));
     adapters.remoteInfoRepo.tryGet = jest.fn(remote => {
-      if (remote === 'team/mfe1')
-        return Optional.of({ scopeUrl: 'http://my.service/mfe1/', exposes: [] });
-      if (remote === 'team/mfe2')
-        return Optional.of({ scopeUrl: 'http://my.service/mfe2/', exposes: [] });
+      if (remote === 'team/mfe1') return Optional.of(mockRemoteInfo_MFE1({ exposes: [] }));
+      if (remote === 'team/mfe2') return Optional.of(mockRemoteInfo_MFE2({ exposes: [] }));
 
       return Optional.empty<RemoteInfo>();
     });
@@ -37,12 +41,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
 
   it('should add a scoped externals to its respective scope.', async () => {
     adapters.scopedExternalsRepo.getAll = jest.fn(() => ({
-      'team/mfe1': {
-        'dep-a': {
-          tag: '1.2.3',
-          file: 'dep-a.js',
-        },
-      },
+      'team/mfe1': { ...mockExternal_E(), ...mockExternal_F() },
     }));
 
     const actual = await generateImportMap();
@@ -50,8 +49,9 @@ describe('createGenerateImportMap (scoped-externals)', () => {
     expect(actual).toEqual({
       imports: {},
       scopes: {
-        'http://my.service/mfe1/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+        [mockScopeUrl_MFE1()]: {
+          'dep-e': mockScopeUrl_MFE1({ file: 'dep-e.js' }),
+          'dep-f': mockScopeUrl_MFE1({ file: 'dep-f.js' }),
         },
       },
     });
@@ -59,18 +59,8 @@ describe('createGenerateImportMap (scoped-externals)', () => {
 
   it('should handle multiple scopes.', async () => {
     adapters.scopedExternalsRepo.getAll = jest.fn(() => ({
-      'team/mfe1': {
-        'dep-a': {
-          tag: '1.2.3',
-          file: 'dep-a.js',
-        },
-      },
-      'team/mfe2': {
-        'dep-b': {
-          tag: '1.2.3',
-          file: 'dep-b.js',
-        },
-      },
+      'team/mfe1': { ...mockExternal_E() },
+      'team/mfe2': { ...mockExternal_F() },
     }));
 
     const actual = await generateImportMap();
@@ -78,38 +68,11 @@ describe('createGenerateImportMap (scoped-externals)', () => {
     expect(actual).toEqual({
       imports: {},
       scopes: {
-        'http://my.service/mfe1/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
+        [mockScopeUrl_MFE1()]: {
+          'dep-e': mockScopeUrl_MFE1({ file: 'dep-e.js' }),
         },
-        'http://my.service/mfe2/': {
-          'dep-b': 'http://my.service/mfe2/dep-b.js',
-        },
-      },
-    });
-  });
-
-  it('should handle multiple externals in 1 scope.', async () => {
-    adapters.scopedExternalsRepo.getAll = jest.fn(() => ({
-      'team/mfe1': {
-        'dep-a': {
-          tag: '1.2.3',
-          file: 'dep-a.js',
-        },
-        'dep-b': {
-          tag: '1.2.3',
-          file: 'dep-b.js',
-        },
-      },
-    }));
-
-    const actual = await generateImportMap();
-
-    expect(actual).toEqual({
-      imports: {},
-      scopes: {
-        'http://my.service/mfe1/': {
-          'dep-a': 'http://my.service/mfe1/dep-a.js',
-          'dep-b': 'http://my.service/mfe1/dep-b.js',
+        [mockScopeUrl_MFE2()]: {
+          'dep-f': mockScopeUrl_MFE2({ file: 'dep-f.js' }),
         },
       },
     });
@@ -117,12 +80,7 @@ describe('createGenerateImportMap (scoped-externals)', () => {
 
   it('should throw an error if the remote doesnt exist', async () => {
     adapters.scopedExternalsRepo.getAll = jest.fn(() => ({
-      'team/mfe3': {
-        'dep-a': {
-          tag: '1.2.3',
-          file: 'dep-a.js',
-        },
-      },
+      'team/mfe3': { ...mockExternal_E() },
     }));
 
     await expect(generateImportMap()).rejects.toThrow('Could not create ImportMap.');

@@ -1,110 +1,112 @@
-import { SharedVersion, ScopedVersion } from 'lib/1.domain';
+import { ScopedVersion, SharedVersion, SharedVersionAction, SharedVersionMeta } from 'lib/1.domain';
 
-/**
- * --------------------------------------
- *  VERSION
- * --------------------------------------
- */
-export const MOCK_VERSION_I = (): ScopedVersion => ({
-  tag: '1.2.3',
-  file: `dep-a.js`,
+export const mockVersionRemote = (
+  name: string,
+  external: string = 'test-dep',
+  options: {
+    requiredVersion?: string;
+    strictVersion?: boolean;
+    cached?: boolean;
+    host?: boolean;
+  } = {}
+): SharedVersionMeta => ({
+  file: `${external}.js`,
+  name,
+  requiredVersion: options.requiredVersion || '~2.1.0',
+  strictVersion: options.strictVersion ?? true,
+  cached: options.cached ?? false,
 });
 
-/**
- * --------------------------------------
- *  SHARED_VERSION
- * --------------------------------------
- */
-export const MOCK_VERSION_II = (): SharedVersion => ({
-  tag: '4.5.6',
-  remotes: [
-    {
-      file: 'dep-b.js',
-      name: 'team/mfe1',
-      requiredVersion: '^4.1.1',
-      strictVersion: true,
-      cached: true,
-    },
-  ],
+type mockSharedVersionOptions = {
+  remotes: string[] | Record<string, any>;
+  host?: boolean;
+  action?: SharedVersionAction;
+};
 
-  host: false,
+export const mockSharedVersion = (
+  tag: string,
+  external: string = 'test-dep',
+  opt: mockSharedVersionOptions
+): SharedVersion => {
+  const remoteList = Array.isArray(opt.remotes)
+    ? opt.remotes.map(name =>
+        mockVersionRemote(name, external, { requiredVersion: `~${tag.substring(0, 3)}.0` })
+      )
+    : Object.entries(opt.remotes).map(([name, remoteOpt]) =>
+        mockVersionRemote(name, external, {
+          requiredVersion: `~${tag.substring(0, 3)}.0`,
+          ...remoteOpt,
+        })
+      );
 
-  action: 'share',
+  return {
+    tag,
+    host:
+      remoteList.some(r => r.name.includes('host')) ||
+      Object.values(opt.remotes).some((opts: any) => opts?.host) ||
+      false,
+    action: 'skip',
+    ...opt,
+    remotes: remoteList,
+  };
+};
+
+export const mockScopedVersion = (tag: string, external: string = 'test-dep'): ScopedVersion => ({
+  tag,
+  file: `${external}.js`,
 });
 
-export const MOCK_VERSION_III = (): SharedVersion => ({
-  tag: '7.8.9',
-  remotes: [
-    {
-      file: `dep-c.js`,
-      name: 'team/mfe2',
-      requiredVersion: '~7.0.0',
-      strictVersion: true,
-      cached: false,
-    },
-  ],
-  host: false,
-  action: 'skip',
-});
+export const mockVersion = {
+  shared: mockSharedVersion,
+  scoped: mockScopedVersion,
+};
 
-export const MOCK_VERSION_IV = (): SharedVersion => ({
-  tag: '2.2.2',
-  remotes: [
-    {
-      file: `dep-d.js`,
-      name: 'team/mfe2',
-      requiredVersion: '^2.0.0',
-      strictVersion: true,
-      cached: true,
-    },
-  ],
-  host: false,
-  action: 'scope',
-});
+export const mockVersion_A = {
+  v2_1_3: (opt: Partial<mockSharedVersionOptions> = {}) =>
+    mockVersion.shared('2.1.3', 'dep-a', {
+      remotes: opt.remotes ?? ['team/host'],
+      host: true,
+      ...opt,
+    }),
+  v2_1_2: (opt: Partial<mockSharedVersionOptions> = {}) =>
+    mockVersion.shared('2.1.2', 'dep-a', {
+      remotes: opt.remotes ?? ['team/mfe1', 'team/mfe2'],
+      ...opt,
+    }),
+  v2_1_1: (opt: Partial<mockSharedVersionOptions> = {}) =>
+    mockVersion.shared('2.1.1', 'dep-a', { remotes: opt.remotes ?? ['team/mfe3'], ...opt }),
+};
 
-export const MOCK_VERSION_V = (): SharedVersion => ({
-  tag: '7.8.8',
-  remotes: [
-    {
-      file: 'dep-c.js',
-      name: 'host',
-      requiredVersion: '~7.0.0',
-      strictVersion: true,
-      cached: true,
-    },
-  ],
+export const mockVersion_B = {
+  v2_2_2: (opt: Partial<mockSharedVersionOptions> = {}) =>
+    mockVersion.shared('2.2.2', 'dep-b', { remotes: opt.remotes ?? ['team/mfe1'], ...opt }),
+  v2_1_2: (opt: Partial<mockSharedVersionOptions> = {}) =>
+    mockVersion.shared('2.1.2', 'dep-b', { remotes: opt.remotes ?? ['team/mfe2'], ...opt }),
+  v2_1_1: (opt: Partial<mockSharedVersionOptions> = {}) =>
+    mockVersion.shared('2.1.1', 'dep-b', { remotes: opt.remotes ?? ['team/mfe3'], ...opt }),
+};
 
-  host: true,
-  action: 'share',
-});
+export const mockVersion_C = {
+  v2_2_2: (opt: Partial<mockSharedVersionOptions> = {}) =>
+    mockVersion.shared('2.2.2', 'dep-c', { remotes: opt.remotes ?? ['team/mfe1'], ...opt }),
+  v2_2_1: (opt: Partial<mockSharedVersionOptions> = {}) =>
+    mockVersion.shared('2.2.1', 'dep-c', { remotes: opt.remotes ?? ['team/mfe2'], ...opt }),
+};
 
-export const MOCK_VERSION_VI = (): SharedVersion => ({
-  tag: '3.0.0',
-  remotes: [
-    {
-      file: 'dep-d.js',
-      name: 'host',
-      requiredVersion: '~3.0.0',
-      strictVersion: true,
-      cached: true,
-    },
-  ],
-  host: true,
+export const mockVersion_D = {
+  v2_2_2: (opt: Partial<mockSharedVersionOptions> = {}) =>
+    mockVersion.shared('2.2.2', 'dep-d', {
+      ...opt,
+      remotes: opt.remotes ?? ['team/mfe1', 'team/host'],
+    }),
+};
 
-  action: 'share',
-});
+export const mockVersion_E = {
+  v1_2_3: () => mockVersion.scoped('1.2.3', 'dep-e'),
+  v1_2_4: () => mockVersion.scoped('1.2.4', 'dep-e'),
+};
 
-export const MOCK_VERSION_VII = (): SharedVersion => ({
-  tag: '2.9.0',
-  remotes: [
-    {
-      file: 'dep-d.js',
-      name: 'team/mfe1',
-      requiredVersion: '~2.9.0',
-      strictVersion: true,
-      cached: false,
-    },
-  ],
-  host: false,
-  action: 'skip',
-});
+export const mockVersion_F = {
+  v1_2_3: () => mockVersion.scoped('1.2.3', 'dep-f'),
+  v1_2_4: () => mockVersion.scoped('1.2.4', 'dep-f'),
+};

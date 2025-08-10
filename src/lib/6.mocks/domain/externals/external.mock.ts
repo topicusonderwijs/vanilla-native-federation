@@ -1,46 +1,52 @@
-import { ExternalsScope, GLOBAL_SCOPE, SharedExternal, SharedExternals } from 'lib/1.domain';
+import { ScopedExternal, ScopedVersion, SharedExternal, SharedVersion } from 'lib/1.domain';
 import {
-  MOCK_VERSION_I,
-  MOCK_VERSION_II,
-  MOCK_VERSION_III,
-  MOCK_VERSION_IV,
-  MOCK_VERSION_V,
-  MOCK_VERSION_VI,
+  mockVersion_A,
+  mockVersion_B,
+  mockVersion_C,
+  mockVersion_D,
+  mockVersion_E,
+  mockVersion_F,
 } from './version.mock';
 
-/**
- * --------------------------------------
- *  SCOPED_EXTERNAL
- * --------------------------------------
- */
-export const MOCK_EXTERNALS_SCOPE = (): ExternalsScope => ({
-  'dep-a': MOCK_VERSION_I(),
+export const mockExternal = {
+  shared: (versions: SharedVersion[], opt: { dirty?: boolean } = {}): SharedExternal => ({
+    dirty: opt.dirty ?? false,
+    versions,
+  }),
+  scoped: (versions: ScopedExternal): ScopedExternal => ({ ...versions }),
+  globalScope: (externals: Record<string, SharedExternal>) => ({
+    __GLOBAL__: externals,
+  }),
+
+  customScope: (scopeName: string, externals: Record<string, SharedExternal>) => ({
+    [scopeName]: externals,
+  }),
+};
+
+export const mockExternal_A = (
+  opt: { dirty?: boolean; versions?: SharedVersion[] } = {}
+): SharedExternal =>
+  mockExternal.shared(opt.versions ?? Object.values(mockVersion_A).map(v => v()), opt);
+
+export const mockExternal_B = (
+  opt: { dirty?: boolean; versions?: SharedVersion[] } = {}
+): SharedExternal =>
+  mockExternal.shared(opt.versions ?? Object.values(mockVersion_B).map(v => v()), opt);
+
+export const mockExternal_C = (
+  opt: { dirty?: boolean; versions?: SharedVersion[] } = {}
+): SharedExternal =>
+  mockExternal.shared(opt.versions ?? Object.values(mockVersion_C).map(v => v()), opt);
+
+export const mockExternal_D = (
+  opt: { dirty?: boolean; versions?: SharedVersion[] } = {}
+): SharedExternal =>
+  mockExternal.shared(opt.versions ?? Object.values(mockVersion_D).map(v => v()), opt);
+
+export const mockExternal_E = (opt: { version?: ScopedVersion } = {}): ScopedExternal => ({
+  'dep-e': opt.version ?? mockVersion_E.v1_2_3(),
 });
 
-/**
- * --------------------------------------
- *  SHARED_EXTERNALS
- * --------------------------------------
- */
-export const MOCK_SHARED_EXTERNAL_I = (): SharedExternal => ({
-  dirty: false,
-  versions: [MOCK_VERSION_II()],
-});
-
-export const MOCK_SHARED_EXTERNAL_II = (): SharedExternal => ({
-  dirty: false,
-  versions: [MOCK_VERSION_III(), MOCK_VERSION_V()],
-});
-
-export const MOCK_SHARED_EXTERNAL_III = (): SharedExternal => ({
-  dirty: false,
-  versions: [MOCK_VERSION_IV(), MOCK_VERSION_VI()],
-});
-
-export const MOCK_SHARED_EXTERNALS = (): SharedExternals => ({
-  [GLOBAL_SCOPE]: {
-    'dep-b': MOCK_SHARED_EXTERNAL_I(),
-    'dep-c': MOCK_SHARED_EXTERNAL_II(),
-    'dep-d': MOCK_SHARED_EXTERNAL_III(),
-  },
+export const mockExternal_F = (opt: { version?: ScopedVersion } = {}): ScopedExternal => ({
+  'dep-f': opt.version ?? mockVersion_F.v1_2_4(),
 });

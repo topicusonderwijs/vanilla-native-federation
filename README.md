@@ -1,6 +1,8 @@
 # vanilla-native-federation
 
-A lightweight **runtime orchestrator** for implementing micro frontends in SPA as well as non-SPA websites using native federation. This is an alternative runtime to [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime), specifically designed for integrating micro frontends with minimal effort into traditional web applications built with technologies like PHP, ASP.NET, JSF, JSP, Ruby on Rails, or Django.
+A lightweight **runtime micro frontend orchestrator** that loads micro frontends built with native federation into any web page. Unlike other solutions, it caches dependencies across page reloads, making it perfect for traditional server-rendered apps (PHP, Java, Rails, etc.) that refresh on navigation. Drop it into any HTML page with a script tag - no build tools or framework migrations required.
+
+> **Important!** We are planning on releasing v1 soon, for that we need feedback on what is still missing on the library and what is working well. Please feel free to create an issue or feature request. All feedback is welcome!
 
 [![Verify library](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml/badge.svg)](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml)
 ![Coverage total](https://raw.githubusercontent.com/topicusonderwijs/vanilla-native-federation/badges/badges/coverage-total.svg)
@@ -61,7 +63,7 @@ Get up and running in under 2 minutes:
     </script>
 
     <!-- Include the orchestrator runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@0.17.0/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@0.18.0/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -84,7 +86,7 @@ Your micro frontends are now loaded and ready to use. The runtime handles:
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@0.17.0/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.18.0/quickstart.mjs"></script>
 ```
 
 ## Advanced Usage
