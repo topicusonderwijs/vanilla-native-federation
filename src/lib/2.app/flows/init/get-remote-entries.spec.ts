@@ -35,10 +35,10 @@ describe('createGetRemoteEntries', () => {
     });
 
     adapters.remoteEntryProvider.provide = jest.fn((url: string) => {
-      if (url === `${mockScopeUrl_MFE1()}remoteEntry.json`) {
+      if (url.startsWith(mockScopeUrl_MFE1())) {
         return Promise.resolve(mockRemoteEntry_MFE1());
       }
-      if (url === `${mockScopeUrl_MFE2()}remoteEntry.json`) {
+      if (url.startsWith(mockScopeUrl_MFE2())) {
         return Promise.resolve(mockRemoteEntry_MFE2());
       }
       return Promise.reject(new NFError(`Fetch of '${url}' returned 404 Not Found`));
@@ -158,52 +158,98 @@ describe('createGetRemoteEntries', () => {
   });
 
   describe('handling existing remotes', () => {
-    it('should not skip fetching remotes that exist in the repository when disabled in config', async () => {
-      config.profile.skipCachedRemotes = 'never';
-      config.profile.skipCachedRemotesIfURLMatches = false;
+    it('should override fetching remotes that exist in the repository when enabled in config (not same-url)', async () => {
+      config.profile.overrideCachedRemotes = 'always';
+      config.profile.overrideCachedRemotesIfURLMatches = false;
 
       // Setup storage to contain one of the remotes
       adapters.remoteInfoRepo.tryGet = jest
         .fn()
-        .mockImplementation(_ => Optional.of({ scopeUrl: mockScopeUrl_MFE1(), exposes: [] }));
+        .mockImplementation(_ =>
+          Optional.of({ scopeUrl: mockScopeUrl_MFE1({ folder: 'v1' }), exposes: [] })
+        );
 
-      const actual = await getRemoteEntries(mockManifest());
-
-      expect(actual).toEqual([
-        { ...mockRemoteEntry_MFE1(), override: true },
-        { ...mockRemoteEntry_MFE2(), override: true },
-      ]);
-    });
-
-    it('should skip fetching same-url remotes that exist in the repository when enabled in config', async () => {
-      config.profile.skipCachedRemotes = 'never';
-      config.profile.skipCachedRemotesIfURLMatches = true;
-
-      // Setup storage to contain one of the remotes
-      adapters.remoteInfoRepo.tryGet = jest
-        .fn()
-        .mockImplementation(_ => Optional.of({ scopeUrl: mockScopeUrl_MFE1(), exposes: [] }));
-
-      const actual = await getRemoteEntries(mockManifest());
-
-      expect(actual).toEqual([{ ...mockRemoteEntry_MFE2(), override: true }]);
-    });
-
-    it('should skip fetching remotes that exist in the repository when enabled in config', async () => {
-      config.profile.skipCachedRemotes = 'always';
-
-      adapters.remoteInfoRepo.tryGet = jest.fn().mockImplementation(remote => {
-        if (remote === 'team/mfe1')
-          return Optional.of({ scopeUrl: mockScopeUrl_MFE1(), exposes: [] });
-        return Optional.empty();
+      const actual = await getRemoteEntries({
+        'team/mfe1': `${mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' })}`,
       });
 
-      const actual = await getRemoteEntries(mockManifest());
-      expect(actual).toEqual([mockRemoteEntry_MFE2()]);
-
+      expect(actual).toEqual([{ ...mockRemoteEntry_MFE1(), override: true }]);
       expect(config.log.debug).toHaveBeenCalledWith(
         1,
-        "Found remote 'team/mfe1' in storage, omitting fetch."
+        `Overriding existing remote 'team/mfe1' with '${mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' })}'.`
+      );
+      expect(adapters.remoteEntryProvider.provide).toHaveBeenCalledWith(
+        `${mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' })}`
+      );
+    });
+
+    it('should skip fetching remotes that exist in the repository when disabled in config (same-url)', async () => {
+      config.profile.overrideCachedRemotes = 'always';
+      config.profile.overrideCachedRemotesIfURLMatches = false;
+
+      // Setup storage to contain one of the remotes
+      adapters.remoteInfoRepo.tryGet = jest
+        .fn()
+        .mockImplementation(_ =>
+          Optional.of({ scopeUrl: mockScopeUrl_MFE1({ folder: 'v1' }), exposes: [] })
+        );
+
+      const actual = await getRemoteEntries({
+        'team/mfe1': `${mockScopeUrl_MFE1({ folder: 'v1', file: 'remoteEntry.json' })}`,
+      });
+
+      expect(actual).toEqual([]);
+      expect(config.log.debug).toHaveBeenCalledWith(
+        1,
+        `Found remote 'team/mfe1' in storage, omitting fetch.`
+      );
+      expect(adapters.remoteEntryProvider.provide).not.toHaveBeenCalled();
+    });
+
+    it('should skip fetching remotes that exist in the repository when override disabled in config', async () => {
+      config.profile.overrideCachedRemotes = 'never';
+      config.profile.overrideCachedRemotesIfURLMatches = true;
+
+      // Setup storage to contain one of the remotes
+      adapters.remoteInfoRepo.tryGet = jest
+        .fn()
+        .mockImplementation(_ =>
+          Optional.of({ scopeUrl: mockScopeUrl_MFE1({ folder: 'v1' }), exposes: [] })
+        );
+
+      const actual = await getRemoteEntries({
+        'team/mfe1': `${mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' })}`,
+      });
+
+      expect(actual).toEqual([]);
+      expect(config.log.debug).toHaveBeenCalledWith(
+        1,
+        `Found remote 'team/mfe1' in storage, omitting fetch.`
+      );
+    });
+
+    it('should override fetching remotes that exist in the repository when override "init-only" in config', async () => {
+      config.profile.overrideCachedRemotes = 'init-only';
+      config.profile.overrideCachedRemotesIfURLMatches = true;
+
+      // Setup storage to contain one of the remotes
+      adapters.remoteInfoRepo.tryGet = jest
+        .fn()
+        .mockImplementation(_ =>
+          Optional.of({ scopeUrl: mockScopeUrl_MFE1({ folder: 'v1' }), exposes: [] })
+        );
+
+      const actual = await getRemoteEntries({
+        'team/mfe1': `${mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' })}`,
+      });
+
+      expect(actual).toEqual([{ ...mockRemoteEntry_MFE1(), override: true }]);
+      expect(config.log.debug).toHaveBeenCalledWith(
+        1,
+        `Overriding existing remote 'team/mfe1' with '${mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' })}'.`
+      );
+      expect(adapters.remoteEntryProvider.provide).toHaveBeenCalledWith(
+        `${mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' })}`
       );
     });
   });

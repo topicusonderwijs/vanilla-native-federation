@@ -63,15 +63,15 @@ export function createGetRemoteEntries(
 
     ports.remoteInfoRepo.tryGet(remoteName).ifPresent(cachedRemoteInfo => {
       if (
-        config.profile.skipCachedRemotes === 'always' ||
-        (config.profile.skipCachedRemotesIfURLMatches &&
-          remoteEntryUrl === _path.join(cachedRemoteInfo.scopeUrl, 'remoteEntry.json'))
+        config.profile.overrideCachedRemotes !== 'never' &&
+        (remoteEntryUrl !== _path.join(cachedRemoteInfo.scopeUrl, 'remoteEntry.json') ||
+          config.profile.overrideCachedRemotesIfURLMatches)
       ) {
-        config.log.debug(1, `Found remote '${remoteName}' in storage, omitting fetch.`);
-        skip = true;
-      } else {
         config.log.debug(1, `Overriding existing remote '${remoteName}' with '${remoteEntryUrl}'.`);
         isOverride = true;
+      } else {
+        config.log.debug(1, `Found remote '${remoteName}' in storage, omitting fetch.`);
+        skip = true;
       }
     });
 

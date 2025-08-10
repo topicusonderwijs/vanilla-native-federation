@@ -320,8 +320,8 @@ await initFederation(manifest, {
   // Custom profile
   profile: {
     latestSharedExternal: true, // Always use latest dependency versions
-    skipCachedRemotes: 'always', // Skip re-fetching known micro frontends
-    skipCachedRemotesIfURLMatches: true,
+    overrideCachedRemotes: 'never', // Skip re-fetching known micro frontends
+    overrideCachedRemotesIfURLMatches: false,
   },
 });
 ```

@@ -21,9 +21,12 @@ describe('createGetRemoteEntry', () => {
 
     getRemoteEntry = createGetRemoteEntry(config, adapters);
 
-    adapters.remoteEntryProvider.provide = jest.fn((from: string) =>
-      Promise.resolve({ ...mockRemoteEntry_MFE1(), url: from })
-    );
+    adapters.remoteEntryProvider.provide = jest.fn((url: string) => {
+      if (url.startsWith(mockScopeUrl_MFE1())) {
+        return Promise.resolve({ ...mockRemoteEntry_MFE1(), url });
+      }
+      return Promise.reject(new NFError(`Fetch of '${url}' returned 404 Not Found`));
+    });
   });
 
   describe('fetching remote entry', () => {
@@ -45,8 +48,8 @@ describe('createGetRemoteEntry', () => {
       ).rejects.toThrow('Could not fetch remoteEntry.');
     });
 
-    it('should skip fetching remote if it exists in repository and skipCachedRemotes is always', async () => {
-      config.profile.skipCachedRemotes = 'always';
+    it('should skip fetching remote if it exists in repository and overrideCachedRemotes is never', async () => {
+      config.profile.overrideCachedRemotes = 'never';
       adapters.remoteInfoRepo.tryGet = jest.fn(() =>
         Optional.of({
           name: 'team/mfe1',
@@ -96,75 +99,118 @@ describe('createGetRemoteEntry', () => {
     });
   });
 
-  describe('skipping cached remotes', () => {
-    it('should skip fetching remote if it exists in repository and skipCachedRemotes is never', async () => {
-      config.profile.skipCachedRemotes = 'never';
+  describe('overriding cached remotes', () => {
+    it('should override fetching remote if it exists in repository and overrideCachedRemotes is always', async () => {
+      config.profile.overrideCachedRemotes = 'always';
       adapters.remoteInfoRepo.tryGet = jest.fn(() =>
         Optional.of({
           name: 'team/mfe1',
-          scopeUrl: mockScopeUrl_MFE1(),
+          scopeUrl: mockScopeUrl_MFE1({ folder: 'v1' }),
           exposes: [],
         })
       );
 
       const result = await getRemoteEntry(
-        mockScopeUrl_MFE1({ file: 'remoteEntry.json' }),
+        mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' }),
+        'team/mfe1'
+      );
+      expect(adapters.remoteInfoRepo.tryGet).toHaveBeenCalledWith('team/mfe1');
+
+      expect(adapters.remoteEntryProvider.provide).toHaveBeenCalledWith(
+        mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' })
+      );
+
+      expect(result.isPresent()).toEqual(true);
+    });
+
+    it('should not override fetching remote if it exists in repository and overrideCachedRemotes is init-only', async () => {
+      config.profile.overrideCachedRemotes = 'init-only';
+      adapters.remoteInfoRepo.tryGet = jest.fn(() =>
+        Optional.of({
+          name: 'team/mfe1',
+          scopeUrl: mockScopeUrl_MFE1({ folder: 'v1' }),
+          exposes: [],
+        })
+      );
+
+      const result = await getRemoteEntry(
+        mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' }),
         'team/mfe1'
       );
       expect(adapters.remoteInfoRepo.tryGet).toHaveBeenCalledWith('team/mfe1');
 
       expect(adapters.remoteEntryProvider.provide).not.toHaveBeenCalled();
 
-      expect(result.isPresent()).toBe(false);
+      expect(result.isPresent()).toEqual(false);
+    });
+
+    it('should not override fetching remote if it exists in repository and overrideCachedRemotes is never', async () => {
+      config.profile.overrideCachedRemotes = 'never';
+      adapters.remoteInfoRepo.tryGet = jest.fn(() =>
+        Optional.of({
+          name: 'team/mfe1',
+          scopeUrl: mockScopeUrl_MFE1({ folder: 'v1' }),
+          exposes: [],
+        })
+      );
+
+      const result = await getRemoteEntry(
+        mockScopeUrl_MFE1({ folder: 'v2', file: 'remoteEntry.json' }),
+        'team/mfe1'
+      );
+      expect(adapters.remoteInfoRepo.tryGet).toHaveBeenCalledWith('team/mfe1');
+
+      expect(adapters.remoteEntryProvider.provide).not.toHaveBeenCalled();
+
+      expect(result.isPresent()).toEqual(false);
     });
 
     it('should skip fetching remote if URL matches cached remote info', async () => {
-      config.profile.skipCachedRemotesIfURLMatches = true;
+      config.profile.overrideCachedRemotes = 'always';
+      config.profile.overrideCachedRemotesIfURLMatches = false;
+
       adapters.remoteInfoRepo.tryGet = jest.fn(() =>
         Optional.of({
           name: 'team/mfe1',
-          scopeUrl: mockScopeUrl_MFE1(),
+          scopeUrl: mockScopeUrl_MFE1({ folder: 'v1' }),
           exposes: [],
         })
       );
 
       const result = await getRemoteEntry(
-        mockScopeUrl_MFE1({ file: 'remoteEntry.json' }),
+        mockScopeUrl_MFE1({ folder: 'v1', file: 'remoteEntry.json' }),
         'team/mfe1'
       );
       expect(adapters.remoteInfoRepo.tryGet).toHaveBeenCalledWith('team/mfe1');
 
       expect(adapters.remoteEntryProvider.provide).not.toHaveBeenCalled();
 
-      expect(result.isPresent()).toBe(false);
+      expect(result.isPresent()).toEqual(false);
     });
-  });
 
-  describe('overriding existing remote info', () => {
-    it('should mark remote as overridden if it exists in repository', async () => {
-      adapters.remoteInfoRepo.contains = jest.fn(() => true);
+    it('should override remote if URL matches cached remote info and enabled in config', async () => {
+      config.profile.overrideCachedRemotes = 'always';
+      config.profile.overrideCachedRemotesIfURLMatches = true;
+
       adapters.remoteInfoRepo.tryGet = jest.fn(() =>
         Optional.of({
           name: 'team/mfe1',
-          scopeUrl: `http://legacy.url/remoteEntry.json`,
+          scopeUrl: mockScopeUrl_MFE1({ folder: 'v1' }),
           exposes: [],
         })
       );
-      const result = await getRemoteEntry(`http://override.url/remoteEntry.json`, 'team/mfe1');
+
+      const result = await getRemoteEntry(
+        mockScopeUrl_MFE1({ folder: 'v1', file: 'remoteEntry.json' }),
+        'team/mfe1'
+      );
+      expect(adapters.remoteInfoRepo.tryGet).toHaveBeenCalledWith('team/mfe1');
 
       expect(adapters.remoteEntryProvider.provide).toHaveBeenCalledWith(
-        `http://override.url/remoteEntry.json`
+        mockScopeUrl_MFE1({ folder: 'v1', file: 'remoteEntry.json' })
       );
 
-      expect(result.get()).toEqual({
-        ...mockRemoteEntry_MFE1(),
-        url: 'http://override.url/remoteEntry.json',
-        override: true,
-      });
-      expect(config.log.debug).toHaveBeenCalledWith(
-        7,
-        `Overriding existing remote 'team/mfe1' with 'http://override.url/remoteEntry.json'.`
-      );
+      expect(result.isPresent()).toEqual(true);
     });
   });
 });

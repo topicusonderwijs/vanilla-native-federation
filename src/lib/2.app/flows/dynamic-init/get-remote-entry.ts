@@ -50,18 +50,14 @@ export function createGetRemoteEntry(
   };
 
   function shouldSkipCachedRemote(remoteEntryUrl: string, remoteName: RemoteName): boolean {
-    let shouldSkip = false;
-    ports.remoteInfoRepo.tryGet(remoteName).ifPresent(remoteInfo => {
-      if (config.profile.skipCachedRemotes !== 'never') {
-        shouldSkip = true;
-        return;
-      }
-
-      if (_path.join(remoteInfo.scopeUrl, 'remoteEntry.json') === remoteEntryUrl) {
-        shouldSkip = true;
-        return;
-      }
-    });
-    return shouldSkip;
+    return ports.remoteInfoRepo
+      .tryGet(remoteName)
+      .map(
+        cachedRemoteInfo =>
+          config.profile.overrideCachedRemotes !== 'always' ||
+          (!config.profile.overrideCachedRemotesIfURLMatches &&
+            remoteEntryUrl === _path.join(cachedRemoteInfo.scopeUrl, 'remoteEntry.json'))
+      )
+      .orElse(false);
   }
 }

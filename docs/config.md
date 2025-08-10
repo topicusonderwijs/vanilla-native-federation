@@ -124,12 +124,12 @@ export type ModeOptions = {
 
 ### Options:
 
-| Option                                | Default        | Description                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| strict                                | `false`        | When enabled, the init function will throw an error if a remoteEntry could not be fetched or a version incompatibility within a shared external occurs.                                                                                                                                                                                              |
-| profile.latestSharedExternal          | `false`        | When enabled, the version resolver will prioritize using the latest version of a shared external over the most optimal version.                                                                                                                                                                                                                      |
-| profile.skipCachedRemotes             | `dynamic-only` | When enabled, the library will skip the download/processing of remoteEntry of remotes that have already been cached (if the remoteName exists in cache). This can optimize the process but will prevent the library from updating the cache if a change was performed in the remoteEntry. Available options are `never`, `dynamic-only` and `always` |
-| profile.skipCachedRemotesIfURLMatches | `true`         | When enabled, the library will skip the download/processing of a remote if the remoteName already exists in cache and the remoteEntry.json URL matches the cached remoteEntry.json url (only for regular init, this is not possible with dynamic init).                                                                                              |
+| Option                                    | Default     | Description                                                                                                                                                                                                                                                                         |
+| ----------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| strict                                    | `false`     | When enabled, the init function will throw an error if a remoteEntry could not be fetched or a version incompatibility within a shared external occurs.                                                                                                                             |
+| profile.latestSharedExternal              | `false`     | When enabled, the version resolver will prioritize using the latest version of a shared external over the most optimal version.                                                                                                                                                     |
+| profile.overrideCachedRemotes             | `init-only` | When enabled, the library will override the cached remotes. The default behavior is to check if the remoteName is in the cache and the remoteEntry url differs from cached remoteEntry url (scopeUrl + "remoteEntry.json) . Available options are `never`, `init-only` and `always` |
+| profile.overrideCachedRemotesIfURLMatches | `false`     | When enabled, the library will override the cached remote, even if the remoteName already exists in cache and the remoteEntry.json URL matches the cached remoteEntry.json url.                                                                                                     |
 
 ### Example
 
@@ -139,7 +139,7 @@ import { defaultProfile, cachingProfile } from 'vanilla-native-federation/option
 
 initFederation('http://example.org/manifest.json', {
   strict: true,
-  profile: cachingProfile, // { latestSharedExternal: false, skipCachedRemotes: 'always', skipCachedRemotesIfURLMatches: true }
+  profile: cachingProfile, // { latestSharedExternal: false, overrideCachedRemotes: 'never', overrideCachedRemotesIfURLMatches: false }
 });
 ```
 

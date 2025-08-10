@@ -794,32 +794,32 @@ The orchestrator checks when a remote should be overridden or skipped by compari
 
 ### Skip Cached Remotes Configuration
 
-The `skipCachedRemotes` setting controls whether to fetch remotes that already exist in cache. The default setting is dynamic-only since it is generally not recommended to update the existing import-map after initialization:
+The `overrideCachedRemotes` setting controls whether to fetch remotes that already exist in cache. The default setting is "init-only" since it is generally not recommended to update the existing import-map after initialization:
 
 ```javascript
 await initFederation(manifest, {
   profile: {
-    skipCachedRemotes: 'never', // Always fetch, allow overrides
-    skipCachedRemotes: 'dynamic-only', // Skip only during dynamic init (default)
-    skipCachedRemotes: 'always', // Skip all cached remotes
+    overrideCachedRemotes: 'never', // Do not override cached remotes
+    overrideCachedRemotes: 'init-only', // Override only during the first initialization (default)
+    overrideCachedRemotes: 'always', // Override all cached remotes
   },
 });
 ```
 
 ### URL Matching Behavior
 
-The `skipCachedRemotesIfURLMatches` setting provides additional control. Normally, it makes sense to only override the remoteEntry.json if the URL changed, like from `https://my.cdn/mfe1/0.0.1/remoteEntry.json` to `https://my.cdn/mfe1/0.0.2/remoteEntry.json`. However, it might be necessary to always override, even if the URL matches the previously cached url:
+The `overrideCachedRemotesIfURLMatches` setting provides additional control. Normally, it makes sense to only override the cached remote if the URL changed, like from `https://my.cdn/mfe1/0.0.1/remoteEntry.json` to `https://my.cdn/mfe1/0.0.2/remoteEntry.json`. However, it might be necessary to always override, even if the URL matches the previously cached url:
 
 ```javascript
 await initFederation(manifest, {
   profile: {
-    skipCachedRemotes: 'never',
-    skipCachedRemotesIfURLMatches: true,
+    overrideCachedRemotes: 'always',
+    overrideCachedRemotesIfURLMatches: true,
   },
 });
 ```
 
-> **Note:** the `skipCachedRemotes` is generally meant as "skip if urls differ or override if urls differ".
+> **Note:** the `overrideCachedRemotes` is generally meant as "override only if urls differ".
 
 ### Override Processing Steps
 
@@ -867,7 +867,7 @@ await initFederation(manifest, {
 
   // Skip cached remotes for performance
   profile: {
-    skipCachedRemotes: 'always',
+    overrideCachedRemotes: 'never',
   },
 
   // Fail on version conflicts in any scope
