@@ -278,13 +278,21 @@ describe('createProcessRemoteEntries - global', () => {
     });
 
     it('should correctly order the the versions descending', async () => {
+      adapters.versionCheck.isCompatible = jest.fn(() => true);
+
       adapters.sharedExternalsRepo.tryGet = jest.fn(
         (): Optional<SharedExternal> =>
           Optional.of(
             mockExternal.shared(
               [
-                mockVersion_A.v2_1_1({ remotes: ['team/mfe1'] }),
-                mockVersion_A.v2_1_3({ remotes: ['team/mfe3'] }),
+                mockVersion_A.v2_1_1({
+                  remotes: { 'team/mfe1': { cached: false } },
+                  action: 'skip',
+                }),
+                mockVersion_A.v2_1_3({
+                  remotes: { 'team/mfe3': { cached: true } },
+                  action: 'share',
+                }),
               ],
               {
                 dirty: false,
@@ -307,9 +315,9 @@ describe('createProcessRemoteEntries - global', () => {
         'dep-a',
         mockExternal.shared(
           [
-            mockVersion_A.v2_1_3({ remotes: ['team/mfe3'] }),
-            mockVersion_A.v2_1_2({ remotes: ['team/mfe2'] }),
-            mockVersion_A.v2_1_1({ remotes: ['team/mfe1'] }),
+            mockVersion_A.v2_1_3({ remotes: { 'team/mfe3': { cached: true } }, action: 'share' }),
+            mockVersion_A.v2_1_2({ remotes: { 'team/mfe2': { cached: false } }, action: 'skip' }),
+            mockVersion_A.v2_1_1({ remotes: { 'team/mfe1': { cached: false } }, action: 'skip' }),
           ],
           { dirty: true }
         ),
