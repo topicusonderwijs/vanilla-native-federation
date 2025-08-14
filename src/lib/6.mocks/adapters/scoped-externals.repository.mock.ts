@@ -4,5 +4,6 @@ export const mockScopedExternalsRepository = (): jest.Mocked<ForScopedExternalsS
   addExternal: jest.fn(),
   getAll: jest.fn(),
   remove: jest.fn(),
+  tryGet: jest.fn(),
   commit: jest.fn(),
 });

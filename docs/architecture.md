@@ -215,6 +215,8 @@ classDiagram
 
 After processing the remoteEntry.json files, the library stores the shared components and dependencies in memory to be used when the importMap is generated:
 
+> exposed on `import * from 'vanilla-native-federation/sdk'`
+
 #### Remote Information Cache
 
 ```mermaid

@@ -39,8 +39,7 @@ import { useShimImportMap } from 'lib/4.config/import-map/use-import-shim';
   await initFederation(manifest, {
     logger: consoleLogger,
     logLevel: 'warn',
-    ...useShimImportMap({ shimMode: true }),
-    importMapType: 'importmap',
+    ...useShimImportMap({ shimMode: false }),
   }).then(({ loadRemoteModule }) => {
     (window as any).loadRemoteModule = loadRemoteModule;
     window.dispatchEvent(new CustomEvent('mfe-loader-available', { detail: { loadRemoteModule } }));

@@ -3,6 +3,9 @@ import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { StorageConfig } from 'lib/2.app/config';
 import { mockVersion } from 'lib/6.mocks/domain/externals/version.mock';
 import { mockExternal_E, mockExternal_F } from 'lib/6.mocks/domain/externals/external.mock';
+import { ForScopedExternalsStorage } from 'lib/sdk.index';
+import { Optional } from 'lib/utils/optional';
+import { ScopedExternal } from 'lib/1.domain';
 
 describe('createScopedExternalsRepository', () => {
   const setupWithCache = (storage: any) => {
@@ -123,11 +126,9 @@ describe('createScopedExternalsRepository', () => {
       expect(result).toBe(externalsRepo);
     });
 
-    // Example showcasing the clean new mockVersion syntax
     it('should handle complex scoped externals setup with clean syntax', () => {
       const { externalsRepo, mockStorage } = setupWithCache({});
 
-      // Set up multiple scopes with different externals using clean syntax
       externalsRepo
         .addExternal('shell-app', 'react', mockVersion.scoped('18.2.0', 'react'))
         .addExternal('shell-app', 'lodash', mockVersion.scoped('4.17.21', 'lodash'))
@@ -150,6 +151,43 @@ describe('createScopedExternalsRepository', () => {
           jquery: mockVersion.scoped('3.6.0', 'jquery'),
         },
       });
+    });
+  });
+
+  describe('tryGet', () => {
+    let repository: ForScopedExternalsStorage;
+
+    beforeEach(() => {
+      const { externalsRepo } = setupWithCache({
+        ['team/mfe1']: {
+          ...mockExternal_E(),
+          ...mockExternal_F(),
+        },
+        ['team/mfe2']: {
+          ...mockExternal_E(),
+        },
+      });
+      repository = externalsRepo;
+    });
+
+    it('should return the externals', () => {
+      const actual: Optional<ScopedExternal> = repository.tryGet('team/mfe1');
+      const expected: ScopedExternal = {
+        ...mockExternal_E(),
+        ...mockExternal_F(),
+      };
+
+      expect(actual.isPresent()).toBe(true);
+      expect(actual.get()).toEqual(expected);
+    });
+
+    it('should return empty optional if remote doesnt exist', () => {
+      const { externalsRepo } = setupWithCache({});
+
+      const actual: Optional<ScopedExternal> = externalsRepo.tryGet('team/mfe3');
+
+      expect(actual.isPresent()).toBe(false);
+      expect(actual.get()).toEqual(undefined);
     });
   });
 
