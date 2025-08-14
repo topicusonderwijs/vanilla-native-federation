@@ -2,10 +2,10 @@ import type { ImportMap } from 'lib/1.domain';
 
 export type ImportMapConfig = {
   loadModuleFn: (url: string) => Promise<unknown>;
-  replaceImportMap: ReplaceImportMap;
+  setImportMap: SetImportMap;
 };
 
-export type ReplaceImportMap = (
+export type SetImportMap = (
   importMap: ImportMap,
   opts?: { override?: boolean }
 ) => Promise<ImportMap>;

@@ -3,7 +3,7 @@ import type { ImportMapConfig } from 'lib/2.app/config/import-map.contract';
 
 const createBrowser = (config: ImportMapConfig): ForBrowserTasks => {
   return {
-    setImportMap: config.replaceImportMap,
+    setImportMap: config.setImportMap,
     importModule: config.loadModuleFn,
   };
 };

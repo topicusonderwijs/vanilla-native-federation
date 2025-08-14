@@ -12,7 +12,7 @@ describe('createBrowser', () => {
   let browser: ForBrowserTasks;
   let mockConfig: ImportMapConfig;
   let mockLoadModuleFn: jest.Mock;
-  let mockReplaceImportMap: jest.Mock;
+  let mockSetImportMap: jest.Mock;
 
   beforeEach(() => {
     setupDomEnvironment();
@@ -21,13 +21,13 @@ describe('createBrowser', () => {
       return Promise.resolve({ default: { name: 'mocked-module' } });
     });
 
-    mockReplaceImportMap = jest.fn((importMap: ImportMap) => {
+    mockSetImportMap = jest.fn((importMap: ImportMap) => {
       return Promise.resolve(importMap);
     });
 
     mockConfig = {
       loadModuleFn: mockLoadModuleFn,
-      replaceImportMap: mockReplaceImportMap,
+      setImportMap: mockSetImportMap,
     };
 
     browser = createBrowser(mockConfig);
@@ -71,7 +71,7 @@ describe('createBrowser', () => {
 
       await browser.setImportMap(importMap);
 
-      expect(mockReplaceImportMap).toHaveBeenCalledWith(importMap);
+      expect(mockSetImportMap).toHaveBeenCalledWith(importMap);
     });
 
     it('should return the result from setImportMap', async () => {
@@ -86,7 +86,7 @@ describe('createBrowser', () => {
       const importMap = { imports: { 'mocked-module': 'https://example.com/mocked-module.js' } };
       const expectedError = new Error('Failed to set import map');
 
-      mockReplaceImportMap.mockRejectedValueOnce(expectedError);
+      mockSetImportMap.mockRejectedValueOnce(expectedError);
 
       await expect(browser.setImportMap(importMap)).rejects.toThrow(expectedError);
     });

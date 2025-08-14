@@ -2,7 +2,7 @@ import type {
   InitFederationResult,
   LazyInitFederationResult,
   LoadRemoteModule,
-} from './1.domain/init-federation.contract';
+} from './init-federation.contract';
 import type { RemoteEntry } from './1.domain/remote-entry/remote-entry.contract';
 import type { NFOptions } from './2.app/config/config.contract';
 import { CREATE_NF_APP } from './create-nf-app';

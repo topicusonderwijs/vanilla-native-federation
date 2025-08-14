@@ -3,7 +3,7 @@ import { replaceInDOM } from './replace-in-dom';
 
 const useDefaultImportMap = (): ImportMapConfig => ({
   loadModuleFn: url => import(url),
-  replaceImportMap: replaceInDOM('importmap'),
+  setImportMap: replaceInDOM('importmap'),
 });
 
 export { useDefaultImportMap };

@@ -49,23 +49,23 @@ The native-federation library uses importmaps under the hood for module resolvin
 ```javascript
 export type ImportMapOptions = {
     loadModuleFn?: (url: string) => Promise<unknown>
-    replaceImportMap?: (importMap: ImportMap, opts?: { override?: boolean }) => Promise<ImportMap>
+    setImportMap?: (importMap: ImportMap, opts?: { override?: boolean }) => Promise<ImportMap>
 }
 ```
 
 ### Options:
 
-| Option           | Default                     | Description                                                                                                   |
-| ---------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| replaceImportMap | `replaceInDOM("importmap")` | The function that adds the importmap to the host, by default this is the DOM.                                 |
-| loadModuleFn     | `url => import(url)`        | This function can mock or alter the 'import' function, necessary for libraries that shim the import function. |
+| Option       | Default                     | Description                                                                                                   |
+| ------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| setImportMap | `replaceInDOM("importmap")` | The function that adds the importmap to the host, by default this is the DOM.                                 |
+| loadModuleFn | `url => import(url)`        | This function can mock or alter the 'import' function, necessary for libraries that shim the import function. |
 
 ### Example
 
 ```javascript
 import 'es-module-shims';
 import { initFederation } from 'vanilla-native-federation';
-import { useShimImportMap, useDefaultImportMap } from 'vanilla-native-federation/options';
+import { useShimImportMap, useDefaultImportMap, replaceInDOM } from 'vanilla-native-federation/options';
 
 initFederation('http://example.org/manifest.json', {
   // Option 1: Using es-module-shims
@@ -73,6 +73,10 @@ initFederation('http://example.org/manifest.json', {
 
   // Option 2: Using the default importmap
   ...useDefaultImportMap(),
+
+  // Option 3: Custom properties
+  loadModuleFn: (url: string) => { return customImport(url); },
+  setImportMap: replaceInDOM('<importmap-type>'),
 });
 ```
 
