@@ -12,7 +12,7 @@ export const mockConfig = (): ConfigContract => ({
   // LoggingConfig
   log: createMockLogHandler('debug'),
   // importMapConfig
-  importMapType: 'importmap',
+  replaceImportMap: jest.fn(),
   loadModuleFn: jest.fn(),
   // hostConfig
   hostRemoteEntry: false,

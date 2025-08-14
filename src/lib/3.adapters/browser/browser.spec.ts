@@ -1,7 +1,6 @@
 import { createBrowser } from './browser';
 import { ImportMapConfig } from 'lib/2.app/config/import-map.contract';
 import { ForBrowserTasks } from 'lib/2.app/driving-ports/for-browser-tasks';
-import { mockImportMap } from 'lib/6.mocks/domain/import-map.mock';
 
 function setupDomEnvironment() {
   document.head.innerHTML = '';
@@ -13,6 +12,7 @@ describe('createBrowser', () => {
   let browser: ForBrowserTasks;
   let mockConfig: ImportMapConfig;
   let mockLoadModuleFn: jest.Mock;
+  let mockReplaceImportMap: jest.Mock;
 
   beforeEach(() => {
     setupDomEnvironment();
@@ -21,9 +21,13 @@ describe('createBrowser', () => {
       return Promise.resolve({ default: { name: 'mocked-module' } });
     });
 
+    mockReplaceImportMap = jest.fn((importMap: ImportMap) => {
+      return Promise.resolve(importMap);
+    });
+
     mockConfig = {
-      importMapType: 'importmap',
       loadModuleFn: mockLoadModuleFn,
+      replaceImportMap: mockReplaceImportMap,
     };
 
     browser = createBrowser(mockConfig);
@@ -31,93 +35,6 @@ describe('createBrowser', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-  });
-
-  describe('setImportMap', () => {
-    it('should create a new script element with correct type', () => {
-      const importMap = mockImportMap();
-      browser.setImportMap(importMap);
-
-      const script = document.head.querySelector('script[type="importmap"]');
-      expect(script).not.toBeNull();
-      expect(document.head.appendChild).toHaveBeenCalled();
-    });
-
-    it('should not remove existing import map scripts but append to the end by default', () => {
-      const existingScript = document.createElement('script');
-      existingScript.type = 'importmap';
-      existingScript.innerHTML = JSON.stringify({ imports: { test: 'test.js' } });
-      document.head.appendChild(existingScript);
-
-      expect(document.head.querySelectorAll('script[type="importmap"]').length).toBe(1);
-
-      const importMap = mockImportMap();
-      browser.setImportMap(importMap);
-
-      const scripts = document.head.querySelectorAll('script[type="importmap"]');
-      expect(scripts.length).toBe(2);
-      expect(scripts[1]!.innerHTML).toBe(JSON.stringify(importMap));
-    });
-
-    it('should remove existing import map scripts if override is true', () => {
-      const existingScript = document.createElement('script');
-      existingScript.type = 'importmap';
-      existingScript.innerHTML = JSON.stringify({ imports: { test: 'test.js' } });
-      document.head.appendChild(existingScript);
-
-      expect(document.head.querySelectorAll('script[type="importmap"]').length).toBe(1);
-
-      const importMap = mockImportMap();
-      browser.setImportMap(importMap, { override: true });
-
-      const scripts = document.head.querySelectorAll('script[type="importmap"]');
-      expect(scripts.length).toBe(1);
-      expect(scripts[0]!.innerHTML).toBe(JSON.stringify(importMap));
-    });
-
-    it('should set the innerHTML to stringified import map', () => {
-      const importMap = mockImportMap();
-      browser.setImportMap(importMap);
-
-      const script = document.head.querySelector('script[type="importmap"]');
-      expect(script!.innerHTML).toBe(JSON.stringify(importMap));
-    });
-
-    it('should return the import map', () => {
-      const importMap = mockImportMap();
-      const result = browser.setImportMap(importMap);
-
-      expect(result).toEqual(importMap);
-    });
-
-    it('should use custom import map type from config', () => {
-      mockConfig.importMapType = 'custom-importmap';
-      browser = createBrowser(mockConfig);
-
-      const importMap = mockImportMap();
-      browser.setImportMap(importMap);
-
-      expect(document.head.querySelector('script[type="custom-importmap"]')).not.toBeNull();
-      expect(document.head.querySelector('script[type="importmap"]')).toBeNull();
-    });
-
-    it('should replace existing import map even with multiple scripts', () => {
-      for (let i = 0; i < 3; i++) {
-        const existingScript = document.createElement('script');
-        existingScript.type = 'importmap';
-        existingScript.innerHTML = JSON.stringify({ imports: { [`test${i}`]: `test${i}.js` } });
-        document.head.appendChild(existingScript);
-      }
-
-      expect(document.head.querySelectorAll('script[type="importmap"]').length).toBe(3);
-
-      const importMap = mockImportMap();
-      browser.setImportMap(importMap, { override: true });
-
-      const scripts = document.head.querySelectorAll('script[type="importmap"]');
-      expect(scripts.length).toBe(1);
-      expect(scripts[0]!.innerHTML).toBe(JSON.stringify(importMap));
-    });
   });
 
   describe('importModule', () => {
@@ -145,6 +62,33 @@ describe('createBrowser', () => {
       mockLoadModuleFn.mockRejectedValueOnce(expectedError);
 
       await expect(browser.importModule(moduleUrl)).rejects.toThrow(expectedError);
+    });
+  });
+
+  describe('setImportMap', () => {
+    it('should call the setImportMap with the provided import map', async () => {
+      const importMap = { imports: { 'mocked-module': 'https://example.com/mocked-module.js' } };
+
+      await browser.setImportMap(importMap);
+
+      expect(mockReplaceImportMap).toHaveBeenCalledWith(importMap);
+    });
+
+    it('should return the result from setImportMap', async () => {
+      const importMap = { imports: { 'mocked-module': 'https://example.com/mocked-module.js' } };
+
+      const result = await browser.setImportMap(importMap);
+
+      expect(result).toEqual(importMap);
+    });
+
+    it('should propagate errors from setImportMap', async () => {
+      const importMap = { imports: { 'mocked-module': 'https://example.com/mocked-module.js' } };
+      const expectedError = new Error('Failed to set import map');
+
+      mockReplaceImportMap.mockRejectedValueOnce(expectedError);
+
+      await expect(browser.setImportMap(importMap)).rejects.toThrow(expectedError);
     });
   });
 });

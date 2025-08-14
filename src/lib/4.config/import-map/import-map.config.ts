@@ -4,7 +4,7 @@ import { useDefaultImportMap } from './use-default';
 export const createImportMapConfig = (o: Partial<ImportMapOptions>): ImportMapConfig => {
   const fallback = useDefaultImportMap();
   return {
-    importMapType: o.importMapType ?? fallback.importMapType,
+    replaceImportMap: o.replaceImportMap ?? fallback.replaceImportMap,
     loadModuleFn: o.loadModuleFn ?? fallback.loadModuleFn,
   };
 };
