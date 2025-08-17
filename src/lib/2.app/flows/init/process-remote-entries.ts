@@ -42,7 +42,7 @@ export function createProcessRemoteEntries(
         addRemoteInfoToStorage(remoteEntry);
         addExternalsToStorage(remoteEntry);
       });
-      return Promise.resolve();
+      return Promise.resolve(remoteEntries);
     } catch (e) {
       return Promise.reject(e);
     }
@@ -116,9 +116,9 @@ export function createProcessRemoteEntries(
         remote.strictVersion &&
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
-        handleError(
-          remoteName,
-          `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`
+        config.log.warn(
+          2,
+          `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version-range '${remote.requiredVersion}' does not match cached version-range '${matchingVersion.remotes[0]!.requiredVersion}'`
         );
       }
 

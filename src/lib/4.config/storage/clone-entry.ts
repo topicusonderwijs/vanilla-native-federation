@@ -5,8 +5,8 @@ type CloneEntry = <T>(name: StorageEntryKey, raw: T) => T;
 
 const cloneEntry: CloneEntry = <T>(name: StorageEntryKey, raw: T) => {
   try {
-    if (typeof globalThis.structuredClone === 'function') {
-      return globalThis.structuredClone(raw);
+    if (typeof structuredClone === 'function') {
+      return structuredClone(raw);
     }
   } catch {
     /* structured clone is unavailable */

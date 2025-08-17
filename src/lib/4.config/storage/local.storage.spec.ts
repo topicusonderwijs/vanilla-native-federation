@@ -36,7 +36,7 @@ describe('localStorageEntry', () => {
   });
 
   describe('get', () => {
-    it('get should return the fallback value', () => {
+    it('should return the fallback value', () => {
       const entry = storageEntryHandler('remotes', { 'team/mfe1': mockRemoteInfo_MFE1() });
 
       const expected = { 'team/mfe1': mockRemoteInfo_MFE1() };
@@ -53,6 +53,12 @@ describe('localStorageEntry', () => {
       keyA['team/mfe1'] = mockRemoteInfo_MFE2();
 
       expect(entry.get()).toEqual(expected);
+    });
+
+    it('should return undefined if the value doesnt exist', () => {
+      const entry = storageEntryHandler('remotes', undefined);
+
+      expect(entry.get()).toEqual(undefined);
     });
   });
 
