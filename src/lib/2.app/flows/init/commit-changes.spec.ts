@@ -30,6 +30,6 @@ describe('createCommitChanges', () => {
   it('should add the importmap to the browser', async () => {
     await commitChanges({ imports: {} });
 
-    expect(adapters.browser.setImportMap).toHaveBeenCalledWith({ imports: {} });
+    expect(adapters.browser.setImportMapFn).toHaveBeenCalledWith({ imports: {} });
   });
 });

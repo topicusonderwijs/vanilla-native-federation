@@ -49,16 +49,16 @@ The native-federation library uses importmaps under the hood for module resolvin
 ```javascript
 export type ImportMapOptions = {
     loadModuleFn?: (url: string) => Promise<unknown>
-    setImportMap?: (importMap: ImportMap, opts?: { override?: boolean }) => Promise<ImportMap>
+    setImportMapFn?: (importMap: ImportMap, opts?: { override?: boolean }) => Promise<ImportMap>
 }
 ```
 
 ### Options:
 
-| Option       | Default                     | Description                                                                                                   |
-| ------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| setImportMap | `replaceInDOM("importmap")` | The function that adds the importmap to the host, by default this is the DOM.                                 |
-| loadModuleFn | `url => import(url)`        | This function can mock or alter the 'import' function, necessary for libraries that shim the import function. |
+| Option         | Default                     | Description                                                                                                   |
+| -------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| setImportMapFn | `replaceInDOM("importmap")` | The function that adds the importmap to the host, by default this is the DOM.                                 |
+| loadModuleFn   | `url => import(url)`        | This function can mock or alter the 'import' function, necessary for libraries that shim the import function. |
 
 ### Example
 
@@ -76,7 +76,7 @@ initFederation('http://example.org/manifest.json', {
 
   // Option 3: Custom properties
   loadModuleFn: (url: string) => { return customImport(url); },
-  setImportMap: replaceInDOM('<importmap-type>'),
+  setImportMapFn: replaceInDOM('<importmap-type>'),
 });
 ```
 

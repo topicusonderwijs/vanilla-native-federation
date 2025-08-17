@@ -27,7 +27,7 @@ describe('createBrowser', () => {
 
     mockConfig = {
       loadModuleFn: mockLoadModuleFn,
-      setImportMap: mockSetImportMap,
+      setImportMapFn: mockSetImportMap,
     };
 
     browser = createBrowser(mockConfig);
@@ -65,30 +65,30 @@ describe('createBrowser', () => {
     });
   });
 
-  describe('setImportMap', () => {
-    it('should call the setImportMap with the provided import map', async () => {
+  describe('setImportMapFn', () => {
+    it('should call the setImportMapFn with the provided import map', async () => {
       const importMap = { imports: { 'mocked-module': 'https://example.com/mocked-module.js' } };
 
-      await browser.setImportMap(importMap);
+      await browser.setImportMapFn(importMap);
 
       expect(mockSetImportMap).toHaveBeenCalledWith(importMap);
     });
 
-    it('should return the result from setImportMap', async () => {
+    it('should return the result from setImportMapFn', async () => {
       const importMap = { imports: { 'mocked-module': 'https://example.com/mocked-module.js' } };
 
-      const result = await browser.setImportMap(importMap);
+      const result = await browser.setImportMapFn(importMap);
 
       expect(result).toEqual(importMap);
     });
 
-    it('should propagate errors from setImportMap', async () => {
+    it('should propagate errors from setImportMapFn', async () => {
       const importMap = { imports: { 'mocked-module': 'https://example.com/mocked-module.js' } };
       const expectedError = new Error('Failed to set import map');
 
       mockSetImportMap.mockRejectedValueOnce(expectedError);
 
-      await expect(browser.setImportMap(importMap)).rejects.toThrow(expectedError);
+      await expect(browser.setImportMapFn(importMap)).rejects.toThrow(expectedError);
     });
   });
 });

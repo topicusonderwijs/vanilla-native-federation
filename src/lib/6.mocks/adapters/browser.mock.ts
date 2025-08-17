@@ -1,6 +1,6 @@
 import { ForBrowserTasks } from 'lib/2.app/driving-ports/for-browser-tasks';
 
 export const mockBrowser = (): jest.Mocked<ForBrowserTasks> => ({
-  setImportMap: jest.fn(),
+  setImportMapFn: jest.fn(),
   importModule: jest.fn(),
 });

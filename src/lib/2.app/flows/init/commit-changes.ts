@@ -25,7 +25,7 @@ export function createCommitChanges(
     Promise.resolve(importMap).then(addToBrowser).then(persistRepositoryChanges);
 
   function addToBrowser(importMap: ImportMap) {
-    ports.browser.setImportMap(importMap);
+    ports.browser.setImportMapFn(importMap);
     config.log.debug(5, 'Added import map to browser.', importMap);
     return importMap;
   }

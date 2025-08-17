@@ -2,7 +2,7 @@ import type { ImportMap } from 'lib/1.domain';
 
 export type ImportMapConfig = {
   loadModuleFn: (url: string) => Promise<unknown>;
-  setImportMap: SetImportMap;
+  setImportMapFn: SetImportMap;
 };
 
 export type SetImportMap = (

@@ -5,7 +5,7 @@ declare function importShim<T>(url: string): T;
 
 const useShimImportMap = (cfg: { shimMode: boolean } = { shimMode: false }): ImportMapConfig => ({
   loadModuleFn: url => importShim(url),
-  setImportMap: replaceInDOM(cfg.shimMode ? 'importmap-shim' : 'importmap'),
+  setImportMapFn: replaceInDOM(cfg.shimMode ? 'importmap-shim' : 'importmap'),
 });
 
 export { useShimImportMap };
