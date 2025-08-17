@@ -34,7 +34,7 @@ module.exports = {
   collectCoverageFrom: [
     'src/**/*.{js,ts}',
     '!src/**/*.d.ts',
-    '!src/**/index.ts',
+    '!src/**/*index.ts',
     '!src/lib/5.di/**/*',
     '!src/lib/6.mocks/**/*',
   ],

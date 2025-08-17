@@ -1,6 +1,10 @@
 import { cloneEntry } from './clone-entry';
 
 describe('cloneEntry', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should clone primitive values', () => {
     expect(cloneEntry('test', 42)).toBe(42);
     expect(cloneEntry('test', 'hello')).toBe('hello');
@@ -41,6 +45,18 @@ describe('cloneEntry', () => {
     expect(cloned).not.toBe(original);
     expect(cloned.nested).not.toBe(original.nested);
     expect(cloned.nested.a).not.toBe(original.nested.a);
+  });
+
+  it('should use structuredClone if available', () => {
+    const currentStructuredClone = (window as any).structuredClone;
+    const mockStructuredClone = jest.fn();
+    (window as any).structuredClone = mockStructuredClone;
+    const original = { a: 1, b: { c: 2 } };
+
+    cloneEntry('test', original);
+
+    expect(mockStructuredClone).toHaveBeenCalledWith(original);
+    (window as any).structuredClone = currentStructuredClone;
   });
 
   it('should handle environments where structuredClone is not defined', () => {
