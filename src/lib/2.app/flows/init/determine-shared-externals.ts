@@ -104,9 +104,12 @@ export function createDetermineSharedExternals(
       }
 
       if (config.strict && v.remotes[0]!.strictVersion) {
-        throw new NFError(
-          `[${v.remotes[0]!.name}] ${externalName}@${v.tag} is not compatible with existing ${sharedVersion!.remotes[0]!.requiredVersion}@${sharedVersion!.tag} requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}'`
+        config.log.error(
+          3,
+          `[${v.remotes[0]!.name}][${externalName}@${v.tag}] Is not compatible with requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}' from remote '${sharedVersion!.remotes[0]!.name}'.`
         );
+
+        throw new NFError(`External ${externalName}@${v.tag} could not be shared.`);
       }
       v.action = v.remotes[0]!.strictVersion ? 'scope' : 'skip';
     });
