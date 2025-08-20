@@ -8,9 +8,10 @@ export const mockVersionRemote = (
     strictVersion?: boolean;
     cached?: boolean;
     host?: boolean;
+    file?: string;
   } = {}
 ): SharedVersionMeta => ({
-  file: `${external}.js`,
+  file: options.file ?? `${external}.js`,
   name,
   requiredVersion: options.requiredVersion || '~2.1.0',
   strictVersion: options.strictVersion ?? true,
