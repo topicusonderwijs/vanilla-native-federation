@@ -1,5 +1,12 @@
 export { ImportMapOptions, ImportMapConfig } from './import-map.contract';
-export { LoggingOptions, LogLevel, LogType, LoggingConfig } from './log.contract';
+export {
+  LoggingOptions,
+  LogLevel,
+  LogType,
+  LoggingConfig,
+  LogHandler,
+  Logger,
+} from './log.contract';
 export { StorageOptions, StorageEntry, StorageEntryKey, StorageConfig } from './storage.contract';
 export { ModeOptions, ModeConfig } from './mode.contract';
 export { HostOptions, HostConfig } from './host.contract';
