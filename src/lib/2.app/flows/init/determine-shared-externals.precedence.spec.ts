@@ -79,6 +79,33 @@ describe('createDetermineSharedExternals (compatibility precedence)', () => {
     );
   });
 
+  it('should share the latest version if all equal no matter which one is cached', async () => {
+    adapters.versionCheck.isCompatible = jest.fn(() => true);
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
+      'dep-b': mockExternal_A({
+        dirty: true,
+        versions: [
+          mockVersion_B.v2_2_2({ remotes: { 'team/mfe1': { cached: false } }, action: 'skip' }),
+          mockVersion_B.v2_1_1({ remotes: { 'team/mfe2': { cached: true } }, action: 'skip' }),
+        ],
+      }),
+    }));
+
+    await determineSharedExternals();
+
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      'dep-b',
+      mockExternal_A({
+        dirty: false,
+        versions: [
+          mockVersion_B.v2_2_2({ remotes: { 'team/mfe1': { cached: false } }, action: 'share' }),
+          mockVersion_B.v2_1_1({ remotes: { 'team/mfe2': { cached: true } }, action: 'skip' }),
+        ],
+      }),
+      GLOBAL_SCOPE
+    );
+  });
+
   it('Should choose latest most compatible version if no host version available', async () => {
     adapters.versionCheck.isCompatible = jest.fn(
       (v, range) => v.substring(0, 3) === range.substring(1, 4) // '(x.x).x' === '~(x.x).x'
