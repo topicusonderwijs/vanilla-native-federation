@@ -83,14 +83,22 @@ export function createGenerateImportMap(
 
   function processshareScope(importMap: ImportMap, shareScope: string): void {
     const sharedExternals = ports.sharedExternalsRepo.getFromScope(shareScope);
-    const scopeType = ports.sharedExternalsRepo.scopeType(shareScope);
 
     for (const [externalName, external] of Object.entries(sharedExternals)) {
       let override: SharedVersion | undefined | 'NOT_AVAILABLE' = undefined;
       let overrideScope: string | undefined = undefined;
 
       for (const version of external.versions) {
-        if (version.action === 'skip' && scopeType === 'global') continue;
+        if (version.action === 'scope') {
+          for (const remote of version.remotes) {
+            const remoteScope = getScope(externalName, shareScope, remote.name);
+            addToScope(importMap, remoteScope, {
+              [externalName]: _path.join(remoteScope, remote.file),
+            });
+            remote.cached = true;
+          }
+          continue;
+        }
 
         const scope = getScope(externalName, shareScope, version.remotes[0]!.name);
 
@@ -167,12 +175,14 @@ export function createGenerateImportMap(
     for (const [externalName, external] of Object.entries(sharedExternals)) {
       for (const version of external.versions) {
         if (version.action === 'skip') continue;
-        const scope = getScope(externalName, GLOBAL_SCOPE, version.remotes[0]!.name);
         if (version.action === 'scope') {
-          addToScope(importMap, scope, {
-            [externalName]: _path.join(scope, version.remotes[0]!.file),
-          });
-          version.remotes[0]!.cached = true;
+          for (const remote of version.remotes) {
+            const remoteScope = getScope(externalName, GLOBAL_SCOPE, remote.name);
+            addToScope(importMap, remoteScope, {
+              [externalName]: _path.join(remoteScope, remote.file),
+            });
+            remote.cached = true;
+          }
           continue;
         }
 
@@ -181,6 +191,7 @@ export function createGenerateImportMap(
           continue;
         }
 
+        const scope = getScope(externalName, GLOBAL_SCOPE, version.remotes[0]!.name);
         addToGlobal(importMap, { [externalName]: _path.join(scope, version.remotes[0]!.file) });
         version.remotes[0]!.cached = true;
       }

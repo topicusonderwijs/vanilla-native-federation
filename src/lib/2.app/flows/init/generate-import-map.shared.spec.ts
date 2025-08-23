@@ -111,6 +111,37 @@ describe('createGenerateImportMap (shared-externals)', () => {
     });
   });
 
+  it('should should scope all remotes in a scoped version.', async () => {
+    adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
+      'dep-a': mockExternal_A({
+        dirty: false,
+        versions: [
+          mockVersion_A.v2_1_3({
+            action: 'scope',
+            remotes: {
+              'team/mfe1': { file: 'dep-a-mfe1.js' },
+              'team/mfe2': { file: 'dep-a-mfe2.js' },
+            },
+          }),
+        ],
+      }),
+    }));
+
+    const actual = await generateImportMap();
+
+    expect(actual).toEqual({
+      imports: {},
+      scopes: {
+        [mockScopeUrl_MFE1()]: {
+          'dep-a': mockScopeUrl_MFE1({ file: 'dep-a-mfe1.js' }),
+        },
+        [mockScopeUrl_MFE2()]: {
+          'dep-a': mockScopeUrl_MFE2({ file: 'dep-a-mfe2.js' }),
+        },
+      },
+    });
+  });
+
   it('should update the version in storage as "cached".', async () => {
     adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': mockExternal_A({

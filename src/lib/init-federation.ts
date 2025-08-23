@@ -35,6 +35,7 @@ const initFederation = (
     .then(loadRemoteModule => {
       const output: InitFederationResult = {
         config,
+        adapters,
         loadRemoteModule,
         as: <TModule = unknown>() => ({
           loadRemoteModule: loadRemoteModule as LoadRemoteModule<TModule>,

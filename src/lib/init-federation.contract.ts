@@ -1,4 +1,5 @@
 import type { ConfigContract } from 'lib/2.app/config';
+import type { DrivingContract } from 'lib/2.app/driving-ports/driving.contract';
 
 export type LoadRemoteModule<TModule = unknown> = (
   remoteName: string,
@@ -7,6 +8,7 @@ export type LoadRemoteModule<TModule = unknown> = (
 
 export type InitFederationResult = {
   config: ConfigContract;
+  adapters: DrivingContract;
   loadRemoteModule: LoadRemoteModule;
   remote: <TModule = unknown>(
     remoteName: string
