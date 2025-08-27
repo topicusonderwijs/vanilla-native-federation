@@ -96,6 +96,14 @@ async function generateBundles() {
       sourcemap: true
     },
 
+    'vanilla-native-federation/audit': {
+      ...baseConfig,
+      entryPoints: ['src/lib/audit.index.ts'],
+      outfile: path.join(OUTPUT_PATHS.fesm2022, 'audit.mjs'),
+      bundle: true,
+      sourcemap: true
+    },
+
     'quickstart': {
       ...baseConfig,
       entryPoints: [path.join(PATHS.quickstart, "quickstart.ts")],
@@ -103,7 +111,8 @@ async function generateBundles() {
       bundle: true,
       sourcemap: false,
       minify: true
-    }
+    },
+
   };
 
   return builds;
@@ -130,6 +139,11 @@ function generatePackageExports() {
       "./options": {
         "types": "./types/lib/options.index.d.ts",
         "default": "./fesm2022/options.mjs"
+      },
+
+      "./audit": {
+        "types": "./types/lib/audit.index.d.ts",
+        "default": "./fesm2022/audit.mjs"
       }
     },
     

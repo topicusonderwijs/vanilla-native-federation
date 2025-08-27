@@ -1,7 +1,7 @@
+import { LoggingConfig } from 'lib/options.index';
 import { ForCommittingChanges } from '../../driver-ports/init/for-committing-changes.port';
 import { DrivingContract } from '../../driving-ports/driving.contract';
 import { createCommitChanges } from './commit-changes';
-import { LoggingConfig } from '.';
 import { mockAdapters } from 'lib/6.mocks/adapters.mock';
 import { mockConfig } from 'lib/6.mocks/config.mock';
 
