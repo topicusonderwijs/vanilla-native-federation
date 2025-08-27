@@ -44,7 +44,12 @@ describe('DefaultConfig', () => {
       const actual = createModeConfig({});
 
       expect(actual).toEqual({
-        strict: false,
+        strict: {
+          strictRemoteEntry: false,
+          strictExternalCompatibility: false,
+          strictExternalVersion: false,
+          strictImportMap: false,
+        },
         profile: {
           latestSharedExternal: false,
           overrideCachedRemotes: 'init-only',

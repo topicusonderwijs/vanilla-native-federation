@@ -256,7 +256,7 @@ describe('createGetRemoteEntries', () => {
 
   describe('error handling', () => {
     it('should handle failed remote fetch in non-strict mode', async () => {
-      config.strict = false;
+      config.strict.strictRemoteEntry = false;
       adapters.remoteEntryProvider.provide = jest.fn(url => {
         if (url === `${mockScopeUrl_MFE1()}remoteEntry.json`) {
           return Promise.resolve(mockRemoteEntry_MFE1());
@@ -278,7 +278,7 @@ describe('createGetRemoteEntries', () => {
     });
 
     it('should throw error when remote fetch fails in strict mode', async () => {
-      config.strict = true;
+      config.strict.strictRemoteEntry = true;
 
       adapters.remoteEntryProvider.provide = jest.fn(url => {
         if (url === `${mockScopeUrl_MFE2()}remoteEntry.json`) {
@@ -328,7 +328,7 @@ describe('createGetRemoteEntries', () => {
     });
 
     it('should throw an error when remote entry name does not match requested name on strict mode', () => {
-      config.strict = true;
+      config.strict.strictRemoteEntry = true;
       const manifestWithBadEntryName = {
         'bad-mfe-name': `${mockScopeUrl_MFE1()}remoteEntry.json`,
       };

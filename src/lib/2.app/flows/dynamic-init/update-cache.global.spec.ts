@@ -170,7 +170,7 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
 
   it('should add and scope shared external to list with incompatible version and strictVersion', async () => {
     adapters.versionCheck.isCompatible = jest.fn(() => false);
-    config.strict = false;
+    config.strict.strictExternalCompatibility = false;
     adapters.sharedExternalsRepo.tryGet = jest.fn(
       (): Optional<SharedExternal> =>
         Optional.of(
@@ -215,7 +215,7 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
 
   it('should throw an error when shared external with incompatible version and strictVersion and strict', async () => {
     adapters.versionCheck.isCompatible = jest.fn(() => false);
-    config.strict = true;
+    config.strict.strictExternalCompatibility = true;
     adapters.sharedExternalsRepo.tryGet = jest.fn(
       (): Optional<SharedExternal> =>
         Optional.of(
@@ -278,7 +278,7 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
 
   it('should warn users if the requiredVersions differ and strictVersion', async () => {
     adapters.versionCheck.isCompatible = jest.fn(() => true);
-    config.strict = false;
+    config.strict.strictExternalCompatibility = false;
     adapters.sharedExternalsRepo.tryGet = jest.fn(
       (): Optional<SharedExternal> =>
         Optional.of(
@@ -329,7 +329,7 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
 
   it('should throw an error if the requiredVersions differs if strictVersion and in strict mode', async () => {
     adapters.versionCheck.isCompatible = jest.fn(() => true);
-    config.strict = true;
+    config.strict.strictExternalCompatibility = true;
     adapters.sharedExternalsRepo.tryGet = jest.fn(
       (): Optional<SharedExternal> =>
         Optional.of(

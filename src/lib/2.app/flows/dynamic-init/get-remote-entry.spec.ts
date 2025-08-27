@@ -86,15 +86,19 @@ describe('createGetRemoteEntry', () => {
     });
 
     it('should reject if fetched remote name does not match requested name on strict mode', async () => {
-      config.strict = true;
+      config.strict.strictRemoteEntry = true;
       await expect(
         getRemoteEntry(mockScopeUrl_MFE1({ file: 'remoteEntry.json' }), 'team/mfe2')
       ).rejects.toThrow('Could not fetch remoteEntry.');
 
       expect(config.log.error).toHaveBeenCalledWith(
         7,
+        "Fetched remote 'team/mfe1' does not match requested 'team/mfe2'."
+      );
+      expect(config.log.error).toHaveBeenCalledWith(
+        7,
         '[team/mfe2] Could not fetch remoteEntry from http://my.service/mfe1/remoteEntry.json.',
-        new NFError("Fetched remote 'team/mfe1' does not match requested 'team/mfe2'.")
+        new NFError('Could not fetch remote entry')
       );
     });
   });

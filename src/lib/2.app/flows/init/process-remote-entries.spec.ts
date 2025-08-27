@@ -80,7 +80,7 @@ describe('createProcessRemoteEntries', () => {
 
   describe('handling a missing version property', () => {
     it('should handle invalid versions in strict mode', async () => {
-      config.strict = true;
+      config.strict.strictExternalVersion = true;
       adapters.versionCheck.isValidSemver = jest.fn(() => false);
 
       const remoteEntries = [
@@ -100,7 +100,7 @@ describe('createProcessRemoteEntries', () => {
     });
 
     it('should handle undefined versions in strict mode', async () => {
-      config.strict = true;
+      config.strict.strictExternalVersion = true;
       adapters.versionCheck.isValidSemver = jest.fn(() => false);
 
       const remoteEntries = [

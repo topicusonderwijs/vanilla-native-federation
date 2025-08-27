@@ -62,7 +62,7 @@ const initFederation = (
           .then(entry => entry.map(processDynamicRemoteEntry).orElse(Promise.resolve()))
           .catch(e => {
             stateDump(`[dynamic-init][${remoteName ?? remoteEntryUrl}] STATE DUMP`);
-            if (config.strict) return Promise.reject(e);
+            if (config.strict.strictRemoteEntry) return Promise.reject(e);
             else console.warn('Failed to initialize remote entry, continuing anyway.');
             return Promise.resolve();
           })

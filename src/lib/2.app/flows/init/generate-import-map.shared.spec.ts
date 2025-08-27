@@ -168,7 +168,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
   });
 
   it('should warn the user about 2 shared versions and choose the most recent one if in non-strict mode.', async () => {
-    config.strict = false;
+    config.strict.strictImportMap = false;
 
     adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': mockExternal_A({
@@ -193,7 +193,7 @@ describe('createGenerateImportMap (shared-externals)', () => {
   });
 
   it('should throw error if 2 shared versions and in strict mode.', async () => {
-    config.strict = true;
+    config.strict.strictImportMap = true;
 
     adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
       'dep-a': mockExternal_A({

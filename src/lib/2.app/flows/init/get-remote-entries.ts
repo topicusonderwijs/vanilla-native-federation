@@ -87,7 +87,7 @@ export function createGetRemoteEntries(
 
       return prepareRemoteEntry(remoteEntry, remoteName, isOverride);
     } catch (error) {
-      if (config.strict) {
+      if (config.strict.strictRemoteEntry) {
         config.log.error(1, `Could not fetch remote '${remoteName}'.`, error);
         return Promise.reject(new NFError(`Could not fetch remote '${remoteName}'`));
       }
@@ -111,7 +111,7 @@ export function createGetRemoteEntries(
 
     if (remoteEntry.name !== expectedRemoteName) {
       const errorDetails = `Fetched remote '${remoteEntry.name}' does not match requested '${expectedRemoteName}'.`;
-      if (config.strict) {
+      if (config.strict.strictRemoteEntry) {
         throw new NFError(errorDetails);
       }
       config.log.warn(1, `${errorDetails} Omitting expected name.`);

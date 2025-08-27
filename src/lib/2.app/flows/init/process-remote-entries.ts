@@ -67,10 +67,13 @@ export function createProcessRemoteEntries(
   function addExternalsToStorage(remoteEntry: RemoteEntry): void {
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
-        handleError(
-          remoteEntry.name,
-          `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version.`
-        );
+        const errorMsg = `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version.`;
+
+        if (config.strict.strictExternalVersion) {
+          config.log.error(2, errorMsg);
+          throw new NFError(`Could not process remote '${remoteEntry.name}'`);
+        }
+        config.log.warn(2, errorMsg);
       }
       if (external.singleton) {
         addSharedExternal(remoteEntry.name, external, remoteEntry);
@@ -116,10 +119,12 @@ export function createProcessRemoteEntries(
         remote.strictVersion &&
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
-        config.log.warn(
-          2,
-          `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version-range '${remote.requiredVersion}' does not match cached version-range '${matchingVersion.remotes[0]!.requiredVersion}'`
-        );
+        const errorMsg = `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version-range '${remote.requiredVersion}' does not match cached version-range '${matchingVersion.remotes[0]!.requiredVersion}'`;
+        if (config.strict.strictExternalCompatibility) {
+          config.log.error(2, errorMsg);
+          throw new NFError(`Could not process remote '${remoteEntry.name}'`);
+        }
+        config.log.warn(2, errorMsg);
       }
 
       if (!matchingVersion.host && !!remoteEntry?.host) {
@@ -146,13 +151,5 @@ export function createProcessRemoteEntries(
       tag: sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion),
       file: sharedInfo.outFileName,
     } as ScopedVersion);
-  }
-
-  function handleError(remoteName: RemoteName, msg: string): void {
-    if (config.strict) {
-      config.log.error(2, msg);
-      throw new NFError(`Could not process remote '${remoteName}'`);
-    }
-    config.log.warn(2, msg);
   }
 }

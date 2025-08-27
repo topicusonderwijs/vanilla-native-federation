@@ -2,12 +2,13 @@ import { NFError } from 'lib/native-federation.error';
 import type { LoggingConfig, ModeConfig } from '../../config';
 import type { DrivingContract } from '../../driving-ports/driving.contract';
 import type { RemoteEntry, SharedExternal, SharedVersion } from 'lib/1.domain';
+import type { ForAuditingExternals } from '../../driver-ports/audit/for-auditing-externals.port';
 
 export function createExternalsAudit(
   config: LoggingConfig & ModeConfig,
   ports: Pick<DrivingContract, 'versionCheck' | 'sharedExternalsRepo' | 'scopedExternalsRepo'>
-): (remoteEntry: RemoteEntry, strictVersion: boolean) => Promise<void> {
-  return (remoteEntry, strictVersionChecking) => {
+): ForAuditingExternals {
+  return remoteEntry => {
     let success = true;
     remoteEntry.shared
       .filter(external => !external.singleton)
@@ -19,7 +20,7 @@ export function createExternalsAudit(
     const isValid = warnForScopedSingletons(remoteEntry);
     if (!isValid) success = false;
 
-    if (!success && strictVersionChecking) {
+    if (!success && config.strict.strictExternalCompatibility) {
       config.log.error(3, `[${remoteEntry.name}] Not all externals are compatible.`);
       return Promise.reject(new NFError(`Failed externals audit`));
     }

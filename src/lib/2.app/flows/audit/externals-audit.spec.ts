@@ -2,16 +2,16 @@ import { createExternalsAudit } from './externals-audit';
 import { NFError } from 'lib/native-federation.error';
 import { LoggingConfig, ModeConfig } from '../../config';
 import { DrivingContract } from '../../driving-ports/driving.contract';
-import { RemoteEntry } from 'lib/1.domain';
 import { mockConfig } from 'lib/6.mocks/config.mock';
 import { mockAdapters } from 'lib/6.mocks/adapters.mock';
 import { mockRemoteEntry_MFE1 } from 'lib/6.mocks/domain/remote-entry/remote-entry.mock';
 import { mockSharedInfo } from 'lib/6.mocks/domain/remote-entry/shared-info.mock';
 import { mockExternal_A, mockExternal_B } from 'lib/6.mocks/domain/externals/external.mock';
 import { mockVersion_A, mockVersion_B } from 'lib/6.mocks/domain/externals/version.mock';
+import { ForAuditingExternals } from 'lib/2.app/driver-ports/audit';
 
 describe('createExternalsAudit', () => {
-  let externalsAudit: (remoteEntry: RemoteEntry, strictVersion: boolean) => Promise<void>;
+  let externalsAudit: ForAuditingExternals;
   let config: LoggingConfig & ModeConfig;
   let ports: Pick<DrivingContract, 'versionCheck' | 'sharedExternalsRepo' | 'scopedExternalsRepo'>;
 
@@ -38,7 +38,7 @@ describe('createExternalsAudit', () => {
         ],
       });
 
-      await expect(externalsAudit(remoteEntry, false)).resolves.toBeUndefined();
+      await expect(externalsAudit(remoteEntry)).resolves.toBeUndefined();
     });
 
     it('should resolve when no externals are shared', async () => {
@@ -46,7 +46,7 @@ describe('createExternalsAudit', () => {
         shared: [],
       });
 
-      await expect(externalsAudit(remoteEntry, true)).resolves.toBeUndefined();
+      await expect(externalsAudit(remoteEntry)).resolves.toBeUndefined();
     });
   });
 
@@ -69,7 +69,7 @@ describe('createExternalsAudit', () => {
       });
       (ports.versionCheck.isCompatible as jest.Mock).mockReturnValue(true);
 
-      await expect(externalsAudit(remoteEntry, false)).resolves.toBeUndefined();
+      await expect(externalsAudit(remoteEntry)).resolves.toBeUndefined();
 
       expect(config.log.warn).toHaveBeenCalledWith(
         3,
@@ -95,7 +95,7 @@ describe('createExternalsAudit', () => {
       });
       (ports.versionCheck.isCompatible as jest.Mock).mockReturnValue(false);
 
-      await expect(externalsAudit(remoteEntry, false)).resolves.toBeUndefined();
+      await expect(externalsAudit(remoteEntry)).resolves.toBeUndefined();
 
       expect(config.log.warn).not.toHaveBeenCalled();
     });
@@ -118,7 +118,7 @@ describe('createExternalsAudit', () => {
       });
       (ports.versionCheck.compare as jest.Mock).mockReturnValue(-1);
 
-      await expect(externalsAudit(remoteEntry, false)).resolves.toBeUndefined();
+      await expect(externalsAudit(remoteEntry)).resolves.toBeUndefined();
 
       expect(config.log.warn).toHaveBeenCalledWith(
         3,
@@ -142,7 +142,7 @@ describe('createExternalsAudit', () => {
       });
       (ports.versionCheck.compare as jest.Mock).mockReturnValue(1);
 
-      await expect(externalsAudit(remoteEntry, false)).resolves.toBeUndefined();
+      await expect(externalsAudit(remoteEntry)).resolves.toBeUndefined();
 
       expect(config.log.warn).toHaveBeenCalledWith(
         3,
@@ -153,6 +153,7 @@ describe('createExternalsAudit', () => {
 
   describe('strict mode error handling', () => {
     it('should reject with NFError when audit fails in strict mode', async () => {
+      config.strict.strictExternalCompatibility = true;
       const remoteEntry = mockRemoteEntry_MFE1({
         shared: [
           mockSharedInfo('dep-a', {
@@ -170,7 +171,7 @@ describe('createExternalsAudit', () => {
       });
       (ports.versionCheck.isCompatible as jest.Mock).mockReturnValue(true);
 
-      await expect(externalsAudit(remoteEntry, true)).rejects.toEqual(
+      await expect(externalsAudit(remoteEntry)).rejects.toEqual(
         new NFError('Failed externals audit')
       );
 
@@ -198,7 +199,7 @@ describe('createExternalsAudit', () => {
       });
       (ports.versionCheck.isCompatible as jest.Mock).mockReturnValue(true);
 
-      await expect(externalsAudit(remoteEntry, false)).resolves.toBeUndefined();
+      await expect(externalsAudit(remoteEntry)).resolves.toBeUndefined();
 
       expect(config.log.warn).toHaveBeenCalled();
       expect(config.log.error).not.toHaveBeenCalled();

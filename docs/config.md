@@ -121,16 +121,38 @@ The mode config focusses on the way the library behaves, especially when resolvi
 
 ```javascript
 export type ModeOptions = {
-    strict?: boolean,
-    profile?: ModeProfileConfig
-}
+  strict?: boolean | {
+    strictRemoteEntry?: boolean;
+    strictExternalCompatibility?: boolean;
+    strictExternalVersion?: boolean;
+    strictImportMap?: boolean;
+  };
+  profile?: {
+    latestSharedExternal?: boolean;
+    overrideCachedRemotes?: 'always' | 'never' | 'init-only';
+    overrideCachedRemotesIfURLMatches?: boolean;
+  };
+};
 ```
 
 ### Options:
 
+The strictness part will define how the orchestrator behaves when an unexpected or erronous situation occurs. The profile focusses on how aggressive the orchestrator should handle caching.
+
+#### Strictness
+
+| Option                             | Default | Description                                                                                                                                                                                       |
+| ---------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| strict                             | `false` | When true, the init function will throw an error if anything goes wrong during initialization                                                                                                     |
+| strict.strictRemoteEntry           | `false` | Will throw an error if anything is wrong with a fetched remoteEntry.json. When false, the remote will be skipped if something goes wrong.                                                         |
+| strict.strictExternalCompatibility | `false` | Will throw an error if any of the shared externals are incompatible with other shared external versions. If the value is false, the external will be set to "scoped" instead of "shared".         |
+| strict.strictExternalVersion       | `false` | Will throw an error if the version of an external is not valid semver or missing. If the value is set to false, the 1st version that matches the requiredVersion range of the external is chosen. |
+| strict.strictImportMap             | `false` | Will throw an error if anything goes wrong during the buildup of the importMap. (If something is wrong with the cached externals or the cache is corrupt).                                        |
+
+#### Profiles
+
 | Option                                    | Default     | Description                                                                                                                                                                                                                                                                         |
 | ----------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| strict                                    | `false`     | When enabled, the init function will throw an error if a remoteEntry could not be fetched or a version incompatibility within a shared external occurs.                                                                                                                             |
 | profile.latestSharedExternal              | `false`     | When enabled, the version resolver will prioritize using the latest version of a shared external over the most optimal version.                                                                                                                                                     |
 | profile.overrideCachedRemotes             | `init-only` | When enabled, the library will override the cached remotes. The default behavior is to check if the remoteName is in the cache and the remoteEntry url differs from cached remoteEntry url (scopeUrl + "remoteEntry.json) . Available options are `never`, `init-only` and `always` |
 | profile.overrideCachedRemotesIfURLMatches | `false`     | When enabled, the library will override the cached remote, even if the remoteName already exists in cache and the remoteEntry.json URL matches the cached remoteEntry.json url.                                                                                                     |
@@ -142,7 +164,7 @@ import { initFederation } from 'vanilla-native-federation';
 import { defaultProfile, cachingProfile } from 'vanilla-native-federation/options';
 
 initFederation('http://example.org/manifest.json', {
-  strict: true,
+  strict: true, // All settings to strict: true
   profile: cachingProfile, // { latestSharedExternal: false, overrideCachedRemotes: 'never', overrideCachedRemotesIfURLMatches: false }
 });
 ```

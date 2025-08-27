@@ -57,10 +57,13 @@ export function createUpdateCache(
     const actions: SharedInfoActions = {};
     remoteEntry.shared.forEach(external => {
       if (!external.version || !ports.versionCheck.isValidSemver(external.version)) {
-        handleError(
-          remoteEntry.name,
-          `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version.`
-        );
+        const errorMsg = `[${remoteEntry.name}][${external.packageName}] Version '${external.version}' is not a valid version.`;
+
+        if (config.strict.strictExternalVersion) {
+          config.log.error(8, errorMsg);
+          throw new NFError(`Could not process remote '${remoteEntry.name}'`);
+        }
+        config.log.warn(8, errorMsg);
       }
 
       if (external.singleton) {
@@ -121,12 +124,13 @@ export function createUpdateCache(
 
     if (action === 'skip' && !isCompatible && remote.strictVersion) {
       action = 'scope';
-      if (config.strict) {
-        handleError(
-          remoteName,
-          `[${sharedInfo.shareScope ?? GLOBAL_SCOPE}][${remoteName}] ${sharedInfo.packageName}@${sharedInfo.version} Is not compatible with existing ${sharedInfo.packageName}@${sharedVersion!.tag} requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}'`
-        );
+      const errorMsg = `[${sharedInfo.shareScope ?? GLOBAL_SCOPE}][${remoteName}] ${sharedInfo.packageName}@${sharedInfo.version} Is not compatible with existing ${sharedInfo.packageName}@${sharedVersion!.tag} requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}'`;
+
+      if (config.strict.strictExternalCompatibility) {
+        config.log.error(8, errorMsg);
+        throw new NFError(`Could not process remote '${remoteName}'`);
       }
+      config.log.warn(8, errorMsg);
     }
 
     const matchingVersion = cached.versions.find(cached => cached.tag === tag);
@@ -136,10 +140,12 @@ export function createUpdateCache(
         remote.strictVersion &&
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
-        handleError(
-          remoteName,
-          `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`
-        );
+        const errorMsg = `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`;
+        if (config.strict.strictExternalCompatibility) {
+          config.log.error(8, errorMsg);
+          throw new NFError(`Could not process remote '${remoteName}'`);
+        }
+        config.log.warn(8, errorMsg);
       }
       matchingVersion.remotes.push(remote);
     } else {
@@ -165,13 +171,5 @@ export function createUpdateCache(
       tag: sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion),
       file: sharedInfo.outFileName,
     } as ScopedVersion);
-  }
-
-  function handleError(remoteName: RemoteName, msg: string): void {
-    if (config.strict) {
-      config.log.error(8, msg);
-      throw new NFError(`Could not process remote '${remoteName}'`);
-    }
-    config.log.warn(8, msg);
   }
 }
