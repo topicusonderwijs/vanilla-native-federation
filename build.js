@@ -145,9 +145,54 @@ async function generateTypes() {
   try {
     execSync(`tsc -p ${PATHS.tsconfigTypes}`, { stdio: 'inherit' });
     logger.success('Types generated');
+    
+    // Post-process declaration files to fix lib/ imports
+    await fixDeclarationImports();
+    
     return true;
   } catch (err) {
     throw new Error(`Failed to generate declaration files: ${err.message}`);
+  }
+}
+
+async function fixDeclarationImports() {
+  logger.info('Fixing declaration file imports...');
+  
+  const glob = require('util').promisify(require('child_process').exec);
+  
+  try {
+    // Find all .d.ts files in the dist/types directory
+    const { stdout } = await glob('find dist/types -name "*.d.ts"');
+    const files = stdout.trim().split('\n').filter(f => f);
+    
+    for (const filePath of files) {
+      try {
+        const content = await fs.readFile(filePath, 'utf8');
+        
+        // Replace lib/ imports with relative imports
+        const updatedContent = content.replace(
+          /from ['"]lib\//g,
+          (match, ...args) => {
+            // Calculate relative path from current file to lib directory
+            const relativePath = path.relative(
+              path.dirname(filePath), 
+              path.join('dist/types/lib')
+            );
+            return `from '${relativePath}/`;
+          }
+        );
+        
+        if (content !== updatedContent) {
+          await fs.writeFile(filePath, updatedContent, 'utf8');
+        }
+      } catch (err) {
+        logger.warn(`Could not process ${filePath}: ${err.message}`);
+      }
+    }
+    
+    logger.success('Declaration imports fixed');
+  } catch (err) {
+    logger.warn(`Could not fix declaration imports: ${err.message}`);
   }
 }
 
