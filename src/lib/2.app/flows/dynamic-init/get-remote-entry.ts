@@ -27,9 +27,12 @@ export function createGetRemoteEntry(
         `[${remoteEntry.name}] Fetched from '${remoteEntry.url}', exposing: ${JSON.stringify(remoteEntry.exposes)}`
       );
       if (!!remoteName && remoteEntry.name !== remoteName) {
-        const errorMessage = `Fetched remote '${remoteEntry.name}' does not match requested '${remoteName}'.`;
-        if (config.strict) throw new NFError(errorMessage);
-        config.log.warn(7, errorMessage + ' Omitting expected name.');
+        const errorMsg = `Fetched remote '${remoteEntry.name}' does not match requested '${remoteName}'.`;
+        if (config.strict.strictRemoteEntry) {
+          config.log.error(7, errorMsg);
+          throw new NFError('Could not fetch remote entry');
+        }
+        config.log.warn(7, errorMsg + ' Omitting expected name.');
       }
 
       if (ports.remoteInfoRepo.contains(remoteEntry.name)) {

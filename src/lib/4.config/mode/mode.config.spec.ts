@@ -27,6 +27,11 @@ describe('config.mode', () => {
 
   it('should set strict: false by default', () => {
     const config = createModeConfig({});
-    expect(config.strict).toBe(false);
+    expect(config.strict).toEqual({
+      strictRemoteEntry: false,
+      strictExternalCompatibility: false,
+      strictExternalVersion: false,
+      strictImportMap: false,
+    });
   });
 });

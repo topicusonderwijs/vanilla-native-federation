@@ -110,7 +110,7 @@ describe('createProcessDynamicRemoteEntry', () => {
 
   describe('handling a missing version property', () => {
     it('should handle invalid versions in strict mode', async () => {
-      config.strict = true;
+      config.strict.strictExternalVersion = true;
       adapters.versionCheck.isValidSemver = jest.fn(() => false);
 
       const remoteEntry = mockRemoteEntry_MFE1({
@@ -129,7 +129,7 @@ describe('createProcessDynamicRemoteEntry', () => {
     });
 
     it('should handle undefined versions in strict mode', async () => {
-      config.strict = true;
+      config.strict.strictExternalVersion = true;
       adapters.versionCheck.isValidSemver = jest.fn(() => false);
 
       const remoteEntry = mockRemoteEntry_MFE1({

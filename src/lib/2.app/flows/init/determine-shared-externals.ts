@@ -103,7 +103,7 @@ export function createDetermineSharedExternals(
         return;
       }
 
-      if (config.strict && v.remotes[0]!.strictVersion) {
+      if (config.strict.strictExternalCompatibility && v.remotes[0]!.strictVersion) {
         config.log.error(
           3,
           `[${v.remotes[0]!.name}][${externalName}@${v.tag}] Is not compatible with requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}' from remote '${sharedVersion!.remotes[0]!.name}'.`

@@ -59,7 +59,7 @@ describe('createDetermineSharedExternals', () => {
 
   describe('handle version incompatibilities', () => {
     it('should set "skip" if incompatible, strictVersion is false and in non-strict mode', async () => {
-      config.strict = false;
+      config.strict.strictExternalCompatibility = false;
 
       adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
         'dep-b': mockExternal_B({
@@ -93,7 +93,7 @@ describe('createDetermineSharedExternals', () => {
     });
 
     it('should set "scoped" if incompatible, strictVersion is true and in non-strict mode', async () => {
-      config.strict = false;
+      config.strict.strictExternalCompatibility = false;
 
       adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
         'dep-b': mockExternal_B({
@@ -127,7 +127,7 @@ describe('createDetermineSharedExternals', () => {
     });
 
     it('should throw error if incompatible, strictVersion is true and in strict mode', async () => {
-      config.strict = true;
+      config.strict.strictExternalCompatibility = true;
 
       adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({
         'dep-b': mockExternal_B({

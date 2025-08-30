@@ -139,7 +139,7 @@ export function createGenerateImportMap(
     }
 
     if (sharedVersions.length < 1) {
-      if (config.strict) {
+      if (config.strict.strictImportMap) {
         config.log.error(4, `[${shareScope}][${externalName}] shareScope has no override version.`);
         throw new NFError('Could not create ImportMap.');
       }
@@ -153,7 +153,7 @@ export function createGenerateImportMap(
   }
 
   function handleMultipleSharedVersions(scopedExternalName: string): void {
-    if (config.strict) {
+    if (config.strict.strictImportMap) {
       config.log.error(
         4,
         `[${scopedExternalName}] ShareScope external has multiple shared versions.`
@@ -202,7 +202,7 @@ export function createGenerateImportMap(
   }
 
   function handleDuplicateGlobalExternal(externalName: string): void {
-    if (config.strict) {
+    if (config.strict.strictImportMap) {
       config.log.error(4, `[${externalName}] Shared external has multiple shared versions.`);
       throw new NFError('Could not create ImportMap.');
     }

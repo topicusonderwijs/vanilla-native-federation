@@ -1,4 +1,4 @@
-import { LoggingConfig } from '../init';
+import { LoggingConfig } from '../../config/log.contract';
 import { ForConvertingToImportMap } from 'lib/2.app/driver-ports/dynamic-init/for-converting-to-import-map';
 import { createConvertToImportMap } from './convert-to-import-map';
 import { RemoteEntry, SharedInfoActions } from 'lib/1.domain';

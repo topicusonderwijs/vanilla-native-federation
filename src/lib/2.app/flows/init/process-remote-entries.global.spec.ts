@@ -234,8 +234,8 @@ describe('createProcessRemoteEntries - global', () => {
         "[team/mfe2][dep-a@2.1.2] Required version-range '~1.2.2' does not match cached version-range '~1.2.1'"
       );
     });
-    it('should not throw an error if the requiredVersions differs if strictVersion and in strict mode', async () => {
-      config.strict = true;
+    it('should throw an error if the requiredVersions differs if strictVersion and in strict mode', async () => {
+      config.strict.strictExternalCompatibility = true;
       adapters.sharedExternalsRepo.tryGet = jest.fn(
         (): Optional<SharedExternal> =>
           Optional.of(
@@ -258,27 +258,11 @@ describe('createProcessRemoteEntries - global', () => {
         }),
       ];
 
-      await processRemoteEntries(remoteEntries);
-
-      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
-      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
-        'dep-a',
-        mockExternal.shared(
-          [
-            mockVersion_A.v2_1_2({
-              remotes: {
-                'team/mfe1': { requiredVersion: '~1.2.1' },
-                'team/mfe2': { requiredVersion: '~1.2.2' },
-              },
-              action: 'skip',
-            }),
-          ],
-          { dirty: false }
-        ),
-        undefined
+      await expect(processRemoteEntries(remoteEntries)).rejects.toThrow(
+        `Could not process remote 'team/mfe2'`
       );
 
-      expect(config.log.warn).toHaveBeenCalledWith(
+      expect(config.log.error).toHaveBeenCalledWith(
         2,
         "[team/mfe2][dep-a@2.1.2] Required version-range '~1.2.2' does not match cached version-range '~1.2.1'"
       );

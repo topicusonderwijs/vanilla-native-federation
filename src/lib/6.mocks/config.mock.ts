@@ -17,7 +17,12 @@ export const mockConfig = (): ConfigContract => ({
   // hostConfig
   hostRemoteEntry: false,
   // ModeConfig
-  strict: false,
+  strict: {
+    strictRemoteEntry: false,
+    strictExternalCompatibility: false,
+    strictExternalVersion: false,
+    strictImportMap: false,
+  },
   profile: {
     latestSharedExternal: false,
     overrideCachedRemotes: 'always',

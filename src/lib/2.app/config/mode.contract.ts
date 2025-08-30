@@ -4,9 +4,20 @@ export type ModeProfileConfig = {
   overrideCachedRemotes: 'always' | 'never' | 'init-only';
   overrideCachedRemotesIfURLMatches: boolean;
 };
+
+export type ModeStrictnessConfig = {
+  strictRemoteEntry: boolean;
+  strictExternalCompatibility: boolean;
+  strictExternalVersion: boolean;
+  strictImportMap: boolean;
+};
+
 export type ModeConfig = {
-  strict: boolean;
+  strict: ModeStrictnessConfig;
   profile: ModeProfileConfig;
 };
 
-export type ModeOptions = Partial<ModeConfig>;
+export type ModeOptions = {
+  strict?: Partial<ModeStrictnessConfig> | boolean;
+  profile?: Partial<ModeProfileConfig>;
+};
