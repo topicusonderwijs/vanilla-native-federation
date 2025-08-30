@@ -6,6 +6,9 @@
     "moduleResolution": "Bundler",    
     "rootDir": "./src",
     "baseUrl": "./src",
+    "paths": {
+      "lib/*": ["./lib/*"]
+    },
     
     "strict": true,
     "useUnknownInCatchVariables": true,

@@ -159,10 +159,86 @@ async function generateTypes() {
   try {
     execSync(`tsc -p ${PATHS.tsconfigTypes}`, { stdio: 'inherit' });
     logger.success('Types generated');
+    
+    await fixDeclarationImports();
+    
     return true;
   } catch (err) {
     throw new Error(`Failed to generate declaration files: ${err.message}`);
   }
+}
+
+async function fixDeclarationImports() {
+  logger.info('Fixing declaration file imports...');
+  
+  try {
+    await processDirectory(path.join('dist', 'types'));
+    logger.success('Declaration imports fixed');
+  } catch (err) {
+    logger.warn(`Could not fix declaration imports: ${err.message}`);
+  }
+}
+
+async function processDirectory(dirPath) {
+  const entries = await fs.readdir(dirPath, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    const fullPath = path.join(dirPath, entry.name);
+    
+    if (entry.isDirectory()) {
+      await processDirectory(fullPath);
+    } else if (entry.isFile() && entry.name.endsWith('.d.ts')) {
+      await fixImportsInFile(fullPath);
+    }
+  }
+}
+
+async function fixImportsInFile(filePath) {
+  try {
+    const content = await fs.readFile(filePath, 'utf8');
+    
+    const importRegex = /(?:from\s+['"`])(lib\/[^'"`\s]+)(?:['"`])/g;
+    const exportRegex = /(?:export\s+.*?\s+from\s+['"`])(lib\/[^'"`\s]+)(?:['"`])/g;
+    
+    let updatedContent = content;
+    let hasChanges = false;
+    
+    updatedContent = updatedContent.replace(importRegex, (match, libPath) => {
+      const relativePath = convertLibPathToRelative(filePath, libPath);
+      hasChanges = true;
+      return match.replace(libPath, relativePath);
+    });
+    
+    updatedContent = updatedContent.replace(exportRegex, (match, libPath) => {
+      const relativePath = convertLibPathToRelative(filePath, libPath);
+      hasChanges = true;
+      return match.replace(libPath, relativePath);
+    });
+    
+    if (hasChanges) {
+      await fs.writeFile(filePath, updatedContent, 'utf8');
+    }
+  } catch (err) {
+    logger.warn(`Could not process ${filePath}: ${err.message}`);
+  }
+}
+
+function convertLibPathToRelative(declarationFilePath, libPath) {
+  const pathWithoutLib = libPath.replace(/^lib\//, '');
+  
+  const declarationDir = path.dirname(declarationFilePath);
+  
+  const targetPath = path.join('dist', 'types', 'lib', pathWithoutLib);
+  
+  let relativePath = path.relative(declarationDir, targetPath);
+  
+  relativePath = relativePath.replace(/\\/g, '/');
+  
+  if (!relativePath.startsWith('.') && !relativePath.startsWith('/')) {
+    relativePath = './' + relativePath;
+  }
+  
+  return relativePath;
 }
 
 async function updatePackageJson() {

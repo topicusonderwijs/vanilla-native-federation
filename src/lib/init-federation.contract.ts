@@ -1,5 +1,5 @@
-import type { ConfigContract } from 'lib/2.app/config';
-import type { DrivingContract } from 'lib/2.app/driving-ports/driving.contract';
+import type { ConfigContract } from './2.app/config';
+import type { DrivingContract } from './2.app/driving-ports/driving.contract';
 
 export type LoadRemoteModule<TModule = unknown> = (
   remoteName: string,
