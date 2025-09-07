@@ -48,7 +48,7 @@ The simplest approach uses the pre-built runtime script with declarative configu
     </script>
 
     <!-- Include the orchestrator -->
-    <script src="https://unpkg.com/vanilla-native-federation@0.19.3/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@0.19.4/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -123,8 +123,55 @@ In this example, the micro frontends register themselves as custom elements (par
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@0.19.3/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.19.4/quickstart.mjs"></script>
 ```
+
+## Avoiding race conditions
+
+Custom browser events are unfortunately vulnerable to unwanted race conditions, therefore it is recommended to use a more robust setup that involves a central event registry. This can resolve promises retroactively even after initialization.
+
+```
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Application</title>
+
+    <!-- 1. Init registry -->
+    <script src="https://unpkg.com/vanilla-native-federation@0.19.4/registry.mjs"></script>
+
+    <!-- Enable shim-mode for optimal browser support, this is optional -->
+    <script type="esms-options">
+      { "shimMode": true }
+    </script>
+
+    <!-- 2. Define your micro frontends -->
+    <script type="application/json" id="mfe-manifest">
+      {
+        "team/mfe1": "http://localhost:3000/remoteEntry.json",
+        "team/mfe2": "http://localhost:4000/remoteEntry.json"
+      }
+    </script>
+
+    <!-- 3. Handle loaded modules -->
+    <script>
+      window.__NF_REGISTRY__.get("orch.init-ready").then(({ loadRemoteModule }) => {
+        loadRemoteModule('team/mfe1', './Button');
+        loadRemoteModule('team/mfe2', './Header');
+      });
+    </script>
+
+    <!-- 4. Include the orchestrator runtime -->
+    <script src="https://unpkg.com/vanilla-native-federation@0.19.4/quickstart.mjs"></script>
+  </head>
+  <body>
+    <!-- 5. Use your loaded components -->
+    <my-header></my-header>
+    <my-button>Click me</my-button>
+  </body>
+</html>
+```
+
+> **Note:** the event-registry can also be used for robust communication between micro frontends even after initialization.
 
 ## Custom implementation
 

@@ -104,7 +104,7 @@ async function generateBundles() {
       sourcemap: true
     },
 
-    'quickstart': {
+    'vanilla-native-federation/quickstart': {
       ...baseConfig,
       entryPoints: [path.join(PATHS.quickstart, "quickstart.ts")],
       outfile: path.join(OUTPUT_PATHS.quickstart, `quickstart.mjs`),
@@ -113,6 +113,14 @@ async function generateBundles() {
       minify: true
     },
 
+    'vanilla-native-federation/registry': {
+      ...baseConfig,
+      entryPoints: [path.join(PATHS.quickstart, "registry.ts")],
+      outfile: path.join(OUTPUT_PATHS.quickstart, `registry.mjs`),
+      bundle: true,
+      sourcemap: false,
+      minify: true
+    },
   };
 
   return builds;
@@ -124,6 +132,10 @@ function generatePackageExports() {
       "./package.json": { "default": "./package.json" },
       "./quickstart.mjs": {
         "default": "./quickstart.mjs"
+      },
+
+      "./registry.mjs": {
+        "default": "./registry.mjs"
       },
 
       ".": {

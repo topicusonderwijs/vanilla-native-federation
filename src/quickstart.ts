@@ -3,6 +3,7 @@ import 'es-module-shims';
 import { initFederation } from 'lib/init-federation';
 import { consoleLogger } from 'lib/4.config/logging/console.logger';
 import { useShimImportMap } from 'lib/4.config/import-map/use-import-shim';
+import type { ResourceRegistry } from 'lib/1.domain/registry/resource-registry.contract';
 
 (async () => {
   let manifest: Record<string, string> | undefined | string = undefined;
@@ -40,8 +41,14 @@ import { useShimImportMap } from 'lib/4.config/import-map/use-import-shim';
     logger: consoleLogger,
     logLevel: 'warn',
     ...useShimImportMap({ shimMode: false }),
-  }).then(({ loadRemoteModule }) => {
-    (window as any).loadRemoteModule = loadRemoteModule;
-    window.dispatchEvent(new CustomEvent('mfe-loader-available', { detail: { loadRemoteModule } }));
+  }).then(loaders => {
+    if ((window as any).__NF_REGISTRY__ !== undefined) {
+      ((window as any).__NF_REGISTRY__ as ResourceRegistry).register('orch.init-ready', {
+        ...loaders,
+      });
+    }
+
+    (window as any).loadRemoteModule = loaders.loadRemoteModule;
+    window.dispatchEvent(new CustomEvent('mfe-loader-available', { detail: { ...loaders } }));
   });
 })();
