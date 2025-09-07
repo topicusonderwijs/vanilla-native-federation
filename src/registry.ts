@@ -13,12 +13,21 @@ declare global {
 }
 
 (function (): void {
+  const script = document.currentScript as HTMLScriptElement | null;
+
+  const MAX_EVENT_STREAMS = script?.dataset?.maxStreams //
+    ? Number(script.dataset.maxStreams)
+    : 50;
+
+  const MAX_EVENTS = script?.dataset?.maxEvents //
+    ? Number(script.dataset.maxEvents)
+    : 50;
+
   const store = new Map<string, unknown>();
   const pending = new Map<string, Set<NFEventConsumer<any>>>();
   const events = new Map<string, NFEventData[]>();
   const listeners = new Map<string, Set<NFEventConsumer<NFEventData<any>>>>();
-
-  const MAX_EVENTS = 100;
+  const recentlyUsedTypes = new Set<string>();
 
   const onReady = <T>(name: string, callback: NFEventConsumer<T>): NFEventUnsubscribe => {
     const existing = store.get(name);
@@ -86,16 +95,25 @@ declare global {
       timestamp: Date.now(),
     };
 
-    let history = events.get(type);
-    if (!history) {
-      history = [];
-      events.set(type, history);
+    recentlyUsedTypes.delete(type);
+    recentlyUsedTypes.add(type);
+
+    if (recentlyUsedTypes.size > MAX_EVENT_STREAMS) {
+      const oldest = recentlyUsedTypes.values().next().value;
+      if (oldest) {
+        recentlyUsedTypes.delete(oldest);
+        events.delete(oldest);
+      }
     }
 
-    if (history.length >= MAX_EVENTS) {
-      history.shift();
-    }
+    let history = events.get(type) || [];
     history.push(event);
+
+    if (history.length > MAX_EVENTS) {
+      history = history.slice(-MAX_EVENTS);
+    }
+
+    events.set(type, history);
 
     const typeListeners = listeners.get(type);
     if (typeListeners && typeListeners.size > 0) {
