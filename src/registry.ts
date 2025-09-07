@@ -1,127 +1,140 @@
-import type { ResourceRegistry } from './lib/1.domain/registry/resource-registry.contract';
-import type { RegistryOptions } from './lib/1.domain/registry/registry-options.contract';
-import type { NFEventConsumer, NFEventProvider } from './lib/1.domain/registry/event.contract';
+import type {
+  NFEventConsumer,
+  NFEventData,
+  NFEventProvider,
+  NFEventUnsubscribe,
+} from './lib/1.domain/registry/event.contract';
+import type { NFEventRegistry } from './lib/1.domain/registry/event-registry.contract';
+
+declare global {
+  interface Window {
+    __NF_REGISTRY__: NFEventRegistry;
+  }
+}
 
 (function (): void {
-  const resources: Record<string, any> = {};
-  const pending: Record<string, Array<{ resolve: Function; reject: Function }>> = {};
-  const errors: Record<string, Error> = {};
+  const script = document.currentScript as HTMLScriptElement | null;
 
-  const withTimeout = <T>(promise: Promise<T>, ms: number, name: string): Promise<T> =>
-    Promise.race([
-      promise,
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(`Timeout: ${name} (${ms}ms)`)), ms)
-      ),
-    ]);
+  // Maximum number of different event types to keep in the registry.
+  const MAX_EVENT_STREAMS = script?.dataset?.maxStreams //
+    ? Number(script.dataset.maxStreams)
+    : 50;
 
-  const withRetry = async <T>(fn: () => Promise<T>, attempts: number = 3): Promise<T> => {
-    for (let i = 0; i < attempts; i++) {
-      try {
-        return await fn();
-      } catch (err) {
-        if (i === attempts - 1) throw err;
-      }
+  // Maximum number of events to keep in the history for each event type.
+  const MAX_EVENTS = script?.dataset?.maxEvents //
+    ? Number(script.dataset.maxEvents)
+    : 50;
+
+  // When trimming events, remove this percentage of the oldest events.
+  // E.g. with 0.25 and maxEvents=50, when the 51st event is added, the oldest 12 events are removed,
+  // leaving 38 events in the history.
+  const removePercentage = script?.dataset?.removePercentage //
+    ? Number(script.dataset.removePercentage) / 100
+    : 0.5;
+  const REMOVE_EVENTS = Math.ceil(MAX_EVENTS * removePercentage);
+
+  const store = new Map<string, unknown>();
+  const pending = new Map<string, Set<NFEventConsumer<any>>>();
+  const events = new Map<string, NFEventData[]>();
+  const listeners = new Map<string, Set<NFEventConsumer<NFEventData<any>>>>();
+  const recentlyUsedTypes = new Set<string>();
+
+  const onReady = <T>(name: string, callback: NFEventConsumer<T>): NFEventUnsubscribe => {
+    const existing = store.get(name);
+    if (existing !== undefined) {
+      callback(existing as T);
+      return () => {};
     }
-    throw new Error('Retry failed');
+
+    let callbacks = pending.get(name);
+    if (!callbacks) {
+      callbacks = new Set();
+      pending.set(name, callbacks);
+    }
+    callbacks.add(callback);
+
+    return () => {
+      callbacks!.delete(callback);
+      if (callbacks!.size === 0) {
+        pending.delete(name);
+      }
+    };
   };
 
-  const resolve = <T>(name: string, resource: T, ttl: number = 0): void => {
-    resources[name] = resource;
-    delete errors[name];
+  const on = <T>(type: string, callback: NFEventConsumer<NFEventData<T>>): NFEventUnsubscribe => {
+    const history = events.get(type);
+    const historyCopy = history ? [...history] : null;
 
-    pending[name]?.forEach(({ resolve }) => resolve(resource));
-    delete pending[name];
-
-    if (ttl > 0) {
-      setTimeout(() => {
-        delete resources[name];
-      }, ttl);
+    let typeListeners = listeners.get(type);
+    if (!typeListeners) {
+      typeListeners = new Set();
+      listeners.set(type, typeListeners);
     }
-  };
+    typeListeners.add(callback);
 
-  const reject = (name: string, error: Error, ttl: number = 0): void => {
-    errors[name] = error;
-    pending[name]?.forEach(({ reject }) => reject(error));
-    delete pending[name];
-
-    if (ttl > 0) {
-      setTimeout(() => {
-        delete errors[name];
-      }, ttl);
-    }
-  };
-
-  (window as unknown as { __NF_REGISTRY__: ResourceRegistry }).__NF_REGISTRY__ = Object.freeze({
-    async register<R>(
-      name: string,
-      resource: R | NFEventProvider<R>,
-      ttl: number = 0
-    ): Promise<void> {
-      try {
-        const resolved =
-          typeof resource === 'function' ? await (resource as NFEventProvider<R>)() : resource;
-        resolve(name, resolved, ttl);
-      } catch (error) {
-        reject(name, error instanceof Error ? error : new Error(String(error)));
-        throw error;
-      }
-    },
-
-    async get<R>(name: string, options: RegistryOptions = {}): Promise<R> {
-      const { timeout, retries, onError } = { timeout: 0, retries: 0, ...options };
-
-      if (!!resources[name]) return resources[name];
-      if (!!errors[name]) {
-        const error = errors[name];
-        onError?.(name, error);
-        throw error;
-      }
-
-      const promise = new Promise<R>((resolve, reject) => {
-        if (!pending[name]) pending[name] = [];
-        pending[name].push({ resolve, reject });
+    if (historyCopy && historyCopy.length > 0) {
+      queueMicrotask(() => {
+        historyCopy.forEach(event => callback(event));
       });
+    }
 
-      const timedPromise = timeout > 0 ? withTimeout(promise, timeout, name) : promise;
-      return retries > 0 ? withRetry(() => timedPromise, retries) : timedPromise;
-    },
-
-    has(name: string): boolean {
-      return !!resources[name];
-    },
-
-    clear(name?: string): void {
-      if (name) {
-        delete resources[name];
-        delete errors[name];
-        pending[name]?.forEach(({ reject }) => reject(new Error(`Resource '${name}' cleared`)));
-        delete pending[name];
-        return;
+    return () => {
+      typeListeners!.delete(callback);
+      if (typeListeners!.size === 0) {
+        listeners.delete(type);
       }
+    };
+  };
 
-      var props = Object.getOwnPropertyNames(resources);
-      for (var i = 0; i < props.length; i++) delete resources[props[i]!];
+  const register = async <T>(name: string, resource: T | NFEventProvider<T>): Promise<void> => {
+    const value =
+      typeof resource === 'function' ? await (resource as NFEventProvider<T>)() : resource;
 
-      var props = Object.getOwnPropertyNames(errors);
-      for (var i = 0; i < props.length; i++) delete errors[props[i]!];
+    store.set(name, value);
 
-      Object.values(pending ?? {}).forEach(waiters =>
-        waiters.forEach(({ reject }) => reject(new Error('Registry cleared')))
-      );
+    const callbacks = pending.get(name);
+    if (callbacks) {
+      pending.delete(name);
+      callbacks.forEach(cb => cb(value));
+    }
+  };
 
-      var props = Object.getOwnPropertyNames(pending);
-      for (var i = 0; i < props.length; i++) delete pending[props[i]!];
-    },
+  const emit = <T>(type: string, data: T): void => {
+    const event: NFEventData<T> = {
+      data,
+      timestamp: Date.now(),
+    };
 
-    onReady<R>(name: string, callback: NFEventConsumer<R>): void {
-      if (!!resources[name]) {
-        callback(resources[name]);
-      } else {
-        this.get<R>(name)
-          .then(callback)
-          .catch(() => {});
+    recentlyUsedTypes.delete(type);
+    recentlyUsedTypes.add(type);
+
+    if (recentlyUsedTypes.size > MAX_EVENT_STREAMS) {
+      const oldest = recentlyUsedTypes.values().next().value;
+      if (oldest) {
+        recentlyUsedTypes.delete(oldest);
+        events.delete(oldest);
       }
-    },
+    }
+
+    let history = events.get(type) || [];
+    history.push(event);
+
+    if (history.length > MAX_EVENTS) {
+      history = history.slice(-(MAX_EVENTS - REMOVE_EVENTS));
+    }
+
+    events.set(type, history);
+
+    const typeListeners = listeners.get(type);
+    if (typeListeners && typeListeners.size > 0) {
+      typeListeners.forEach(listener => listener(event));
+    }
+  };
+
+  window.__NF_REGISTRY__ = Object.freeze({
+    register,
+    onReady,
+    emit,
+    on,
   });
 })();

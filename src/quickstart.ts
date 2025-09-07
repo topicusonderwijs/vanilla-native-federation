@@ -3,7 +3,7 @@ import 'es-module-shims';
 import { initFederation } from 'lib/init-federation';
 import { consoleLogger } from 'lib/4.config/logging/console.logger';
 import { useShimImportMap } from 'lib/4.config/import-map/use-import-shim';
-import type { ResourceRegistry } from 'lib/1.domain/registry/resource-registry.contract';
+import type { NFEventRegistry } from 'lib/1.domain/registry/event-registry.contract';
 
 (async () => {
   let manifest: Record<string, string> | undefined | string = undefined;
@@ -43,7 +43,7 @@ import type { ResourceRegistry } from 'lib/1.domain/registry/resource-registry.c
     ...useShimImportMap({ shimMode: false }),
   }).then(loaders => {
     if ((window as any).__NF_REGISTRY__ !== undefined) {
-      ((window as any).__NF_REGISTRY__ as ResourceRegistry).register('orch.init-ready', {
+      ((window as any).__NF_REGISTRY__ as NFEventRegistry).register('orch.init-ready', {
         ...loaders,
       });
     }
