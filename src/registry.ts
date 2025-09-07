@@ -15,13 +15,23 @@ declare global {
 (function (): void {
   const script = document.currentScript as HTMLScriptElement | null;
 
+  // Maximum number of different event types to keep in the registry.
   const MAX_EVENT_STREAMS = script?.dataset?.maxStreams //
     ? Number(script.dataset.maxStreams)
     : 50;
 
+  // Maximum number of events to keep in the history for each event type.
   const MAX_EVENTS = script?.dataset?.maxEvents //
     ? Number(script.dataset.maxEvents)
     : 50;
+
+  // When trimming events, remove this percentage of the oldest events.
+  // E.g. with 0.25 and maxEvents=50, when the 51st event is added, the oldest 12 events are removed,
+  // leaving 38 events in the history.
+  const removePercentage = script?.dataset?.removePercentage //
+    ? Number(script.dataset.removePercentage) / 100
+    : 0.5;
+  const REMOVE_EVENTS = Math.ceil(MAX_EVENTS * removePercentage);
 
   const store = new Map<string, unknown>();
   const pending = new Map<string, Set<NFEventConsumer<any>>>();
@@ -110,7 +120,7 @@ declare global {
     history.push(event);
 
     if (history.length > MAX_EVENTS) {
-      history = history.slice(-MAX_EVENTS);
+      history = history.slice(-(MAX_EVENTS - REMOVE_EVENTS));
     }
 
     events.set(type, history);
