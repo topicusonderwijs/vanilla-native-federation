@@ -41,14 +41,14 @@ import type { ResourceRegistry } from 'lib/1.domain/registry/resource-registry.c
     logger: consoleLogger,
     logLevel: 'warn',
     ...useShimImportMap({ shimMode: false }),
-  }).then(({ loadRemoteModule }) => {
+  }).then(loaders => {
     if ((window as any).__NF_REGISTRY__ !== undefined) {
       ((window as any).__NF_REGISTRY__ as ResourceRegistry).register('orch.init-ready', {
-        loadRemoteModule,
+        ...loaders,
       });
     }
 
-    (window as any).loadRemoteModule = loadRemoteModule;
-    window.dispatchEvent(new CustomEvent('mfe-loader-available', { detail: { loadRemoteModule } }));
+    (window as any).loadRemoteModule = loaders.loadRemoteModule;
+    window.dispatchEvent(new CustomEvent('mfe-loader-available', { detail: { ...loaders } }));
   });
 })();

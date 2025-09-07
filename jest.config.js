@@ -32,9 +32,9 @@ module.exports = {
   coverageDirectory: 'coverage',
 
   collectCoverageFrom: [
-    'src/**/*.{js,ts}',
-    '!src/**/*.d.ts',
-    '!src/**/*index.ts',
+    'src/lib/**/*.{js,ts}',
+    '!src/lib/**/*.d.ts',
+    '!src/lib/**/*index.ts',
     '!src/lib/5.di/**/*',
     '!src/lib/6.mocks/**/*',
   ],
