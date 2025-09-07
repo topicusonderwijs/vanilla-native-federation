@@ -130,7 +130,7 @@ In this example, the micro frontends register themselves as custom elements (par
 
 Custom browser events are unfortunately vulnerable to unwanted race conditions, therefore it is recommended to use a more robust setup that involves a central event registry. This can resolve promises retroactively even after initialization.
 
-```
+```html
 <!DOCTYPE html>
 <html>
   <head>
@@ -154,7 +154,7 @@ Custom browser events are unfortunately vulnerable to unwanted race conditions, 
 
     <!-- 3. Handle loaded modules -->
     <script>
-      window.__NF_REGISTRY__.get("orch.init-ready").then(({ loadRemoteModule }) => {
+      window.__NF_REGISTRY__.get('orch.init-ready').then(({ loadRemoteModule }) => {
         loadRemoteModule('team/mfe1', './Button');
         loadRemoteModule('team/mfe2', './Header');
       });
