@@ -26,26 +26,42 @@ import type { NFEventConsumer, NFEventProvider } from './lib/1.domain/registry/e
     throw new Error('Retry failed');
   };
 
-  const resolve = <T>(name: string, resource: T): void => {
+  const resolve = <T>(name: string, resource: T, ttl: number = 0): void => {
     resources[name] = resource;
     delete errors[name];
 
     pending[name]?.forEach(({ resolve }) => resolve(resource));
     delete pending[name];
+
+    if (ttl > 0) {
+      setTimeout(() => {
+        delete resources[name];
+      }, ttl);
+    }
   };
 
-  const reject = (name: string, error: Error): void => {
+  const reject = (name: string, error: Error, ttl: number = 0): void => {
     errors[name] = error;
     pending[name]?.forEach(({ reject }) => reject(error));
     delete pending[name];
+
+    if (ttl > 0) {
+      setTimeout(() => {
+        delete errors[name];
+      }, ttl);
+    }
   };
 
   (window as unknown as { __NF_REGISTRY__: ResourceRegistry }).__NF_REGISTRY__ = Object.freeze({
-    async register<R>(name: string, resource: R | NFEventProvider<R>): Promise<void> {
+    async register<R>(
+      name: string,
+      resource: R | NFEventProvider<R>,
+      ttl: number = 0
+    ): Promise<void> {
       try {
         const resolved =
           typeof resource === 'function' ? await (resource as NFEventProvider<R>)() : resource;
-        resolve(name, resolved);
+        resolve(name, resolved, ttl);
       } catch (error) {
         reject(name, error instanceof Error ? error : new Error(String(error)));
         throw error;
