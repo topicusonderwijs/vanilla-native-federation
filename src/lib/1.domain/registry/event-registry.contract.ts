@@ -10,4 +10,5 @@ export type NFEventRegistry = {
   onReady<T>(name: string, callback: NFEventConsumer<T>): NFEventUnsubscribe;
   emit<T>(type: string, data: T): void;
   on<T>(type: string, callback: NFEventConsumer<NFEventData<T>>): NFEventUnsubscribe;
+  clear(type?: string): void;
 };

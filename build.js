@@ -96,6 +96,15 @@ async function generateBundles() {
       sourcemap: true
     },
 
+    'vanilla-native-federation/registry': {
+      ...baseConfig,
+      entryPoints: ['src/lib/registry.index.ts'],
+      outfile: path.join(OUTPUT_PATHS.fesm2022, 'registry.mjs'),
+      bundle: true,
+      sourcemap: true
+    },
+
+
     'vanilla-native-federation/audit': {
       ...baseConfig,
       entryPoints: ['src/lib/audit.index.ts'],
@@ -115,8 +124,8 @@ async function generateBundles() {
 
     'vanilla-native-federation/registry': {
       ...baseConfig,
-      entryPoints: [path.join(PATHS.quickstart, "registry.ts")],
-      outfile: path.join(OUTPUT_PATHS.quickstart, `registry.mjs`),
+      entryPoints: [path.join(PATHS.quickstart, "init-registry.ts")],
+      outfile: path.join(OUTPUT_PATHS.quickstart, `init-registry.mjs`),
       bundle: true,
       sourcemap: false,
       minify: true
@@ -134,8 +143,8 @@ function generatePackageExports() {
         "default": "./quickstart.mjs"
       },
 
-      "./registry.mjs": {
-        "default": "./registry.mjs"
+      "./init-registry.mjs": {
+        "default": "./init-registry.mjs"
       },
 
       ".": {
@@ -146,6 +155,11 @@ function generatePackageExports() {
       "./sdk": {
         "types": "./types/lib/sdk.index.d.ts", 
         "default": "./fesm2022/sdk.mjs"
+      },
+
+      "./registry": {
+        "types": "./types/lib/registry.index.d.ts", 
+        "default": "./fesm2022/registry.mjs"
       },
       
       "./options": {
