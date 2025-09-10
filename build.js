@@ -122,7 +122,7 @@ async function generateBundles() {
       minify: true
     },
 
-    'vanilla-native-federation/registry': {
+    'vanilla-native-federation/init-registry': {
       ...baseConfig,
       entryPoints: [path.join(PATHS.quickstart, "init-registry.ts")],
       outfile: path.join(OUTPUT_PATHS.quickstart, `init-registry.mjs`),

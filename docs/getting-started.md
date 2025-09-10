@@ -48,7 +48,7 @@ The simplest approach uses the pre-built runtime script with declarative configu
     </script>
 
     <!-- Include the orchestrator -->
-    <script src="https://unpkg.com/vanilla-native-federation@0.19.7/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@0.19.8/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -123,7 +123,7 @@ In this example, the micro frontends register themselves as custom elements (par
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@0.19.7/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@0.19.8/quickstart.mjs"></script>
 ```
 
 ## Avoiding race conditions
@@ -137,7 +137,7 @@ Custom browser events are unfortunately vulnerable to unwanted race conditions, 
     <title>My Application</title>
 
     <!-- 1. Init registry -->
-    <script src="https://unpkg.com/vanilla-native-federation@0.19.7/registry.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@0.19.8/init-registry.mjs"></script>
 
     <!-- Enable shim-mode for optimal browser support, this is optional -->
     <script type="esms-options">
@@ -154,14 +154,14 @@ Custom browser events are unfortunately vulnerable to unwanted race conditions, 
 
     <!-- 3. Handle loaded modules -->
     <script>
-      window.__NF_REGISTRY__.get('orch.init-ready').then(({ loadRemoteModule }) => {
+      window.__NF_REGISTRY__.onReady('orch.init-ready', ({ loadRemoteModule }) => {
         loadRemoteModule('team/mfe1', './Button');
         loadRemoteModule('team/mfe2', './Header');
       });
     </script>
 
     <!-- 4. Include the orchestrator runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@0.19.7/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@0.19.8/quickstart.mjs"></script>
   </head>
   <body>
     <!-- 5. Use your loaded components -->
