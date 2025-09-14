@@ -2,14 +2,12 @@
 
 A lightweight **runtime micro frontend orchestrator** that loads micro frontends built with native federation into any web page. Unlike other solutions, it caches dependencies across page reloads, making it perfect for traditional server-rendered apps (PHP, Java, Rails, etc.) that refresh on navigation. Drop it into any HTML page with a script tag - no build tools or framework migrations required.
 
-> **Important!** We are planning on releasing v1 soon, for that we need feedback on what is still missing on the library and what is working well. Please feel free to create an issue or feature request. All feedback is welcome!
-
 [![Verify library](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml/badge.svg)](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml)
 ![Coverage total](https://raw.githubusercontent.com/topicusonderwijs/vanilla-native-federation/badges/badges/coverage-total.svg)
 
 ## Key Features
 
-- ✨ **Zero Framework Dependencies** - Works with any frontend/backend technology
+- ✨ **Zero Framework Dependencies** - Built in vanilla JS so it works with any frontend/backend technology
 - 🚀 **Simple Drop-in Integration** - Add micro frontends with a single script tag
 - 💾 **Advanced Caching** - Optimized for page-reload scenarios with flexible storage options like localStorage and sessionStorage
 - 🔄 **Smart Dependency Resolution** - Automatic version conflict resolution and sharing based on the module federation mental model.
@@ -19,7 +17,7 @@ A lightweight **runtime micro frontend orchestrator** that loads micro frontends
 
 ### How it works
 
-The library runs in the browser to orchestrate the integration of micro frontends into plain HTML pages. While the main application can be server-rendered, the micro frontends are loaded as ES modules at runtime, providing the benefits of micro frontend architecture without requiring a full SPA framework for the host.
+The library runs in the browser to orchestrate the integration of micro frontends into plain HTML pages. While the host application can be SSR, the micro frontends are loaded as ES modules at runtime, providing the benefits of micro frontend architecture without requiring a full SPA framework.
 
 ### Extends the Native Federation Ecosystem
 
@@ -27,7 +25,7 @@ This library provides an alternative runtime to [@softarc/native-federation-runt
 
 ### What makes this orchestrator different?
 
-This orchestrator offers the possibility to cache the remoteEntries in localStorage or sessionStorage. This way the downloaded dependencies can be reused, even over multiple page changes. This is not an issue with SPA websites that don't reload the page on rerouting but essential to traditional websites where every route is a full page refresh.
+Next to the advanced dependency resolver, this orchestrator offers the possibility to cache the remoteEntries in localStorage or sessionStorage. This way the downloaded dependencies can be reused, even over multiple routes. This is not an issue with SPA websites that don't reload the page on rerouting but essential to traditional websites where every route is a full page refresh. However this orchestrator can also be used in SPAs.
 
 ## Quick Start
 
@@ -63,7 +61,7 @@ Get up and running in under 2 minutes:
     </script>
 
     <!-- Include the orchestrator runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@0.19.8/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@1.0.0/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -75,18 +73,13 @@ Get up and running in under 2 minutes:
 
 ### 2. That's it! 🎉
 
-Your micro frontends are now loaded and ready to use. The runtime handles:
-
-- ✅ Fetching and processing of remoteEntry.json files
-- ✅ Resolving and reuse of shared dependencies
-- ✅ Generating an optimized import map based on cached dependencies
-- ✅ Loading your remote modules (micro frontends)
+Your micro frontends are now loaded and ready to use. The runtime handles the whole flow of fetching the remote entries (metadata files), resolving and caching the shared dependencies and finally (lazy) loading the remote modules.
 
 ### Available quickstart runtime
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@0.19.8/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@1.0.0/quickstart.mjs"></script>
 ```
 
 ## Advanced Usage
@@ -141,6 +134,14 @@ This library is part of the broader native federation
 
 > ✅ **Full compatibility** with standard remoteEntry.json format ensures seamless interoperability
 
+## More information
+
+Read here more about the ecosystem!
+
+- [Micro Frontends with Angular and Native Federation](https://blog.angular.dev/micro-frontends-with-angular-and-native-federation-7623cfc5f413) - Manfred Steyer
+- [Micro Frontends with Modern Angular – Part 1: Standalone and esbuild](https://www.angulararchitects.io/blog/micro-frontends-with-modern-angular-part-1-standalone-and-esbuild/) - Manfred Steyer
+- [Migrating a stateful monolith to micro frontend architecture using native federation.](https://medium.com/@auke997/migrating-a-stateful-monolith-to-micro-frontends-using-native-federation-0572a1e181b4) - Aukevanoost
+
 ## Alternative orchestrators
 
 While this orchestrator focusses on compatibility and native-federation support. There are other orchestrators out there that provide support for other use cases:
@@ -150,11 +151,3 @@ While this orchestrator focusses on compatibility and native-federation support.
 | [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime) | Native federation                              | The default provided orchestrator for native federation                    |
 | [picard](https://github.com/picardjs/picard)                                                           | native-federation, module-federation and Piral | An agnostic orchestrator that focusses on compatibility between ecosystems |
 | [@module-federation/runtime](https://www.npmjs.com/package/@module-federation/runtime)                 | module federation                              | The orchestrator specifically for module federation                        |
-
-## Browser Support
-
-- ✅ **Modern browsers**: Native import map support
-- ✅ **Legacy browsers**: Available polyfills using [es-module-shims](https://www.npmjs.com/package/es-module-shims)
-- ✅ **Framework agnostic**: Accepts React, Angular, Vue, Svelte, etc.
-
-> 🧠 _It is recommended to expose webcomponents as remote modules to ensure maximum compatibility_

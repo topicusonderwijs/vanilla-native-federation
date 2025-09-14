@@ -20,7 +20,7 @@ const FILES_TO_COPY = ['README.md', 'LICENSE.md'];
 const PACKAGE_NAME = 'vanilla-native-federation';
 
 const logger = {
-  info: msg => console.log(`ℹ️ ${msg}`),
+  info: msg => console.log(`ℹ️  ${msg}`),
   success: msg => console.log(`✅ ${msg}`),
   warn: msg => console.warn(`⚠️ ${msg}`),
   error: msg => console.error(`❌ ${msg}`),
