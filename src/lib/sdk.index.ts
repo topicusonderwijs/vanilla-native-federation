@@ -6,3 +6,4 @@ export * from './2.app/driver-ports/dynamic-init';
 
 export { Optional } from './utils/optional';
 export * as _path from './utils/path';
+export { cloneEntry } from './utils/clone-entry';

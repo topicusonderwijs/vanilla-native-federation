@@ -8,16 +8,21 @@ import { createRemoteInfoRepository } from 'lib/3.adapters/storage/remote-info.r
 import { createScopedExternalsRepository } from 'lib/3.adapters/storage/scoped-externals.repository';
 import { createSharedExternalsRepository } from 'lib/3.adapters/storage/shared-externals.repository';
 
-export const createDriving = (config: ConfigContract): DrivingContract => ({
-  versionCheck: createVersionCheck(),
+export const createDriving = (
+  config: ConfigContract
+): { adapters: DrivingContract; config: ConfigContract } => {
+  const adapters = {
+    versionCheck: createVersionCheck(),
 
-  manifestProvider: createManifestProvider(),
+    manifestProvider: createManifestProvider(),
 
-  remoteEntryProvider: createRemoteEntryProvider(),
+    remoteEntryProvider: createRemoteEntryProvider(),
 
-  remoteInfoRepo: createRemoteInfoRepository(config),
-  scopedExternalsRepo: createScopedExternalsRepository(config),
-  sharedExternalsRepo: createSharedExternalsRepository(config),
+    remoteInfoRepo: createRemoteInfoRepository(config),
+    scopedExternalsRepo: createScopedExternalsRepository(config),
+    sharedExternalsRepo: createSharedExternalsRepository(config),
 
-  browser: createBrowser(config),
-});
+    browser: createBrowser(config),
+  };
+  return { adapters, config };
+};
