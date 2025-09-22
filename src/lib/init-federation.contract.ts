@@ -1,5 +1,6 @@
-import type { ConfigContract } from './options.index';
-import type { DrivingContract, DynamicInitResult } from './sdk.index';
+import type { ConfigContract } from './2.app/config/config.contract';
+import type { DrivingContract } from './2.app/driving-ports/driving.contract';
+import type { DynamicInitResult } from './2.app/driver-ports/dynamic-init/flow.contract';
 
 export type LoadRemoteModule<TModule = unknown> = (
   remoteName: string,

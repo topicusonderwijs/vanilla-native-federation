@@ -6,8 +6,8 @@ import { createGetRemoteEntry } from 'lib/2.app/flows/dynamic-init/get-remote-en
 import { createUpdateCache } from 'lib/2.app/flows/dynamic-init/update-cache';
 import { createCommitChanges } from 'lib/2.app/flows/init/commit-changes';
 import type { DynamicInitDriversContract } from 'lib/audit.index';
-import type { ConfigContract } from 'lib/options.index';
-import type { DrivingContract } from 'lib/sdk.index';
+import type { DrivingContract } from '../../2.app/driving-ports/driving.contract';
+import type { ConfigContract } from '../../2.app/config/config.contract';
 
 export const createDynamicInitDrivers = ({
   config,
