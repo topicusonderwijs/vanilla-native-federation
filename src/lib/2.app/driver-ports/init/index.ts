@@ -5,3 +5,4 @@ export * from './for-generating-import-map';
 export * from './for-committing-changes.port';
 export * from './for-exposing-module-loader.port';
 export * from './flow.contract';
+export * from './drivers.contract';
