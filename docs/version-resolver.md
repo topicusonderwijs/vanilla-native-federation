@@ -2,15 +2,69 @@
 
 # Version Resolver
 
-The version resolver determines how to handle dependencies when multiple micro frontends need the same externals (dependencies). It decides which dependency versions to share globally, share within specific scopes, or scope to individual remotes (micro frontends).
+The version resolver determines how to share externals (dependencies) across multiple remotes (micro frontends). It decides which external versions to share globally, share within specific scopes, or scope to individual remotes (micro frontends).
+
+## How are the remotes bundled:
+
+Native-federation provides a `federation.config.js` in its remotes. This configuration file allows the user to finetune which externals should be shared with other remotes and which should only be used by that specific remote. This process of choosing a specific (sub)set of remotes that can use a particular shared externals is called "scoping".
+
+Whenever a remote is bundled, Native-federation includes a metadata file called the `remoteEntry.json`. When transpiled and bundled, a remote file structure looks like this:
+
+```
+📁 dist/
+└── 📁 mfe1/
+    ├── 📄 remoteEntry.json
+    ├── 📄 button.js
+    ├── 📄 dependency-a.js
+    └── 📄 dependency-b.js
+```
+
+The `remoteEntry.json` contains a translation of the `federation.config.js` and serves as metadata file to explain to the orchestrator which remotes can be shared and which have to be scoped:
+
+```json
+{
+  "name": "team/mfe1",
+  "exposes": [
+    {
+      "key": "./Button",
+      "outFileName": "button.js"
+    }
+  ],
+  "shared": [
+    {
+      "packageName": "dep-a",
+      "outFileName": "dependency-a.js",
+      "requiredVersion": "~2.1.0",
+      "singleton": false,
+      "strictVersion": true,
+      "version": "2.1.1"
+    },
+    {
+      "packageName": "dep-b",
+      "outFileName": "dependency-b.js",
+      "requiredVersion": "~2.1.0",
+      "singleton": true,
+      "strictVersion": true,
+      "version": "2.1.2"
+    }
+  ]
+}
+```
+
+These properties are very important for the orchestrator, here is what they mean:
+
+- **requiredVersion:** The acceptable range of versions that this remote is compatible with.
+- **singleton:** Should the orchestrator share this external with other remotes or use it only for this remote?
+- **strictVersion:** Does the remote accept versions of this external that are outside of the accepted range (requiredVersion).
+- **version:** The version of the external.
 
 ## Understanding Import Maps
 
-The version resolver creates an import map from the provided remote metadata files (remoteEntry.json). Dependencies (externals) can be shared globally, shared within specific groups (shared scopes), or scoped to individual micro frontends.
+The orchestrator creates an import map from the provided remote metadata files (`remoteEntry.json`). Externals can be shared globally, shared within specific groups (shared scopes), or scoped to individual micro frontends.
 
 ### What is an Import Map?
 
-An [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script/type/importmap) is a JSON structure that tells the browser where to find JavaScript modules:
+An [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script/type/importmap) is a JSON structure that tells the browser where to find JavaScript ES module imports:
 
 ```javascript
 {
@@ -30,7 +84,7 @@ When your code does `import React from 'react'`, the browser uses this map to fe
 
 ### Only one shared version per scope
 
-**Critical constraint**: Import maps can only specify **one version** of each dependency per scope:
+A major drawback of import-maps is that they can only specify **one version** of each dependency per scope:
 
 ```javascript
 // ❌ This is NOT possible in import maps
@@ -42,11 +96,11 @@ When your code does `import React from 'react'`, the browser uses this map to fe
 }
 ```
 
-This limitation necessitates version resolution. When multiple micro frontends require different versions of the same dependency within a scope, only one can be shared.
+This limitation necessitates version resolution. When multiple micro frontends require different versions of the same dependency within a scope, only one can be shared "globally".
 
 ### The Solution: Multiple Scope Levels
 
-Import maps provide **scopes** and **shared scopes** as solutions for dependency management:
+Import maps provide **scopes** as solutions for dependency management:
 
 ```javascript
 {
@@ -82,9 +136,11 @@ Import maps provide **scopes** and **shared scopes** as solutions for dependency
 
 The order of precedence is based on the specificity of the scope, with the global import having the lowest precedence.
 
+> **Note:** With the "shareScope" grouping (3rd example), the import map is being tricked in loading the same file for 2 different scopes. This is handled by the orchestrator internally and provides a way to share an external over a select set of scopes. More on this later.
+
 ## Shared vs Scoped Dependencies
 
-In the micro-frontend's metadata file (remoteEntry.json), dependencies are marked as "externals". Every external contains configuration that determines how it should be shared.
+In the remote's metadata file (remoteEntry.json), dependencies are marked as "externals". Every external contains configuration that determines how it should be shared.
 
 ### Shared externals (singleton: true)
 
@@ -127,7 +183,7 @@ Dependencies with `singleton: false` are always scoped to their individual remot
 
 ### Shared scopes
 
-By default, dependencies with the `singleton: true` property are shared globally between all remotes. The `shareScope` property can be used for externals that should only be shared over a select group of remotes. The `shareScope` property creates a logical group for dependency resolution. Externals with the same shared scope are resolved together in isolation from other share scopes.
+By default, externals with the `singleton: true` property are shared globally between all remotes. The `shareScope` property can be used for externals that should only be shared over a select group of remotes. The `shareScope` property creates a logical group for dependency resolution. Externals with the same shared scope are resolved together in isolation from other share scopes.
 
 This can be useful e.g. if some legacy remotes are still dependent on a previous major of a framework:
 
@@ -231,13 +287,11 @@ This prevents the runtime errors that occur when Angular's AOT-compiled code exp
 
 - **Compiled Frameworks**: @angular/\* related packages, where patch versions can break compatibility due to AOT compilation
 - **Breaking Changes**: When minor/patch versions introduce breaking changes despite semantic versioning
-- **Multiple Teams**: Teams needing different exact versions of shared libraries
-- **Legacy Support**: Supporting specific legacy versions alongside newer ones
 - **API Contracts**: When exact version matching is required for API compatibility
 
 **Limitations:**
 
-- No automatic version resolution - each MFE gets exactly what it specifies
+- No automatic version resolution - each remote gets exactly what it specifies
 - Potential for more downloads compared to compatible version ranges
 - Requires careful coordination between teams, especially when using angular modules as remote modules. This feature does not fix an incompatibility between remotes.
 
@@ -287,34 +341,58 @@ Individual scopes:
 
 ### Step 3: Resolution Algorithm
 
-For each scope (global, shared scopes, strict, individual), the resolver determines one or more versions to share:
+For each scope (global, shared scopes, strict, individual), the resolver determines one or more versions to share. The first step is to check wether the external should be shared or not:
 
 ```mermaid
 flowchart TD
-    A[Dependencies grouped by scope] --> B[For each scope:]
-    B --> C{Only one version in scope?}
-    C -->|Yes| D[Set action: SHARE]
-    C -->|No| E{Scope type?}
-    E -->|Strict scope| F[All versions get 'share' action<br/>Replace requiredVersion with exact version]
-    E -->|Other scopes| G[Apply priority rules to choose shared version]
+    A[Process remoteEntry.json files] --> B[For each external in shared array:]
+    B --> C{singleton: true?}
+    C -->|No| D[Add to individual scoped externals<br/>No resolution needed]
+    C -->|Yes| E{Has shareScope property?}
+    E -->|No| F[Add to global shared externals<br/>Mark as dirty: true]
+    E -->|Yes| G[Add to named shared scope externals<br/>Mark as dirty: true]
 
-    G --> G1{Host version exists in scope?}
-    G1 -->|Yes| G2[Choose host version]
-    G1 -->|No| G3{latestSharedExternal enabled?}
-    G3 -->|Yes| G4[Choose latest version in scope]
-    G3 -->|No| G5[Choose version with least extra downloads]
+    F --> H[Needs global resolution]
+    G --> I[Needs scope-level resolution]
+    D --> J[Ready for import map generation]
+```
 
-    G --> H[Assign actions to all other versions in scope]
-    H --> H1[For each remaining version in scope:]
-    H1 --> H2{Compatible with chosen version?}
-    H2 -->|Yes| H3[Action: SKIP<br/>Don't download]
-    H2 -->|No| H4{strictVersion: true?}
-    H4 -->|Yes| H5[Action: SCOPE<br/>Download individually]
-    H4 -->|No| H6[Action: SKIP + WARN<br/>Risk compatibility issues]
+#### Determine Shared Versions
 
-    H6 --> I{strict mode enabled?}
-    I -->|Yes| J[Throw NFError]
-    I -->|No| K[Continue with warning]
+When the shared externals have been discovered, it is time for the resolver to determine which version to share of each shared external. This processs is partially based on the provided config of the user. There are multiple scopes, 1 global and 1 for each shareScope, the resolver loops through the scopes as follows:
+
+```mermaid
+flowchart TD
+    A[For each scope with dirty externals] --> B{Only one version in scope?}
+    B -->|Yes| C[Set action: SHARE]
+    B -->|No| D{Scope type?}
+    D -->|Strict scope| E[All versions get action: SHARE<br/>Keep exact requiredVersions]
+    D -->|Other scopes| F[Choose optimal shared version]
+
+    F --> F1{Host version exists?}
+    F1 -->|Yes| F2[Choose host version]
+    F1 -->|No| F3{latestSharedExternal enabled?}
+    F3 -->|Yes| F4[Choose latest version]
+    F3 -->|No| F5[Choose version with least extra downloads]
+
+    F2 --> G[Assign actions to other versions]
+    F4 --> G
+    F5 --> G
+
+    G --> G1[For each remaining version:]
+    G1 --> G2{Compatible with shared version?}
+    G2 -->|Yes| G3[Action: SKIP<br/>Use shared version]
+    G2 -->|No| G4{strictVersion: true?}
+    G4 -->|Yes| G5{strictExternalCompatibility enabled?}
+    G4 -->|No| G6[Action: SKIP<br/>Use incompatible shared version + warning]
+    G5 -->|Yes| G7[Throw NFError]
+    G5 -->|No| G8[Action: SCOPE<br/>Download individually]
+
+    C --> H[Resolution complete]
+    E --> H
+    G3 --> H
+    G6 --> H
+    G8 --> H
 ```
 
 ### Step 4: Generate Import Map
