@@ -1,9 +1,11 @@
 # vanilla-native-federation
 
-A lightweight **runtime micro frontend orchestrator** that loads micro frontends built with native federation into any web page. Unlike other solutions, it caches dependencies across page reloads, making it perfect for traditional server-rendered apps (PHP, Java, Rails, etc.) that refresh on navigation. Drop it into any HTML page with a script tag - no build tools or framework migrations required.
+A lightweight **runtime micro frontend orchestrator** that loads micro frontends built with native federation into any web page. It can cache dependencies across page reloads, making it perfect for traditional server-rendered hosts (PHP, Java, Rails, etc.) that refresh on navigation.
 
 [![Verify library](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml/badge.svg)](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml)
 ![Coverage total](https://raw.githubusercontent.com/topicusonderwijs/vanilla-native-federation/badges/badges/coverage-total.svg)
+
+> Read more in this in-depth article: [Migrating a stateful monolith to micro frontend architecture using native federation.](https://medium.com/@auke997/migrating-a-stateful-monolith-to-micro-frontends-using-native-federation-0572a1e181b4)
 
 ## Key Features
 
@@ -11,8 +13,8 @@ A lightweight **runtime micro frontend orchestrator** that loads micro frontends
 - 🚀 **Simple Drop-in Integration** - Add micro frontends with a single script tag
 - 💾 **Advanced Caching** - Optimized for page-reload scenarios with flexible storage options like localStorage and sessionStorage
 - 🔄 **Smart Dependency Resolution** - Automatic version conflict resolution and sharing based on the module federation mental model.
-- 🌐 **Full Ecosystem Compatibility** - Works with standard remoteEntry.json format.
-- ⚡ **Lightweight & Fast** - Minimal bundle size with tree-shaking support.
+- 🌐 **Full native-federation compatibility** - Works with standard remoteEntry.json format.
+- ⚡ **Lightweight & Fast** - Minimal bundle size (~80kb) with tree-shaking support.
 - 🛠️ **Highly Configurable** - Extensive options and SDK for fine-tuning behavior.
 
 ### How it works
@@ -61,7 +63,7 @@ Get up and running in under 2 minutes:
     </script>
 
     <!-- Include the orchestrator runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@1.0.0/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@1.1.0/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -79,7 +81,7 @@ Your micro frontends are now loaded and ready to use. The runtime handles the wh
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@1.0.0/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@1.1.0/quickstart.mjs"></script>
 ```
 
 ## Advanced Usage

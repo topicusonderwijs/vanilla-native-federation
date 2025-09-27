@@ -1,17 +1,18 @@
-import type {
-  InitFederationResult,
-  LazyInitFederationResult,
-  LoadRemoteModule,
-} from './init-federation.contract';
-import type { RemoteEntry } from './1.domain/remote-entry/remote-entry.contract';
+import type { LoadRemoteModule, NativeFederationResult } from './init-federation.contract';
 import type { NFOptions } from './2.app/config/config.contract';
-import { CREATE_NF_APP } from './create-nf-app';
+import { createInitFlow, INIT_FLOW_FACTORY } from './5.di/flows/init.factory';
+import { createDriving } from './5.di/driving.factory';
+import { createConfigHandlers } from './5.di/config.factory';
+import {
+  createDynamicInitFlow,
+  DYNAMIC_INIT_FLOW_FACTORY,
+} from './5.di/flows/dynamic-init.factory';
 
 const initFederation = (
   remotesOrManifestUrl: string | Record<string, string>,
   options: NFOptions = {}
-): Promise<LazyInitFederationResult> => {
-  const { init, dynamicInit, config, adapters } = CREATE_NF_APP(options);
+): Promise<NativeFederationResult> => {
+  const { adapters, config } = createDriving(createConfigHandlers(options));
 
   const stateDump = (msg: string) =>
     config.log.debug(0, msg, {
@@ -25,15 +26,12 @@ const initFederation = (
       'scoped-externals': adapters.scopedExternalsRepo.getAll(),
     });
 
-  return init
-    .getRemoteEntries(remotesOrManifestUrl)
-    .then(init.processRemoteEntries)
-    .then(init.determineSharedExternals)
-    .then(init.generateImportMap)
-    .then(init.commitChanges)
-    .then(init.exposeModuleLoader)
-    .then(loadRemoteModule => {
-      const output: InitFederationResult = {
+  const initFlow = createInitFlow(INIT_FLOW_FACTORY({ adapters, config }));
+  const dynamicInitFlow = createDynamicInitFlow(DYNAMIC_INIT_FLOW_FACTORY({ config, adapters }));
+
+  return initFlow(remotesOrManifestUrl)
+    .then(({ loadRemoteModule }) => {
+      const output = {
         config,
         adapters,
         loadRemoteModule,
@@ -46,20 +44,11 @@ const initFederation = (
         }),
       };
 
-      const processDynamicRemoteEntry = async (remoteEntry: RemoteEntry) => {
-        dynamicInit
-          .updateCache(remoteEntry)
-          .then(dynamicInit.convertToImportMap)
-          .then(init.commitChanges);
-      };
-
       const initRemoteEntry = async (
         remoteEntryUrl: string,
         remoteName?: string
-      ): Promise<LazyInitFederationResult> =>
-        dynamicInit
-          .getRemoteEntry(remoteEntryUrl, remoteName)
-          .then(entry => entry.map(processDynamicRemoteEntry).orElse(Promise.resolve()))
+      ): Promise<NativeFederationResult> =>
+        dynamicInitFlow(remoteEntryUrl, remoteName)
           .catch(e => {
             stateDump(`[dynamic-init][${remoteName ?? remoteEntryUrl}] STATE DUMP`);
             if (config.strict.strictRemoteEntry) return Promise.reject(e);

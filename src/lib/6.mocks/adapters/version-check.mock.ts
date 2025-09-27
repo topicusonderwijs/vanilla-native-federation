@@ -1,4 +1,4 @@
-import { ForVersionChecking } from 'lib/sdk.index';
+import { ForVersionChecking } from '../../2.app/driving-ports/for-version-checking.port';
 
 export const mockVersionCheck = (): ForVersionChecking => ({
   isCompatible: jest.fn(),
