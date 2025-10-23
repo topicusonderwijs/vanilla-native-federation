@@ -48,7 +48,7 @@ The simplest approach uses the pre-built runtime script with declarative configu
     </script>
 
     <!-- Include the orchestrator -->
-    <script src="https://unpkg.com/vanilla-native-federation@1.1.1/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@1.1.2/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -123,7 +123,7 @@ In this example, the micro frontends register themselves as custom elements (par
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@1.1.1/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@1.1.2/quickstart.mjs"></script>
 ```
 
 ## Avoiding race conditions
@@ -137,7 +137,7 @@ Custom browser events are unfortunately vulnerable to unwanted race conditions, 
     <title>My Application</title>
 
     <!-- 1. Init registry -->
-    <script src="https://unpkg.com/vanilla-native-federation@1.1.1/init-registry.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@1.1.2/init-registry.mjs"></script>
 
     <!-- Enable shim-mode for optimal browser support, this is optional -->
     <script type="esms-options">
@@ -161,7 +161,7 @@ Custom browser events are unfortunately vulnerable to unwanted race conditions, 
     </script>
 
     <!-- 4. Include the orchestrator runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@1.1.1/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@1.1.2/quickstart.mjs"></script>
   </head>
   <body>
     <!-- 5. Use your loaded components -->
@@ -476,18 +476,17 @@ import { ApplicationConfig, InjectionToken, provideZoneChangeDetection } from '@
 import { AppComponent } from './app/app.component';
 import { LoadRemoteModule } from 'vanilla-native-federation';
 
-export const MODULE_LOADER = new InjectionToken<LoadRemoteModule<unknown>>('MODULE_LOADER');
+export const MODULE_LOADER = new InjectionToken() < LoadRemoteModule < unknown >> 'MODULE_LOADER';
 
 const appConfig = (loader: LoadRemoteModule<unknown>): ApplicationConfig => ({
   providers: [
     { provide: MODULE_LOADER, useValue: loader },
-    provideZoneChangeDetection({eventCoalescing: true})
-  ]
+    provideZoneChangeDetection({ eventCoalescing: true }),
+  ],
 });
 
 export const bootstrap = (loader: LoadRemoteModule<unknown>) =>
-  bootstrapApplication(AppComponent, appConfig(loader))
-    .catch((err) => console.error(err));
+  bootstrapApplication(AppComponent, appConfig(loader)).catch(err => console.error(err));
 ```
 
 ## Examples
