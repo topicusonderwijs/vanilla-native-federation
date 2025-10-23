@@ -1,6 +1,13 @@
 {
   extends: [
-    "local>topicusonderwijs/renovate-config:default.json5",
-    "local>topicusonderwijs/renovate-config:npm.json5"
-  ]
+    'local>topicusonderwijs/renovate-config:default.json5',
+    'local>topicusonderwijs/renovate-config:npm.json5',
+  ],
+  platformAutomerge: true,
+  packageRules: [
+    {
+      matchUpdateTypes: ['minor', 'patch'],
+      automerge: true,
+    },
+  ],
 }

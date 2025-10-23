@@ -2,7 +2,8 @@ name: Code checks
 on:
   push:
     branches: [main]
-
+  pull_request:
+    branches: [main]
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -10,12 +11,25 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: "22.x"
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
       - name: Dependencies OK
-        run: npm ci
+        run: pnpm install --frozen-lockfile
+
       - name: Library builds
-        run: npm run build
+        run: pnpm build
+
       - name: Code quality OK
-        run: npm run lint
+        run: pnpm lint
+
       - name: Tests OK
-        run: npm run test
+        run: pnpm test
+
+      - name: Audit OK
+        run: pnpm audit --audit-level moderate
+        env:
+          CI: true
