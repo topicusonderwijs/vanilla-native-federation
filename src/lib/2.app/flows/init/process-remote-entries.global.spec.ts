@@ -359,5 +359,38 @@ describe('createProcessRemoteEntries - global', () => {
         "[team/mfe1][dep-a] Version 'undefined' is not a valid version."
       );
     });
+
+    it('should add the correct requiredVersion from tag if empty', async () => {
+      adapters.versionCheck.smallestVersion = jest.fn((): string => '2.1.1');
+      adapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> => Optional.empty()
+      );
+      const remoteEntries = [
+        mockRemoteEntry_MFE1({
+          shared: [mockSharedInfo('dep-a', { requiredVersion: '', singleton: true })],
+        }),
+      ];
+
+      await processRemoteEntries(remoteEntries);
+
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+        'dep-a',
+        mockExternal.shared(
+          [
+            mockVersion.shared('2.1.1', 'dep-a', {
+              remotes: { 'team/mfe1': { requiredVersion: '2.1.1' } },
+              action: 'skip',
+            }),
+          ],
+          { dirty: true }
+        ),
+        undefined
+      );
+      expect(config.log.warn).toHaveBeenCalledWith(
+        2,
+        "[team/mfe1][dep-a] Version 'undefined' is not a valid version."
+      );
+    });
   });
 });

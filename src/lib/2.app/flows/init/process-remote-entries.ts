@@ -97,7 +97,7 @@ export function createProcessRemoteEntries(
       name: remoteName,
       strictVersion: sharedInfo.strictVersion,
       cached: false,
-      requiredVersion: sharedInfo.requiredVersion,
+      requiredVersion: sharedInfo.requiredVersion || tag,
     };
 
     const scopeType = ports.sharedExternalsRepo.scopeType(sharedInfo.shareScope);
@@ -119,7 +119,11 @@ export function createProcessRemoteEntries(
         remote.strictVersion &&
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
-        const errorMsg = `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version-range '${remote.requiredVersion}' does not match cached version-range '${matchingVersion.remotes[0]!.requiredVersion}'`;
+        const errorMsg = `[${remoteName}][${sharedInfo.packageName}@${
+          sharedInfo.version
+        }] Required version-range '${
+          remote.requiredVersion
+        }' does not match cached version-range '${matchingVersion.remotes[0]!.requiredVersion}'`;
         if (config.strict.strictExternalCompatibility) {
           config.log.error(2, errorMsg);
           throw new NFError(`Could not process remote '${remoteEntry.name}'`);
