@@ -77,7 +77,9 @@ export function createUpdateCache(
             .orThrow(() => {
               config.log.error(
                 8,
-                `[${external.shareScope ?? GLOBAL_SCOPE}][${remoteEntry.name}][${external.packageName}@${external.version}][override] Remote name not found in cache.`
+                `[${external.shareScope ?? GLOBAL_SCOPE}][${remoteEntry.name}][${
+                  external.packageName
+                }@${external.version}][override] Remote name not found in cache.`
               );
               return new NFError(
                 `Could not find override url from remote ${sharedVersion.remotes[0]!.name}`
@@ -106,7 +108,7 @@ export function createUpdateCache(
     const remote: SharedVersionMeta = {
       file: sharedInfo.outFileName,
       strictVersion: sharedInfo.strictVersion,
-      requiredVersion: sharedInfo.requiredVersion,
+      requiredVersion: sharedInfo.requiredVersion || tag,
       name: remoteName,
       cached: false,
     };
@@ -124,7 +126,11 @@ export function createUpdateCache(
 
     if (action === 'skip' && !isCompatible && remote.strictVersion) {
       action = 'scope';
-      const errorMsg = `[${sharedInfo.shareScope ?? GLOBAL_SCOPE}][${remoteName}] ${sharedInfo.packageName}@${sharedInfo.version} Is not compatible with existing ${sharedInfo.packageName}@${sharedVersion!.tag} requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}'`;
+      const errorMsg = `[${sharedInfo.shareScope ?? GLOBAL_SCOPE}][${remoteName}] ${
+        sharedInfo.packageName
+      }@${sharedInfo.version} Is not compatible with existing ${sharedInfo.packageName}@${
+        sharedVersion!.tag
+      } requiredRange '${sharedVersion!.remotes[0]?.requiredVersion}'`;
 
       if (config.strict.strictExternalCompatibility) {
         config.log.error(8, errorMsg);
@@ -140,7 +146,11 @@ export function createUpdateCache(
         remote.strictVersion &&
         matchingVersion.remotes[0]!.requiredVersion !== remote.requiredVersion
       ) {
-        const errorMsg = `[${remoteName}][${sharedInfo.packageName}@${sharedInfo.version}] Required version '${remote.requiredVersion}' does not match existing '${matchingVersion.remotes[0]!.requiredVersion}'`;
+        const errorMsg = `[${remoteName}][${sharedInfo.packageName}@${
+          sharedInfo.version
+        }] Required version '${remote.requiredVersion}' does not match existing '${
+          matchingVersion.remotes[0]!.requiredVersion
+        }'`;
         if (config.strict.strictExternalCompatibility) {
           config.log.error(8, errorMsg);
           throw new NFError(`Could not process remote '${remoteName}'`);

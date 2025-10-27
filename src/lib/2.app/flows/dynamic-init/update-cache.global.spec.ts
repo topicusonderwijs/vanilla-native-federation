@@ -398,6 +398,46 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
     );
   });
 
+  it('should add the correct requiredVersion if empty', async () => {
+    adapters.versionCheck.smallestVersion = jest.fn((): string => '2.2.1');
+
+    adapters.sharedExternalsRepo.tryGet = jest.fn((): Optional<SharedExternal> => Optional.empty());
+
+    const remoteEntry = mockRemoteEntry_MFE1({
+      shared: [
+        mockSharedInfo('dep-a', { version: undefined, singleton: true, requiredVersion: '' }),
+      ],
+      exposes: [],
+    });
+
+    const actual = await updateCache(remoteEntry);
+
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledTimes(1);
+
+    expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+      'dep-a',
+      mockExternal.shared(
+        [
+          mockVersion.shared('2.2.1', 'dep-a', {
+            remotes: {
+              'team/mfe1': { cached: true, requiredVersion: '2.2.1' },
+            },
+            action: 'share',
+          }),
+        ],
+        { dirty: false }
+      ),
+      undefined
+    );
+    expect(actual.actions).toEqual({
+      'dep-a': { action: 'share', override: undefined },
+    });
+    expect(config.log.warn).toHaveBeenCalledWith(
+      8,
+      "[team/mfe1][dep-a] Version 'undefined' is not a valid version."
+    );
+  });
+
   it('should correctly order the the versions descending', async () => {
     adapters.versionCheck.isCompatible = jest.fn(() => true);
     adapters.versionCheck.compare = jest.fn((a, b) => {
