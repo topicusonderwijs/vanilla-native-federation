@@ -17,6 +17,11 @@
     "type": "git",
     "url": "https://github.com/topicusonderwijs/vanilla-native-federation.git"
   },
+  "pnpm": {
+    "overrides": {
+      "js-yaml": ">=4.1.1"
+    }
+  },
   "license": "MIT",
   "devDependencies": {
     "@softarc/native-federation-runtime": "^3.0.2",
