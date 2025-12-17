@@ -1,9 +1,6 @@
-# vanilla-native-federation
+# Native federation orchestrator
 
 A lightweight **runtime micro frontend orchestrator** that loads micro frontends built with native federation into any web page. It can cache dependencies across page reloads, making it perfect for traditional server-rendered hosts (PHP, Java, Rails, etc.) that refresh on navigation.
-
-[![Verify library](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml/badge.svg)](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml)
-![Coverage total](https://raw.githubusercontent.com/topicusonderwijs/vanilla-native-federation/badges/badges/coverage-total.svg)
 
 > Read more in this in-depth article: [Migrating a stateful monolith to micro frontend architecture using native federation.](https://medium.com/@auke997/migrating-a-stateful-monolith-to-micro-frontends-using-native-federation-0572a1e181b4)
 
@@ -131,7 +128,7 @@ This library is part of the broader native federation
 | ------------------------------------------------------------------------------------------------------------ | --------------------------- |
 | [@softarc/native-federation](https://www.npmjs.com/package/@softarc/native-federation)                       | Core build toolchain        |
 | [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime)       | Core runtime                |
-| **vanilla-native-federation**                                                                                | Alternative runtime         |
+| **orchestrator**                                                                                             | Enhanced runtime            |
 | [@angular-architects/native-federation](https://www.npmjs.com/package/@angular-architects/native-federation) | Build toolchain for Angular |
 
 > ✅ **Full compatibility** with standard remoteEntry.json format ensures seamless interoperability
@@ -143,13 +140,3 @@ Read here more about the ecosystem!
 - [Micro Frontends with Angular and Native Federation](https://blog.angular.dev/micro-frontends-with-angular-and-native-federation-7623cfc5f413) - Manfred Steyer
 - [Micro Frontends with Modern Angular – Part 1: Standalone and esbuild](https://www.angulararchitects.io/blog/micro-frontends-with-modern-angular-part-1-standalone-and-esbuild/) - Manfred Steyer
 - [Migrating a stateful monolith to micro frontend architecture using native federation.](https://medium.com/@auke997/migrating-a-stateful-monolith-to-micro-frontends-using-native-federation-0572a1e181b4) - Aukevanoost
-
-## Alternative orchestrators
-
-While this orchestrator focusses on compatibility and native-federation support. There are other orchestrators out there that provide support for other use cases:
-
-| Package                                                                                                | EcoSystem                                      | Description                                                                |
-| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------- | -------------------------------------------------------------------------- |
-| [@softarc/native-federation-runtime](https://www.npmjs.com/package/@softarc/native-federation-runtime) | Native federation                              | The default provided orchestrator for native federation                    |
-| [picard](https://github.com/picardjs/picard)                                                           | native-federation, module-federation and Piral | An agnostic orchestrator that focusses on compatibility between ecosystems |
-| [@module-federation/runtime](https://www.npmjs.com/package/@module-federation/runtime)                 | module federation                              | The orchestrator specifically for module federation                        |
