@@ -12,7 +12,7 @@ body:
     attributes:
       label: Version
       description: What version of the library are you using?
-      placeholder: ex. 1.1.4
+      placeholder: ex. 1.1.5
     validations:
       required: true
   - type: textarea
