@@ -24,7 +24,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@softarc/native-federation-runtime": "^3.0.2",
+    "@nf-beta/core": "^0.0.10",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
     "@types/semver": "^7.7.0",

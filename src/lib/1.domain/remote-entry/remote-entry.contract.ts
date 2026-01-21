@@ -1,6 +1,6 @@
 import type { SharedVersionAction } from '../externals/version.contract';
 import type { RemoteEntryUrl } from './manifest.contract';
-import type { ExposesInfo } from '@softarc/native-federation-runtime';
+import type { ExposesInfo } from '@nf-beta/core/domain';
 
 type SharedInfo = {
   singleton: boolean;

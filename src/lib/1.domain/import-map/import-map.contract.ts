@@ -1,4 +1,6 @@
-import { Scopes, Imports } from '@softarc/native-federation-runtime';
+type Imports = Record<string, string>;
+
+type Scopes = Record<string, Imports>;
 
 type ImportMap = {
   imports: Imports;
