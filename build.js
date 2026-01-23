@@ -17,7 +17,7 @@ const OUTPUT_PATHS = {
 };
 
 const FILES_TO_COPY = ['README.md', 'LICENSE.md'];
-const PACKAGE_NAME = 'vanilla-native-federation';
+const PACKAGE_NAME = '@softarc/native-federation-orchestrator';
 
 const logger = {
   info: msg => console.log(`ℹ️  ${msg}`),
@@ -72,7 +72,7 @@ async function generateBundles() {
   const baseConfig = createBaseConfig();
   
   const builds = {
-    'vanilla-native-federation': {
+    '@softarc/native-federation-orchestrator': {
       ...baseConfig,
       entryPoints: ['src/lib/index.ts'],
       outfile: path.join(OUTPUT_PATHS.fesm2022, `${PACKAGE_NAME}.mjs`),
@@ -80,7 +80,7 @@ async function generateBundles() {
       sourcemap: true
     },
     
-    'vanilla-native-federation/sdk': {
+    '@softarc/native-federation-orchestrator/sdk': {
       ...baseConfig,
       entryPoints: ['src/lib/sdk.index.ts'],
       outfile: path.join(OUTPUT_PATHS.fesm2022, 'sdk.mjs'),
@@ -88,7 +88,7 @@ async function generateBundles() {
       sourcemap: true
     },
     
-    'vanilla-native-federation/options': {
+    '@softarc/native-federation-orchestrator/options': {
       ...baseConfig,
       entryPoints: ['src/lib/options.index.ts'],
       outfile: path.join(OUTPUT_PATHS.fesm2022, 'options.mjs'),
@@ -96,7 +96,7 @@ async function generateBundles() {
       sourcemap: true
     },
 
-    'vanilla-native-federation/registry': {
+    '@softarc/native-federation-orchestrator/registry': {
       ...baseConfig,
       entryPoints: ['src/lib/registry.index.ts'],
       outfile: path.join(OUTPUT_PATHS.fesm2022, 'registry.mjs'),
@@ -105,7 +105,7 @@ async function generateBundles() {
     },
 
 
-    'vanilla-native-federation/audit': {
+    '@softarc/native-federation-orchestrator/audit': {
       ...baseConfig,
       entryPoints: ['src/lib/audit.index.ts'],
       outfile: path.join(OUTPUT_PATHS.fesm2022, 'audit.mjs'),
@@ -113,7 +113,7 @@ async function generateBundles() {
       sourcemap: true
     },
 
-    'vanilla-native-federation/quickstart': {
+    '@softarc/native-federation-orchestrator/quickstart': {
       ...baseConfig,
       entryPoints: [path.join(PATHS.quickstart, "quickstart.ts")],
       outfile: path.join(OUTPUT_PATHS.quickstart, `quickstart.mjs`),
@@ -122,7 +122,7 @@ async function generateBundles() {
       minify: true
     },
 
-    'vanilla-native-federation/init-registry': {
+    '@softarc/native-federation-orchestrator/init-registry': {
       ...baseConfig,
       entryPoints: [path.join(PATHS.quickstart, "init-registry.ts")],
       outfile: path.join(OUTPUT_PATHS.quickstart, `init-registry.mjs`),
@@ -149,7 +149,7 @@ function generatePackageExports() {
 
       ".": {
         "types": "./types/lib/index.d.ts",
-        "default": "./fesm2022/vanilla-native-federation.mjs"
+        "default": "./fesm2022/@softarc/native-federation-orchestrator.mjs"
       },
       
       "./sdk": {
@@ -174,7 +174,7 @@ function generatePackageExports() {
     },
     
     typings: "./types/lib/index.d.ts",
-    module: './fesm2022/vanilla-native-federation.mjs', 
+    module: './fesm2022/@softarc/native-federation-orchestrator.mjs', 
     type: 'module',
     sideEffects: false
   };

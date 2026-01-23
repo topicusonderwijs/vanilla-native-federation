@@ -2,7 +2,7 @@
 
 # Getting Started
 
-This guide demonstrates how to integrate the vanilla-native-federation orchestrator into your application. The orchestrator is used to integrate micro frontends into any HTML page. As expected, the orchestrator uses the [native-federation mental model](https://www.npmjs.com/package/@angular-architects/native-federation) to share dependencies over the micro frontends and load ES modules.
+This guide demonstrates how to integrate the @softarc/native-federation-orchestrator orchestrator into your application. The orchestrator is used to integrate micro frontends into any HTML page. As expected, the orchestrator uses the [native-federation mental model](https://www.npmjs.com/package/@angular-architects/native-federation) to share dependencies over the micro frontends and load ES modules.
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ The simplest approach uses the pre-built runtime script with declarative configu
     </script>
 
     <!-- Include the orchestrator -->
-    <script src="https://unpkg.com/vanilla-native-federation@1.1.5/quickstart.mjs"></script>
+    <script src="https://unpkg.com/@softarc/native-federation-orchestrator@1.1.5/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -102,7 +102,7 @@ The `{ once: true }` option ensures the event handler only runs once, preventing
 The runtime script performs all the orchestration work: fetching the manifest, processing metadata, resolving dependencies, and setting up the browser's module loading system.
 
 ```html
-<script src="https://unpkg.com/vanilla-native-federation@latest/quickstart.mjs"></script>
+<script src="https://unpkg.com/@softarc/native-federation-orchestrator@latest/quickstart.mjs"></script>
 ```
 
 This script must be loaded after (so below in the HTML) the manifest and event listeners are defined, as it immediately begins looking for the manifest and will fire the `mfe-loader-available` event once initialization completes.
@@ -123,7 +123,7 @@ In this example, the micro frontends register themselves as custom elements (par
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@1.1.5/quickstart.mjs"></script>
+<script src="https://unpkg.com/@softarc/native-federation-orchestrator@1.1.5/quickstart.mjs"></script>
 ```
 
 ## Avoiding race conditions
@@ -137,7 +137,7 @@ Custom browser events are unfortunately vulnerable to unwanted race conditions, 
     <title>My Application</title>
 
     <!-- 1. Init registry -->
-    <script src="https://unpkg.com/vanilla-native-federation@1.1.5/init-registry.mjs"></script>
+    <script src="https://unpkg.com/@softarc/native-federation-orchestrator@1.1.5/init-registry.mjs"></script>
 
     <!-- Enable shim-mode for optimal browser support, this is optional -->
     <script type="esms-options">
@@ -161,7 +161,7 @@ Custom browser events are unfortunately vulnerable to unwanted race conditions, 
     </script>
 
     <!-- 4. Include the orchestrator runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@1.1.5/quickstart.mjs"></script>
+    <script src="https://unpkg.com/@softarc/native-federation-orchestrator@1.1.5/quickstart.mjs"></script>
   </head>
   <body>
     <!-- 5. Use your loaded components -->
@@ -184,7 +184,7 @@ Custom implementation involves three key steps: installing dependencies, creatin
 ### Installation
 
 ```bash
-npm install vanilla-native-federation es-module-shims
+npm install @softarc/native-federation-orchestrator es-module-shims
 ```
 
 The [es-module-shims](https://www.npmjs.com/package/es-module-shims) package provides polyfill support for older browsers that don't natively support import maps. Even if you're targeting modern browsers, including this dependency ensures broader compatibility.
@@ -195,12 +195,12 @@ The [es-module-shims](https://www.npmjs.com/package/es-module-shims) package pro
 
 ```javascript
 import 'es-module-shims';
-import { initFederation } from 'vanilla-native-federation';
+import { initFederation } from '@softarc/native-federation-orchestrator';
 import {
   consoleLogger,
   sessionStorageEntry,
   useShimImportMap,
-} from 'vanilla-native-federation/options';
+} from '@softarc/native-federation-orchestrator/options';
 
 (async () => {
   const manifest = {
@@ -272,12 +272,12 @@ The library provides extensive configuration options to control behavior, storag
 Storage configuration determines how the library caches micro frontend metadata and resolved dependencies between page loads. The choice significantly impacts performance and user experience.
 
 ```javascript
-import { initFederation } from 'vanilla-native-federation';
+import { initFederation } from '@softarc/native-federation-orchestrator';
 import {
   globalThisStorageEntry,
   sessionStorageEntry,
   localStorageEntry,
-} from 'vanilla-native-federation/options';
+} from '@softarc/native-federation-orchestrator/options';
 
 await initFederation(manifest, {
   // Memory only - fastest, lost on page reload (default)
@@ -448,8 +448,8 @@ This library integrates with any frontend framework or backend technology with m
 The orchestrator can also be used in Angular applications by updating the `main.ts`:
 
 ```javascript
-import { initFederation } from 'vanilla-native-federation';
-import { useShimImportMap } from 'vanilla-native-federation/options';
+import { initFederation } from '@softarc/native-federation-orchestrator';
+import { useShimImportMap } from '@softarc/native-federation-orchestrator/options';
 
 initFederation(
   {},
@@ -474,7 +474,7 @@ And then the `bootstrap.ts` to allow the use of the `loadRemoteModule`.
 import { bootstrapApplication } from '@angular/platform-browser';
 import { ApplicationConfig, InjectionToken, provideZoneChangeDetection } from '@angular/core';
 import { AppComponent } from './app/app.component';
-import { LoadRemoteModule } from 'vanilla-native-federation';
+import { LoadRemoteModule } from '@softarc/native-federation-orchestrator';
 
 export const MODULE_LOADER = new InjectionToken() < LoadRemoteModule < unknown >> 'MODULE_LOADER';
 

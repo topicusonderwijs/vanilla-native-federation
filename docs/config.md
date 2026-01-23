@@ -2,7 +2,7 @@
 
 # native-federation configuration
 
-The `vanilla-native-federation` library supports a multitude of different configuration settings. The configuration objects are intended to provide more fine-grained control over the behavior of the `vanilla-native-federation` library.
+The `@softarc/native-federation-orchestrator` library supports a multitude of different configuration settings. The configuration objects are intended to provide more fine-grained control over the behavior of the `@softarc/native-federation-orchestrator` library.
 
 The configuration is divided into 5 sections
 
@@ -35,7 +35,7 @@ export type HostOptions = {
 ### Example
 
 ```javascript
-import { initFederation } from 'vanilla-native-federation';
+import { initFederation } from '@softarc/native-federation-orchestrator';
 
 initFederation('http://example.org/manifest.json', {
   hostRemoteEntry: { url: './remoteEntry.json' },
@@ -64,8 +64,8 @@ export type ImportMapOptions = {
 
 ```javascript
 import 'es-module-shims';
-import { initFederation } from 'vanilla-native-federation';
-import { useShimImportMap, useDefaultImportMap, replaceInDOM } from 'vanilla-native-federation/options';
+import { initFederation } from '@softarc/native-federation-orchestrator';
+import { useShimImportMap, useDefaultImportMap, replaceInDOM } from '@softarc/native-federation-orchestrator/options';
 
 initFederation('http://example.org/manifest.json', {
   // Option 1: Using es-module-shims
@@ -101,8 +101,8 @@ export type LoggingOptions = {
 ### Example
 
 ```javascript
-import { initFederation } from 'vanilla-native-federation';
-import { noopLogger, consoleLogger } from 'vanilla-native-federation/options';
+import { initFederation } from '@softarc/native-federation-orchestrator';
+import { noopLogger, consoleLogger } from '@softarc/native-federation-orchestrator/options';
 
 initFederation('http://example.org/manifest.json', {
   logLevel: 'debug',
@@ -160,8 +160,8 @@ The strictness part will define how the orchestrator behaves when an unexpected 
 ### Example
 
 ```javascript
-import { initFederation } from 'vanilla-native-federation';
-import { defaultProfile, cachingProfile } from 'vanilla-native-federation/options';
+import { initFederation } from '@softarc/native-federation-orchestrator';
+import { defaultProfile, cachingProfile } from '@softarc/native-federation-orchestrator/options';
 
 initFederation('http://example.org/manifest.json', {
   strict: true, // All settings to strict: true
@@ -192,12 +192,12 @@ type StorageOptions = {
 ### Example
 
 ```javascript
-import { initFederation } from 'vanilla-native-federation';
+import { initFederation } from '@softarc/native-federation-orchestrator';
 import {
   globalThisStorageEntry,
   localStorageEntry,
   sessionStorageEntry,
-} from 'vanilla-native-federation/options';
+} from '@softarc/native-federation-orchestrator/options';
 
 initFederation('http://example.org/manifest.json', {
   clearStorage: true,

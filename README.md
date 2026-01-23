@@ -60,7 +60,7 @@ Get up and running in under 2 minutes:
     </script>
 
     <!-- Include the orchestrator runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@1.1.5/quickstart.mjs"></script>
+    <script src="https://unpkg.com/@softarc/native-federation-orchestrator@1.1.5/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -78,7 +78,7 @@ Your micro frontends are now loaded and ready to use. The runtime handles the wh
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@1.1.5/quickstart.mjs"></script>
+<script src="https://unpkg.com/@softarc/native-federation-orchestrator@1.1.5/quickstart.mjs"></script>
 ```
 
 ## Advanced Usage
@@ -86,8 +86,8 @@ Your micro frontends are now loaded and ready to use. The runtime handles the wh
 The quickstart is intended for experimenting. For production environments it is recommended to use a custom orchestrator based on the vnf library, this gives more control over the initialization process and allows for custom logging implementations like Bugsnag or Sentry rather than the default `consoleLogger`:
 
 ```javascript
-import { initFederation } from 'vanilla-native-federation';
-import { consoleLogger, localStorageEntry } from 'vanilla-native-federation/options';
+import { initFederation } from '@softarc/native-federation-orchestrator';
+import { consoleLogger, localStorageEntry } from '@softarc/native-federation-orchestrator/options';
 
 const { loadRemoteModule } = await initFederation(
   // Manifest
@@ -113,12 +113,12 @@ const HeaderComponent = await loadRemoteModule('team/mfe2', './Header');
 
 ## Documentation
 
-| Guide                                                                                                                     | Description                                |
-| ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| [🚀 Getting Started](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/getting-started.md)     | Detailed setup instructions and examples   |
-| [🏗️ Architecture](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/architecture.md)           | Understanding the native federation domain |
-| [⚙️ Configuration](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/config.md)                | Complete configuration reference           |
-| [🔄 Version Resolution](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/version-resolver.md) | How dependency conflicts are resolved      |
+| Guide                                                                                                                                   | Description                                |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| [🚀 Getting Started](https://github.com/topicusonderwijs/@softarc/native-federation-orchestrator/blob/main/docs/getting-started.md)     | Detailed setup instructions and examples   |
+| [🏗️ Architecture](https://github.com/topicusonderwijs/@softarc/native-federation-orchestrator/blob/main/docs/architecture.md)           | Understanding the native federation domain |
+| [⚙️ Configuration](https://github.com/topicusonderwijs/@softarc/native-federation-orchestrator/blob/main/docs/config.md)                | Complete configuration reference           |
+| [🔄 Version Resolution](https://github.com/topicusonderwijs/@softarc/native-federation-orchestrator/blob/main/docs/version-resolver.md) | How dependency conflicts are resolved      |
 
 ## Native Federation Ecosystem
 

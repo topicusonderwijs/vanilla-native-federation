@@ -2,13 +2,13 @@
 
 # Native Federation Architecture
 
-`vanilla-native-federation` is a runtime orchestration library that enables micro frontends to be dynamically loaded and integrated into HTML pages. The library manages dependency resolution, module discovery, and module loading to create a unified application from independently deployed micro frontends.
+`@softarc/native-federation-orchestrator` is a runtime orchestration library that enables micro frontends to be dynamically loaded and integrated into HTML pages. The library manages dependency resolution, module discovery, and module loading to create a unified application from independently deployed micro frontends.
 
 ## Core Problem and Solution
 
 **Problem**: Server-side rendered applications (PHP, Ruby, Java, ASP.NET) need to integrate micro frontends that are built and deployed independently by different teams, while optimizing shared dependencies and avoiding version conflicts.
 
-**Solution**: `vanilla-native-federation` provides a runtime system that:
+**Solution**: `@softarc/native-federation-orchestrator` provides a runtime system that:
 
 - Discovers available micro frontends through manifest files
 - Resolves dependency conflicts automatically using semantic versioning
@@ -215,7 +215,7 @@ classDiagram
 
 After processing the remoteEntry.json files, the library stores the shared components and dependencies in memory to be used when the importMap is generated:
 
-> exposed on `import * from 'vanilla-native-federation/sdk'`
+> exposed on `import * from '@softarc/native-federation-orchestrator/sdk'`
 
 #### Remote Information Cache
 

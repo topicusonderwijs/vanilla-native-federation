@@ -1,10 +1,10 @@
 {
-  "version": "0.0.1",
-  "name": "@nf-beta/orchestrator",
-  "author": "aukevanoost",
+  "version": "4.0.0-RC1",
+  "name": "@softarc/native-federation-orchestrator",
+  "author": "Aukevanoost",
   "keywords": [
     "native-federation",
-    "native-federation-runtime",
+    "native-federation-orchestrator",
     "micro-frontends"
   ],
   "scripts": {
@@ -24,7 +24,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@nf-beta/core": "^0.0.10",
+    "@softarc/native-federation": "4.0.0-RC1",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
     "@types/semver": "^7.7.0",
