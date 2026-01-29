@@ -133,10 +133,10 @@ export function createGetRemoteEntries(
       remoteEntries.forEach(entry => {
         if (entry.buildNotificationsEndpoint) {
           ports.sse.watchRemoteBuilds(entry.buildNotificationsEndpoint);
-          config.log.warn(1, `Registered SSE endpoint of remote '${entry.name}' `);
+          config.log.debug(1, `Registered SSE endpoint of remote '${entry.name}' `);
           return;
         }
-        config.log.warn(1, `Remote ${entry.name} has no defined 'buildNotificationsEndpoint'`);
+        config.log.debug(1, `Remote ${entry.name} has no defined 'buildNotificationsEndpoint'`);
       });
     }
 

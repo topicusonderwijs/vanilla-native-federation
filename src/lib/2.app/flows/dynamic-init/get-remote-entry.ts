@@ -69,9 +69,10 @@ export function createGetRemoteEntry(
     if (config.sse) {
       if (entry.buildNotificationsEndpoint) {
         ports.sse.watchRemoteBuilds(entry.buildNotificationsEndpoint);
-        config.log.warn(1, `Registered SSE endpoint of remote '${entry.name}' `);
+        config.log.debug(7, `Registered SSE endpoint of remote '${entry.name}' `);
+      } else {
+        config.log.debug(7, `Remote ${entry.name} has no defined 'buildNotificationsEndpoint'`);
       }
-      config.log.warn(1, `Remote ${entry.name} has no defined 'buildNotificationsEndpoint'`);
     }
     return entry;
   }
