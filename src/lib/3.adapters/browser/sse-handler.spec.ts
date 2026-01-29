@@ -7,16 +7,16 @@ jest.mock('@softarc/native-federation/domain', () => ({
 }));
 
 import { createSSEHandler } from './sse-handler';
-import { ImportMapConfig } from 'lib/2.app/config/import-map.contract';
 import { ForSSE } from 'lib/2.app/driving-ports/for-sse.port';
 import { BuildNotificationType } from '@softarc/native-federation/domain';
+import { mockConfig } from 'lib/6.mocks/config.mock';
+import { ConfigContract } from 'lib/options.index';
 
 describe('createSSEHandler', () => {
   let sseHandler: ForSSE;
-  let mockConfig: ImportMapConfig;
   let mockEventSource: jest.Mocked<EventSource>;
+  let config: ConfigContract;
   let eventSourceConstructorSpy: jest.Mock;
-  let mockReloadBrowserFn: jest.Mock;
 
   beforeEach(() => {
     // Mock EventSource
@@ -41,17 +41,9 @@ describe('createSSEHandler', () => {
     eventSourceConstructorSpy = (window as any).EventSource;
 
     // Mock console methods
-    jest.spyOn(console, 'log').mockImplementation();
-    jest.spyOn(console, 'warn').mockImplementation();
+    config = mockConfig();
 
-    mockReloadBrowserFn = jest.fn();
-    mockConfig = {
-      loadModuleFn: jest.fn(),
-      setImportMapFn: jest.fn(),
-      reloadBrowserFn: mockReloadBrowserFn,
-    };
-
-    sseHandler = createSSEHandler(mockConfig);
+    sseHandler = createSSEHandler(config);
   });
 
   afterEach(() => {
@@ -80,8 +72,8 @@ describe('createSSEHandler', () => {
 
       mockEventSource.onmessage!(event);
 
-      expect(console.log).toHaveBeenCalledWith('[Federation] Rebuild completed, reloading...');
-      expect(mockReloadBrowserFn).toHaveBeenCalled();
+      expect(config.log.debug).toHaveBeenCalledWith(0, '[SSE] Rebuild completed, reloading...');
+      expect(config.reloadBrowserFn).toHaveBeenCalled();
     });
 
     it('should not reload the page when a non-COMPLETED build notification is received', () => {
@@ -96,7 +88,7 @@ describe('createSSEHandler', () => {
 
       mockEventSource.onmessage!(event);
 
-      expect(mockReloadBrowserFn).not.toHaveBeenCalled();
+      expect(config.reloadBrowserFn).not.toHaveBeenCalled();
     });
 
     it('should log a warning when an SSE error occurs', () => {
@@ -109,7 +101,7 @@ describe('createSSEHandler', () => {
 
       mockEventSource.onerror!(errorEvent);
 
-      expect(console.warn).toHaveBeenCalledWith('[Federation] SSE connection error:', errorEvent);
+      expect(config.log.error).toHaveBeenCalledWith(0, '[SSE] Connection error:', errorEvent);
     });
 
     it('should handle malformed JSON in SSE messages', () => {
@@ -137,7 +129,7 @@ describe('createSSEHandler', () => {
 
       mockEventSource.onmessage!(event);
 
-      expect(mockReloadBrowserFn).not.toHaveBeenCalled();
+      expect(config.reloadBrowserFn).not.toHaveBeenCalled();
     });
 
     it('should create multiple EventSource instances when called multiple times', () => {
@@ -168,8 +160,8 @@ describe('createSSEHandler', () => {
 
       mockEventSource.onmessage!(event);
 
-      expect(console.log).toHaveBeenCalledWith('[Federation] Rebuild completed, reloading...');
-      expect(mockReloadBrowserFn).toHaveBeenCalled();
+      expect(config.log.debug).toHaveBeenCalledWith(0, '[SSE] Rebuild completed, reloading...');
+      expect(config.reloadBrowserFn).toHaveBeenCalled();
     });
   });
 });
