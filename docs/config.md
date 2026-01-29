@@ -55,10 +55,11 @@ export type ImportMapOptions = {
 
 ### Options:
 
-| Option         | Default                     | Description                                                                                                   |
-| -------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| setImportMapFn | `replaceInDOM("importmap")` | The function that adds the importmap to the host, by default this is the DOM.                                 |
-| loadModuleFn   | `url => import(url)`        | This function can mock or alter the 'import' function, necessary for libraries that shim the import function. |
+| Option          | Default                             | Description                                                                                                                        |
+| --------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| setImportMapFn  | `replaceInDOM("importmap")`         | The function that adds the importmap to the host, by default this is the DOM.                                                      |
+| loadModuleFn    | `url => import(url)`                | This function can mock or alter the 'import' function, necessary for libraries that shim the import function.                      |
+| reloadBrowserFn | `() => {window.location.reload();}` | This function can mock or alter the "reload browser" behavior that is triggered when SSE is enabled and an user rebuilds a remote. |
 
 ### Example
 
@@ -88,6 +89,7 @@ Allows for the configuration and specificity of logging. Additionally, a custom 
 export type LoggingOptions = {
     logger?: Logger,
     logLevel?: "debug"|"warn"|"error",
+    sse?: boolean
 }
 ```
 
@@ -97,6 +99,7 @@ export type LoggingOptions = {
 | -------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | logger   | `noopLogger` | The logger is an object that returns a callback per logging type. This way, a custom log implementation can be provided next to the 2 integrated loggers `noopLogger` and `consoleLogger`.               |
 | logLevel | `"error"`    | There are currently three loglevels, every loglevel will allow the logging of the specified level including all levels with a higher priority, e.g. `warn` will allow the logging of `warn` and `error`. |
+| sse      | `false`      | The SSE is a debug feature that listens for rebuilds of the remotes, and reloads the page if a rebuild occurs.                                                                                           |
 
 ### Example
 
