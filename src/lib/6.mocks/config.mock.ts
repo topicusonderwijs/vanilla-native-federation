@@ -11,6 +11,7 @@ export const mockConfig = (): ConfigContract => ({
   clearStorage: false,
   // LoggingConfig
   log: createMockLogHandler('debug'),
+  sse: false,
   // importMapConfig
   setImportMapFn: jest.fn(),
   loadModuleFn: jest.fn(),

@@ -19,6 +19,7 @@ interface FederationInfo {
   name: string;
   exposes: ExposesInfo[];
   shared: SharedInfo[];
+  buildNotificationsEndpoint?: string;
 }
 
 type RemoteEntry = FederationInfo & {
