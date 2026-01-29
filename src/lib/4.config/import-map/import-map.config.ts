@@ -6,5 +6,10 @@ export const createImportMapConfig = (o: Partial<ImportMapOptions>): ImportMapCo
   return {
     setImportMapFn: o.setImportMapFn ?? fallback.setImportMapFn,
     loadModuleFn: o.loadModuleFn ?? fallback.loadModuleFn,
+    reloadBrowserFn:
+      o.reloadBrowserFn ??
+      (() => {
+        window.location.reload();
+      }),
   };
 };

@@ -10,7 +10,7 @@ import { ForSSE } from 'lib/2.app/driving-ports/for-sse.port';
  * it triggers a page reload to reflect the latest changes.
  * @param endpoint - The SSE endpoint URL to watch for build notifications.
  */
-const createSSEHandler = (_: ImportMapConfig): ForSSE => {
+const createSSEHandler = (config: ImportMapConfig): ForSSE => {
   return {
     watchRemoteBuilds: function (endpoint: string) {
       const eventSource = new EventSource(endpoint);
@@ -19,7 +19,7 @@ const createSSEHandler = (_: ImportMapConfig): ForSSE => {
         const data = JSON.parse(event.data);
         if (data.type === BuildNotificationType.COMPLETED) {
           console.log('[Federation] Rebuild completed, reloading...');
-          window.location.reload();
+          config.reloadBrowserFn();
         }
       };
 

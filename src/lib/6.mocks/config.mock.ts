@@ -15,6 +15,7 @@ export const mockConfig = (): ConfigContract => ({
   // importMapConfig
   setImportMapFn: jest.fn(),
   loadModuleFn: jest.fn(),
+  reloadBrowserFn: jest.fn(),
   // hostConfig
   hostRemoteEntry: false,
   // ModeConfig

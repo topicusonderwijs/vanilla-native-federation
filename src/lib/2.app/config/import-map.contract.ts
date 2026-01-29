@@ -3,6 +3,7 @@ import type { ImportMap } from 'lib/1.domain';
 export type ImportMapConfig = {
   loadModuleFn: (url: string) => Promise<unknown>;
   setImportMapFn: SetImportMap;
+  reloadBrowserFn: () => void;
 };
 
 export type SetImportMap = (
