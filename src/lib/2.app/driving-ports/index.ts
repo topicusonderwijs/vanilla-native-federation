@@ -5,5 +5,6 @@ export * from './for-providing-remote-entries.port';
 export * from './for-remote-info-storage.port';
 export * from './for-scoped-externals-storage.port';
 export * from './for-shared-externals-storage.port';
+export * from './for-sse.port';
 
 export * from './driving.contract';
