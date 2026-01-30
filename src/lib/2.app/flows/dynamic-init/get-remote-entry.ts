@@ -68,7 +68,9 @@ export function createGetRemoteEntry(
   function checkForSSE(entry: RemoteEntry): RemoteEntry {
     if (config.sse) {
       if (entry.buildNotificationsEndpoint) {
-        ports.sse.watchRemoteBuilds(entry.buildNotificationsEndpoint);
+        ports.sse.watchRemoteBuilds(
+          _path.join(_path.getScope(entry.url), entry.buildNotificationsEndpoint)
+        );
         config.log.debug(7, `Registered SSE endpoint of remote '${entry.name}' `);
       } else {
         config.log.debug(7, `Remote ${entry.name} has no defined 'buildNotificationsEndpoint'`);

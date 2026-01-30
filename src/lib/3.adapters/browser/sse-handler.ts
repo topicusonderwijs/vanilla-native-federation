@@ -1,7 +1,7 @@
 import { BuildNotificationType } from '@softarc/native-federation/domain';
 import type { ImportMapConfig } from 'lib/2.app/config/import-map.contract';
-import { ForSSE } from 'lib/2.app/driving-ports/for-sse.port';
-import { LoggingConfig } from 'lib/options.index';
+import type { ForSSE } from 'lib/2.app/driving-ports/for-sse.port';
+import type { LoggingConfig } from 'lib/options.index';
 
 /**
  * Watches for federation build completion events and automatically reloads the page.
@@ -21,6 +21,7 @@ const createSSEHandler = (config: ImportMapConfig & LoggingConfig): ForSSE => {
       eventSource.onmessage = function (event) {
         const data = JSON.parse(event.data);
         if (data.type === BuildNotificationType.COMPLETED) {
+          subscribers.forEach(sub => sub.close());
           config.log.debug(0, '[SSE] Rebuild completed, reloading...');
           config.reloadBrowserFn();
         }
@@ -30,6 +31,11 @@ const createSSEHandler = (config: ImportMapConfig & LoggingConfig): ForSSE => {
         config.log.error(0, '[SSE] Connection error:', event);
       };
       subscribers.push(eventSource);
+    },
+
+    closeAll: function () {
+      subscribers.forEach(sub => sub.close());
+      subscribers.length = 0;
     },
   };
 };

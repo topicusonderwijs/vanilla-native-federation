@@ -132,7 +132,9 @@ export function createGetRemoteEntries(
     if (config.sse) {
       remoteEntries.forEach(entry => {
         if (entry.buildNotificationsEndpoint) {
-          ports.sse.watchRemoteBuilds(entry.buildNotificationsEndpoint);
+          ports.sse.watchRemoteBuilds(
+            _path.join(_path.getScope(entry.url), entry.buildNotificationsEndpoint)
+          );
           config.log.debug(1, `Registered SSE endpoint of remote '${entry.name}' `);
           return;
         }
