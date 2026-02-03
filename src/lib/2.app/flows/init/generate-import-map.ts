@@ -297,7 +297,7 @@ export function createGenerateImportMap(
       return imports;
     }, {} as Imports);
 
-    importMap.imports = { ...importMap.imports, ...chunkImports };
+    addToGlobal(importMap, chunkImports);
     return importMap;
   }
 

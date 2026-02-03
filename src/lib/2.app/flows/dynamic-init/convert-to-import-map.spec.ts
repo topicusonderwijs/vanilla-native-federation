@@ -379,7 +379,7 @@ describe('createConvertToImportMap', () => {
       };
       ports.sharedChunksRepo.tryGet = jest.fn(() => Optional.of(['shared-chunk.js']));
 
-      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+      await convertToImportMap({ entry: remoteEntry, actions });
 
       expect(ports.sharedChunksRepo.tryGet).toHaveBeenCalledTimes(1);
       expect(ports.sharedChunksRepo.tryGet).toHaveBeenCalledWith('team/mfe2', 'shared');
