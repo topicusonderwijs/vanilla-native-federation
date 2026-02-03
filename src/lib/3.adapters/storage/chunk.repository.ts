@@ -1,0 +1,25 @@
+import type { StorageConfig, StorageEntry } from 'lib/2.app/config/storage.contract';
+import { ForSharedChunksStorage } from 'lib/2.app/driving-ports/for-shared-chunks-storage.port';
+import { SharedChunks } from 'lib/1.domain/externals/chunks.contract';
+
+const createChunkRepository = (config: StorageConfig): ForSharedChunksStorage => {
+  const STORAGE: StorageEntry<SharedChunks> = config.storage('shared-chunks', {});
+
+  if (config.clearStorage) STORAGE.clear();
+
+  const _cache: SharedChunks = STORAGE.get() ?? {};
+
+  return {
+    addOrReplace: function (remoteName: string, buildName: string, chunks: string[]) {
+      if (!_cache[remoteName]) _cache[remoteName] = {};
+      _cache[remoteName][buildName] = chunks;
+      return this;
+    },
+    commit: function () {
+      STORAGE.set(_cache);
+      return this;
+    },
+  };
+};
+
+export { createChunkRepository };
