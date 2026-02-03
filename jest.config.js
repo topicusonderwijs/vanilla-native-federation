@@ -11,10 +11,7 @@ module.exports = {
     '/node_modules/'
   ],
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
-      babel: true,
-      tsconfig: 'tsconfig.json',
-    }]
+    '^.+\\.tsx?$': 'babel-jest',
   },
   moduleNameMapper: {
     "^lib/(.*)$": ["<rootDir>/src/lib/$1"],
@@ -38,6 +35,6 @@ module.exports = {
     '!src/lib/5.di/**/*',
     '!src/lib/6.mocks/**/*',
   ],
-  preset: 'ts-jest',
-  clearMocks: true
+  clearMocks: true,
+  cache: true,
 };
