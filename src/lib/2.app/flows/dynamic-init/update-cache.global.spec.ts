@@ -30,11 +30,8 @@ import { mockExternal } from 'lib/6.mocks/domain/externals/external.mock';
 describe('createProcessDynamicRemoteEntry - scoped', () => {
   let updateCache: ForUpdatingCache;
   let config: LoggingConfig & ModeConfig;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
-  >;
-
+  let adapters: DrivingContract;
+  
   beforeEach(() => {
     config = mockConfig();
     adapters = mockAdapters();

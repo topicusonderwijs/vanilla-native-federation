@@ -22,7 +22,11 @@ export function createUpdateCache(
   config: LoggingConfig & ModeConfig,
   ports: Pick<
     DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
+    | 'remoteInfoRepo'
+    | 'sharedExternalsRepo'
+    | 'scopedExternalsRepo'
+    | 'sharedChunksRepo'
+    | 'versionCheck'
   >
 ): ForUpdatingCache {
   return remoteEntry => {
@@ -30,6 +34,7 @@ export function createUpdateCache(
       if (remoteEntry?.override) removeCachedRemoteEntry(remoteEntry);
       addRemoteInfoToStorage(remoteEntry);
       const actions = mergeExternalsIntoStorage(remoteEntry);
+      addSharedChunksToStorage(remoteEntry);
 
       return Promise.resolve({ entry: remoteEntry, actions });
     } catch (error) {
@@ -91,6 +96,17 @@ export function createUpdateCache(
       }
     });
     return actions;
+  }
+
+  function addSharedChunksToStorage(remoteEntry: RemoteEntry): void {
+    if (!remoteEntry.chunks) return;
+    config.log.debug(
+      8,
+      `Adding chunks for remote "${remoteEntry.name}", builds: [${Object.keys(remoteEntry.chunks).join(', ')}]`
+    );
+    Object.entries(remoteEntry.chunks).forEach(([buildName, chunks]) => {
+      ports.sharedChunksRepo.addOrReplace(remoteEntry.name, buildName, chunks);
+    });
   }
 
   function addSharedExternal(

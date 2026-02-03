@@ -19,10 +19,7 @@ import { mockVersion, mockVersion_A } from 'lib/6.mocks/domain/externals/version
 describe('createProcessRemoteEntries - global', () => {
   let processRemoteEntries: ForProcessingRemoteEntries;
   let config: LoggingConfig & ModeConfig;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
-  >;
+  let adapters: DrivingContract;
 
   beforeEach(() => {
     config = mockConfig();

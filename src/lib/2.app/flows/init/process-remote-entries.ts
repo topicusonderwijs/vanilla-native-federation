@@ -19,7 +19,11 @@ export function createProcessRemoteEntries(
   config: LoggingConfig & ModeConfig,
   ports: Pick<
     DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
+    | 'remoteInfoRepo'
+    | 'sharedExternalsRepo'
+    | 'scopedExternalsRepo'
+    | 'sharedChunksRepo'
+    | 'versionCheck'
   >
 ): ForProcessingRemoteEntries {
   /**
@@ -41,6 +45,7 @@ export function createProcessRemoteEntries(
         if (remoteEntry?.override) removeCachedRemoteEntry(remoteEntry);
         addRemoteInfoToStorage(remoteEntry);
         addExternalsToStorage(remoteEntry);
+        addSharedChunksToStorage(remoteEntry);
       });
       return Promise.resolve(remoteEntries);
     } catch (e) {
@@ -80,6 +85,17 @@ export function createProcessRemoteEntries(
       } else {
         addScopedExternal(remoteEntry.name, external);
       }
+    });
+  }
+
+  function addSharedChunksToStorage(remoteEntry: RemoteEntry): void {
+    if (!remoteEntry.chunks) return;
+    config.log.debug(
+      2,
+      `Adding chunks for remote "${remoteEntry.name}", builds: [${Object.keys(remoteEntry.chunks).join(', ')}]`
+    );
+    Object.entries(remoteEntry.chunks).forEach(([buildName, chunks]) => {
+      ports.sharedChunksRepo.addOrReplace(remoteEntry.name, buildName, chunks);
     });
   }
 
