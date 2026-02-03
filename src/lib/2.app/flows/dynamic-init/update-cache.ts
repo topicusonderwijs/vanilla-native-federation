@@ -102,10 +102,10 @@ export function createUpdateCache(
     if (!remoteEntry.chunks) return;
     config.log.debug(
       8,
-      `Adding chunks for remote "${remoteEntry.name}", builds: [${Object.keys(remoteEntry.chunks).join(', ')}]`
+      `Adding chunks for remote "${remoteEntry.name}", bundles: [${Object.keys(remoteEntry.chunks).join(', ')}]`
     );
-    Object.entries(remoteEntry.chunks).forEach(([buildName, chunks]) => {
-      ports.sharedChunksRepo.addOrReplace(remoteEntry.name, buildName, chunks);
+    Object.entries(remoteEntry.chunks).forEach(([bundleName, chunks]) => {
+      ports.sharedChunksRepo.addOrReplace(remoteEntry.name, bundleName, chunks);
     });
   }
 
@@ -126,6 +126,7 @@ export function createUpdateCache(
       strictVersion: sharedInfo.strictVersion,
       requiredVersion: sharedInfo.requiredVersion || tag,
       name: remoteName,
+      bundle: sharedInfo.bundle,
       cached: false,
     };
 
@@ -196,6 +197,7 @@ export function createUpdateCache(
     ports.scopedExternalsRepo.addExternal(remoteName, sharedInfo.packageName, {
       tag: sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion),
       file: sharedInfo.outFileName,
+      bundle: sharedInfo.bundle,
     } as ScopedVersion);
   }
 }

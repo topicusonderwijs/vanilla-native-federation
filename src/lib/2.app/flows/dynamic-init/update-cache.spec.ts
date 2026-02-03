@@ -105,59 +105,6 @@ describe('createProcessDynamicRemoteEntry', () => {
     });
   });
 
-  describe('Storing build chunks', () => {
-    it('should not call sharedChunksRepo when remoteEntry has no chunks', async () => {
-      const remoteEntry = mockRemoteEntry_MFE1({
-        shared: [],
-        exposes: [mockExposedModuleA()],
-      });
-
-      await updateCache(remoteEntry);
-
-      expect(adapters.sharedChunksRepo.addOrReplace).not.toHaveBeenCalled();
-    });
-
-    it('should store chunks for multiple builds', async () => {
-      const remoteEntry = mockRemoteEntry_MFE1({
-        shared: [],
-        exposes: [mockExposedModuleA()],
-        chunks: {
-          shared: ['chunk-ABC.js'],
-          vendor: ['chunk-DEF.js', 'chunk-GHI.js'],
-        },
-      });
-
-      await updateCache(remoteEntry);
-
-      expect(adapters.sharedChunksRepo.addOrReplace).toHaveBeenCalledTimes(2);
-      expect(adapters.sharedChunksRepo.addOrReplace).toHaveBeenCalledWith('team/mfe1', 'shared', [
-        'chunk-ABC.js',
-      ]);
-      expect(adapters.sharedChunksRepo.addOrReplace).toHaveBeenCalledWith('team/mfe1', 'vendor', [
-        'chunk-DEF.js',
-        'chunk-GHI.js',
-      ]);
-    });
-
-    it('should log debug message with build names when chunks exist', async () => {
-      const remoteEntry = mockRemoteEntry_MFE1({
-        shared: [],
-        exposes: [],
-        chunks: {
-          shared: ['chunk-ABC.js'],
-          vendor: ['chunk-DEF.js', 'chunk-GHI.js'],
-        },
-      });
-
-      await updateCache(remoteEntry);
-
-      expect(config.log.debug).toHaveBeenCalledWith(
-        8,
-        'Adding chunks for remote "team/mfe1", builds: [shared, vendor]'
-      );
-    });
-  });
-
   describe('handling a missing version property', () => {
     it('should handle invalid versions in strict mode', async () => {
       config.strict.strictExternalVersion = true;

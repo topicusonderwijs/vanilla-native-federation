@@ -10,9 +10,9 @@ const createChunkRepository = (config: StorageConfig): ForSharedChunksStorage =>
   const _cache: SharedChunks = STORAGE.get() ?? {};
 
   return {
-    addOrReplace: function (remoteName: string, buildName: string, chunks: string[]) {
+    addOrReplace: function (remoteName: string, bundleName: string, chunks: string[]) {
       if (!_cache[remoteName]) _cache[remoteName] = {};
-      _cache[remoteName][buildName] = chunks;
+      _cache[remoteName][bundleName] = chunks;
       return this;
     },
     commit: function () {

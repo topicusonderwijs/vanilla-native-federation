@@ -1,4 +1,4 @@
 export type ForSharedChunksStorage = {
-  addOrReplace: (remote: string, buildName: string, chunks: string[]) => ForSharedChunksStorage;
+  addOrReplace: (remote: string, bundleName: string, chunks: string[]) => ForSharedChunksStorage;
   commit: () => ForSharedChunksStorage;
 };

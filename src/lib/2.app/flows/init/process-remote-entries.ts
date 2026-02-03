@@ -92,10 +92,10 @@ export function createProcessRemoteEntries(
     if (!remoteEntry.chunks) return;
     config.log.debug(
       2,
-      `Adding chunks for remote "${remoteEntry.name}", builds: [${Object.keys(remoteEntry.chunks).join(', ')}]`
+      `Adding chunks for remote "${remoteEntry.name}", bundles: [${Object.keys(remoteEntry.chunks).join(', ')}]`
     );
-    Object.entries(remoteEntry.chunks).forEach(([buildName, chunks]) => {
-      ports.sharedChunksRepo.addOrReplace(remoteEntry.name, buildName, chunks);
+    Object.entries(remoteEntry.chunks).forEach(([bundleName, chunks]) => {
+      ports.sharedChunksRepo.addOrReplace(remoteEntry.name, bundleName, chunks);
     });
   }
 
@@ -111,6 +111,7 @@ export function createProcessRemoteEntries(
     const remote: SharedVersionMeta = {
       file: sharedInfo.outFileName,
       name: remoteName,
+      bundle: sharedInfo.bundle,
       strictVersion: sharedInfo.strictVersion,
       cached: false,
       requiredVersion: sharedInfo.requiredVersion || tag,
@@ -170,6 +171,7 @@ export function createProcessRemoteEntries(
     ports.scopedExternalsRepo.addExternal(scope, sharedInfo.packageName, {
       tag: sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion),
       file: sharedInfo.outFileName,
+      bundle: sharedInfo.bundle,
     } as ScopedVersion);
   }
 }
