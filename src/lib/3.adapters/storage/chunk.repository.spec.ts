@@ -1,6 +1,8 @@
 import { createStorageHandlerMock } from 'lib/6.mocks/handlers/storage.mock';
 import { StorageConfig } from 'lib/2.app/config';
 import { createChunkRepository } from './chunk.repository';
+import { Optional } from 'lib/sdk.index';
+import { ChunkInfo } from '@softarc/native-federation/domain';
 
 describe('createChunkRepository', () => {
   const setupWithCache = (storage: any) => {
@@ -130,6 +132,29 @@ describe('createChunkRepository', () => {
       const result = chunksRepo.addOrReplace('team/mfe1', 'shared-browser', ['chunk-DEF.js']);
 
       expect(result).toBe(chunksRepo);
+    });
+  });
+
+  describe('tryGet', () => {
+    it('should return the chunk files', () => {
+      const { chunksRepo } = setupWithCache({
+        'team/mfe1': {
+          'shared-browser': ['chunk-ABC.js'],
+        },
+      });
+
+      const actual: Optional<string[]> = chunksRepo.tryGet('team/mfe1', 'shared-browser');
+
+      expect(actual.isPresent()).toBe(true);
+      expect(actual.get()).toEqual(['chunk-ABC.js']);
+    });
+
+    it('should return an empty optional if the remote is not registered.', () => {
+      const { chunksRepo } = setupWithCache({});
+
+      const actual: Optional<string[]> = chunksRepo.tryGet('team/mfe1', 'shared-browser');
+
+      expect(actual.isPresent()).toBe(false);
     });
   });
 });

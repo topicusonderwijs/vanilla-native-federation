@@ -11,8 +11,11 @@ module.exports = {
     '/node_modules/'
   ],
   transform: {
-    '^.+\\.tsx?$': 'babel-jest',
+    '^.+\\.(ts|tsx|js|jsx)$': 'babel-jest',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(.pnpm|@softarc))',
+  ],
   moduleNameMapper: {
     "^lib/(.*)$": ["<rootDir>/src/lib/$1"],
   },
