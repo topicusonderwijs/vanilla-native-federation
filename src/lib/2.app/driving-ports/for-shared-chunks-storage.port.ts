@@ -1,4 +1,4 @@
-import { Optional } from 'lib/sdk.index';
+import type { Optional } from 'lib/sdk.index';
 
 export type ForSharedChunksStorage = {
   addOrReplace: (remote: string, bundleName: string, chunks: string[]) => ForSharedChunksStorage;
