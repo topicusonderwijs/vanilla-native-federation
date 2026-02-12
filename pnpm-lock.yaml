@@ -17,7 +17,7 @@ importers:
     devDependencies:
       '@softarc/native-federation-runtime':
         specifier: ^3.0.2
-        version: 3.4.2
+        version: 3.5.2
       '@types/jest':
         specifier: ^30.0.0
         version: 30.0.0
@@ -627,8 +627,8 @@ packages:
   '@sinonjs/fake-timers@13.0.5':
     resolution: {integrity: sha512-36/hTbH2uaWuGVERyC6da9YwGWnzUZXuPro/F2LfsdOsLnCojz/iSH8MxUt/FD2S5XBSVPhmArFUXcpCQ2Hkiw==}
 
-  '@softarc/native-federation-runtime@3.4.2':
-    resolution: {integrity: sha512-qro9XpgsVj8cvjz43vkuY1uSDfyRpgiZFGIjoKiHM1wRHZt/HyIyT3itaQTErhXHe3ehlwfLHH+tnwvs0p2OjQ==}
+  '@softarc/native-federation-runtime@3.5.2':
+    resolution: {integrity: sha512-j+MVWG0asSBGqlvSQdWswL1oII6qbxHpb8uyskNNkJxW1NAzTuUcpoF7anpV8HxoxIu7CKm03egLbufuUtBAUA==}
 
   '@tybys/wasm-util@0.10.1':
     resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
@@ -1339,11 +1339,12 @@ packages:
 
   glob@10.5.0:
     resolution: {integrity: sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globals@14.0.0:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
@@ -2892,7 +2893,7 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@softarc/native-federation-runtime@3.4.2':
+  '@softarc/native-federation-runtime@3.5.2':
     dependencies:
       tslib: 2.8.1
 
