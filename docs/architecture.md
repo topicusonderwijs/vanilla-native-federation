@@ -153,6 +153,7 @@ classDiagram
         name: string
         exposes: ExposesInfo[]
         shared: SharedInfo[]
+        chunks?: Record~string, string[]~
     }
     class ExposesInfo{
         key: string
@@ -166,10 +167,13 @@ classDiagram
         version?: string
         packageName: string
         outFileName: string
+        bundle?: string
         shareScope?: string
         dev?: object
     }
 ```
+
+> **Note**: The optional `chunks` property enables [dense chunking](./dense-chunking.md), a feature that reduces remoteEntry.json file sizes by storing internal chunks more efficiently. The `bundle` property links each external to its bundle for chunk lookup.
 
 #### Example RemoteEntry.json
 

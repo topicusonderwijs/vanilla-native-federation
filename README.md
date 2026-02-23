@@ -122,6 +122,7 @@ const HeaderComponent = await loadRemoteModule('team/mfe2', './Header');
 | [🏗️ Architecture](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/architecture.md)           | Understanding the native federation domain |
 | [⚙️ Configuration](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/config.md)                | Complete configuration reference           |
 | [🔄 Version Resolution](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/version-resolver.md) | How dependency conflicts are resolved      |
+| [📦 Dense Chunking](https://github.com/topicusonderwijs/vanilla-native-federation/blob/main/docs/dense-chunking.md)       | Optimizing remoteEntry.json file sizes     |
 
 ## Native Federation Ecosystem
 
