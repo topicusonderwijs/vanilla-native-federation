@@ -15,10 +15,7 @@ import { mockExternal } from 'lib/6.mocks/domain/externals/external.mock';
 describe('createProcessRemoteEntries - shareScope', () => {
   let processRemoteEntries: ForProcessingRemoteEntries;
   let config: LoggingConfig & ModeConfig;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
-  >;
+  let adapters: DrivingContract;
 
   beforeEach(() => {
     config = mockConfig();

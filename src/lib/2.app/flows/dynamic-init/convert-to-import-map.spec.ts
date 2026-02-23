@@ -16,15 +16,22 @@ import {
   mockExposedModuleA,
   mockExposedModuleB,
 } from 'lib/6.mocks/domain/remote-entry/exposes-info.mock';
+import { mockChunkRepository } from 'lib/6.mocks/adapters/chunk.repository.mock';
+import { Optional } from 'lib/utils/optional';
+import { DrivingContract } from 'lib/2.app/driving-ports/driving.contract';
 
 describe('createConvertToImportMap', () => {
   let convertToImportMap: ForConvertingToImportMap;
   let config: LoggingConfig;
+  let ports: Pick<DrivingContract, 'sharedChunksRepo'>;
 
   beforeEach(() => {
     config = mockConfig();
+    ports = {
+      sharedChunksRepo: mockChunkRepository(),
+    };
 
-    convertToImportMap = createConvertToImportMap(config);
+    convertToImportMap = createConvertToImportMap(config, ports);
   });
 
   describe('Remote Entry Exposes', () => {
@@ -276,6 +283,186 @@ describe('createConvertToImportMap', () => {
           [mockScopeUrl_MFE2()]: {
             'dep-b': mockScopeUrl_MFE2({ file: 'dep-b.js' }),
             'dep-c': mockScopeUrl_MFE2({ file: 'dep-c.js' }),
+          },
+        },
+      });
+    });
+  });
+
+  describe('Chunk Imports', () => {
+    it('should not add chunk imports when no bundles are present', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
+        exposes: [],
+        shared: [mockSharedInfoA.v2_1_2()],
+      });
+      const actions: SharedInfoActions = {
+        'dep-a': { action: 'share' },
+      };
+
+      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+
+      expect(importMap.scopes?.[mockScopeUrl_MFE2()]?.['@nf-internal/utils-chunk']).toBeUndefined();
+    });
+
+    it('should add chunk imports for shared externals with bundle', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
+        exposes: [],
+        shared: [mockSharedInfoA.v2_1_2({ bundle: 'shared' })],
+      });
+      const actions: SharedInfoActions = {
+        'dep-a': { action: 'share' },
+      };
+      ports.sharedChunksRepo.tryGet = jest.fn((remote, bundle) => {
+        if (remote === 'team/mfe2' && bundle === 'shared') {
+          return Optional.of(['shared-chunk.js', 'utils-chunk.js']);
+        }
+        return Optional.empty();
+      });
+
+      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+
+      expect(ports.sharedChunksRepo.tryGet).toHaveBeenCalledWith('team/mfe2', 'shared');
+      expect(importMap.scopes?.[mockScopeUrl_MFE2()]?.['@nf-internal/shared-chunk']).toBe(
+        mockScopeUrl_MFE2({ file: 'shared-chunk.js' })
+      );
+      expect(importMap.scopes?.[mockScopeUrl_MFE2()]?.['@nf-internal/utils-chunk']).toBe(
+        mockScopeUrl_MFE2({ file: 'utils-chunk.js' })
+      );
+    });
+
+    it('should add chunk imports for multiple bundles from same remote', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
+        exposes: [],
+        shared: [
+          mockSharedInfoA.v2_1_2({ bundle: 'shared' }),
+          mockSharedInfoB.v2_1_2({ bundle: 'vendor' }),
+        ],
+      });
+      const actions: SharedInfoActions = {
+        'dep-a': { action: 'share' },
+        'dep-b': { action: 'share' },
+      };
+      ports.sharedChunksRepo.tryGet = jest.fn((remote, bundle) => {
+        if (remote === 'team/mfe2' && bundle === 'shared') {
+          return Optional.of(['shared-chunk.js']);
+        }
+        if (remote === 'team/mfe2' && bundle === 'vendor') {
+          return Optional.of(['vendor-chunk.js']);
+        }
+        return Optional.empty();
+      });
+
+      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+
+      expect(ports.sharedChunksRepo.tryGet).toHaveBeenCalledWith('team/mfe2', 'shared');
+      expect(ports.sharedChunksRepo.tryGet).toHaveBeenCalledWith('team/mfe2', 'vendor');
+      expect(importMap.scopes?.[mockScopeUrl_MFE2()]?.['@nf-internal/shared-chunk']).toBe(
+        mockScopeUrl_MFE2({ file: 'shared-chunk.js' })
+      );
+      expect(importMap.scopes?.[mockScopeUrl_MFE2()]?.['@nf-internal/vendor-chunk']).toBe(
+        mockScopeUrl_MFE2({ file: 'vendor-chunk.js' })
+      );
+    });
+
+    it('should add chunk imports for non-singleton externals with bundle', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
+        exposes: [],
+        shared: [
+          {
+            ...mockSharedInfoE.v1_2_3(),
+            bundle: 'scoped',
+          },
+        ],
+      });
+      const actions: SharedInfoActions = {};
+      ports.sharedChunksRepo.tryGet = jest.fn((remote, bundle) => {
+        if (remote === 'team/mfe2' && bundle === 'scoped') {
+          return Optional.of(['scoped-chunk.js']);
+        }
+        return Optional.empty();
+      });
+
+      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+
+      expect(ports.sharedChunksRepo.tryGet).toHaveBeenCalledWith('team/mfe2', 'scoped');
+      expect(importMap.scopes?.[mockScopeUrl_MFE2()]?.['@nf-internal/scoped-chunk']).toBe(
+        mockScopeUrl_MFE2({ file: 'scoped-chunk.js' })
+      );
+    });
+
+    it('should handle chunks with .mjs extension', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
+        exposes: [],
+        shared: [mockSharedInfoA.v2_1_2({ bundle: 'shared' })],
+      });
+      const actions: SharedInfoActions = {
+        'dep-a': { action: 'share' },
+      };
+      ports.sharedChunksRepo.tryGet = jest.fn(() => Optional.of(['shared-chunk.mjs']));
+
+      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+
+      expect(importMap.scopes?.[mockScopeUrl_MFE2()]?.['@nf-internal/shared-chunk']).toBe(
+        mockScopeUrl_MFE2({ file: 'shared-chunk.mjs' })
+      );
+    });
+
+    it('should handle empty chunk array from repository', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
+        exposes: [],
+        shared: [mockSharedInfoA.v2_1_2({ bundle: 'shared' })],
+      });
+      const actions: SharedInfoActions = {
+        'dep-a': { action: 'share' },
+      };
+      ports.sharedChunksRepo.tryGet = jest.fn(() => Optional.of([]));
+
+      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+
+      expect(ports.sharedChunksRepo.tryGet).toHaveBeenCalledWith('team/mfe2', 'shared');
+      expect(
+        Object.keys(importMap.imports).filter(k => k.startsWith('@nf-internal/'))
+      ).toHaveLength(0);
+    });
+
+    it('should handle when repository returns empty Optional', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
+        exposes: [],
+        shared: [mockSharedInfoA.v2_1_2({ bundle: 'shared' })],
+      });
+      const actions: SharedInfoActions = {
+        'dep-a': { action: 'share' },
+      };
+      ports.sharedChunksRepo.tryGet = jest.fn(() => Optional.empty());
+
+      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+
+      expect(ports.sharedChunksRepo.tryGet).toHaveBeenCalledWith('team/mfe2', 'shared');
+      expect(
+        Object.keys(importMap.imports).filter(k => k.startsWith('@nf-internal/'))
+      ).toHaveLength(0);
+    });
+
+    it('should add chunk imports alongside exposes and shared externals', async () => {
+      const remoteEntry: RemoteEntry = mockRemoteEntry_MFE2({
+        exposes: [mockExposedModuleA()],
+        shared: [mockSharedInfoA.v2_1_2({ bundle: 'shared' })],
+      });
+      const actions: SharedInfoActions = {
+        'dep-a': { action: 'share' },
+      };
+      ports.sharedChunksRepo.tryGet = jest.fn(() => Optional.of(['shared-chunk.js']));
+
+      const importMap = await convertToImportMap({ entry: remoteEntry, actions });
+
+      expect(importMap).toEqual({
+        imports: {
+          'team/mfe2/./wc-comp-a': mockScopeUrl_MFE2({ file: 'component-a.js' }),
+          'dep-a': mockScopeUrl_MFE2({ file: 'dep-a.js' }),
+        },
+        scopes: {
+          [mockScopeUrl_MFE2()]: {
+            '@nf-internal/shared-chunk': mockScopeUrl_MFE2({ file: 'shared-chunk.js' }),
           },
         },
       });

@@ -30,10 +30,7 @@ import { mockExternal } from 'lib/6.mocks/domain/externals/external.mock';
 describe('createProcessDynamicRemoteEntry - scoped', () => {
   let updateCache: ForUpdatingCache;
   let config: LoggingConfig & ModeConfig;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
-  >;
+  let adapters: DrivingContract;
 
   beforeEach(() => {
     config = mockConfig();
@@ -483,6 +480,89 @@ describe('createProcessDynamicRemoteEntry - scoped', () => {
 
     expect(actual.actions).toEqual({
       'dep-a': { action: 'skip', override: undefined },
+    });
+  });
+
+  describe('Storing bundles chunks', () => {
+    it('should not call sharedChunksRepo when remoteEntry has no chunks', async () => {
+      const remoteEntry = mockRemoteEntry_MFE1({
+        shared: [],
+      });
+
+      await updateCache(remoteEntry);
+
+      expect(adapters.sharedChunksRepo.addOrReplace).not.toHaveBeenCalled();
+    });
+
+    it('should store chunks for multiple bundles', async () => {
+      const remoteEntry = mockRemoteEntry_MFE1({
+        shared: [],
+        chunks: {
+          shared: ['chunk-ABC.js'],
+          vendor: ['chunk-DEF.js', 'chunk-GHI.js'],
+        },
+      });
+
+      await updateCache(remoteEntry);
+
+      expect(adapters.sharedChunksRepo.addOrReplace).toHaveBeenCalledTimes(2);
+      expect(adapters.sharedChunksRepo.addOrReplace).toHaveBeenCalledWith('team/mfe1', 'shared', [
+        'chunk-ABC.js',
+      ]);
+      expect(adapters.sharedChunksRepo.addOrReplace).toHaveBeenCalledWith('team/mfe1', 'vendor', [
+        'chunk-DEF.js',
+        'chunk-GHI.js',
+      ]);
+    });
+
+    it('should log debug message with bundles names when chunks exist', async () => {
+      const remoteEntry = mockRemoteEntry_MFE1({
+        shared: [],
+        exposes: [],
+        chunks: {
+          shared: ['chunk-ABC.js'],
+          vendor: ['chunk-DEF.js', 'chunk-GHI.js'],
+        },
+      });
+
+      await updateCache(remoteEntry);
+
+      expect(config.log.debug).toHaveBeenCalledWith(
+        8,
+        'Adding chunks for remote "team/mfe1", bundles: [shared, vendor]'
+      );
+    });
+
+    it('should add a shared external with bundle ref', async () => {
+      adapters.sharedExternalsRepo.tryGet = jest.fn(
+        (): Optional<SharedExternal> => Optional.empty()
+      );
+
+      const remoteEntry = mockRemoteEntry_MFE1({
+        shared: [mockSharedInfoA.v2_1_1({ bundle: 'shared' })],
+        exposes: [],
+        chunks: { shared: ['chunk-ABC.js'] },
+      });
+
+      await updateCache(remoteEntry);
+
+      expect(adapters.sharedChunksRepo.addOrReplace).toHaveBeenCalledWith('team/mfe1', 'shared', [
+        'chunk-ABC.js',
+      ]);
+
+      expect(adapters.sharedExternalsRepo.addOrUpdate).toHaveBeenCalledWith(
+        'dep-a',
+        mockExternal.shared(
+          [
+            mockVersion_A.v2_1_1({
+              remotes: { 'team/mfe1': { cached: true, bundle: 'shared' } },
+              action: 'share',
+            }),
+          ],
+          { dirty: false }
+        ),
+        undefined
+      );
     });
   });
 });

@@ -7,6 +7,7 @@ import { createRemoteEntryProvider } from 'lib/3.adapters/http/remote-entry-prov
 import { createRemoteInfoRepository } from 'lib/3.adapters/storage/remote-info.repository';
 import { createScopedExternalsRepository } from 'lib/3.adapters/storage/scoped-externals.repository';
 import { createSharedExternalsRepository } from 'lib/3.adapters/storage/shared-externals.repository';
+import { createChunkRepository } from 'lib/3.adapters/storage/chunk.repository';
 
 export const createDriving = (
   config: ConfigContract
@@ -21,6 +22,7 @@ export const createDriving = (
     remoteInfoRepo: createRemoteInfoRepository(config),
     scopedExternalsRepo: createScopedExternalsRepository(config),
     sharedExternalsRepo: createSharedExternalsRepository(config),
+    sharedChunksRepo: createChunkRepository(config),
 
     browser: createBrowser(config),
   };

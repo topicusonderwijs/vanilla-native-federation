@@ -3,8 +3,13 @@ import type { RemoteEntry, SharedInfoActions } from 'lib/1.domain';
 import type { LoggingConfig } from '../../config/log.contract';
 import * as _path from 'lib/utils/path';
 import type { ForConvertingToImportMap } from 'lib/2.app/driver-ports/dynamic-init/for-converting-to-import-map';
+import type { DrivingContract } from 'lib/sdk.index';
+import { toChunkImport } from 'lib/utils/to-chunk-import';
 
-export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingToImportMap {
+export function createConvertToImportMap(
+  { log }: LoggingConfig,
+  ports: Pick<DrivingContract, 'sharedChunksRepo'>
+): ForConvertingToImportMap {
   return ({ entry, actions }) => {
     const importMap: ImportMap = { imports: {} };
 
@@ -24,6 +29,8 @@ export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingT
     }
 
     const remoteEntryScope = _path.getScope(remoteEntry.url);
+
+    const chunkBundles = new Set<string>(['mapping-or-exposed']);
     remoteEntry.shared.forEach(external => {
       // Scoped externals
       if (!external.singleton) {
@@ -33,6 +40,7 @@ export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingT
           _path.join(remoteEntryScope, external.outFileName),
           importMap
         );
+        if (external?.bundle) chunkBundles.add(external?.bundle);
         return;
       }
 
@@ -59,6 +67,9 @@ export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingT
         }
       }
 
+      // Chunks for shared externals
+      if (external?.bundle) chunkBundles.add(external?.bundle);
+
       //  Scoped shared externals
       if (actions[external.packageName]!.action === 'scope') {
         addToScopes(
@@ -84,6 +95,8 @@ export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingT
       // Default case: shared globally
       importMap.imports[external.packageName] = _path.join(remoteEntryScope, external.outFileName);
     });
+
+    addChunkImports(importMap, remoteEntry.name, remoteEntryScope, chunkBundles);
   }
 
   function addToScopes(
@@ -106,5 +119,26 @@ export function createConvertToImportMap({ log }: LoggingConfig): ForConvertingT
       const moduleUrl = _path.join(scope, exposed.outFileName);
       importMap.imports[moduleName] = moduleUrl;
     });
+  }
+
+  function addChunkImports(
+    importMap: ImportMap,
+    remoteName: string,
+    remoteEntryScope: string,
+    chunkBundles: Set<string>
+  ) {
+    Array.from(chunkBundles).forEach(bundleName => {
+      ports.sharedChunksRepo.tryGet(remoteName, bundleName).ifPresent(files => {
+        files.forEach(file => {
+          addToScopes(
+            remoteEntryScope,
+            toChunkImport(file),
+            _path.join(remoteEntryScope, file),
+            importMap
+          );
+        });
+      });
+    });
+    return importMap;
   }
 }

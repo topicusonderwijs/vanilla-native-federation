@@ -23,10 +23,7 @@ import { mockRemoteModuleA } from 'lib/6.mocks/domain/remote-info/remote-module.
 describe('createProcessDynamicRemoteEntry', () => {
   let updateCache: ForUpdatingCache;
   let config: LoggingConfig & ModeConfig;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
-  >;
+  let adapters: DrivingContract;
 
   beforeEach(() => {
     config = mockConfig();

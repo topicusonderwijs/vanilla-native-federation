@@ -18,10 +18,7 @@ import { mockVersion, mockVersion_E } from 'lib/6.mocks/domain/externals/version
 describe('createProcessDynamicRemoteEntry - scoped', () => {
   let updateCache: ForUpdatingCache;
   let config: LoggingConfig & ModeConfig;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
-  >;
+  let adapters: DrivingContract;
 
   beforeEach(() => {
     config = mockConfig();

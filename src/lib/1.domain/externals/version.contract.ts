@@ -8,6 +8,7 @@ export type Version = {
 
 export type ScopedVersion = Version & {
   file: string;
+  bundle?: string;
 };
 
 export type SharedVersion = Version & {
@@ -24,4 +25,5 @@ export type SharedVersionMeta = {
   strictVersion: boolean;
   cached: boolean;
   name: RemoteName;
+  bundle?: string;
 };
