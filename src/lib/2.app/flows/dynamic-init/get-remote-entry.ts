@@ -11,7 +11,7 @@ import * as _path from 'lib/utils/path';
 
 export function createGetRemoteEntry(
   config: LoggingConfig & ModeConfig,
-  ports: Pick<DrivingContract, 'remoteEntryProvider' | 'remoteInfoRepo'>
+  ports: Pick<DrivingContract, 'remoteEntryProvider' | 'remoteInfoRepo' | 'sse'>
 ): ForGettingRemoteEntry {
   return async (remoteEntryUrl: RemoteEntryUrl, remoteName?: RemoteName) => {
     if (!!remoteName && shouldSkipCachedRemote(remoteEntryUrl, remoteName)) {
@@ -39,7 +39,7 @@ export function createGetRemoteEntry(
         remoteEntry.override = true;
         config.log.debug(7, `Overriding existing remote '${remoteName}' with '${remoteEntryUrl}'.`);
       }
-      return Optional.of(remoteEntry);
+      return Optional.of(checkForSSE(remoteEntry));
     } catch (error) {
       config.log.error(
         7,
@@ -62,5 +62,19 @@ export function createGetRemoteEntry(
             remoteEntryUrl === _path.join(cachedRemoteInfo.scopeUrl, 'remoteEntry.json'))
       )
       .orElse(false);
+  }
+
+  function checkForSSE(entry: RemoteEntry): RemoteEntry {
+    if (config.sse) {
+      if (entry.buildNotificationsEndpoint) {
+        ports.sse.watchRemoteBuilds(
+          _path.join(_path.getScope(entry.url), entry.buildNotificationsEndpoint)
+        );
+        config.log.debug(7, `Registered SSE endpoint of remote '${entry.name}' `);
+      } else {
+        config.log.debug(7, `Remote ${entry.name} has no defined 'buildNotificationsEndpoint'`);
+      }
+    }
+    return entry;
   }
 }

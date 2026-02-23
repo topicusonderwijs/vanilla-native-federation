@@ -8,6 +8,7 @@ import { createRemoteInfoRepository } from 'lib/3.adapters/storage/remote-info.r
 import { createScopedExternalsRepository } from 'lib/3.adapters/storage/scoped-externals.repository';
 import { createSharedExternalsRepository } from 'lib/3.adapters/storage/shared-externals.repository';
 import { createChunkRepository } from 'lib/3.adapters/storage/chunk.repository';
+import { createSSEHandler } from 'lib/3.adapters/browser/sse-handler';
 
 export const createDriving = (
   config: ConfigContract
@@ -25,6 +26,7 @@ export const createDriving = (
     sharedChunksRepo: createChunkRepository(config),
 
     browser: createBrowser(config),
+    sse: createSSEHandler(config),
   };
   return { adapters, config };
 };

@@ -11,7 +11,10 @@ import * as _path from 'lib/utils/path';
 
 export function createGetRemoteEntries(
   config: LoggingConfig & ModeConfig & HostConfig,
-  ports: Pick<DrivingContract, 'remoteEntryProvider' | 'manifestProvider' | 'remoteInfoRepo'>
+  ports: Pick<
+    DrivingContract,
+    'remoteEntryProvider' | 'manifestProvider' | 'remoteInfoRepo' | 'sse'
+  >
 ): ForGettingRemoteEntries {
   /**
    * Step 1: Fetch the remoteEntry JSON objects:
@@ -33,7 +36,8 @@ export function createGetRemoteEntries(
       })
       .then(addHostRemoteEntry)
       .then(fetchRemoteEntries)
-      .then(removeSkippedRemotes);
+      .then(removeSkippedRemotes)
+      .then(checkForSSE);
 
   function addHostRemoteEntry(manifest: Manifest): Manifest {
     if (!config.hostRemoteEntry) return manifest;
@@ -122,5 +126,22 @@ export function createGetRemoteEntries(
 
   function removeSkippedRemotes(remoteEntries: (RemoteEntry | false)[]): RemoteEntry[] {
     return remoteEntries.filter((entry): entry is RemoteEntry => entry !== false);
+  }
+
+  function checkForSSE(remoteEntries: RemoteEntry[]): RemoteEntry[] {
+    if (config.sse) {
+      remoteEntries.forEach(entry => {
+        if (entry.buildNotificationsEndpoint) {
+          ports.sse.watchRemoteBuilds(
+            _path.join(_path.getScope(entry.url), entry.buildNotificationsEndpoint)
+          );
+          config.log.debug(1, `Registered SSE endpoint of remote '${entry.name}' `);
+          return;
+        }
+        config.log.debug(1, `Remote ${entry.name} has no defined 'buildNotificationsEndpoint'`);
+      });
+    }
+
+    return remoteEntries;
   }
 }

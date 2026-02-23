@@ -23,7 +23,7 @@ describe('createGetRemoteEntries', () => {
   let config: any;
   let adapters: Pick<
     DrivingContract,
-    'remoteEntryProvider' | 'manifestProvider' | 'remoteInfoRepo'
+    'remoteEntryProvider' | 'manifestProvider' | 'remoteInfoRepo' | 'sse'
   >;
 
   beforeEach(() => {
