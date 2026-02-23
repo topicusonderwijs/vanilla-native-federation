@@ -20,10 +20,7 @@ import { mockScopeUrl_MFE2 } from 'lib/6.mocks/domain/scope-url.mock';
 describe('createProcessDynamicRemoteEntry - scoped', () => {
   let updateCache: ForUpdatingCache;
   let config: LoggingConfig & ModeConfig;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
-  >;
+  let adapters: DrivingContract;
 
   beforeEach(() => {
     config = mockConfig();

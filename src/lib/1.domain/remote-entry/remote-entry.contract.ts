@@ -1,24 +1,34 @@
 import type { SharedVersionAction } from '../externals/version.contract';
 import type { RemoteEntryUrl } from './manifest.contract';
-import type { ExposesInfo } from '@softarc/native-federation-runtime';
 
-type SharedInfo = {
+export type SharedInfo = {
   singleton: boolean;
   strictVersion: boolean;
   requiredVersion: string;
   version?: string;
   packageName: string;
-  outFileName: string;
   shareScope?: string;
+  bundle?: string;
+  outFileName: string;
   dev?: {
     entryPoint: string;
   };
 };
 
-interface FederationInfo {
+export interface FederationInfo {
   name: string;
   exposes: ExposesInfo[];
   shared: SharedInfo[];
+  chunks?: Record<string, string[]>;
+  buildNotificationsEndpoint?: string;
+}
+
+export interface ExposesInfo {
+  key: string;
+  outFileName: string;
+  dev?: {
+    entryPoint: string;
+  };
 }
 
 type RemoteEntry = FederationInfo & {
@@ -29,4 +39,4 @@ type RemoteEntry = FederationInfo & {
 
 type SharedInfoActions = Record<string, { action: SharedVersionAction; override?: string }>;
 
-export { RemoteEntry, FederationInfo, ExposesInfo, SharedInfo, SharedInfoActions };
+export { RemoteEntry, SharedInfoActions };

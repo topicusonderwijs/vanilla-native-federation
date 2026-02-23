@@ -16,10 +16,7 @@ import { mockScopeUrl_MFE1, mockScopeUrl_MFE2 } from 'lib/6.mocks/domain/scope-u
 
 describe('createGenerateImportMap (scoped-externals)', () => {
   let generateImportMap: ForGeneratingImportMap;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo'
-  >;
+  let adapters: DrivingContract;
   let config: LoggingConfig & ModeConfig;
 
   beforeEach(() => {

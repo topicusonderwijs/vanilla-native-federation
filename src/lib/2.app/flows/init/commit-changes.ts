@@ -7,7 +7,11 @@ export function createCommitChanges(
   config: LoggingConfig,
   ports: Pick<
     DrivingContract,
-    'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo' | 'browser'
+    | 'remoteInfoRepo'
+    | 'scopedExternalsRepo'
+    | 'sharedExternalsRepo'
+    | 'sharedChunksRepo'
+    | 'browser'
   >
 ): ForCommittingChanges {
   /**
@@ -34,6 +38,7 @@ export function createCommitChanges(
     ports.remoteInfoRepo.commit();
     ports.scopedExternalsRepo.commit();
     ports.sharedExternalsRepo.commit();
+    ports.sharedChunksRepo.commit();
     return;
   }
 }

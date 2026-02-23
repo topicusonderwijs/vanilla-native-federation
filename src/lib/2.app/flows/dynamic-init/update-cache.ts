@@ -22,7 +22,11 @@ export function createUpdateCache(
   config: LoggingConfig & ModeConfig,
   ports: Pick<
     DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
+    | 'remoteInfoRepo'
+    | 'sharedExternalsRepo'
+    | 'scopedExternalsRepo'
+    | 'sharedChunksRepo'
+    | 'versionCheck'
   >
 ): ForUpdatingCache {
   return remoteEntry => {
@@ -30,6 +34,7 @@ export function createUpdateCache(
       if (remoteEntry?.override) removeCachedRemoteEntry(remoteEntry);
       addRemoteInfoToStorage(remoteEntry);
       const actions = mergeExternalsIntoStorage(remoteEntry);
+      addSharedChunksToStorage(remoteEntry);
 
       return Promise.resolve({ entry: remoteEntry, actions });
     } catch (error) {
@@ -93,6 +98,17 @@ export function createUpdateCache(
     return actions;
   }
 
+  function addSharedChunksToStorage(remoteEntry: RemoteEntry): void {
+    if (!remoteEntry.chunks) return;
+    config.log.debug(
+      8,
+      `Adding chunks for remote "${remoteEntry.name}", bundles: [${Object.keys(remoteEntry.chunks).join(', ')}]`
+    );
+    Object.entries(remoteEntry.chunks).forEach(([bundleName, chunks]) => {
+      ports.sharedChunksRepo.addOrReplace(remoteEntry.name, bundleName, chunks);
+    });
+  }
+
   function addSharedExternal(
     remoteName: RemoteName,
     sharedInfo: SharedInfo
@@ -109,6 +125,7 @@ export function createUpdateCache(
       file: sharedInfo.outFileName,
       strictVersion: sharedInfo.strictVersion,
       requiredVersion: sharedInfo.requiredVersion || tag,
+      bundle: sharedInfo.bundle,
       name: remoteName,
       cached: false,
     };
@@ -180,6 +197,7 @@ export function createUpdateCache(
     ports.scopedExternalsRepo.addExternal(remoteName, sharedInfo.packageName, {
       tag: sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion),
       file: sharedInfo.outFileName,
+      bundle: sharedInfo.bundle,
     } as ScopedVersion);
   }
 }

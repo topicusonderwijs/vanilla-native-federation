@@ -10,13 +10,11 @@ import {
   mockRemoteInfo_MFE2,
 } from 'lib/6.mocks/domain/remote-info/remote-info.mock';
 import { mockScopeUrl_MFE1, mockScopeUrl_MFE2 } from 'lib/6.mocks/domain/scope-url.mock';
+import { Optional, RemoteInfo } from 'lib/sdk.index';
 
 describe('createGenerateImportMap (remoteInfos)', () => {
   let generateImportMap: ForGeneratingImportMap;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo'
-  >;
+  let adapters: DrivingContract;
   let config: LoggingConfig & ModeConfig;
 
   beforeEach(() => {
@@ -26,6 +24,11 @@ describe('createGenerateImportMap (remoteInfos)', () => {
     adapters.remoteInfoRepo.getAll = jest.fn(() => ({}));
     adapters.scopedExternalsRepo.getAll = jest.fn(() => ({}));
     adapters.sharedExternalsRepo.getFromScope = jest.fn(() => ({}));
+    adapters.remoteInfoRepo.tryGet = jest.fn(remoteName => {
+      if (remoteName === 'team/mfe1') return Optional.of(mockRemoteInfo_MFE1());
+      if (remoteName === 'team/mfe2') return Optional.of(mockRemoteInfo_MFE2());
+      return Optional.empty<RemoteInfo>();
+    });
 
     generateImportMap = createGenerateImportMap(config, adapters);
   });

@@ -19,7 +19,11 @@ export function createProcessRemoteEntries(
   config: LoggingConfig & ModeConfig,
   ports: Pick<
     DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
+    | 'remoteInfoRepo'
+    | 'sharedExternalsRepo'
+    | 'scopedExternalsRepo'
+    | 'sharedChunksRepo'
+    | 'versionCheck'
   >
 ): ForProcessingRemoteEntries {
   /**
@@ -41,6 +45,7 @@ export function createProcessRemoteEntries(
         if (remoteEntry?.override) removeCachedRemoteEntry(remoteEntry);
         addRemoteInfoToStorage(remoteEntry);
         addExternalsToStorage(remoteEntry);
+        addSharedChunksToStorage(remoteEntry);
       });
       return Promise.resolve(remoteEntries);
     } catch (e) {
@@ -83,6 +88,17 @@ export function createProcessRemoteEntries(
     });
   }
 
+  function addSharedChunksToStorage(remoteEntry: RemoteEntry): void {
+    if (!remoteEntry.chunks) return;
+    config.log.debug(
+      2,
+      `Adding chunks for remote "${remoteEntry.name}", bundles: [${Object.keys(remoteEntry.chunks).join(', ')}]`
+    );
+    Object.entries(remoteEntry.chunks).forEach(([bundleName, chunks]) => {
+      ports.sharedChunksRepo.addOrReplace(remoteEntry.name, bundleName, chunks);
+    });
+  }
+
   function addSharedExternal(
     remoteName: RemoteName,
     sharedInfo: SharedInfo,
@@ -95,6 +111,7 @@ export function createProcessRemoteEntries(
     const remote: SharedVersionMeta = {
       file: sharedInfo.outFileName,
       name: remoteName,
+      bundle: sharedInfo.bundle,
       strictVersion: sharedInfo.strictVersion,
       cached: false,
       requiredVersion: sharedInfo.requiredVersion || tag,
@@ -154,6 +171,7 @@ export function createProcessRemoteEntries(
     ports.scopedExternalsRepo.addExternal(scope, sharedInfo.packageName, {
       tag: sharedInfo.version ?? ports.versionCheck.smallestVersion(sharedInfo.requiredVersion),
       file: sharedInfo.outFileName,
+      bundle: sharedInfo.bundle,
     } as ScopedVersion);
   }
 }

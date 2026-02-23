@@ -3,23 +3,18 @@ import { ScopedVersion, SharedVersion, SharedVersionAction, SharedVersionMeta } 
 export const mockVersionRemote = (
   name: string,
   external: string = 'test-dep',
-  options: {
-    requiredVersion?: string;
-    strictVersion?: boolean;
-    cached?: boolean;
-    host?: boolean;
-    file?: string;
-  } = {}
+  options: Partial<SharedVersionMeta> = {}
 ): SharedVersionMeta => ({
   file: options.file ?? `${external}.js`,
   name,
   requiredVersion: options.requiredVersion || '~2.1.0',
   strictVersion: options.strictVersion ?? true,
   cached: options.cached ?? false,
+  bundle: options.bundle,
 });
 
 type mockSharedVersionOptions = {
-  remotes: string[] | Record<string, any>;
+  remotes: string[] | Record<string, Partial<SharedVersionMeta> & { host?: boolean }>;
   host?: boolean;
   action?: SharedVersionAction;
 };
