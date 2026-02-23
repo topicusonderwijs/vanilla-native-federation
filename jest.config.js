@@ -39,5 +39,5 @@ module.exports = {
     '!src/lib/6.mocks/**/*',
   ],
   clearMocks: true,
-  cache: true,
+  cache: false,
 };
