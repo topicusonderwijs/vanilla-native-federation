@@ -34,7 +34,7 @@ importers:
         specifier: ^7.7.0
         version: 7.7.1
       '@typescript-eslint/eslint-plugin':
-        specifier: ^8.30.1
+        specifier: ^8.56.0
         version: 8.56.0(@typescript-eslint/parser@8.56.0(eslint@9.39.2)(typescript@5.9.3))(eslint@9.39.2)(typescript@5.9.3)
       '@typescript-eslint/parser':
         specifier: ^8.30.1

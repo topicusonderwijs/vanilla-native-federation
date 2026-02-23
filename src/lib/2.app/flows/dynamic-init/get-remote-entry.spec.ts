@@ -11,7 +11,7 @@ import { mockScopeUrl_MFE1 } from 'lib/6.mocks/domain/scope-url.mock';
 describe('createGetRemoteEntry', () => {
   let getRemoteEntry: ForGettingRemoteEntry;
   let config: any;
-  let adapters: Pick<DrivingContract, 'remoteEntryProvider' | 'remoteInfoRepo'>;
+  let adapters: Pick<DrivingContract, 'remoteEntryProvider' | 'remoteInfoRepo' | 'sse'>;
 
   beforeEach(() => {
     config = mockConfig();

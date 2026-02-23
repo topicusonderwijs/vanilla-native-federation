@@ -7,6 +7,7 @@ import { mockVersionCheck } from './adapters/version-check.mock';
 import { mockManifestProvider } from './adapters/manifest-provider.mock';
 import { mockRemoteEntryProvider } from './adapters/remote-entry-provider.mock';
 import { mockChunkRepository } from './adapters/chunk.repository.mock';
+import { mockSSE } from './adapters/sse.mock';
 
 export const mockAdapters = (): DrivingContract => ({
   remoteInfoRepo: mockRemoteInfoRepository(),
@@ -17,4 +18,5 @@ export const mockAdapters = (): DrivingContract => ({
   browser: mockBrowser(),
   manifestProvider: mockManifestProvider(),
   remoteEntryProvider: mockRemoteEntryProvider(),
+  sse: mockSSE(),
 });

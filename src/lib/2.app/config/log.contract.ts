@@ -18,9 +18,11 @@ export type LogHandler = Logger & {
 
 export type LoggingConfig = {
   log: LogHandler;
+  sse: boolean;
 };
 
 export type LoggingOptions = {
   logger?: Logger;
   logLevel?: LogType;
+  sse?: boolean;
 };

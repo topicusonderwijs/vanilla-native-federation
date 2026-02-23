@@ -28,6 +28,7 @@ describe('createBrowser', () => {
     mockConfig = {
       loadModuleFn: mockLoadModuleFn,
       setImportMapFn: mockSetImportMap,
+      reloadBrowserFn: jest.fn(),
     };
 
     browser = createBrowser(mockConfig);
