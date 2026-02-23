@@ -8,10 +8,7 @@ import { mockConfig } from 'lib/6.mocks/config.mock';
 describe('createCommitChanges', () => {
   let commitChanges: ForCommittingChanges;
   let config: LoggingConfig;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo' | 'browser'
-  >;
+  let adapters: DrivingContract;
 
   beforeEach(() => {
     config = mockConfig();
@@ -25,6 +22,7 @@ describe('createCommitChanges', () => {
     expect(adapters.remoteInfoRepo.commit).toHaveBeenCalled();
     expect(adapters.scopedExternalsRepo.commit).toHaveBeenCalled();
     expect(adapters.sharedExternalsRepo.commit).toHaveBeenCalled();
+    expect(adapters.sharedChunksRepo.commit).toHaveBeenCalled();
   });
 
   it('should add the importmap to the browser', async () => {

@@ -15,10 +15,7 @@ import { mockSharedInfo } from 'lib/6.mocks/domain/remote-entry/shared-info.mock
 describe('createProcessRemoteEntries', () => {
   let processRemoteEntries: ForProcessingRemoteEntries;
   let config: LoggingConfig & ModeConfig;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'sharedExternalsRepo' | 'scopedExternalsRepo' | 'versionCheck'
-  >;
+  let adapters: DrivingContract;
 
   beforeEach(() => {
     config = mockConfig();

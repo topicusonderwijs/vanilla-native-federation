@@ -23,10 +23,7 @@ import {
 
 describe('createGenerateImportMap (shared-externals)', () => {
   let generateImportMap: ForGeneratingImportMap;
-  let adapters: Pick<
-    DrivingContract,
-    'remoteInfoRepo' | 'scopedExternalsRepo' | 'sharedExternalsRepo'
-  >;
+  let adapters: DrivingContract;
   let config: LoggingConfig & ModeConfig;
 
   beforeEach(() => {

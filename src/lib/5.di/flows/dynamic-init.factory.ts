@@ -18,7 +18,7 @@ export const createDynamicInitDrivers = ({
 }): DynamicInitDriversContract => ({
   getRemoteEntry: createGetRemoteEntry(config, adapters),
   updateCache: createUpdateCache(config, adapters),
-  convertToImportMap: createConvertToImportMap(config),
+  convertToImportMap: createConvertToImportMap(config, adapters),
   commitChanges: createCommitChanges(config, adapters),
 });
 
