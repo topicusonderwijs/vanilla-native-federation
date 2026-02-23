@@ -18,13 +18,14 @@
     "url": "https://github.com/topicusonderwijs/vanilla-native-federation.git"
   },
   "pnpm": {
-    "overrides": {
-      "js-yaml": ">=4.1.1"
-    }
+    "overrides": { }
   },
   "license": "MIT",
   "devDependencies": {
     "@softarc/native-federation-runtime": "^3.0.2",
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
+    "@babel/preset-typescript": "^7.28.5",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
     "@types/semver": "^7.7.0",
@@ -40,7 +41,7 @@
     "json5": "^2.2.3",
     "serve": "^14.2.4",
     "systemjs": "^6.15.1",
-    "ts-jest": "^29.3.2",
+    "babel-jest": "^30.2.0",
     "typescript": "^5.8.3"
   },
   "sideEffects": false,
