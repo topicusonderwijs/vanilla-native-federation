@@ -1,5 +1,8 @@
 # vanilla-native-federation
 
+> [!IMPORTANT]
+> **This package will be deprecated soon.** The project is being integrated into native-federation starting with v4. You can find and try out the new orchestrator at https://github.com/native-federation/orchestrator
+
 A lightweight **runtime micro frontend orchestrator** that loads micro frontends built with native federation into any web page. It can cache dependencies across page reloads, making it perfect for traditional server-rendered hosts (PHP, Java, Rails, etc.) that refresh on navigation.
 
 [![Verify library](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml/badge.svg)](https://github.com/topicusonderwijs/vanilla-native-federation/actions/workflows/verify-code.yaml)
@@ -63,7 +66,7 @@ Get up and running in under 2 minutes:
     </script>
 
     <!-- Include the orchestrator runtime -->
-    <script src="https://unpkg.com/vanilla-native-federation@1.1.5/quickstart.mjs"></script>
+    <script src="https://unpkg.com/vanilla-native-federation@1.2.0/quickstart.mjs"></script>
   </head>
   <body>
     <!-- Use your loaded components -->
@@ -81,7 +84,7 @@ Your micro frontends are now loaded and ready to use. The runtime handles the wh
 
 ```html
 <!-- Development and quick testing -->
-<script src="https://unpkg.com/vanilla-native-federation@1.1.5/quickstart.mjs"></script>
+<script src="https://unpkg.com/vanilla-native-federation@1.2.0/quickstart.mjs"></script>
 ```
 
 ## Advanced Usage
