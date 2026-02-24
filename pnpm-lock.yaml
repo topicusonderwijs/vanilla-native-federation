@@ -22,8 +22,8 @@ importers:
         specifier: ^7.28.5
         version: 7.28.5(@babel/core@7.29.0)
       '@softarc/native-federation':
-        specifier: 4.0.0-RC4
-        version: 4.0.0-RC4(typescript@5.9.3)
+        specifier: 4.0.0-RC5
+        version: 4.0.0-RC5(typescript@5.9.3)
       '@types/jest':
         specifier: ^30.0.0
         version: 30.0.0
@@ -1071,8 +1071,8 @@ packages:
   '@sinonjs/fake-timers@13.0.5':
     resolution: {integrity: sha512-36/hTbH2uaWuGVERyC6da9YwGWnzUZXuPro/F2LfsdOsLnCojz/iSH8MxUt/FD2S5XBSVPhmArFUXcpCQ2Hkiw==}
 
-  '@softarc/native-federation@4.0.0-RC4':
-    resolution: {integrity: sha512-7opJ2Fzhi2mMKcbHbCQEbhC1ToWuSiY/8O3E1hGTMxMuHyJVSKAFraFCOJ81YEK2Z/PYFI5tGnAFFsnqX4ixAw==}
+  '@softarc/native-federation@4.0.0-RC5':
+    resolution: {integrity: sha512-pEIqrYuzoWKJaCp7YsZaWTAgDLLBlUf0+y3ThJvYYbJ4Q0iNWrj/nHIKM9s8rW7mOpHITdchpXHxnaXxj7rKuw==}
 
   '@softarc/sheriff-core@0.19.6':
     resolution: {integrity: sha512-KACxHG9sS7kNWgnnBODzdr14kMLMrJVlQKc+tViUP03p2fRwNhESOA49bz51Yn7dro1mbtMmmFjICLmZSJDZZA==}
@@ -3992,7 +3992,7 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@softarc/native-federation@4.0.0-RC4(typescript@5.9.3)':
+  '@softarc/native-federation@4.0.0-RC5(typescript@5.9.3)':
     dependencies:
       '@softarc/sheriff-core': 0.19.6(typescript@5.9.3)
       chalk: 5.6.2
@@ -4368,7 +4368,7 @@ snapshots:
     dependencies:
       ansi-align: 3.0.1
       camelcase: 7.0.1
-      chalk: 5.0.1
+      chalk: 5.6.2
       cli-boxes: 3.0.0
       string-width: 5.1.2
       type-fest: 2.19.0
