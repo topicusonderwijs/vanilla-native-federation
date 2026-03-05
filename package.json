@@ -18,7 +18,7 @@
     "url": "https://github.com/topicusonderwijs/vanilla-native-federation.git"
   },
   "pnpm": {
-    "overrides": { }
+
   },
   "license": "MIT",
   "devDependencies": {
@@ -40,8 +40,6 @@
     "jest": "^30.0.0",
     "jest-environment-jsdom": "^30.0.0",
     "json5": "^2.2.3",
-    "serve": "^14.2.4",
-    "systemjs": "^6.15.1",
     "typescript": "^5.8.3"
   },
   "sideEffects": false,

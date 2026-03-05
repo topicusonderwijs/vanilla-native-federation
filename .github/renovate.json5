@@ -3,7 +3,9 @@
     'local>topicusonderwijs/renovate-config:default.json5',
     'local>topicusonderwijs/renovate-config:npm.json5',
   ],
+  rebaseWhen: 'conflicted',
   platformAutomerge: true,
+  postUpdateOptions: ['pnpmDedupe'],
   packageRules: [
     {
       matchUpdateTypes: ['minor', 'patch'],
