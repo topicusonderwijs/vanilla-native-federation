@@ -1,11 +1,13 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "name": "vanilla-native-federation",
   "author": "aukevanoost",
+  "deprecated": "This package is deprecated. Please migrate to @softarc/native-federation-orchestrator. See https://github.com/native-federation/orchestrator",
   "keywords": [
     "native-federation",
     "native-federation-runtime",
-    "micro-frontends"
+    "micro-frontends",
+    "deprecated"
   ],
   "scripts": {
     "build": "node build.js",

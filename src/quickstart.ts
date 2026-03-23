@@ -5,6 +5,13 @@ import { consoleLogger } from 'lib/4.config/logging/console.logger';
 import { useShimImportMap } from 'lib/4.config/import-map/use-import-shim';
 import type { NFEventRegistry } from 'lib/1.domain/registry/event-registry.contract';
 
+console.warn(`
+[vanilla-native-federation] DEPRECATION WARNING:
+This package is deprecated and will no longer receive updates.
+Please migrate to @softarc/native-federation-orchestrator which now includes the orchestrator.
+See: https://github.com/native-federation/orchestrator
+`);
+
 (async () => {
   let manifest: Record<string, string> | undefined | string = undefined;
 
